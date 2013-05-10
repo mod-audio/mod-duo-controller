@@ -9,11 +9,16 @@ extern unsigned int _end_data;
 extern unsigned int _start_bss;
 extern unsigned int _end_bss;
 extern unsigned int _end;
- 
+
 /* extern functions */
 extern int main(void);
 extern void SystemInit(void);
- 
+
+/* FreeRTOS interrupt handlers */
+extern void vPortSVCHandler( void );
+extern void xPortPendSVHandler(void);
+extern void xPortSysTickHandler(void);
+
 /* Cortex M3 core interrupt handlers */
 void Reset_Handler(void);
 void NMI_Handler(void) __attribute__ ((weak, alias ("Dummy_Handler")));
@@ -63,10 +68,10 @@ void PLL1_IRQHandler(void) __attribute__ ((weak, alias ("Dummy_Handler")));
 
 /* prototypes */
 void Dummy_Handler(void);
- 
+
 /* interrupt vector table */
 void *vector_table[] __attribute__ ((section(".vectors"))) = {
-    
+
     /* ARM Cortex-M3 interrupt vectors */
     &_end_stack,
     Reset_Handler,
@@ -79,12 +84,12 @@ void *vector_table[] __attribute__ ((section(".vectors"))) = {
     0,
     0,
     0,
-    SVC_Handler,
+    vPortSVCHandler,
     DebugMon_Handler,
     0,
-    PendSV_Handler,
-    SysTick_Handler,
- 
+    xPortPendSVHandler,
+    xPortSysTickHandler,
+
     /* LPC1768 specific interrupt vectors */
     WDT_IRQHandler,
     TIMER0_IRQHandler,
@@ -122,23 +127,23 @@ void *vector_table[] __attribute__ ((section(".vectors"))) = {
 };
 
 /* startup function */
-void Reset_Handler(void) 
+void Reset_Handler(void)
 {
     unsigned int *src, *dst;
-     
+
     /* Copy data section from flash to RAM */
     src = &_end_text;
     dst = &_start_data;
     while (dst < &_end_data)
        *dst++ = *src++;
- 
+
     /* Clear the bss section */
     dst = &_start_bss;
     while (dst < &_end)
         *dst++ = 0;
-     
+
     SystemInit();
-    
+
     main();
 }
 

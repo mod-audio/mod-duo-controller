@@ -14,21 +14,23 @@ APP_INC 	= ./app/inc
 APP_SRC 	= ./app/src
 CMSIS_INC 	= ./cmsis/inc
 CMSIS_SRC	= ./cmsis/src
+RTOS_SRC	= ./freertos/src
+RTOS_INC	= ./freertos/inc
 OUT_DIR		= ./out
 
 # C source files
-SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c)
+SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c)
 
 # Object files
 OBJ = $(SRC:.c=.o)
 
 # include directories
-INC = $(APP_INC) $(CMSIS_INC)
+INC = $(APP_INC) $(CMSIS_INC) $(RTOS_INC)
 
 # C flags
 CFLAGS += -mcpu=$(MCU)
 CFLAGS += -Wall -Wextra -Werror -Wpointer-arith -Wredundant-decls
-CFLAGS += -Wcast-align -Wcast-qual
+#CFLAGS += -Wcast-align -Wcast-qual
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUT_DIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 CFLAGS += -MMD -MP -MF $(OUT_DIR)/dep/$(@F).d
 CFLAGS += -I. $(patsubst %,-I%,$(INC))
