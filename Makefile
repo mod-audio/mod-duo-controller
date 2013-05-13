@@ -16,16 +16,21 @@ CMSIS_INC 	= ./cmsis/inc
 CMSIS_SRC	= ./cmsis/src
 RTOS_SRC	= ./freertos/src
 RTOS_INC	= ./freertos/inc
+PDL_INC 	= ./pdl/inc
+PDL_SRC 	= ./pdl/src
 OUT_DIR		= ./out
 
+# Used PDL drivers
+PDL = lpc177x_8x_gpio.c
+
 # C source files
-SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c)
+SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) $(addprefix $(PDL_SRC)/,$(PDL))
 
 # Object files
 OBJ = $(SRC:.c=.o)
 
 # include directories
-INC = $(APP_INC) $(CMSIS_INC) $(RTOS_INC)
+INC = $(APP_INC) $(CMSIS_INC) $(RTOS_INC) $(PDL_INC)
 
 # C flags
 CFLAGS += -mcpu=$(MCU)
