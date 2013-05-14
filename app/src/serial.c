@@ -17,10 +17,12 @@
 ************************************************************************************************************************
 */
 
-#define UART_COUNT  2
-#define UART0       ((LPC_UART_TypeDef *)LPC_UART0)
-#define UART1       ((LPC_UART_TypeDef *)LPC_UART1)
-#define UART2       ((LPC_UART_TypeDef *)LPC_UART2)
+#define UART_COUNT      2
+#define UART0           ((LPC_UART_TypeDef *)LPC_UART0)
+#define UART1           ((LPC_UART_TypeDef *)LPC_UART1)
+#define UART2           ((LPC_UART_TypeDef *)LPC_UART2)
+
+#define FIFO_LENGTH     8
 
 
 /*
@@ -82,6 +84,7 @@ typedef struct
 
 static UART_RING_BUFFER_T g_ringbuf[UART_COUNT];
 static uint8_t g_transmit_status[UART_COUNT];
+static void (*g_callback[UART_COUNT])(void *arg);
 
 
 /*
@@ -104,18 +107,18 @@ static uint8_t g_transmit_status[UART_COUNT];
 ************************************************************************************************************************
 */
 
-void uart_receive(uint8_t port)
+static void uart_receive(uint8_t port)
 {
-	uint8_t tmpc;
-	uint32_t rLen;
+	uint8_t tmpc, i = 0;
+	uint32_t len;
 
 	while(1)
     {
 		// Call UART read function in UART driver
-		rLen = UART_Receive(GET_UART(port), &tmpc, 1, NONE_BLOCKING);
+		len = UART_Receive(GET_UART(port), &tmpc, 1, NONE_BLOCKING);
 
         // If data received
-		if (rLen)
+		if (len)
         {
 			// Check if buffer is more space
             // If no more space, remaining character will be trimmed out
@@ -124,16 +127,17 @@ void uart_receive(uint8_t port)
 				g_ringbuf[port].rx[g_ringbuf[port].rx_head] = tmpc;
 				BUF_INCR(g_ringbuf[port].rx_head);
 			}
-
-            serial_send(port, &tmpc, 1);
 		}
 		// no more data
 		else break;
+
+        // leaves one byte on FIFO to force CTI interrupt
+        if (++i == (FIFO_LENGTH-1)) break;
 	}
 }
 
 
-void uart_transmit(uint8_t port)
+static void uart_transmit(uint8_t port)
 {
     LPC_UART_TypeDef *uart = GET_UART(port);
 
@@ -241,6 +245,8 @@ void serial_init(void)
         // - FIFO_ResetTxBuf = ENABLE
         // - FIFO_State = ENABLE
         UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
+
+        // FIFO Trigger = 8 bytes
         UARTFIFOConfigStruct.FIFO_Level = UART_FIFO_TRGLEV2;
 
         // Initialize FIFO for UART peripheral
@@ -264,6 +270,12 @@ void serial_init(void)
 }
 
 
+void serial_set_callback(uint8_t port, void (*receive_cb)(void *arg))
+{
+    g_callback[port] = receive_cb;
+}
+
+
 uint32_t serial_send(uint8_t port, uint8_t *txbuf, uint32_t buflen)
 {
     uint8_t *data = (uint8_t *) txbuf;
@@ -272,7 +284,7 @@ uint32_t serial_send(uint8_t port, uint8_t *txbuf, uint32_t buflen)
 
 	// Temporarily lock out UART transmit interrupts during this
     // read so the UART transmit interrupt won't cause problems
-    // with the index values */
+    // with the index values
     UART_IntConfig(uart, UART_INTCFG_THRE, DISABLE);
 
 	// Loop until transmit run buffer is full or until n_bytes
@@ -309,9 +321,44 @@ uint32_t serial_send(uint8_t port, uint8_t *txbuf, uint32_t buflen)
 }
 
 
+uint32_t serial_read(uint8_t port, uint8_t *rxbuf, uint32_t buflen)
+{
+    uint8_t *data = (uint8_t *) rxbuf;
+    uint32_t bytes = 0;
+    LPC_UART_TypeDef *uart = GET_UART(port);
+
+	// Temporarily lock out UART receive interrupts during this
+	// read so the UART receive interrupt won't cause problems
+	// with the index values
+	UART_IntConfig(uart, UART_INTCFG_RBR, DISABLE);
+
+	// Loop until receive buffer ring is empty or
+    // until max_bytes expires
+	while ((buflen > 0) && (!BUF_IS_EMPTY(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail)))
+	{
+		// Read data from ring buffer into user buffer
+		*data = g_ringbuf[port].rx[g_ringbuf[port].rx_tail];
+		data++;
+
+		// Update tail pointer
+		BUF_INCR(g_ringbuf[port].rx_tail);
+
+		// Increment data count and decrement buffer size count
+		bytes++;
+		buflen--;
+	}
+
+	// Re-enable UART interrupts
+	UART_IntConfig(uart, UART_INTCFG_RBR, ENABLE);
+
+    return bytes;
+}
+
+
 void UART0_IRQHandler(void)
 {
 	uint32_t intsrc, tmp, tmp1;
+    const uint8_t port = 0;
 
 	// Determine the interrupt source
 	intsrc = UART_GetIntId(UART0);
@@ -333,23 +380,19 @@ void UART0_IRQHandler(void)
 	// Receive Data Available or Character time-out
 	if ((tmp == UART_IIR_INTID_RDA) || (tmp == UART_IIR_INTID_CTI))
     {
-#if 0
+        uart_receive(port);
+
+        // Character time-out
         if (tmp == UART_IIR_INTID_CTI)
         {
-            serial_send(0, (uint8_t *) "[CTI]", 5);
+            g_callback[port]((void*)&port);
         }
-        else
-        {
-            serial_send(0, (uint8_t *) "[RDA]", 5);
-        }
-#endif
-        uart_receive(0);
 	}
 
 	// Transmit Holding Empty
 	if (tmp == UART_IIR_INTID_THRE)
     {
-        uart_transmit(0);
+        uart_transmit(port);
 	}
 }
 
@@ -357,6 +400,7 @@ void UART0_IRQHandler(void)
 void UART1_IRQHandler(void)
 {
 	uint32_t intsrc, tmp, tmp1;
+    const uint8_t port = 1;
 
 	// Determine the interrupt source
 	intsrc = UART_GetIntId(UART1);
@@ -378,13 +422,19 @@ void UART1_IRQHandler(void)
 	// Receive Data Available or Character time-out
 	if ((tmp == UART_IIR_INTID_RDA) || (tmp == UART_IIR_INTID_CTI))
     {
-        uart_receive(1);
+        uart_receive(port);
+
+        // Character time-out
+        if (tmp == UART_IIR_INTID_CTI)
+        {
+            g_callback[port]((void*)&port);
+        }
 	}
 
 	// Transmit Holding Empty
 	if (tmp == UART_IIR_INTID_THRE)
     {
-        uart_transmit(1);
+        uart_transmit(port);
 	}
 }
 
@@ -392,6 +442,7 @@ void UART1_IRQHandler(void)
 void UART2_IRQHandler(void)
 {
 	uint32_t intsrc, tmp, tmp1;
+    const uint8_t port = 2;
 
 	// Determine the interrupt source
 	intsrc = UART_GetIntId(UART2);
@@ -413,13 +464,19 @@ void UART2_IRQHandler(void)
 	// Receive Data Available or Character time-out
 	if ((tmp == UART_IIR_INTID_RDA) || (tmp == UART_IIR_INTID_CTI))
     {
-        uart_receive(2);
+        uart_receive(port);
+
+        // Character time-out
+        if (tmp == UART_IIR_INTID_CTI)
+        {
+            g_callback[port]((void*)&port);
+        }
 	}
 
 	// Transmit Holding Empty
 	if (tmp == UART_IIR_INTID_THRE)
     {
-        uart_transmit(2);
+        uart_transmit(port);
 	}
 }
 

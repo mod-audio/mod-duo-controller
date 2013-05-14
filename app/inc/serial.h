@@ -24,8 +24,8 @@
 ************************************************************************************************************************
 */
 
-#define SERIAL_0    0
-#define SERIAL_1    1
+#define SERIAL0     0
+#define SERIAL1     1
 
 
 /*
@@ -67,9 +67,11 @@
 */
 
 void serial_init(void);
+void serial_set_callback(uint8_t port, void (*receive_cb)(void *arg));
 uint32_t serial_send(uint8_t port, uint8_t *txbuf, uint32_t buflen);
+uint32_t serial_read(uint8_t port, uint8_t *rxbuf, uint32_t buflen);
 
-/* Handlers */
+// handlers
 void UART0_IRQHandler(void);
 void UART1_IRQHandler(void);
 void UART2_IRQHandler(void);

@@ -106,6 +106,15 @@ int main(void)
 ************************************************************************************************************************
 */
 
+static void serial_cb(void *arg)
+{
+    uint8_t buffer[32], *port = arg;
+    uint16_t len;
+
+    len = serial_read(*port, buffer, sizeof(buffer));
+    serial_send(*port, buffer, len);
+}
+
 static void hardware_setup(void)
 {
     volatile unsigned long delay;
@@ -139,6 +148,8 @@ static void hardware_setup(void)
 
     /* serial initialization */
     serial_init();
+    serial_set_callback(SERIAL0, serial_cb);
+    serial_set_callback(SERIAL1, serial_cb);
 }
 
 static void blink_led_task(void *pvParameters)
