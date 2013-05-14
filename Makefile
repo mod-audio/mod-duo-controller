@@ -21,7 +21,7 @@ PDL_SRC 	= ./pdl/src
 OUT_DIR		= ./out
 
 # Used PDL drivers
-PDL = lpc177x_8x_gpio.c
+PDL = lpc177x_8x_gpio.c lpc177x_8x_pinsel.c lpc177x_8x_clkpwr.c lpc177x_8x_uart.c
 
 # C source files
 SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) $(addprefix $(PDL_SRC)/,$(PDL))
