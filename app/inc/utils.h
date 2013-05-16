@@ -5,8 +5,8 @@
 ************************************************************************************************************************
 */
 
-#ifndef SERIAL_H
-#define SERIAL_H
+#ifndef UTILS_H
+#define UTILS_H
 
 
 /*
@@ -16,6 +16,7 @@
 */
 
 #include <stdint.h>
+#include "FreeRTOS.h"
 
 
 /*
@@ -24,9 +25,6 @@
 ************************************************************************************************************************
 */
 
-#define SERIAL0     0
-#define SERIAL1     1
-
 
 /*
 ************************************************************************************************************************
@@ -34,18 +32,8 @@
 ************************************************************************************************************************
 */
 
-// buffer size
-#define SERIAL_BUFFER_SIZE      256
-
-// baud-rates
-#define SERIAL0_BAUDRATE        115200
-#define SERIAL1_BAUDRATE        115200
-
-// priorities
-// The serial ISR use freeRTOS API so the priorities values must be
-// equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
-#define SERIAL0_PRIORITY        6
-#define SERIAL1_PRIORITY        7
+#define MALLOC(n)   pvPortMalloc(n)
+#define FREE(n)     vPortFree(n)
 
 
 /*
@@ -53,12 +41,6 @@
 *           DATA TYPES
 ************************************************************************************************************************
 */
-
-typedef struct SERIAL_MSG_T {
-    uint8_t port;
-    uint8_t *data;
-    uint32_t data_size;
-} serial_msg_t;
 
 
 /*
@@ -81,15 +63,8 @@ typedef struct SERIAL_MSG_T {
 ************************************************************************************************************************
 */
 
-void serial_init(void);
-void serial_set_callback(uint8_t port, void (*receive_cb)(serial_msg_t *msg));
-uint32_t serial_send(uint8_t port, uint8_t *txbuf, uint32_t buflen);
-uint32_t serial_read(uint8_t port, uint8_t *rxbuf, uint32_t buflen);
-
-// handlers
-void UART0_IRQHandler(void);
-void UART1_IRQHandler(void);
-void UART2_IRQHandler(void);
+char** string_split(char *str, const char token);
+uint32_t list_length(char **list);
 
 
 /*

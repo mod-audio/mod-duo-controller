@@ -5,8 +5,8 @@
 ************************************************************************************************************************
 */
 
-#ifndef SERIAL_H
-#define SERIAL_H
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
 
 
 /*
@@ -15,7 +15,7 @@
 ************************************************************************************************************************
 */
 
-#include <stdint.h>
+#include "serial.h"
 
 
 /*
@@ -24,9 +24,6 @@
 ************************************************************************************************************************
 */
 
-#define SERIAL0     0
-#define SERIAL1     1
-
 
 /*
 ************************************************************************************************************************
@@ -34,18 +31,16 @@
 ************************************************************************************************************************
 */
 
-// buffer size
-#define SERIAL_BUFFER_SIZE      256
+#define PROTOCOL_MAX_COMMANDS           10
 
-// baud-rates
-#define SERIAL0_BAUDRATE        115200
-#define SERIAL1_BAUDRATE        115200
+// error messages configuration
+#define MESSAGE_COMMAND_NOT_FOUND       "not found"
+#define MESSAGE_MANY_ARGUMENTS          "many arguments"
+#define MESSAGE_FEW_ARGUMENTS           "few arguments"
+#define MESSAGE_INVALID_ARGUMENT        "invalid argument"
 
-// priorities
-// The serial ISR use freeRTOS API so the priorities values must be
-// equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
-#define SERIAL0_PRIORITY        6
-#define SERIAL1_PRIORITY        7
+// defines the function to send responses to sender
+#define SEND_TO_SENDER(id,msg,len)      serial_send((uint8_t)id,(uint8_t*)msg,len)
 
 
 /*
@@ -54,11 +49,20 @@
 ************************************************************************************************************************
 */
 
-typedef struct SERIAL_MSG_T {
-    uint8_t port;
-    uint8_t *data;
+// This struct is used on callbacks argument
+typedef struct PROTO_T {
+    char **list;
+    uint32_t list_count;
+    char *response;
+    uint32_t response_size;
+} proto_t;
+
+// This struct must be used to pass a message to protocol parser
+typedef struct MSG_T {
+    int sender_id;
+    char *data;
     uint32_t data_size;
-} serial_msg_t;
+} msg_t;
 
 
 /*
@@ -81,15 +85,9 @@ typedef struct SERIAL_MSG_T {
 ************************************************************************************************************************
 */
 
-void serial_init(void);
-void serial_set_callback(uint8_t port, void (*receive_cb)(serial_msg_t *msg));
-uint32_t serial_send(uint8_t port, uint8_t *txbuf, uint32_t buflen);
-uint32_t serial_read(uint8_t port, uint8_t *rxbuf, uint32_t buflen);
-
-// handlers
-void UART0_IRQHandler(void);
-void UART1_IRQHandler(void);
-void UART2_IRQHandler(void);
+void protocol_parse(msg_t *msg);
+void protocol_add_command(const char *command, void (*callback)(proto_t *proto));
+void protocol_response(const char *response, proto_t *proto);
 
 
 /*

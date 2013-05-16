@@ -36,6 +36,11 @@ const uint32_t BAUDRATE[] = {
     SERIAL1_BAUDRATE
 };
 
+const uint32_t PRIORITIES[] = {
+    SERIAL0_PRIORITY,
+    SERIAL1_PRIORITY
+};
+
 
 /*
 ************************************************************************************************************************
@@ -70,6 +75,8 @@ typedef struct
 #define BUF_RESET(bufidx)	        (bufidx = 0)
 // Increment buf
 #define BUF_INCR(bufidx)	        (bufidx = (bufidx+1) & __BUF_MASK)
+// Buf size
+#define BUF_SIZE(head,tail)	        ((head - tail) & __BUF_MASK)
 
 // Get uart port
 #define GET_UART(port)              (port == 0 ? UART0 : port == 1 ? UART1 : UART2)
@@ -84,7 +91,7 @@ typedef struct
 
 static UART_RING_BUFFER_T g_ringbuf[UART_COUNT];
 static uint8_t g_transmit_status[UART_COUNT];
-static void (*g_callback[UART_COUNT])(void *arg);
+static void (*g_callback[UART_COUNT])(serial_msg_t *msg);
 
 
 /*
@@ -261,8 +268,8 @@ void serial_init(void)
         // Enable UART line status interrupt
         UART_IntConfig(uart, UART_INTCFG_RLS, ENABLE);
 
-        // preemption = 1, sub-priority = 1
-        NVIC_SetPriority(GET_UART_IRQ(i), ((0x01<<3)|0x01));
+        // set priority
+        NVIC_SetPriority(GET_UART_IRQ(i), (PRIORITIES[i] << 3));
 
         // Enable Interrupt for UART channel
         NVIC_EnableIRQ(GET_UART_IRQ(i));
@@ -270,7 +277,7 @@ void serial_init(void)
 }
 
 
-void serial_set_callback(uint8_t port, void (*receive_cb)(void *arg))
+void serial_set_callback(uint8_t port, void (*receive_cb)(serial_msg_t *msg))
 {
     g_callback[port] = receive_cb;
 }
@@ -359,6 +366,7 @@ void UART0_IRQHandler(void)
 {
 	uint32_t intsrc, tmp, tmp1;
     const uint8_t port = 0;
+    serial_msg_t msg;
 
 	// Determine the interrupt source
 	intsrc = UART_GetIntId(UART0);
@@ -385,7 +393,9 @@ void UART0_IRQHandler(void)
         // Character time-out
         if (tmp == UART_IIR_INTID_CTI)
         {
-            g_callback[port]((void*)&port);
+            msg.port = port;
+            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail);
+            g_callback[port](&msg);
         }
 	}
 
@@ -401,6 +411,7 @@ void UART1_IRQHandler(void)
 {
 	uint32_t intsrc, tmp, tmp1;
     const uint8_t port = 1;
+    serial_msg_t msg;
 
 	// Determine the interrupt source
 	intsrc = UART_GetIntId(UART1);
@@ -427,7 +438,9 @@ void UART1_IRQHandler(void)
         // Character time-out
         if (tmp == UART_IIR_INTID_CTI)
         {
-            g_callback[port]((void*)&port);
+            msg.port = port;
+            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail);
+            g_callback[port](&msg);
         }
 	}
 
@@ -443,6 +456,7 @@ void UART2_IRQHandler(void)
 {
 	uint32_t intsrc, tmp, tmp1;
     const uint8_t port = 2;
+    serial_msg_t msg;
 
 	// Determine the interrupt source
 	intsrc = UART_GetIntId(UART2);
@@ -469,7 +483,9 @@ void UART2_IRQHandler(void)
         // Character time-out
         if (tmp == UART_IIR_INTID_CTI)
         {
-            g_callback[port]((void*)&port);
+            msg.port = port;
+            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail);
+            g_callback[port](&msg);
         }
 	}
 

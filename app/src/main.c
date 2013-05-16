@@ -5,12 +5,19 @@
 ************************************************************************************************************************
 */
 
+#include <string.h>
+#include <stdio.h>
+
 #include "LPC177x_8x.h"
-#include "FreeRTOS.h"
-#include "task.h"
 #include "lpc177x_8x_gpio.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+
+#include "utils.h"
 #include "serial.h"
+#include "protocol.h"
 
 
 /*
@@ -53,6 +60,8 @@
 ************************************************************************************************************************
 */
 
+static xQueueHandle g_serial_queue;
+
 
 /*
 ************************************************************************************************************************
@@ -61,7 +70,12 @@
 */
 
 static void hardware_setup(void);
+static void serial_cb(serial_msg_t *msg);
 static void blink_led_task(void *pvParameters);
+static void procotol_parser_task(void *pvParameters);
+
+static void say_cb(proto_t *proto);
+static void led_cb(proto_t *proto);
 
 
 /*
@@ -89,8 +103,12 @@ int main(void)
     /* initialize hardware */
     hardware_setup();
 
-    /* create task to blink led */
-    xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, (void *)NULL, tskIDLE_PRIORITY, NULL);
+    g_serial_queue = xQueueCreate(5, sizeof(serial_msg_t *));
+
+
+    /* create tasks */
+    xTaskCreate(blink_led_task, (signed char *)"Blink led", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    xTaskCreate(procotol_parser_task, (signed char *)"Protocol parser", 1000, NULL, 2, NULL);
 
     /* Start the scheduler. */
     vTaskStartScheduler();
@@ -105,15 +123,6 @@ int main(void)
 *           LOCAL FUNCTIONS
 ************************************************************************************************************************
 */
-
-static void serial_cb(void *arg)
-{
-    uint8_t buffer[32], *port = arg;
-    uint16_t len;
-
-    len = serial_read(*port, buffer, sizeof(buffer));
-    serial_send(*port, buffer, len);
-}
 
 static void hardware_setup(void)
 {
@@ -150,7 +159,41 @@ static void hardware_setup(void)
     serial_init();
     serial_set_callback(SERIAL0, serial_cb);
     serial_set_callback(SERIAL1, serial_cb);
+
+    /* protocol definitions */
+    protocol_add_command("say %s", say_cb);
+    protocol_add_command("led %i %i", led_cb);
 }
+
+// this callback is called from a ISR
+static void serial_cb(serial_msg_t *msg)
+{
+    serial_msg_t *msg_copy;
+
+    // does a copy of message
+    msg_copy = pvPortMalloc(sizeof(serial_msg_t));
+    if (!msg_copy) while (1);
+    memcpy(msg_copy, msg, sizeof(serial_msg_t));
+
+    // allocate memory to store the message
+    msg_copy->data = pvPortMalloc(msg->data_size);
+    if (!msg_copy->data) while (1);
+
+    // read the message
+    serial_read(msg_copy->port, msg_copy->data, msg_copy->data_size);
+
+    // sends the message to queue
+    portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendFromISR(g_serial_queue, &msg_copy, &xHigherPriorityTaskWoken);
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+
+
+/*
+************************************************************************************************************************
+*           TASKS
+************************************************************************************************************************
+*/
 
 static void blink_led_task(void *pvParameters)
 {
@@ -159,14 +202,55 @@ static void blink_led_task(void *pvParameters)
     while(1)
     {
         GPIO_SetValue(3, (1 << PIN_LED1));
-        GPIO_SetValue(3, (1 << PIN_LED2));
-        LPC_GPIO3->CLR = (1 << PIN_LED3);
+        GPIO_ClearValue(3, (1 << PIN_LED2));
         vTaskDelay(500/portTICK_RATE_MS);
 
         GPIO_ClearValue(3, (1 << PIN_LED1));
-        GPIO_ClearValue(3, (1 << PIN_LED2));
-        LPC_GPIO3->SET = (1 << PIN_LED3);
+        GPIO_SetValue(3, (1 << PIN_LED2));
         vTaskDelay(500/portTICK_RATE_MS);
     }
+}
+
+
+static void procotol_parser_task(void *pvParameters)
+{
+    msg_t proto_msg;
+    serial_msg_t *serial_msg;
+
+    UNUSED_PARAM(pvParameters);
+
+    while(1)
+    {
+        // take the message from queue
+        xQueueReceive(g_serial_queue, &serial_msg, portMAX_DELAY);
+
+        // convert serial_msg to proto_msg
+        proto_msg.sender_id = (int) serial_msg->port;
+        proto_msg.data = (char *) serial_msg->data;
+        proto_msg.data_size = (uint32_t) serial_msg->data_size;
+        protocol_parse(&proto_msg);
+
+        // free the memory
+        vPortFree(serial_msg->data);
+        vPortFree(serial_msg);
+    }
+}
+
+
+/*
+************************************************************************************************************************
+*           PROTOCOL CALLBACKS
+************************************************************************************************************************
+*/
+
+static void say_cb(proto_t *proto)
+{
+    protocol_response("say_cb", proto);
+}
+
+
+static void led_cb(proto_t *proto)
+{
+    protocol_response("led_cb", proto);
 }
 
