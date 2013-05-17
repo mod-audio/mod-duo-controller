@@ -18,19 +18,25 @@ RTOS_SRC	= ./freertos/src
 RTOS_INC	= ./freertos/inc
 PDL_INC 	= ./pdl/inc
 PDL_SRC 	= ./pdl/src
+DRIVERS_INC	= ./drivers/inc
+DRIVERS_SRC	= ./drivers/src
 OUT_DIR		= ./out
 
 # Used PDL drivers
-PDL = lpc177x_8x_gpio.c lpc177x_8x_pinsel.c lpc177x_8x_clkpwr.c lpc177x_8x_uart.c
+PDL = lpc177x_8x_gpio.c lpc177x_8x_pinsel.c lpc177x_8x_clkpwr.c lpc177x_8x_uart.c lpc177x_8x_timer.c
 
 # C source files
-SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) $(addprefix $(PDL_SRC)/,$(PDL))
+SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) \
+	  $(addprefix $(PDL_SRC)/,$(PDL)) $(wildcard $(DRIVERS_SRC)/*.c)
 
 # Object files
 OBJ = $(SRC:.c=.o)
 
 # include directories
-INC = $(APP_INC) $(CMSIS_INC) $(RTOS_INC) $(PDL_INC)
+INC = $(APP_INC) $(CMSIS_INC) $(RTOS_INC) $(PDL_INC) $(DRIVERS_INC)
+
+# build again when changes this files
+BUILD_ON_CHANGE = Makefile $(APP_INC)/config.h
 
 # C flags
 CFLAGS += -mcpu=$(MCU)
@@ -85,7 +91,7 @@ createdirs:
 	$(NM) -n $< > $@
 
 # Link: create ELF output file from object files.
-%.elf: $(OBJ)
+%.elf: $(OBJ) $(BUILD_ON_CHANGE)
 	$(CC) $(THUMB) $(CFLAGS) $(OBJ) --output $@ -nostartfiles $(LDFLAGS)
 
 %.o: %.c
