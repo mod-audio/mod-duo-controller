@@ -64,7 +64,7 @@
 */
 
 char** string_split(char *str, const char token);
-uint32_t list_length(char **list);
+uint32_t array_length(char **str_array);
 
 
 /*

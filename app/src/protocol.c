@@ -109,7 +109,7 @@ void protocol_parse(msg_t *msg)
     proto_t proto;
 
     proto.list = string_split(msg->data, ' ');
-    proto.list_count = list_length(proto.list);
+    proto.list_count = array_length(proto.list);
     proto.response = NULL;
 
     /* TODO: few arguments, many arguments, check invalid argument (wildcards) */
@@ -169,7 +169,7 @@ void protocol_add_command(const char *command, void (*callback)(proto_t *proto))
 
     char *cmd = strdup(command);
     g_commands[g_index].list = string_split(cmd, ' ');
-    g_commands[g_index].count = list_length(g_commands[g_index].list);
+    g_commands[g_index].count = array_length(g_commands[g_index].list);
     g_commands[g_index].callback = callback;
     g_index++;
 }
