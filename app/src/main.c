@@ -41,48 +41,6 @@
 ************************************************************************************************************************
 */
 
-const uint8_t LEDS_RED_PORT[] = {
-    LED1_RED_PORT,
-    LED2_RED_PORT,
-    LED3_RED_PORT,
-    LED4_RED_PORT,
-};
-
-const uint8_t LEDS_RED_PIN[] = {
-    LED1_RED_PIN,
-    LED2_RED_PIN,
-    LED3_RED_PIN,
-    LED4_RED_PIN,
-};
-
-const uint8_t LEDS_GREEN_PORT[] = {
-    LED1_GREEN_PORT,
-    LED2_GREEN_PORT,
-    LED3_GREEN_PORT,
-    LED4_GREEN_PORT,
-};
-
-const uint8_t LEDS_GREEN_PIN[] = {
-    LED1_GREEN_PIN,
-    LED2_GREEN_PIN,
-    LED3_GREEN_PIN,
-    LED4_GREEN_PIN,
-};
-
-const uint8_t LEDS_BLUE_PORT[] = {
-    LED1_BLUE_PORT,
-    LED2_BLUE_PORT,
-    LED3_BLUE_PORT,
-    LED4_BLUE_PORT,
-};
-
-const uint8_t LEDS_BLUE_PIN[] = {
-    LED1_BLUE_PIN,
-    LED2_BLUE_PIN,
-    LED3_BLUE_PIN,
-    LED4_BLUE_PIN,
-};
-
 static const uint8_t mod_mini[] = {
     32,
     32,
@@ -204,17 +162,10 @@ static void hardware_setup(void)
     for (delay = 0; delay < 5000000; delay++);
 
     // leds initialization
-    uint8_t i;
-    for (i = 0; i < LEDS_COUNT; i++)
-    {
-        leds[i].portR = LEDS_RED_PORT[i];
-        leds[i].pinR = LEDS_RED_PIN[i];
-        leds[i].portG = LEDS_GREEN_PORT[i];
-        leds[i].pinG = LEDS_GREEN_PIN[i];
-        leds[i].portB = LEDS_BLUE_PORT[i];
-        leds[i].pinB = LEDS_BLUE_PIN[i];
-        led_init(&leds[i]);
-    }
+    led_init(&leds[0], LED0_PINS);
+    led_init(&leds[1], LED1_PINS);
+    led_init(&leds[2], LED2_PINS);
+    led_init(&leds[3], LED3_PINS);
 
     // just for testing
     led_blink(&leds[0], 1000, 1000);

@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include "lpc177x_8x_gpio.h"
+#include "config.h"
 
 
 /*
@@ -41,11 +42,11 @@
 ************************************************************************************************************************
 */
 
-// leds amount
-#define MAX_LEDS    4
+// defines the max number of led_t variables (objects) that will be created
+#define MAX_LEDS                LEDS_COUNT // LEDS_COUNT is defined in config.h
 
 // defines the leds pwm clock in Hertz
-#define LEDS_PWM_CLOCK_Hz   20000
+#define LEDS_PWM_CLOCK_Hz       20000
 
 // defines if LED_TURN_ON_WITH_ZERO or LED_TURN_ON_WITH_ONE
 #define LED_TURN_ON_WITH_ZERO
@@ -66,11 +67,15 @@ typedef struct COLOR_T {
     uint8_t r, g, b;
 } color_t;
 
-typedef struct LED_T {
-    uint8_t control;
+typedef struct LED_PINS_T {
     uint8_t portR, pinR;
     uint8_t portG, pinG;
     uint8_t portB, pinB;
+} led_pins_t;
+
+typedef struct LED_T {
+    uint8_t control;
+    led_pins_t pins;
     color_t color;
     uint16_t time_on, time_off;
 } led_t;
@@ -82,7 +87,7 @@ typedef struct LED_T {
 ************************************************************************************************************************
 */
 
-void led_init(led_t *led);
+void led_init(led_t *led, const led_pins_t pins);
 void led_set_color(led_t *led, const color_t color);
 void led_blink(led_t *led, uint16_t time_on_ms, uint16_t time_off_ms);
 void leds_clock(void);

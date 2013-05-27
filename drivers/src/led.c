@@ -42,22 +42,22 @@
 */
 
 #if defined LED_TURN_ON_WITH_ZERO
-#define R_ON(led)       CLR_PIN(led->portR, led->pinR)
-#define G_ON(led)       CLR_PIN(led->portG, led->pinG)
-#define B_ON(led)       CLR_PIN(led->portB, led->pinB)
+#define R_ON(led)       CLR_PIN(led->pins.portR, led->pins.pinR)
+#define G_ON(led)       CLR_PIN(led->pins.portG, led->pins.pinG)
+#define B_ON(led)       CLR_PIN(led->pins.portB, led->pins.pinB)
 
-#define R_OFF(led)      SET_PIN(led->portR, led->pinR)
-#define G_OFF(led)      SET_PIN(led->portG, led->pinG)
-#define B_OFF(led)      SET_PIN(led->portB, led->pinB)
+#define R_OFF(led)      SET_PIN(led->pins.portR, led->pins.pinR)
+#define G_OFF(led)      SET_PIN(led->pins.portG, led->pins.pinG)
+#define B_OFF(led)      SET_PIN(led->pins.portB, led->pins.pinB)
 
 #elif defined LED_TURN_ON_WITH_ONE
-#define R_ON(led)       SET_PIN(led->portR, led->pinR)
-#define G_ON(led)       SET_PIN(led->portG, led->pinG)
-#define B_ON(led)       SET_PIN(led->portB, led->pinB)
+#define R_ON(led)       SET_PIN(led->pins.portR, led->pins.pinR)
+#define G_ON(led)       SET_PIN(led->pins.portG, led->pins.pinG)
+#define B_ON(led)       SET_PIN(led->pins.portB, led->pins.pinB)
 
-#define R_OFF(led)      CLR_PIN(led->portR, led->pinR)
-#define G_OFF(led)      CLR_PIN(led->portG, led->pinG)
-#define B_OFF(led)      CLR_PIN(led->portB, led->pinB)
+#define R_OFF(led)      CLR_PIN(led->pins.portR, led->pins.pinR)
+#define G_OFF(led)      CLR_PIN(led->pins.portG, led->pins.pinG)
+#define B_OFF(led)      CLR_PIN(led->pins.portB, led->pins.pinB)
 #endif
 
 #define BLINK_ENABLE(led)       (led->control |= (__BLINK))
@@ -112,12 +112,20 @@ static uint16_t g_counter_on[MAX_LEDS], g_counter_off[MAX_LEDS];
 ************************************************************************************************************************
 */
 
-void led_init(led_t *led)
+void led_init(led_t *led, const led_pins_t pins)
 {
+    // store the pins
+    led->pins.portR = pins.portR;
+    led->pins.portG = pins.portG;
+    led->pins.portB = pins.portB;
+    led->pins.pinR = pins.pinR;
+    led->pins.pinG = pins.pinG;
+    led->pins.pinB = pins.pinB;
+
     // pins direction configuration
-    CONFIG_PIN_OUTPUT(led->portR, led->pinR);
-    CONFIG_PIN_OUTPUT(led->portG, led->pinG);
-    CONFIG_PIN_OUTPUT(led->portB, led->pinB);
+    CONFIG_PIN_OUTPUT(pins.portR, pins.pinR);
+    CONFIG_PIN_OUTPUT(pins.portG, pins.pinG);
+    CONFIG_PIN_OUTPUT(pins.portB, pins.pinB);
 
     // store the led pointer
     g_leds[g_leds_count] = led;
