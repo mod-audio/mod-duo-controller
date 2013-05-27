@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include "lpc177x_8x_gpio.h"
+#include "config.h"
 
 
 /*
@@ -51,7 +52,7 @@
 */
 
 // display configuration
-#define DISPLAY_COUNT           4
+#define DISPLAY_COUNT           GLCD_COUNT // GLCD_COUNT is defined in config.h
 #define DISPLAY_WIDTH           128
 #define DISPLAY_HEIGHT          64
 #define DISPLAY_CHIP_COUNT      2
