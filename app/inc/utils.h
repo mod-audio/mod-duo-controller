@@ -66,6 +66,9 @@
 char** string_split(char *str, const char token);
 uint32_t array_length(char **str_array);
 
+uint32_t int_to_str(int32_t num, char *string, uint32_t string_size);
+uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t precision);
+
 
 /*
 ************************************************************************************************************************
