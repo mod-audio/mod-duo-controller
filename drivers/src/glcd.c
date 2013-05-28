@@ -13,6 +13,7 @@
 */
 
 #include "glcd.h"
+#include "fonts.h"
 
 
 /*
@@ -55,115 +56,6 @@
 ************************************************************************************************************************
 */
 
-// default font (system 5x7)
-static const uint8_t g_default_font[] = {
-    0x00, 0x00,     // size of zero indicates fixed width font, actual length is width * height
-    0x05,           // width
-    0x07,           // height
-    0x20,           // first char
-    0x60,           // char count
-
-    // Fixed width; char width table not used !!!!
-
-    // font data
-    0x00, 0x00, 0x00, 0x00, 0x00,// (space)
-    0x00, 0x00, 0x5F, 0x00, 0x00,// !
-    0x00, 0x07, 0x00, 0x07, 0x00,// "
-    0x14, 0x7F, 0x14, 0x7F, 0x14,// #
-    0x24, 0x2A, 0x7F, 0x2A, 0x12,// $
-    0x23, 0x13, 0x08, 0x64, 0x62,// %
-    0x36, 0x49, 0x55, 0x22, 0x50,// &
-    0x00, 0x05, 0x03, 0x00, 0x00,// '
-    0x00, 0x1C, 0x22, 0x41, 0x00,// (
-    0x00, 0x41, 0x22, 0x1C, 0x00,// )
-    0x08, 0x2A, 0x1C, 0x2A, 0x08,// *
-    0x08, 0x08, 0x3E, 0x08, 0x08,// +
-    0x00, 0x50, 0x30, 0x00, 0x00,// ,
-    0x08, 0x08, 0x08, 0x08, 0x08,// -
-    0x00, 0x60, 0x60, 0x00, 0x00,// .
-    0x20, 0x10, 0x08, 0x04, 0x02,// /
-    0x3E, 0x51, 0x49, 0x45, 0x3E,// 0
-    0x00, 0x42, 0x7F, 0x40, 0x00,// 1
-    0x42, 0x61, 0x51, 0x49, 0x46,// 2
-    0x21, 0x41, 0x45, 0x4B, 0x31,// 3
-    0x18, 0x14, 0x12, 0x7F, 0x10,// 4
-    0x27, 0x45, 0x45, 0x45, 0x39,// 5
-    0x3C, 0x4A, 0x49, 0x49, 0x30,// 6
-    0x01, 0x71, 0x09, 0x05, 0x03,// 7
-    0x36, 0x49, 0x49, 0x49, 0x36,// 8
-    0x06, 0x49, 0x49, 0x29, 0x1E,// 9
-    0x00, 0x36, 0x36, 0x00, 0x00,// :
-    0x00, 0x56, 0x36, 0x00, 0x00,// ;
-    0x00, 0x08, 0x14, 0x22, 0x41,// <
-    0x14, 0x14, 0x14, 0x14, 0x14,// =
-    0x41, 0x22, 0x14, 0x08, 0x00,// >
-    0x02, 0x01, 0x51, 0x09, 0x06,// ?
-    0x32, 0x49, 0x79, 0x41, 0x3E,// @
-    0x7E, 0x11, 0x11, 0x11, 0x7E,// A
-    0x7F, 0x49, 0x49, 0x49, 0x36,// B
-    0x3E, 0x41, 0x41, 0x41, 0x22,// C
-    0x7F, 0x41, 0x41, 0x22, 0x1C,// D
-    0x7F, 0x49, 0x49, 0x49, 0x41,// E
-    0x7F, 0x09, 0x09, 0x01, 0x01,// F
-    0x3E, 0x41, 0x41, 0x51, 0x32,// G
-    0x7F, 0x08, 0x08, 0x08, 0x7F,// H
-    0x00, 0x41, 0x7F, 0x41, 0x00,// I
-    0x20, 0x40, 0x41, 0x3F, 0x01,// J
-    0x7F, 0x08, 0x14, 0x22, 0x41,// K
-    0x7F, 0x40, 0x40, 0x40, 0x40,// L
-    0x7F, 0x02, 0x04, 0x02, 0x7F,// M
-    0x7F, 0x04, 0x08, 0x10, 0x7F,// N
-    0x3E, 0x41, 0x41, 0x41, 0x3E,// O
-    0x7F, 0x09, 0x09, 0x09, 0x06,// P
-    0x3E, 0x41, 0x51, 0x21, 0x5E,// Q
-    0x7F, 0x09, 0x19, 0x29, 0x46,// R
-    0x46, 0x49, 0x49, 0x49, 0x31,// S
-    0x01, 0x01, 0x7F, 0x01, 0x01,// T
-    0x3F, 0x40, 0x40, 0x40, 0x3F,// U
-    0x1F, 0x20, 0x40, 0x20, 0x1F,// V
-    0x7F, 0x20, 0x18, 0x20, 0x7F,// W
-    0x63, 0x14, 0x08, 0x14, 0x63,// X
-    0x03, 0x04, 0x78, 0x04, 0x03,// Y
-    0x61, 0x51, 0x49, 0x45, 0x43,// Z
-    0x00, 0x00, 0x7F, 0x41, 0x41,// [
-    0x02, 0x04, 0x08, 0x10, 0x20,// "\"
-    0x41, 0x41, 0x7F, 0x00, 0x00,// ]
-    0x04, 0x02, 0x01, 0x02, 0x04,// ^
-    0x40, 0x40, 0x40, 0x40, 0x40,// _
-    0x00, 0x01, 0x02, 0x04, 0x00,// `
-    0x20, 0x54, 0x54, 0x54, 0x78,// a
-    0x7F, 0x48, 0x44, 0x44, 0x38,// b
-    0x38, 0x44, 0x44, 0x44, 0x20,// c
-    0x38, 0x44, 0x44, 0x48, 0x7F,// d
-    0x38, 0x54, 0x54, 0x54, 0x18,// e
-    0x08, 0x7E, 0x09, 0x01, 0x02,// f
-    0x08, 0x14, 0x54, 0x54, 0x3C,// g
-    0x7F, 0x08, 0x04, 0x04, 0x78,// h
-    0x00, 0x44, 0x7D, 0x40, 0x00,// i
-    0x20, 0x40, 0x44, 0x3D, 0x00,// j
-    0x00, 0x7F, 0x10, 0x28, 0x44,// k
-    0x00, 0x41, 0x7F, 0x40, 0x00,// l
-    0x7C, 0x04, 0x18, 0x04, 0x78,// m
-    0x7C, 0x08, 0x04, 0x04, 0x78,// n
-    0x38, 0x44, 0x44, 0x44, 0x38,// o
-    0x7C, 0x14, 0x14, 0x14, 0x08,// p
-    0x08, 0x14, 0x14, 0x18, 0x7C,// q
-    0x7C, 0x08, 0x04, 0x04, 0x08,// r
-    0x48, 0x54, 0x54, 0x54, 0x20,// s
-    0x04, 0x3F, 0x44, 0x40, 0x20,// t
-    0x3C, 0x40, 0x40, 0x20, 0x7C,// u
-    0x1C, 0x20, 0x40, 0x20, 0x1C,// v
-    0x3C, 0x40, 0x30, 0x40, 0x3C,// w
-    0x44, 0x28, 0x10, 0x28, 0x44,// x
-    0x0C, 0x50, 0x50, 0x50, 0x3C,// y
-    0x44, 0x64, 0x54, 0x4C, 0x44,// z
-    0x00, 0x08, 0x36, 0x41, 0x00,// {
-    0x00, 0x00, 0x7F, 0x00, 0x00,// |
-    0x00, 0x41, 0x36, 0x08, 0x00,// }
-    0x08, 0x08, 0x2A, 0x1C, 0x08,// ->
-    0x08, 0x1C, 0x2A, 0x08, 0x08 // <-
-};
-
 
 /*
 ************************************************************************************************************************
@@ -194,8 +86,10 @@ static const uint8_t g_default_font[] = {
 #define CS2_OFF()                       CLR_PIN(GLCD_CS2_PORT, GLCD_CS2_PIN)
 
 // buffer macros
-#define READ_BUFFER(display,x,y)        g_buffer[display][(y/8)][x]
-#define WRITE_BUFFER(display,x,y,data)  g_buffer[display][(y/8)][x] = data
+#define READ_BUFFER(disp,x,y)           (((x) < DISPLAY_WIDTH && (y) < DISPLAY_HEIGHT) ? \
+                                        g_buffer[(disp)][((y)/8)][(x)] : 0)
+#define WRITE_BUFFER(disp,x,y,data)     if ((x) < DISPLAY_WIDTH && (y) < DISPLAY_HEIGHT) \
+                                        g_buffer[(disp)][((y)/8)][(x)] = (data)
 
 // backlight macros
 #if defined GLCD_BACKLIGHT_TURN_ON_WITH_ONE
@@ -209,9 +103,6 @@ static const uint8_t g_default_font[] = {
 // general purpose macros
 #define ABS_DIFF(a, b)                  ((a > b) ? (a - b) : (b - a))
 #define SWAP(a, b)                      do{uint8_t t; t = a; a = b; b = t;} while(0)
-
-// fonts macros
-#define FONT_IS_MONO_SPACED(font)       ((font)[FONT_LENGTH] == 0 && (font)[FONT_LENGTH+1] == 0)
 
 
 /*
@@ -341,6 +232,30 @@ static void write_instruction(uint8_t chip, uint8_t data)
     WRITE_PORT(GLCD_DATABUS_PORT, data);
     DELAY_ns(DELAY_AS);
     ENABLE_PULSE();
+}
+
+static uint8_t read_data(uint8_t display, uint8_t x, uint8_t y)
+{
+    uint8_t data, data_tmp, y_offset;
+
+    y_offset = (y % 8);
+
+    if (y_offset != 0)
+    {
+        // first page
+        data_tmp = READ_BUFFER(display, x, y);
+        data = (data_tmp >> y_offset);
+
+        // second page
+        data_tmp = READ_BUFFER(display, x, y+8);
+        data |= (data_tmp << (8 - y_offset));
+
+        return data;
+    }
+    else
+    {
+        return READ_BUFFER(display, x, y);
+    }
 }
 
 static void write_data(uint8_t display, uint8_t x, uint8_t y, uint8_t data)
@@ -485,8 +400,6 @@ void glcd_clear(uint8_t display, uint8_t color)
 
 void glcd_set_pixel(uint8_t display, uint8_t x, uint8_t y, uint8_t color)
 {
-    if ((x >= DISPLAY_WIDTH) || (y >= DISPLAY_HEIGHT)) return;
-
     uint8_t data;
     data = READ_BUFFER(display, x, y);
     if (color == GLCD_BLACK) data |= (0x01 << (y % 8));
@@ -513,7 +426,6 @@ void glcd_hline(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint8_t co
         i++;
 
         glcd_set_pixel(display, x++, y, tmp);
-        if (x >= DISPLAY_WIDTH) break;
     }
 }
 
@@ -536,7 +448,6 @@ void glcd_vline(uint8_t display, uint8_t x, uint8_t y, uint8_t height, uint8_t c
         i++;
 
         glcd_set_pixel(display, x, y++, tmp);
-        if (y >= DISPLAY_HEIGHT) break;
     }
 }
 
@@ -616,7 +527,6 @@ void glcd_rect_fill(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint8_
         i++;
 
         glcd_vline(display, x++, y, height, tmp);
-        if (x >= DISPLAY_WIDTH) break;
     }
 }
 
@@ -641,7 +551,6 @@ void glcd_rect_invert(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint
     for (i = 0; i < width; i++)
     {
         x_tmp = x + i;
-        if (x_tmp >= DISPLAY_WIDTH) break;
 
         data = READ_BUFFER(display, x_tmp, y);
         data_tmp = ~data;
@@ -658,7 +567,6 @@ void glcd_rect_invert(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint
         for (i = 0; i < width; i++)
         {
             x_tmp = x + i;
-            if (x_tmp >= DISPLAY_WIDTH) break;
 
             data = READ_BUFFER(display, x_tmp, y);
             WRITE_BUFFER(display, x_tmp, y, ~data);
@@ -674,7 +582,6 @@ void glcd_rect_invert(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint
         for (i = 0; i < width; i++)
         {
             x_tmp = x + i;
-            if (x_tmp >= DISPLAY_WIDTH) break;
 
             data = READ_BUFFER(display, x_tmp, y);
             data_tmp = ~data;
@@ -705,10 +612,11 @@ void glcd_draw_image(uint8_t display, uint8_t x, uint8_t y, const uint8_t *image
 
 void glcd_text(uint8_t display, uint8_t x, uint8_t y, const char *text, const uint8_t *font, uint8_t color)
 {
-    uint8_t i, j, x_tmp, y_tmp, c, bytes, data, mask;
+    uint8_t i, j, x_tmp, y_tmp, c, bytes, data;
     uint16_t char_data_index, page;
 
-    if (!font) font = g_default_font;
+    // default font
+    if (!font) font = FONT_DEFAULT;
     uint8_t width = font[FONT_FIXED_WIDTH];
     uint8_t height = font[FONT_HEIGHT];
     uint8_t first_char = font[FONT_FIRST_CHAR];
@@ -755,15 +663,11 @@ void glcd_text(uint8_t display, uint8_t x, uint8_t y, const char *text, const ui
                 // if is the last piece of character...
                 if (height > 8 && height < (j + 1) * 8)
                 {
-                    mask = 0xFF << ((y + height) % 8);
                     data >>= ((j + 1) * 8) - height;
-                    data |= (READ_BUFFER(display, x_tmp, y_tmp) & mask);
-                    WRITE_BUFFER(display, x_tmp, y_tmp, data);
+                    data = read_data(display, x_tmp, y_tmp) | data;
                 }
-                else
-                {
-                    write_data(display, x_tmp, y_tmp, data);
-                }
+
+                write_data(display, x_tmp, y_tmp, data);
 
                 x_tmp++;
             }
@@ -772,12 +676,11 @@ void glcd_text(uint8_t display, uint8_t x, uint8_t y, const char *text, const ui
             data = (color == GLCD_BLACK ? 0x00 : 0xFF);
             if (height > 8 && height < (j + 1) * 8)
             {
-                mask = 0xFF << ((y + height) % 8);
                 data >>= ((j + 1) * 8) - height;
-                data |= (READ_BUFFER(display, x_tmp, y_tmp) & mask);
-                WRITE_BUFFER(display, x_tmp, y_tmp, data);
+                data = read_data(display, x_tmp, y_tmp) | data;
             }
-            else if (((x + width) < DISPLAY_WIDTH) && (*(text + 1) != '\0'))
+
+            if (*(text + 1) != '\0')
             {
                 write_data(display, x_tmp, y_tmp, data);
             }
