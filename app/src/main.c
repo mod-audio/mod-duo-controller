@@ -145,10 +145,10 @@ static void hardware_setup(void)
     for (delay = 0; delay < 5000000; delay++);
 
     // leds initialization
-    led_init(&g_leds[0], LED0_PINS);
-    led_init(&g_leds[1], LED1_PINS);
-    led_init(&g_leds[2], LED2_PINS);
-    led_init(&g_leds[3], LED3_PINS);
+    led_init(&g_leds[0], (const led_pins_t)LED0_PINS);
+    led_init(&g_leds[1], (const led_pins_t)LED1_PINS);
+    led_init(&g_leds[2], (const led_pins_t)LED2_PINS);
+    led_init(&g_leds[3], (const led_pins_t)LED3_PINS);
 
     // serial initialization
     serial_init();
@@ -191,10 +191,7 @@ static void hardware_setup(void)
 	// To start timer
 	TIM_Cmd(LPC_TIM0, ENABLE);
 
-    //glcd_test();
-    //glcd_widget_textbox_test();
-    //glcd_widget_listbox_test();
-    glcd_widget_graph_test();
+    screen_control_test();
 }
 
 // this callback is called from a ISR

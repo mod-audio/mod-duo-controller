@@ -244,6 +244,13 @@ void widget_textbox(uint8_t display, textbox_t textbox)
             rect_y = textbox.y;
             break;
 
+        case ALIGN_CENTER_NONE:
+            textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
+            textbox.y += textbox.top_margin;
+            rect_x = textbox.x - textbox.left_margin;
+            rect_y = textbox.y;
+            break;
+
         // TODO: others NONE options
     }
 

@@ -2,6 +2,9 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <stdint.h>
+
+
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO HARDWARE
 
@@ -13,11 +16,11 @@
 // Amount of LEDS
 #define LEDS_COUNT          SLOTS_COUNT
 // LEDs ports and pins definitions
-// format definition: ((const led_pins_t){RED_PORT, RED_PIN, GREEN_PORT, GREEN_PIN, BLUE_PORT, BLUE_PIN})
-#define LED0_PINS           ((const led_pins_t){3, 30, 3, 31, 3, 29})
-#define LED1_PINS           ((const led_pins_t){3, 27, 3, 28, 3, 26})
-#define LED2_PINS           ((const led_pins_t){3, 24, 3, 25, 3, 23})
-#define LED3_PINS           ((const led_pins_t){3, 21, 3, 22, 3, 20})
+// format definition: {R_PORT, R_PIN, G_PORT, G_PIN, B_PORT, B_PIN}
+#define LED0_PINS           {3, 30, 3, 31, 3, 29}
+#define LED1_PINS           {3, 27, 3, 28, 3, 26}
+#define LED2_PINS           {3, 24, 3, 25, 3, 23}
+#define LED3_PINS           {3, 21, 3, 22, 3, 20}
 
 //// GLCDs configurations
 // Amount of displays
@@ -33,21 +36,77 @@
 
 //// Protocol commands configuration
 // Receive
-#define SAY_CMD         "say %s"
-#define LED_CMD         "led %i %i %i %i"
-#define MODE
-#define PARAM_ADD
-#define PARAM_REMOVE
-#define PARAM_GET
-#define BYPASS_ADD
-#define BYPASS_REMOVE
-#define BYPASS_SET
-#define BYPASS_GET
+#define SAY_CMD             "say %s"
+#define LED_CMD             "led %i %i %i %i"
+#define PARAM_ADD_CMD
+#define PARAM_REMOVE_CMD
+#define PARAM_GET_CMD
+#define BYPASS_ADD_CMD
+#define BYPASS_REMOVE_CMD
+#define BYPASS_SET_CMD
+#define BYPASS_GET_CMD
 // Send
-#define PEDALBOARD_LOAD
-#define HARDWARE_CONNECTED
-#define HARDWARE_DISCONNECTED
+#define PEDALBOARD_LOAD_CMD
+#define HARDWARE_CONNECTED_CMD
+#define HARDWARE_DISCONNECTED_CMD
+
+//// Control propertires definitions
+#define CONTROL_PROP_LINEAR         0
+#define CONTROL_PROP_LOGARITHMIC    1
+#define CONTROL_PROP_ENUMERATION    2
+#define CONTROL_PROP_TOGGLED        3
+#define CONTROL_PROP_TRIGGER        4
+#define CONTROL_PROP_TAP_TEMPO      5
 
 //// Data structs definitions
+typedef struct BANK_T bank_t;
+typedef struct PEDALBOARD_T pedalboard_t;
+typedef struct EFFECT_T effect_t;
+typedef struct BYPASS_T bypass_t;
+
+typedef struct SCALE_POINT_T {
+    const char *label;
+    float value;
+} scale_point_t;
+
+typedef struct CONTROL_T {
+    uint8_t hardware_type, hardware_id;
+    uint8_t actuator_type, actuator_id;
+    const char *label, *symbol, *unit;
+    uint8_t effect_instance, properties;
+    float value, minimum, maximum;
+    uint8_t steps;
+    uint8_t scale_points_count;
+    scale_point_t **scale_points;
+} control_t;
+
+#if 0
+typedef struct BANK_T {
+    char *name;
+    uint8_t pedalboards_count;
+    uint8_t *pedalboards_indexes;
+    char **pedalboards_uid;
+} bank_t;
+
+typedef struct PEDALBOARD_T {
+    char *uid;
+    char *name;
+    uint8_t effects_count;
+    effect_t **effects;
+    uint8_t controls_count;
+    control_t **controls;
+} pedalboard_t;
+
+typedef struct EFFECT_T {
+    uint8_t instance;
+    bypass_t bypass;
+} effect_t;
+
+typedef struct BYPASS_T {
+    uint8_t value;
+    uint8_t hardware;
+    uint8_t actuator_id;
+} bypass_t;
+#endif
 
 #endif
