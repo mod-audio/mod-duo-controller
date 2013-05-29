@@ -140,7 +140,7 @@ uint32_t array_length(char **str_array)
 }
 
 
-uint32_t int_to_str(int32_t num, char *string, uint32_t string_size)
+uint32_t int_to_str(int32_t num, char *string, uint32_t string_size, uint8_t zero_leading)
 {
     char *pstr = string;
     uint8_t signal = 0;
@@ -148,13 +148,14 @@ uint32_t int_to_str(int32_t num, char *string, uint32_t string_size)
 
     if (!string) return 0;
 
+    // exception case: number is zero
     if (num == 0)
     {
         *pstr++ = '0';
-        *pstr = 0;
-        return 1;
+        if (zero_leading) zero_leading--;
     }
 
+    // need minus signal?
     if (num < 0)
     {
         num = -num;
@@ -162,23 +163,31 @@ uint32_t int_to_str(int32_t num, char *string, uint32_t string_size)
         string_size--;
     }
 
+    // composes the string
     while (num)
     {
         *pstr++ = (num % 10) + '0';
         num /= 10;
 
         if (--string_size == 0) break;
+        if (zero_leading) zero_leading--;
     }
 
+    // checks buffer size
     if (string_size == 0)
     {
         *string = 0;
         return 0;
     }
 
+    // fills the zeros leading
+    while (zero_leading--) *pstr++ = '0';
+
+    // put the minus if necessary
     if (signal) *pstr++ = '-';
     *pstr = 0;
 
+    // invert the string characters
     str_len = (pstr - string);
     reverse(string, str_len);
 
@@ -196,7 +205,7 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
 
     // convert the integer part to string
     uint32_t int_len;
-    int_len = int_to_str((int32_t)intp, string, string_size);
+    int_len = int_to_str((int32_t)intp, string, string_size, 0);
 
     // checks if convertion fail
     if (int_len == 0)
@@ -219,7 +228,7 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
 
     // convert the fractional part
     uint32_t frac_len;
-    frac_len = int_to_str((int32_t)fracp, &string[int_len], string_size - int_len);
+    frac_len = int_to_str((int32_t)fracp, &string[int_len], string_size - int_len, 0);
 
     // checks if convertion fail
     if (frac_len == 0)
