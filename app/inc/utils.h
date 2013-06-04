@@ -16,7 +16,7 @@
 */
 
 #include <stdint.h>
-#include "FreeRTOS.h"
+#include "config.h"
 
 
 /*
@@ -31,9 +31,6 @@
 *           CONFIGURATION DEFINES
 ************************************************************************************************************************
 */
-
-#define MALLOC(n)   pvPortMalloc(n)
-#define FREE(n)     vPortFree(n)
 
 
 /*

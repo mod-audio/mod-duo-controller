@@ -135,7 +135,7 @@ uint32_t array_length(char **str_array)
 {
     uint32_t count = 0;
 
-    while (str_array[count]) count++;
+    if (str_array) while (str_array[count]) count++;
     return count;
 }
 
@@ -199,6 +199,8 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
     double intp, fracp;
 
     if (!string) return 0;
+
+    // TODO: check Nan and Inf
 
     // splits integer and fractional parts
     fracp = modf(num, &intp);
