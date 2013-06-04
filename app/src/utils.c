@@ -91,10 +91,11 @@ static char* reverse(char* str, uint32_t str_len)
 ************************************************************************************************************************
 */
 
-char** string_split(char *str, const char token)
+char** strarr_split(char *str)
 {
     uint32_t count;
     char *pstr, **list = NULL;
+    const char token = ' ';
 
     if (!str) return list;
 
@@ -131,12 +132,27 @@ char** string_split(char *str, const char token)
 }
 
 
-uint32_t array_length(char **str_array)
+uint32_t strarr_length(char **str_array)
 {
     uint32_t count = 0;
 
     if (str_array) while (str_array[count]) count++;
     return count;
+}
+
+
+char* strarr_join(char **str_array)
+{
+    uint32_t i, len = strarr_length(str_array);
+
+    if (!str_array) return NULL;
+
+    for (i = 1; i < len; i++)
+    {
+        (*(str_array[i] - 1)) = ' ';
+    }
+
+    return (*str_array);
 }
 
 
