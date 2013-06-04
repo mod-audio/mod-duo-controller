@@ -10,6 +10,25 @@
 // One slot is a set of display, knob, footswitch and led
 #define SLOTS_COUNT         4
 
+//// CPU pins
+// defines the port and of CPU power button
+#define CPU_BUTTON_PORT      1
+#define CPU_BUTTON_PIN       23
+// defines the port and of CPU power status
+#define CPU_STATUS_PORT      1
+#define CPU_STATUS_PIN       24
+
+//// Cooler pins
+#define COOLER_PORT         1
+#define COOLER_PIN          22
+
+//// ARM reset pin
+// this pin is used to block/unblock the ARM reset
+// to block the pin must be set to 0
+// to unblock the pin must be configured to input
+#define ARM_RESET_PORT      2
+#define ARM_RESET_PIN       24
+
 //// LEDs configuration
 // Amount of LEDS
 #define LEDS_COUNT          SLOTS_COUNT
@@ -34,6 +53,7 @@
 
 //// Protocol commands configuration
 //// Receive
+#define SAY_CMD             "say %s ..."
 // led <led_id> <red> <green> <blue>
 #define LED_CMD             "led %i %i %i %i"
 // control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
