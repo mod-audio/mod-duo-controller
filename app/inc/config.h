@@ -2,8 +2,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <stdint.h>
-
 
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO HARDWARE
@@ -35,20 +33,32 @@
 ////// SETTINGS RELATED TO FIRMWARE
 
 //// Protocol commands configuration
-// Receive
-#define SAY_CMD             "say %s"
+//// Receive
+// led <led_id> <red> <green> <blue>
 #define LED_CMD             "led %i %i %i %i"
-#define PARAM_ADD_CMD
-#define PARAM_REMOVE_CMD
-#define PARAM_GET_CMD
+// control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
+#define CONTROL_ADD_CMD     "control_add %i %s %s %i %s %f %f %f %i %i %i %i ..."
+// control_rm <effect_instance> <symbol>
+#define CONTROL_REMOVE_CMD  "control_rm %i %s"
+#define CONTROL_GET_CMD
+#define CONTROL_SET_CMD
 #define BYPASS_ADD_CMD
 #define BYPASS_REMOVE_CMD
 #define BYPASS_SET_CMD
 #define BYPASS_GET_CMD
-// Send
+//// Send
 #define PEDALBOARD_LOAD_CMD
 #define HARDWARE_CONNECTED_CMD
 #define HARDWARE_DISCONNECTED_CMD
+
+//// Tools configuration
+// enumeration of tools (identification)
+enum {TOOL_SYSTEM, TOOL_TUNER, TOOL_PEAKMETER, TOOL_NAVEG};
+// setup of tools on displays
+#define TOOL_DISPLAY0   TOOL_SYSTEM
+#define TOOL_DISPLAY1   TOOL_TUNER
+#define TOOL_DISPLAY2   TOOL_PEAKMETER
+#define TOOL_DISPLAY3   TOOL_NAVEG
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -58,55 +68,11 @@
 #define CONTROL_PROP_TRIGGER        4
 #define CONTROL_PROP_TAP_TEMPO      5
 
-//// Data structs definitions
-typedef struct BANK_T bank_t;
-typedef struct PEDALBOARD_T pedalboard_t;
-typedef struct EFFECT_T effect_t;
-typedef struct BYPASS_T bypass_t;
-
-typedef struct SCALE_POINT_T {
-    const char *label;
-    float value;
-} scale_point_t;
-
-typedef struct CONTROL_T {
-    uint8_t hardware_type, hardware_id;
-    uint8_t actuator_type, actuator_id;
-    const char *label, *symbol, *unit;
-    uint8_t effect_instance, properties;
-    float value, minimum, maximum;
-    uint8_t steps;
-    uint8_t scale_points_count;
-    scale_point_t **scale_points;
-} control_t;
-
-#if 0
-typedef struct BANK_T {
-    char *name;
-    uint8_t pedalboards_count;
-    uint8_t *pedalboards_indexes;
-    char **pedalboards_uid;
-} bank_t;
-
-typedef struct PEDALBOARD_T {
-    char *uid;
-    char *name;
-    uint8_t effects_count;
-    effect_t **effects;
-    uint8_t controls_count;
-    control_t **controls;
-} pedalboard_t;
-
-typedef struct EFFECT_T {
-    uint8_t instance;
-    bypass_t bypass;
-} effect_t;
-
-typedef struct BYPASS_T {
-    uint8_t value;
-    uint8_t hardware;
-    uint8_t actuator_id;
-} bypass_t;
-#endif
+//// Allocation and free macros
+// these macros should be used in replacement to default
+// malloc and free functions of stdlib.h
+#include "FreeRTOS.h"
+#define MALLOC(n)   pvPortMalloc(n)
+#define FREE(n)     vPortFree(n)
 
 #endif
