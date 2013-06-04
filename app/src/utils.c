@@ -260,3 +260,14 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
 
     return (int_len + frac_len);
 }
+
+void delay_us(uint32_t time)
+{
+    volatile uint32_t delay = (time*50);
+    while (delay--);
+}
+
+void delay_ms(uint32_t time)
+{
+    while (time--) delay_us(900);
+}

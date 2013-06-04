@@ -67,8 +67,14 @@ uint32_t strarr_length(char **str_array);
 // joins a string array in a single string
 char* strarr_join(char **str_array);
 
+// converts integer to string and returns the string length
 uint32_t int_to_str(int32_t num, char *string, uint32_t string_size, uint8_t zero_leading);
+// converts float to string  and returns the string length
 uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t precision);
+
+// delay functions
+void delay_us(uint32_t time);
+void delay_ms(uint32_t time);
 
 
 /*

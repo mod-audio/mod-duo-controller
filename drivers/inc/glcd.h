@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include "lpc177x_8x_gpio.h"
 #include "config.h"
+#include "utils.h"
 
 
 /*
@@ -58,8 +59,8 @@
 #define DISPLAY_CHIP_COUNT      2
 
 // delay macros definition
-#define DELAY_ns(time)          do {volatile uint32_t __delay_ns = (time/8); while (__delay_ns--);} while(0)
-#define DELAY_us(time)          do {volatile uint32_t __delay_us = (time*60); while (__delay_us--);} while(0)
+#define DELAY_ns(time)          do {volatile uint32_t __delay = (time/10); while (__delay--);} while(0)
+#define DELAY_us(time)          delay_us(time)
 
 // I/O macros configuration
 #define CONFIG_PIN_INPUT(port, pin)     GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_INPUT)
