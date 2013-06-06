@@ -55,7 +55,7 @@
 //// Receive
 #define SAY_CMD             "say %s ..."
 // led <led_id> <red> <green> <blue>
-#define LED_CMD             "led %i %i %i %i"
+#define LED_CMD             "led %i %i %i %i ..."
 // control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
 #define CONTROL_ADD_CMD     "control_add %i %s %s %i %s %f %f %f %i %i %i %i ..."
 // control_rm <effect_instance> <symbol>

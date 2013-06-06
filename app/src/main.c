@@ -65,9 +65,15 @@ static xQueueHandle g_serial_queue;
 ************************************************************************************************************************
 */
 
+// local functions
 static void serial_cb(serial_msg_t *msg);
-static void procotol_parser_task(void *pvParameters);
 
+// tasks
+static void procotol_parser_task(void *pvParameters);
+static void displays_update_task(void *pvParameters);
+static void test_task(void *pvParameters);
+
+// protocol callbacks
 static void say_cb(proto_t *proto);
 static void led_cb(proto_t *proto);
 
@@ -113,7 +119,9 @@ int main(void)
     g_serial_queue = xQueueCreate(5, sizeof(serial_msg_t *));
 
     // create tasks
-    xTaskCreate(procotol_parser_task, NULL, 1000, NULL, 2, NULL);
+    xTaskCreate(procotol_parser_task, NULL, 1000, NULL, 3, NULL);
+    xTaskCreate(displays_update_task, NULL, 1000, NULL, 2, NULL);
+    xTaskCreate(test_task, NULL, 1000, NULL, 2, NULL);
 
     // Start the scheduler
     vTaskStartScheduler();
@@ -140,15 +148,17 @@ static void serial_cb(serial_msg_t *msg)
     memcpy(msg_copy, msg, sizeof(serial_msg_t));
 
     // allocate memory to store the message
-    msg_copy->data = pvPortMalloc(msg->data_size);
+    msg_copy->data = pvPortMalloc(msg->data_size + 1);
     if (!msg_copy->data) while (1);
 
-    // read the message
+    // read the message and append a NULL terminator
     serial_read(msg_copy->port, msg_copy->data, msg_copy->data_size);
+    msg_copy->data[msg_copy->data_size] = 0;
 
     // sends the message to queue
     portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
     xQueueSendFromISR(g_serial_queue, &msg_copy, &xHigherPriorityTaskWoken);
+
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -183,6 +193,33 @@ static void procotol_parser_task(void *pvParameters)
     }
 }
 
+static void displays_update_task(void *pvParameters)
+{
+    UNUSED_PARAM(pvParameters);
+
+    while (1)
+    {
+        glcd_update();
+        taskYIELD();
+    }
+}
+
+static void test_task(void *pvParameters)
+{
+    UNUSED_PARAM(pvParameters);
+
+    static unsigned int counter;
+    char buffer[128];
+
+    while (1)
+    {
+        int_to_str(counter, buffer, sizeof(buffer), 4);
+        glcd_text(0, 0, 0, buffer, NULL, GLCD_BLACK);
+        counter++;
+        taskYIELD();
+    }
+}
+
 
 /*
 ************************************************************************************************************************
@@ -192,19 +229,22 @@ static void procotol_parser_task(void *pvParameters)
 
 static void say_cb(proto_t *proto)
 {
-    protocol_response("say_cb", proto);
+    protocol_response(strarr_join(&(proto->list[1])), proto);
 }
-
 
 static void led_cb(proto_t *proto)
 {
-    protocol_response("resp do led", proto);
-
-    led_t *led = hardware_leds(atoi(proto->list[1]));
     color_t color;
+    led_t *led = hardware_leds(atoi(proto->list[1]));
     color.r = atoi(proto->list[2]);
     color.g = atoi(proto->list[3]);
     color.b = atoi(proto->list[4]);
-
     led_set_color(led, color);
+
+    if (proto->list_count == 7)
+    {
+        led_blink(led, atoi(proto->list[5]), atoi(proto->list[6]));
+    }
+
+    protocol_response("resp 0", proto);
 }
