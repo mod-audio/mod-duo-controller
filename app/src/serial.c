@@ -48,8 +48,7 @@ const uint32_t PRIORITIES[] = {
 ************************************************************************************************************************
 */
 
-typedef struct
-{
+typedef struct {
     volatile uint32_t tx_head;                  // UART Tx ring buffer head index
     volatile uint32_t tx_tail;                  // UART Tx ring buffer tail index
     volatile uint32_t rx_head;                  // UART Rx ring buffer head index
@@ -142,7 +141,6 @@ static void uart_receive(uint8_t port)
         if (++i == (FIFO_LENGTH-1)) break;
 	}
 }
-
 
 static void uart_transmit(uint8_t port)
 {
@@ -253,8 +251,16 @@ void serial_init(void)
         // - FIFO_State = ENABLE
         UART_FIFOConfigStructInit(&UARTFIFOConfigStruct);
 
-        // FIFO Trigger = 8 bytes
+        // FIFO Trigger
+        #if FIFO_LENGTH == 1
+        UARTFIFOConfigStruct.FIFO_Level = UART_FIFO_TRGLEV0;
+        #elif FIFO_LENGTH == 4
+        UARTFIFOConfigStruct.FIFO_Level = UART_FIFO_TRGLEV1;
+        #elif FIFO_LENGTH == 8
         UARTFIFOConfigStruct.FIFO_Level = UART_FIFO_TRGLEV2;
+        #elif FIFO_LENGTH == 14
+        UARTFIFOConfigStruct.FIFO_Level = UART_FIFO_TRGLEV3;
+        #endif
 
         // Initialize FIFO for UART peripheral
         UART_FIFOConfig(uart, &UARTFIFOConfigStruct);
