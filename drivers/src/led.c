@@ -82,7 +82,6 @@
 static uint8_t g_leds_count;
 static led_t *g_leds[MAX_LEDS];
 static color_t g_colors[MAX_LEDS];
-static uint16_t g_counter_on[MAX_LEDS], g_counter_off[MAX_LEDS];
 
 
 /*
@@ -127,17 +126,16 @@ void led_init(led_t *led, const led_pins_t pins)
     CONFIG_PIN_OUTPUT(pins.portG, pins.pinG);
     CONFIG_PIN_OUTPUT(pins.portB, pins.pinB);
 
-    // store the led pointer
+    // store the configurations
     g_leds[g_leds_count] = led;
+    g_colors[g_leds_count] = BLACK;
+    g_leds_count++;
 
-    // initialize the configurations
+    // initialize the object configurations
     led->control = 0;
     led->time_on = 0;
     led->time_off = 0;
-    g_colors[g_leds_count] = BLACK;
-    g_counter_on[g_leds_count] = 0;
-    g_counter_off[g_leds_count] = 0;
-    g_leds_count++;
+    led->counter = 0;
 
     // initial color
     R_OFF(led);
@@ -155,10 +153,11 @@ void led_set_color(led_t *led, const color_t color)
 
 void led_blink(led_t *led, uint16_t time_on_ms, uint16_t time_off_ms)
 {
+    BLINK_DISABLE(led);
+
     led->time_on = time_on_ms;
     led->time_off = time_off_ms;
-
-    BLINK_DISABLE(led);
+    led->counter = time_on_ms;
 
     // locate the led pointer
     uint8_t i;
@@ -167,17 +166,26 @@ void led_blink(led_t *led, uint16_t time_on_ms, uint16_t time_off_ms)
         if (g_leds[i] == led) break;
     }
 
-    // reload the counters
-    if (i < g_leds_count)
+    // if not found returns
+    if (i >= g_leds_count) return;
+
+    if (led->time_on > 0)
     {
-        g_counter_on[i] = time_on_ms;
-        g_counter_off[i] = time_off_ms;
+        // synchronizes the colors
+        g_colors[i] = BLACK;
+
+        // set state on
+        STATE_SET_ON(led);
+
+        // enables the blinker
+        if (led->time_off > 0) BLINK_ENABLE(led);
+
+        return;
     }
 
-    // checks if must be enable the blinker
-    if (led->time_on > 0 && led->time_off > 0) BLINK_ENABLE(led);
-    else if (led->time_on > 0 && led->time_off == 0) led_set_color(led, led->color);
-    else led_set_color(led, BLACK);
+    // turn off the leds
+    led_set_color(led, BLACK);
+    STATE_SET_OFF(led);
 }
 
 
@@ -201,6 +209,7 @@ void leds_clock(void)
         if (led->color.b > 0 && led->color.b >= g_colors[i].b && BLINK_CHECK(led)) B_ON(led);
         else B_OFF(led);
 
+        // increment each color (overflow expected)
         g_colors[i].r++;
         g_colors[i].g++;
         g_colors[i].b++;
@@ -208,20 +217,19 @@ void leds_clock(void)
         // only go ahead if passed 1ms
         if (count < COUNT_PRESCALE) continue;
 
-        // time verification
+        // blink time verification
         if (BLINK_IS_ENABLED(led))
         {
-            // if there is at least one led turned on...
-            if (STATE_IS_ON(led))
+            if (led->counter > 0)
             {
-                if (g_counter_on[i] > 0)
+                led->counter--;
+            }
+            else
+            {
+                if (STATE_IS_ON(led))
                 {
-                    g_counter_on[i]--;
-                }
-                else
-                {
-                    // reload the counter
-                    g_counter_on[i] = led->time_on;
+                    // load the counter with time off
+                    led->counter = led->time_off;
 
                     // turn off the leds and set state
                     STATE_SET_OFF(led);
@@ -229,22 +237,17 @@ void leds_clock(void)
                     G_OFF(led);
                     B_OFF(led);
                 }
-            }
-            // if all leds is turned off...
-            else
-            {
-                if (g_counter_off[i] > 0)
-                {
-                    g_counter_off[i]--;
-                }
                 else
                 {
-                    // reload the counter
-                    g_counter_off[i] = led->time_off;
+                    // load the counter with time on
+                    led->counter = led->time_on;
 
                     // turn on the leds and set state
                     STATE_SET_ON(led);
                     led_set_color(led, led->color);
+
+                    // synchronizes the colors
+                    g_colors[i] = BLACK;
                 }
             }
         }

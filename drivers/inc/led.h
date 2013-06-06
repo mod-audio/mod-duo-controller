@@ -77,7 +77,7 @@ typedef struct LED_T {
     uint8_t control;
     led_pins_t pins;
     color_t color;
-    uint16_t time_on, time_off;
+    uint16_t time_on, time_off, counter;
 } led_t;
 
 
