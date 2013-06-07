@@ -33,7 +33,8 @@
 ************************************************************************************************************************
 */
 
-#define TIMER0_PRIORITY     2
+#define TIMER0_PRIORITY     3
+#define TIMER1_PRIORITY     2
 
 
 /*
@@ -67,6 +68,7 @@ void hardware_setup(void);
 uint8_t hardware_cpu_status(void);
 void hardware_cooler(uint8_t duty_cycle);
 led_t *hardware_leds(uint8_t led);
+void *hardware_actuators(uint8_t actuator_id);
 
 
 /*

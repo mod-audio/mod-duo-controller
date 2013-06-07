@@ -12,11 +12,12 @@
 
 //// CPU pins
 // defines the port and of CPU power button
-#define CPU_BUTTON_PORT      1
-#define CPU_BUTTON_PIN       23
+#define CPU_BUTTON_PORT     1
+#define CPU_BUTTON_PIN      23
+
 // defines the port and of CPU power status
-#define CPU_STATUS_PORT      1
-#define CPU_STATUS_PIN       24
+#define CPU_STATUS_PORT     1
+#define CPU_STATUS_PIN      24
 
 //// Cooler pins
 #define COOLER_PORT         1
@@ -32,6 +33,7 @@
 //// LEDs configuration
 // Amount of LEDS
 #define LEDS_COUNT          SLOTS_COUNT
+
 // LEDs ports and pins definitions
 // format definition: {R_PORT, R_PIN, G_PORT, G_PIN, B_PORT, B_PIN}
 #define LED0_PINS           {3, 30, 3, 31, 3, 29}
@@ -43,9 +45,29 @@
 // Amount of displays
 #define GLCD_COUNT          SLOTS_COUNT
 
-//// Footswitches configurations
+//// Actuators configuration
+// Actuators IDs
+enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3};
+
 // Amount of footswitches
 #define FOOTSWITCHES_COUNT  SLOTS_COUNT
+
+// Footswitches ports and pins definitions
+// button definition: {BUTTON_PORT, BUTTON_PIN}
+#define FOOTSWITCH0_PINS    {2, 17}
+#define FOOTSWITCH1_PINS    {2, 16}
+#define FOOTSWITCH2_PINS    {2, 15}
+#define FOOTSWITCH3_PINS    {2, 14}
+
+// Amount of encoders
+#define ENCODERS_COUNT      SLOTS_COUNT
+
+// Encoders ports and pins definitions
+// encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC4_CH_PIN}
+#define ENCODER0_PINS       {0, 8, 2, 28, 2, 3}
+#define ENCODER1_PINS       {0, 4, 2, 25, 2, 0}
+#define ENCODER2_PINS       {0, 5, 2, 26, 2, 1}
+#define ENCODER3_PINS       {0, 7, 2, 27, 2, 2}
 
 
 ////////////////////////////////////////////////////////////////
@@ -66,6 +88,7 @@
 #define BYPASS_REMOVE_CMD
 #define BYPASS_SET_CMD
 #define BYPASS_GET_CMD
+
 //// Send
 #define PEDALBOARD_LOAD_CMD
 #define HARDWARE_CONNECTED_CMD
@@ -74,11 +97,12 @@
 //// Tools configuration
 // enumeration of tools (identification)
 enum {TOOL_SYSTEM, TOOL_TUNER, TOOL_PEAKMETER, TOOL_NAVEG};
+
 // setup of tools on displays
-#define TOOL_DISPLAY0   TOOL_SYSTEM
-#define TOOL_DISPLAY1   TOOL_TUNER
-#define TOOL_DISPLAY2   TOOL_PEAKMETER
-#define TOOL_DISPLAY3   TOOL_NAVEG
+#define TOOL_DISPLAY0       TOOL_SYSTEM
+#define TOOL_DISPLAY1       TOOL_TUNER
+#define TOOL_DISPLAY2       TOOL_PEAKMETER
+#define TOOL_DISPLAY3       TOOL_NAVEG
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0

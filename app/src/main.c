@@ -18,6 +18,7 @@
 #include "protocol.h"
 #include "glcd.h"
 #include "led.h"
+#include "actuator.h"
 
 
 /*
@@ -71,6 +72,7 @@ static void serial_cb(serial_msg_t *msg);
 // tasks
 static void procotol_parser_task(void *pvParameters);
 static void displays_update_task(void *pvParameters);
+static void actuators_task(void *pvParameters);
 static void test_task(void *pvParameters);
 
 // protocol callbacks
@@ -119,8 +121,9 @@ int main(void)
     g_serial_queue = xQueueCreate(5, sizeof(serial_msg_t *));
 
     // create tasks
-    xTaskCreate(procotol_parser_task, NULL, 1000, NULL, 3, NULL);
+    xTaskCreate(procotol_parser_task, NULL, 1000, NULL, 2, NULL);
     xTaskCreate(displays_update_task, NULL, 1000, NULL, 2, NULL);
+    xTaskCreate(actuators_task, NULL, 1000, NULL, 2, NULL);
     xTaskCreate(test_task, NULL, 1000, NULL, 2, NULL);
 
     // Start the scheduler
@@ -201,6 +204,84 @@ static void displays_update_task(void *pvParameters)
     {
         glcd_update();
         taskYIELD();
+    }
+}
+
+static void actuators_task(void *pvParameters)
+{
+    UNUSED_PARAM(pvParameters);
+
+    uint8_t status, cc = 127;
+    color_t color;
+    color.r = cc;
+    color.g = 0;
+    color.b = 0;
+
+    while (1)
+    {
+        status = actuator_get_status(hardware_actuators(ENCODER0));
+        if (BUTTON_PRESSED(status))
+        {
+        }
+        if (BUTTON_RELEASED(status))
+        {
+        }
+        if (BUTTON_CLICKED(status))
+        {
+            if (color.r > 0)
+            {
+                color.r = 0;
+                color.g = cc;
+                color.b = 0;
+            }
+            else if (color.g > 0)
+            {
+                color.r = 0;
+                color.g = 0;
+                color.b = cc;
+            }
+            else if (color.b > 0)
+            {
+                color.r = cc;
+                color.g = 0;
+                color.b = 0;
+            }
+        }
+        if (BUTTON_HOLD(status))
+        {
+        }
+        if (ENCODER_TURNED(status))
+        {
+        }
+        if (ENCODER_TURNED_CW(status))
+        {
+            cc += 5;
+        }
+        if (ENCODER_TURNED_ACW(status))
+        {
+            cc -= 5;
+        }
+
+        if (color.r > 0)
+        {
+            color.r = cc;
+            color.g = 0;
+            color.b = 0;
+        }
+        else if (color.g > 0)
+        {
+            color.r = 0;
+            color.g = cc;
+            color.b = 0;
+        }
+        else if (color.b > 0)
+        {
+            color.r = 0;
+            color.g = 0;
+            color.b = cc;
+        }
+
+        led_set_color(hardware_leds(0), color);
     }
 }
 

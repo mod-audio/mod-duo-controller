@@ -9,6 +9,7 @@
 #include "config.h"
 #include "utils.h"
 #include "led.h"
+#include "actuator.h"
 
 #include "LPC177x_8x.h"
 #include "lpc177x_8x_gpio.h"
@@ -62,7 +63,9 @@ struct COOLER_T {
 ************************************************************************************************************************
 */
 
-static led_t g_leds[4];
+static led_t g_leds[LEDS_COUNT];
+static encoder_t g_encoders[ENCODERS_COUNT];
+static button_t g_footswitches[FOOTSWITCHES_COUNT];
 
 
 /*
@@ -98,7 +101,7 @@ void hardware_setup(void)
     SystemCoreClockUpdate();
 
     // ARM reset
-    // FIXME: after implement the unblock message, change this initial state to block
+    // FIXME: after implement the unblock message, change this initial state to BLOCK_ARM_RESET
     UNBLOCK_ARM_RESET();
 
     // CPU power pins configuration
@@ -115,6 +118,31 @@ void hardware_setup(void)
     led_init(&g_leds[1], (const led_pins_t)LED1_PINS);
     led_init(&g_leds[2], (const led_pins_t)LED2_PINS);
     led_init(&g_leds[3], (const led_pins_t)LED3_PINS);
+
+    // actuators creation
+    actuator_create(ROTARY_ENCODER, 0, hardware_actuators(ENCODER0));
+    actuator_create(ROTARY_ENCODER, 1, hardware_actuators(ENCODER1));
+    actuator_create(ROTARY_ENCODER, 2, hardware_actuators(ENCODER2));
+    actuator_create(ROTARY_ENCODER, 3, hardware_actuators(ENCODER3));
+    actuator_create(BUTTON, 0, hardware_actuators(FOOTSWITCH0));
+    actuator_create(BUTTON, 1, hardware_actuators(FOOTSWITCH1));
+    actuator_create(BUTTON, 2, hardware_actuators(FOOTSWITCH2));
+    actuator_create(BUTTON, 3, hardware_actuators(FOOTSWITCH3));
+    // actuators pins configuration
+    actuator_set_pins(hardware_actuators(ENCODER0), (const uint8_t []) ENCODER0_PINS);
+    actuator_set_pins(hardware_actuators(ENCODER1), (const uint8_t []) ENCODER1_PINS);
+    actuator_set_pins(hardware_actuators(ENCODER2), (const uint8_t []) ENCODER2_PINS);
+    actuator_set_pins(hardware_actuators(ENCODER3), (const uint8_t []) ENCODER3_PINS);
+    actuator_set_pins(hardware_actuators(FOOTSWITCH0), (const uint8_t []) FOOTSWITCH0_PINS);
+    actuator_set_pins(hardware_actuators(FOOTSWITCH1), (const uint8_t []) FOOTSWITCH1_PINS);
+    actuator_set_pins(hardware_actuators(FOOTSWITCH2), (const uint8_t []) FOOTSWITCH2_PINS);
+    actuator_set_pins(hardware_actuators(FOOTSWITCH3), (const uint8_t []) FOOTSWITCH3_PINS);
+    // actuators properties
+    actuator_set_prop(hardware_actuators(ENCODER0), ENCODER_STEPS, 3);
+    actuator_set_prop(hardware_actuators(ENCODER1), ENCODER_STEPS, 3);
+    actuator_set_prop(hardware_actuators(ENCODER2), ENCODER_STEPS, 3);
+    actuator_set_prop(hardware_actuators(ENCODER3), ENCODER_STEPS, 3);
+
 
     ////////////////////////////////////////////////////////////////
     // Timer 0 configuration
@@ -134,7 +162,7 @@ void hardware_setup(void)
 	TIM_MatchConfigStruct.ResetOnMatch = TRUE;
 	// stop on MR0 if MR0 matches it
 	TIM_MatchConfigStruct.StopOnMatch  = FALSE;
-	// set Match value, count value of 10 (5 * 10us = 50us --> 20 kHz)
+	// set Match value, count value of 5 (5 * 10us = 50us --> 20 kHz)
 	TIM_MatchConfigStruct.MatchValue   = 5;
 	// set configuration for Tim_config and Tim_MatchConfig
 	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &TIM_ConfigStruct);
@@ -145,6 +173,33 @@ void hardware_setup(void)
 	NVIC_EnableIRQ(TIMER0_IRQn);
 	// to start timer
 	TIM_Cmd(LPC_TIM0, ENABLE);
+
+    ////////////////////////////////////////////////////////////////
+    // Timer 1 configuration
+    // this timer is used to actuators clock
+
+	// initialize timer 1, prescale count time of 10us
+	TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
+	TIM_ConfigStruct.PrescaleValue	= 100;
+	// use channel 1, MR1
+	TIM_MatchConfigStruct.MatchChannel = 1;
+	// enable interrupt when MR1 matches the value in TC register
+	TIM_MatchConfigStruct.IntOnMatch   = TRUE;
+	// enable reset on MR1: TIMER will reset if MR1 matches it
+	TIM_MatchConfigStruct.ResetOnMatch = TRUE;
+	// stop on MR1 if MR1 matches it
+	TIM_MatchConfigStruct.StopOnMatch  = FALSE;
+	// set Match value, count value of 10 (10 * 100us = 1000us --> 1 kHz)
+	TIM_MatchConfigStruct.MatchValue   = 10;
+	// set configuration for Tim_config and Tim_MatchConfig
+	TIM_Init(LPC_TIM1, TIM_TIMER_MODE, &TIM_ConfigStruct);
+	TIM_ConfigMatch(LPC_TIM1, &TIM_MatchConfigStruct);
+    // set priority
+	NVIC_SetPriority(TIMER1_IRQn, (TIMER1_PRIORITY << 3));
+	// enable interrupt for timer 1
+	NVIC_EnableIRQ(TIMER1_IRQn);
+	// to start timer
+	TIM_Cmd(LPC_TIM1, ENABLE);
 }
 
 uint8_t hardware_cpu_status(void)
@@ -178,6 +233,22 @@ led_t *hardware_leds(uint8_t led)
     return &g_leds[led];
 }
 
+void *hardware_actuators(uint8_t actuator_id)
+{
+    //if (actuator_id >= ENCODER0 && actuator_id <= ENCODER3)
+    if (actuator_id <= ENCODER3)
+    {
+        return (&g_encoders[actuator_id - ENCODER0]);
+    }
+
+    if (actuator_id >= FOOTSWITCH0 && actuator_id <= FOOTSWITCH3)
+    {
+        return (&g_footswitches[actuator_id - FOOTSWITCH0]);
+    }
+
+    return NULL;
+}
+
 void TIMER0_IRQHandler(void)
 {
 	if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT) == SET)
@@ -208,4 +279,15 @@ void TIMER0_IRQHandler(void)
 	}
 
 	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
+}
+
+
+void TIMER1_IRQHandler(void)
+{
+	if (TIM_GetIntStatus(LPC_TIM1, TIM_MR1_INT) == SET)
+	{
+		actuators_clock();
+	}
+
+	TIM_ClearIntPending(LPC_TIM1, TIM_MR1_INT);
 }
