@@ -6,6 +6,17 @@
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO HARDWARE
 
+//// Hardwares types (device identification)
+#define QUADRA_HW       0
+#define EXP_PEDAL_HW    1
+#define XY_TABLET_HW    2
+
+//// Actuators types
+#define NONE            0
+#define FOOT            1
+#define KNOB            2
+#define PEDAL           3
+
 //// Slots count
 // One slot is a set of display, knob, footswitch and led
 #define SLOTS_COUNT         4
@@ -74,22 +85,26 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 ////// SETTINGS RELATED TO FIRMWARE
 
 //// Protocol commands configuration
-//// Receive
 #define SAY_CMD             "say %s ..."
 // led <led_id> <red> <green> <blue>
 #define LED_CMD             "led %i %i %i %i ..."
-// control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
-#define CONTROL_ADD_CMD     "control_add %i %s %s %i %s %f %f %f %i %i %i %i ..."
+// control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min>
+//             <step> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
+#define CONTROL_ADD_CMD     "control_add %i %s %s %i %s %f %f %f %i %i %i %i %i ..."
 // control_rm <effect_instance> <symbol>
 #define CONTROL_REMOVE_CMD  "control_rm %i %s"
-#define CONTROL_GET_CMD
-#define CONTROL_SET_CMD
-#define BYPASS_ADD_CMD
-#define BYPASS_REMOVE_CMD
-#define BYPASS_SET_CMD
-#define BYPASS_GET_CMD
-
-//// Send
+// control_get <effect_instance> <symbol>
+#define CONTROL_GET_CMD     "control_get %i %s"
+// control_set <effect_instance> <symbol> <value>
+#define CONTROL_SET_CMD     "control_set %i %s %f"
+// bypass_add <effect_instance> <hw_type> <hw_id> <actuator_type> <actuator_id> <bypass_value> <bypass_label>
+#define BYPASS_ADD_CMD      "bypass_add %i %i %i %i %i %i %s"
+// bypass_rm <effect_instance>
+#define BYPASS_REMOVE_CMD   "bypass_rm %i"
+// bypass_set <effect_instance> <bypass_value>
+#define BYPASS_SET_CMD      "bypass_set %i %i"
+// bypass_get <effect_instance>
+#define BYPASS_GET_CMD      "bypass_get %i"
 #define PEDALBOARD_LOAD_CMD
 #define HARDWARE_CONNECTED_CMD
 #define HARDWARE_DISCONNECTED_CMD
@@ -111,6 +126,21 @@ enum {TOOL_SYSTEM, TOOL_TUNER, TOOL_PEAKMETER, TOOL_NAVEG};
 #define CONTROL_PROP_TOGGLED        3
 #define CONTROL_PROP_TRIGGER        4
 #define CONTROL_PROP_TAP_TEMPO      5
+
+//// Serial names definition
+#define SERIAL_WEBGUI       0
+#define SERIAL_LINUX        1
+
+//// Foot functions leds colors
+#define TOGGLED_COLOR       GREEN
+#define TRIGGER_COLOR       GREEN
+#define TAP_TEMPO_COLOR     GREEN
+#define BYPASS_COLOR        RED
+
+//// TAP TEMPO
+// defines the time that the led will stay turned on (in milliseconds)
+#define TAP_TEMPO_TIME_ON   20
+
 
 //// Allocation and free macros
 // these macros should be used in replacement to default

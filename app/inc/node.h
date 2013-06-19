@@ -5,8 +5,8 @@
 ************************************************************************************************************************
 */
 
-#ifndef HARDWARE_H
-#define HARDWARE_H
+#ifndef NODE_H
+#define NODE_H
 
 
 /*
@@ -15,9 +15,7 @@
 ************************************************************************************************************************
 */
 
-#include <stdint.h>
-
-#include "led.h"
+#include "config.h" // to MALLOC and FREE macros
 
 
 /*
@@ -33,15 +31,18 @@
 ************************************************************************************************************************
 */
 
-#define TIMER0_PRIORITY     3
-#define TIMER1_PRIORITY     2
-
 
 /*
 ************************************************************************************************************************
 *           DATA TYPES
 ************************************************************************************************************************
 */
+
+typedef struct NODE_T {
+    void *data;
+    struct NODE_T *parent, *first_child, *last_child;
+    struct NODE_T *prev, *next;
+} node_t;
 
 
 /*
@@ -64,18 +65,11 @@
 ************************************************************************************************************************
 */
 
-// does the hardware setup
-void hardware_setup(void);
-// returns the CPU status: zero if CPU is turned off or non-zero if CPU is turned on
-uint8_t hardware_cpu_status(void);
-// defines the cooler duty cycle
-void hardware_cooler(uint8_t duty_cycle);
-// returns the led object relative to led id
-led_t *hardware_leds(uint8_t led_id);
-// returns the actuator object relative to actuator id
-void *hardware_actuators(uint8_t actuator_id);
-// returns the time stamp (a variable increment in each millisecond)
-uint32_t hardware_time_stamp(void);
+node_t *node_create(void *data);
+node_t *node_child(node_t *parent, void *data);
+node_t *node_cut(node_t *node);
+void node_join(node_t *node1, node_t *node2);
+void node_destroy(node_t *node);
 
 
 /*

@@ -34,9 +34,11 @@ typedef enum {
 #define EV_BUTTON_PRESSED       0x02
 #define EV_BUTTON_RELEASED      0x04
 #define EV_BUTTON_HELD          0x08
+#define EV_ALL_BUTTON_EVENTS    0x0F
 #define EV_ENCODER_TURNED       0x10
 #define EV_ENCODER_TURNED_CW    0x20
 #define EV_ENCODER_TURNED_ACW   0x40
+#define EV_ALL_ENCODER_EVENTS   0xEF
 
 
 /*

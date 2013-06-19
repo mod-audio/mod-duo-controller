@@ -199,7 +199,7 @@ void protocol_add_command(const char *command, void (*callback)(proto_t *proto))
 {
     if (g_command_count >= PROTOCOL_MAX_COMMANDS) while (1);
 
-    char *cmd = strdup(command);
+    char *cmd = str_duplicate(command);
     g_commands[g_command_count].command = cmd;
     g_commands[g_command_count].list = strarr_split(cmd);
     g_commands[g_command_count].count = strarr_length(g_commands[g_command_count].list);

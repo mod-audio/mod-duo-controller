@@ -1,94 +1,136 @@
 
 /*
 ************************************************************************************************************************
-*
-************************************************************************************************************************
-*/
-
-#ifndef HARDWARE_H
-#define HARDWARE_H
-
-
-/*
-************************************************************************************************************************
 *           INCLUDE FILES
 ************************************************************************************************************************
 */
 
-#include <stdint.h>
+#include "data.h"
+#include "config.h"
+#include "utils.h"
 
-#include "led.h"
+#include <stdlib.h>
 
 
 /*
 ************************************************************************************************************************
-*           DO NOT CHANGE THESE DEFINES
+*           LOCAL DEFINES
 ************************************************************************************************************************
 */
 
 
 /*
 ************************************************************************************************************************
-*           CONFIGURATION DEFINES
-************************************************************************************************************************
-*/
-
-#define TIMER0_PRIORITY     3
-#define TIMER1_PRIORITY     2
-
-
-/*
-************************************************************************************************************************
-*           DATA TYPES
+*           LOCAL CONSTANTS
 ************************************************************************************************************************
 */
 
 
 /*
 ************************************************************************************************************************
-*           GLOBAL VARIABLES
+*           LOCAL DATA TYPES
 ************************************************************************************************************************
 */
 
 
 /*
 ************************************************************************************************************************
-*           MACRO'S
+*           LOCAL MACROS
 ************************************************************************************************************************
 */
 
 
 /*
 ************************************************************************************************************************
-*           FUNCTION PROTOTYPES
-************************************************************************************************************************
-*/
-
-// does the hardware setup
-void hardware_setup(void);
-// returns the CPU status: zero if CPU is turned off or non-zero if CPU is turned on
-uint8_t hardware_cpu_status(void);
-// defines the cooler duty cycle
-void hardware_cooler(uint8_t duty_cycle);
-// returns the led object relative to led id
-led_t *hardware_leds(uint8_t led_id);
-// returns the actuator object relative to actuator id
-void *hardware_actuators(uint8_t actuator_id);
-// returns the time stamp (a variable increment in each millisecond)
-uint32_t hardware_time_stamp(void);
-
-
-/*
-************************************************************************************************************************
-*           CONFIGURATION ERRORS
+*           LOCAL GLOBAL VARIABLES
 ************************************************************************************************************************
 */
 
 
 /*
 ************************************************************************************************************************
-*           END HEADER
+*           LOCAL FUNCTION PROTOTYPES
 ************************************************************************************************************************
 */
 
-#endif
+
+/*
+************************************************************************************************************************
+*           LOCAL CONFIGURATION ERRORS
+************************************************************************************************************************
+*/
+
+
+/*
+************************************************************************************************************************
+*           LOCAL FUNCTIONS
+************************************************************************************************************************
+*/
+
+
+/*
+************************************************************************************************************************
+*           GLOBAL FUNCTIONS
+************************************************************************************************************************
+*/
+
+void data_parse_control(char **data, control_t *control)
+{
+    uint32_t len = strarr_length(data);
+
+    // checks if all data was received
+    if (len >= 14)
+    {
+        control->effect_instance = atoi(data[1]);
+        control->symbol = str_duplicate(data[2]);
+        control->label = str_duplicate(data[3]);
+        control->properties = atoi(data[4]);
+        control->unit = str_duplicate(data[5]);
+        control->value = atof(data[6]);
+        control->maximum = atof(data[7]);
+        control->minimum = atof(data[8]);
+        control->steps = atoi(data[9]);
+        control->hardware_type = atoi(data[10]);
+        control->hardware_id = atoi(data[11]);
+        control->actuator_type = atoi(data[12]);
+        control->actuator_id = atoi(data[13]);
+        control->scale_points_count = 0;
+        control->scale_points = NULL;
+    }
+
+    // checks if has scale points
+    if (len >= 15 && control->properties == CONTROL_PROP_ENUMERATION)
+    {
+        control->scale_points_count = atoi(data[14]);
+        control->scale_points = (scale_point_t **) MALLOC(sizeof(scale_point_t*) * control->scale_points_count);
+
+        uint8_t i;
+        for (i = 0; i < control->scale_points_count; i++)
+        {
+            control->scale_points[i] = (scale_point_t *) MALLOC(sizeof(scale_point_t));
+            control->scale_points[i]->label = str_duplicate(data[15 + (i*2)]);
+            control->scale_points[i]->value = atof(data[16 + (i*2)]);
+        }
+    }
+}
+
+void data_free_control(control_t *control)
+{
+    if (control)
+    {
+        FREE(control->symbol);
+        FREE(control->label);
+        FREE(control->unit);
+    }
+
+    uint8_t i;
+    for (i = 0; i < control->scale_points_count; i++)
+    {
+        FREE(control->scale_points[i]->label);
+        FREE(control->scale_points[i]);
+    }
+
+    if (control->scale_points) FREE(control->scale_points);
+
+    FREE(control);
+}

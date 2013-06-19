@@ -5,8 +5,8 @@
 ************************************************************************************************************************
 */
 
-#ifndef HARDWARE_H
-#define HARDWARE_H
+#ifndef NAVEG_H
+#define NAVEG_H
 
 
 /*
@@ -16,8 +16,7 @@
 */
 
 #include <stdint.h>
-
-#include "led.h"
+#include "data.h"
 
 
 /*
@@ -32,9 +31,6 @@
 *           CONFIGURATION DEFINES
 ************************************************************************************************************************
 */
-
-#define TIMER0_PRIORITY     3
-#define TIMER1_PRIORITY     2
 
 
 /*
@@ -64,18 +60,26 @@
 ************************************************************************************************************************
 */
 
-// does the hardware setup
-void hardware_setup(void);
-// returns the CPU status: zero if CPU is turned off or non-zero if CPU is turned on
-uint8_t hardware_cpu_status(void);
-// defines the cooler duty cycle
-void hardware_cooler(uint8_t duty_cycle);
-// returns the led object relative to led id
-led_t *hardware_leds(uint8_t led_id);
-// returns the actuator object relative to actuator id
-void *hardware_actuators(uint8_t actuator_id);
-// returns the time stamp (a variable increment in each millisecond)
-uint32_t hardware_time_stamp(void);
+// initialize the navigation nodes and structs
+void naveg_init(void);
+// adds the control to end of the controls list
+void naveg_add_control(control_t *control);
+// removes the control from controls list
+void naveg_remove_control(uint8_t effect_instance, const char *symbol);
+// increment the control value
+void naveg_inc_control(uint8_t display);
+// decrement the control value
+void naveg_dec_control(uint8_t display);
+// sets the control value
+void naveg_set_control(uint8_t effect_instance, const char *symbol, float value);
+// gets the control value
+float naveg_get_control(uint8_t effect_instance, const char *symbol);
+// goes to the next control of the controls list
+control_t *naveg_next_control(uint8_t display);
+// change the foot value
+void naveg_foot_change(uint8_t foot);
+// load the matching display tool
+void naveg_load_tool(uint8_t display);
 
 
 /*

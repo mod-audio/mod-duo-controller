@@ -6,6 +6,7 @@
 */
 
 #include <stdint.h>
+#include <string.h>
 #include <math.h>
 
 #include "utils.h"
@@ -261,6 +262,13 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
     return (int_len + frac_len);
 }
 
+char *str_duplicate(const char *str)
+{
+    char *copy = MALLOC(strlen(str) + 1);
+    strcpy(copy, str);
+    return copy;
+}
+
 void delay_us(uint32_t time)
 {
     volatile uint32_t delay = (time*50);
@@ -270,4 +278,70 @@ void delay_us(uint32_t time)
 void delay_ms(uint32_t time)
 {
     while (time--) delay_us(900);
+}
+
+float convert_to_ms(const char *unit_from, float value)
+{
+    char unit[8];
+    uint8_t i;
+
+    // lower case unit string
+    for (i = 0; unit_from[i]; i++)
+    {
+        if (i == (sizeof(unit) - 1)) break;
+        unit[i] = unit_from[i] | 0x20;
+    }
+    unit[i] = 0;
+
+    if (strcmp(unit, "bpm") == 0)
+    {
+        return (60000.0 / value);
+    }
+    else if (strcmp(unit, "hz") == 0)
+    {
+        return (1000.0 / value);
+    }
+    else if (strcmp(unit, "s") == 0)
+    {
+        return (value * 1000.0);
+    }
+    else if (strcmp(unit, "ms") == 0)
+    {
+        return value;
+    }
+
+    return 0.0;
+}
+
+float convert_from_ms(const char *unit_to, float value)
+{
+    char unit[8];
+    uint8_t i;
+
+    // lower case unit string
+    for (i = 0; unit_to[i]; i++)
+    {
+        if (i == (sizeof(unit) - 1)) break;
+        unit[i] = unit_to[i] | 0x20;
+    }
+    unit[i] = 0;
+
+    if (strcmp(unit, "bpm") == 0)
+    {
+        return (60000.0 / value);
+    }
+    else if (strcmp(unit, "hz") == 0)
+    {
+        return (1000.0 / value);
+    }
+    else if (strcmp(unit, "s") == 0)
+    {
+        return (value / 1000.0);
+    }
+    else if (strcmp(unit, "ms") == 0)
+    {
+        return value;
+    }
+
+    return 0.0;
 }

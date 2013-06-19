@@ -66,6 +66,7 @@ struct COOLER_T {
 static led_t g_leds[LEDS_COUNT];
 static encoder_t g_encoders[ENCODERS_COUNT];
 static button_t g_footswitches[FOOTSWITCHES_COUNT];
+static uint32_t g_counter;
 
 
 /*
@@ -227,10 +228,10 @@ void hardware_cooler(uint8_t duty_cycle)
     g_cooler.counter = duty_cycle;
 }
 
-led_t *hardware_leds(uint8_t led)
+led_t *hardware_leds(uint8_t led_id)
 {
-    if (led > LEDS_COUNT) return NULL;
-    return &g_leds[led];
+    if (led_id > LEDS_COUNT) return NULL;
+    return &g_leds[led_id];
 }
 
 void *hardware_actuators(uint8_t actuator_id)
@@ -247,6 +248,11 @@ void *hardware_actuators(uint8_t actuator_id)
     }
 
     return NULL;
+}
+
+uint32_t hardware_time_stamp(void)
+{
+    return g_counter;
 }
 
 void TIMER0_IRQHandler(void)
@@ -287,6 +293,7 @@ void TIMER1_IRQHandler(void)
 	if (TIM_GetIntStatus(LPC_TIM1, TIM_MR1_INT) == SET)
 	{
 		actuators_clock();
+        g_counter++;
 	}
 
 	TIM_ClearIntPending(LPC_TIM1, TIM_MR1_INT);

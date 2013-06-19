@@ -1,5 +1,5 @@
 # project name
-PRJNAME = test
+PRJNAME = mod-controller
 
 # toolchain configuration
 PATH := ${PATH}:/opt/toolchain/arm-bare_newlib_cortex_m3_nommu-eabi/bin/

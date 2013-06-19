@@ -161,7 +161,7 @@ void screen_control(uint8_t display, control_t *control)
         list.height = 33;
         list.color = GLCD_BLACK;
         list.font = alterebro15;
-        list.selected = control->value;
+        list.selected = control->step;
         list.count = control->scale_points_count;
         list.list = labels_list;
         list.line_space = 1;
@@ -179,6 +179,8 @@ void screen_controls_index(uint8_t display, uint8_t current, uint8_t max)
     char str_current[4], str_max[4];
     int_to_str(current, str_current, sizeof(str_current), 2);
     int_to_str(max, str_max, sizeof(str_max), 2);
+
+    if (max == 0) return;
 
     // vertical line index separator
     glcd_vline(display, 114, 0, 16, GLCD_BLACK_WHITE);

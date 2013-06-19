@@ -72,9 +72,16 @@ uint32_t int_to_str(int32_t num, char *string, uint32_t string_size, uint8_t zer
 // converts float to string  and returns the string length
 uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t precision);
 
+// duplicate a string (alternative to strdup)
+char *str_duplicate(const char *str);
+
 // delay functions
 void delay_us(uint32_t time);
 void delay_ms(uint32_t time);
+
+// time convertion functions
+float convert_to_ms(const char *unit_from, float value);
+float convert_from_ms(const char *unit_to, float value);
 
 
 /*

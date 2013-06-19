@@ -5,8 +5,8 @@
 ************************************************************************************************************************
 */
 
-#ifndef HARDWARE_H
-#define HARDWARE_H
+#ifndef DATA_H
+#define DATA_H
 
 
 /*
@@ -16,8 +16,6 @@
 */
 
 #include <stdint.h>
-
-#include "led.h"
 
 
 /*
@@ -33,15 +31,56 @@
 ************************************************************************************************************************
 */
 
-#define TIMER0_PRIORITY     3
-#define TIMER1_PRIORITY     2
-
 
 /*
 ************************************************************************************************************************
 *           DATA TYPES
 ************************************************************************************************************************
 */
+
+typedef struct SCALE_POINT_T {
+    char *label;
+    float value;
+} scale_point_t;
+
+typedef struct CONTROL_T {
+    uint8_t hardware_type, hardware_id;
+    uint8_t actuator_type, actuator_id;
+    char *label, *symbol, *unit;
+    uint8_t effect_instance, properties;
+    float value, minimum, maximum;
+    int8_t step, steps;
+    uint8_t scale_points_count;
+    scale_point_t **scale_points;
+} control_t;
+
+typedef struct BYPASS_T {
+    uint8_t hardware_type, hardware_id;
+    uint8_t actuator_type, actuator_id;
+    char *label;
+    uint8_t value;
+} bypass_t;
+
+typedef struct EFFECT_T {
+    uint8_t instance;
+    bypass_t bypass;
+} effect_t;
+
+typedef struct PEDALBOARD_T {
+    char *uid;
+    char *name;
+    uint8_t effects_count;
+    effect_t **effects;
+    uint8_t controls_count;
+    control_t **controls;
+} pedalboard_t;
+
+typedef struct BANK_T {
+    char *name;
+    uint8_t pedalboards_count;
+    uint8_t *pedalboards_indexes;
+    char **pedalboards_uid;
+} bank_t;
 
 
 /*
@@ -64,18 +103,8 @@
 ************************************************************************************************************************
 */
 
-// does the hardware setup
-void hardware_setup(void);
-// returns the CPU status: zero if CPU is turned off or non-zero if CPU is turned on
-uint8_t hardware_cpu_status(void);
-// defines the cooler duty cycle
-void hardware_cooler(uint8_t duty_cycle);
-// returns the led object relative to led id
-led_t *hardware_leds(uint8_t led_id);
-// returns the actuator object relative to actuator id
-void *hardware_actuators(uint8_t actuator_id);
-// returns the time stamp (a variable increment in each millisecond)
-uint32_t hardware_time_stamp(void);
+void data_parse_control(char **data, control_t *control);
+void data_free_control(control_t *control);
 
 
 /*

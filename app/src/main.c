@@ -19,6 +19,8 @@
 #include "glcd.h"
 #include "led.h"
 #include "actuator.h"
+#include "data.h"
+#include "naveg.h"
 
 
 /*
@@ -57,7 +59,7 @@
 ************************************************************************************************************************
 */
 
-static xQueueHandle g_serial_queue;
+static xQueueHandle g_serial_queue, g_actuators_queue;
 
 
 /*
@@ -68,16 +70,20 @@ static xQueueHandle g_serial_queue;
 
 // local functions
 static void serial_cb(serial_msg_t *msg);
+static void actuators_cb(void *actuator);
 
 // tasks
-static void procotol_parser_task(void *pvParameters);
-static void displays_update_task(void *pvParameters);
+static void procotol_task(void *pvParameters);
+static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
-static void test_task(void *pvParameters);
 
 // protocol callbacks
 static void say_cb(proto_t *proto);
 static void led_cb(proto_t *proto);
+static void control_add_cb(proto_t *proto);
+static void control_rm_cb(proto_t *proto);
+static void control_set_cb(proto_t *proto);
+static void control_get_cb(proto_t *proto);
 
 
 /*
@@ -110,21 +116,46 @@ int main(void)
     serial_set_callback(SERIAL0, serial_cb);
     serial_set_callback(SERIAL1, serial_cb);
 
+    // actuators callbacks
+    actuator_set_event(hardware_actuators(ENCODER0), actuators_cb);
+    actuator_set_event(hardware_actuators(ENCODER1), actuators_cb);
+    actuator_set_event(hardware_actuators(ENCODER2), actuators_cb);
+    actuator_set_event(hardware_actuators(ENCODER3), actuators_cb);
+    actuator_enable_event(hardware_actuators(ENCODER0), EV_ALL_ENCODER_EVENTS);
+    actuator_enable_event(hardware_actuators(ENCODER1), EV_ALL_ENCODER_EVENTS);
+    actuator_enable_event(hardware_actuators(ENCODER2), EV_ALL_ENCODER_EVENTS);
+    actuator_enable_event(hardware_actuators(ENCODER3), EV_ALL_ENCODER_EVENTS);
+    actuator_set_event(hardware_actuators(FOOTSWITCH0), actuators_cb);
+    actuator_set_event(hardware_actuators(FOOTSWITCH1), actuators_cb);
+    actuator_set_event(hardware_actuators(FOOTSWITCH2), actuators_cb);
+    actuator_set_event(hardware_actuators(FOOTSWITCH3), actuators_cb);
+    actuator_enable_event(hardware_actuators(FOOTSWITCH0), EV_ALL_BUTTON_EVENTS);
+    actuator_enable_event(hardware_actuators(FOOTSWITCH1), EV_ALL_BUTTON_EVENTS);
+    actuator_enable_event(hardware_actuators(FOOTSWITCH2), EV_ALL_BUTTON_EVENTS);
+    actuator_enable_event(hardware_actuators(FOOTSWITCH3), EV_ALL_BUTTON_EVENTS);
+
     // displays initialization
     glcd_init();
 
     // protocol definitions
     protocol_add_command(SAY_CMD, say_cb);
     protocol_add_command(LED_CMD, led_cb);
+    protocol_add_command(CONTROL_ADD_CMD, control_add_cb);
+    protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
+    protocol_add_command(CONTROL_SET_CMD, control_set_cb);
+    protocol_add_command(CONTROL_GET_CMD, control_get_cb);
 
-    // create a queue to serial
+    // navegation initialization
+    naveg_init();
+
+    // create the queues
     g_serial_queue = xQueueCreate(5, sizeof(serial_msg_t *));
+    g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create tasks
-    xTaskCreate(procotol_parser_task, NULL, 1000, NULL, 2, NULL);
-    xTaskCreate(displays_update_task, NULL, 1000, NULL, 2, NULL);
+    xTaskCreate(procotol_task, NULL, 1000, NULL, 2, NULL);
     xTaskCreate(actuators_task, NULL, 1000, NULL, 2, NULL);
-    xTaskCreate(test_task, NULL, 1000, NULL, 2, NULL);
+    xTaskCreate(displays_task, NULL, 1000, NULL, 1, NULL);
 
     // Start the scheduler
     vTaskStartScheduler();
@@ -165,6 +196,26 @@ static void serial_cb(serial_msg_t *msg)
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
+// this callback is called from a ISR
+static void actuators_cb(void *actuator)
+{
+    // does a copy of actuator id and status
+    uint8_t *actuator_info;
+    actuator_info = (uint8_t *) pvPortMalloc(sizeof(uint8_t) * 3);
+    if (!actuator_info) while (1);
+
+    // fills the actuator info vector
+    actuator_info[0] = ((button_t *)(actuator))->type;
+    actuator_info[1] = ((button_t *)(actuator))->id;
+    actuator_info[2] = actuator_get_status(actuator);
+
+    // sends the actuator to queue
+    portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendFromISR(g_actuators_queue, &actuator_info, &xHigherPriorityTaskWoken);
+
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+
 
 /*
 ************************************************************************************************************************
@@ -172,7 +223,7 @@ static void serial_cb(serial_msg_t *msg)
 ************************************************************************************************************************
 */
 
-static void procotol_parser_task(void *pvParameters)
+static void procotol_task(void *pvParameters)
 {
     msg_t proto_msg;
     serial_msg_t *serial_msg;
@@ -181,22 +232,28 @@ static void procotol_parser_task(void *pvParameters)
 
     while(1)
     {
+        portBASE_TYPE xStatus;
+
         // take the message from queue
-        xQueueReceive(g_serial_queue, &serial_msg, portMAX_DELAY);
+        xStatus = xQueueReceive(g_serial_queue, &serial_msg, portMAX_DELAY);
 
-        // convert serial_msg to proto_msg
-        proto_msg.sender_id = (int) serial_msg->port;
-        proto_msg.data = (char *) serial_msg->data;
-        proto_msg.data_size = (uint32_t) serial_msg->data_size;
-        protocol_parse(&proto_msg);
+        // checks if message has successfully taken
+        if (xStatus == pdPASS)
+        {
+            // convert serial_msg to proto_msg
+            proto_msg.sender_id = (int) serial_msg->port;
+            proto_msg.data = (char *) serial_msg->data;
+            proto_msg.data_size = (uint32_t) serial_msg->data_size;
+            protocol_parse(&proto_msg);
 
-        // free the memory
-        vPortFree(serial_msg->data);
-        vPortFree(serial_msg);
+            // free the memory
+            vPortFree(serial_msg->data);
+            vPortFree(serial_msg);
+        }
     }
 }
 
-static void displays_update_task(void *pvParameters)
+static void displays_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
@@ -211,93 +268,54 @@ static void actuators_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
-    uint8_t status, cc = 127;
-    color_t color;
-    color.r = cc;
-    color.g = 0;
-    color.b = 0;
+    uint8_t type, id, status;
+    uint8_t *actuator_info;
 
     while (1)
     {
-        status = actuator_get_status(hardware_actuators(ENCODER0));
-        if (BUTTON_PRESSED(status))
+        portBASE_TYPE xStatus;
+
+        // take the actuator from queue
+        xStatus = xQueueReceive(g_actuators_queue, &actuator_info, portMAX_DELAY);
+
+        // checks if actuator has successfully taken
+        if (xStatus == pdPASS)
         {
-        }
-        if (BUTTON_RELEASED(status))
-        {
-        }
-        if (BUTTON_CLICKED(status))
-        {
-            if (color.r > 0)
+            type = actuator_info[0];
+            id = actuator_info[1];
+            status = actuator_info[2];
+
+            // encoders
+            if (type == ROTARY_ENCODER)
             {
-                color.r = 0;
-                color.g = cc;
-                color.b = 0;
+                if (BUTTON_CLICKED(status))
+                {
+                    naveg_next_control(id);
+                }
+                if (BUTTON_HOLD(status))
+                {
+                }
+                if (ENCODER_TURNED_CW(status))
+                {
+                    naveg_inc_control(id);
+                }
+                if (ENCODER_TURNED_ACW(status))
+                {
+                    naveg_dec_control(id);
+                }
             }
-            else if (color.g > 0)
+
+            // footswitches
+            else if (type == BUTTON)
             {
-                color.r = 0;
-                color.g = 0;
-                color.b = cc;
+                if (BUTTON_PRESSED(status))
+                {
+                    naveg_foot_change(id);
+                }
             }
-            else if (color.b > 0)
-            {
-                color.r = cc;
-                color.g = 0;
-                color.b = 0;
-            }
-        }
-        if (BUTTON_HOLD(status))
-        {
-        }
-        if (ENCODER_TURNED(status))
-        {
-        }
-        if (ENCODER_TURNED_CW(status))
-        {
-            cc += 5;
-        }
-        if (ENCODER_TURNED_ACW(status))
-        {
-            cc -= 5;
-        }
 
-        if (color.r > 0)
-        {
-            color.r = cc;
-            color.g = 0;
-            color.b = 0;
+            vPortFree(actuator_info);
         }
-        else if (color.g > 0)
-        {
-            color.r = 0;
-            color.g = cc;
-            color.b = 0;
-        }
-        else if (color.b > 0)
-        {
-            color.r = 0;
-            color.g = 0;
-            color.b = cc;
-        }
-
-        led_set_color(hardware_leds(0), color);
-    }
-}
-
-static void test_task(void *pvParameters)
-{
-    UNUSED_PARAM(pvParameters);
-
-    static unsigned int counter;
-    char buffer[128];
-
-    while (1)
-    {
-        int_to_str(counter, buffer, sizeof(buffer), 4);
-        glcd_text(0, 0, 0, buffer, NULL, GLCD_BLACK);
-        counter++;
-        taskYIELD();
     }
 }
 
@@ -329,3 +347,37 @@ static void led_cb(proto_t *proto)
 
     protocol_response("resp 0", proto);
 }
+
+static void control_add_cb(proto_t *proto)
+{
+    control_t *control = (control_t *) MALLOC(sizeof(control_t));
+    data_parse_control(proto->list, control);
+
+    if (control->hardware_type == QUADRA_HW)
+    {
+        naveg_add_control(control);
+    }
+
+    // TODO: implement the others hardwares type
+}
+
+static void control_rm_cb(proto_t *proto)
+{
+    naveg_remove_control(atoi(proto->list[1]), proto->list[2]);
+}
+
+static void control_set_cb(proto_t *proto)
+{
+    naveg_set_control(atoi(proto->list[1]), proto->list[2], atof(proto->list[3]));
+}
+
+static void control_get_cb(proto_t *proto)
+{
+    float value;
+    value = naveg_get_control(atoi(proto->list[1]), proto->list[2]);
+
+    char resp[32];
+    float_to_str(value, resp, sizeof(resp), 3);
+    protocol_response(resp, proto);
+}
+

@@ -13,16 +13,16 @@ void screen_control_test(void)
 
     control_t control;
 
-    control.label = "Control One";
-    control.unit = "ms";
+    control.label = str_duplicate("Control One");
+    control.unit = str_duplicate("ms");
     control.minimum = 0.0;
     control.maximum = 100.0;
     control.value = 50.0;
     control.properties = CONTROL_PROP_LINEAR;
     screen_control(0, &control);
 
-    control.label = "Control Two";
-    control.unit = "Hz";
+    control.label = str_duplicate("Control Two");
+    control.unit = str_duplicate("Hz");
     control.minimum = 20.0;
     control.maximum = 440.0;
     control.value = 120.0;
@@ -33,21 +33,21 @@ void screen_control_test(void)
     scale_points = MALLOC(5 * sizeof(scale_point_t *));
 
     scale_point_t points[5];
-    points[0].label = "one";
+    points[0].label = str_duplicate("one");
     points[0].value = 1.0;
-    points[1].label = "two";
+    points[1].label = str_duplicate("two");
     points[1].value = 2.0;
-    points[2].label = "three";
+    points[2].label = str_duplicate("three");
     points[2].value = 3.0;
-    points[3].label = "four";
+    points[3].label = str_duplicate("four");
     points[3].value = 4.0;
-    points[4].label = "five";
+    points[4].label = str_duplicate("five");
     points[4].value = 5.0;
 
     uint8_t i;
     for (i = 0; i < 5; i++) scale_points[i] = &points[i];
 
-    control.label = "Control Three";
+    control.label = str_duplicate("Control Three");
     control.unit = NULL;
     control.value = 1.0;
     control.properties = CONTROL_PROP_ENUMERATION;
@@ -55,8 +55,8 @@ void screen_control_test(void)
     control.scale_points = scale_points;
     screen_control(2, &control);
 
-    control.label = "Control Four";
-    control.unit = "cru";
+    control.label = str_duplicate("Control Four");
+    control.unit =str_duplicate( "cru");
     control.minimum = -10.0;
     control.maximum = 10.0;
     control.value = 1.0;
