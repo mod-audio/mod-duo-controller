@@ -294,6 +294,7 @@ static void actuators_task(void *pvParameters)
                 }
                 if (BUTTON_HOLD(status))
                 {
+                    naveg_tool(id);
                 }
                 if (ENCODER_TURNED_CW(status))
                 {

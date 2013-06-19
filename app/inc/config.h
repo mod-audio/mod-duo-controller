@@ -113,6 +113,9 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // enumeration of tools (identification)
 enum {TOOL_SYSTEM, TOOL_TUNER, TOOL_PEAKMETER, TOOL_NAVEG};
 
+// time in milliseconds to enter in tool mode (hold rotary encoder button)
+#define TOOL_MODE_TIME      2000
+
 // setup of tools on displays
 #define TOOL_DISPLAY0       TOOL_SYSTEM
 #define TOOL_DISPLAY1       TOOL_TUNER
@@ -140,7 +143,6 @@ enum {TOOL_SYSTEM, TOOL_TUNER, TOOL_PEAKMETER, TOOL_NAVEG};
 //// TAP TEMPO
 // defines the time that the led will stay turned on (in milliseconds)
 #define TAP_TEMPO_TIME_ON   20
-
 
 //// Allocation and free macros
 // these macros should be used in replacement to default

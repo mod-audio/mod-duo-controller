@@ -143,7 +143,10 @@ void hardware_setup(void)
     actuator_set_prop(hardware_actuators(ENCODER1), ENCODER_STEPS, 3);
     actuator_set_prop(hardware_actuators(ENCODER2), ENCODER_STEPS, 3);
     actuator_set_prop(hardware_actuators(ENCODER3), ENCODER_STEPS, 3);
-
+    actuator_set_prop(hardware_actuators(ENCODER0), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
+    actuator_set_prop(hardware_actuators(ENCODER1), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
+    actuator_set_prop(hardware_actuators(ENCODER2), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
+    actuator_set_prop(hardware_actuators(ENCODER3), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
 
     ////////////////////////////////////////////////////////////////
     // Timer 0 configuration

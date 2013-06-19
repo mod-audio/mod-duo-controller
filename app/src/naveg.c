@@ -25,6 +25,7 @@
 */
 
 enum {TT_INIT, TT_COUNTING};
+enum {TOOL_OFF, TOOL_ON};
 
 
 /*
@@ -56,6 +57,11 @@ struct TAP_TEMPO_T {
     uint8_t state;
 } g_tap_tempo[SLOTS_COUNT];
 
+struct TOOL_T {
+    node_t *node;
+    uint8_t state;
+} g_tool[SLOTS_COUNT];
+
 
 /*
 ************************************************************************************************************************
@@ -71,7 +77,6 @@ struct TAP_TEMPO_T {
 */
 
 node_t *g_controls_list[SLOTS_COUNT], *g_current_control[SLOTS_COUNT];
-node_t *g_tool[SLOTS_COUNT];
 control_t *g_foots[SLOTS_COUNT];
 
 
@@ -156,7 +161,7 @@ static void display_control_add(control_t *control)
     g_current_control[display] = node;
 
     // connect the control with the tool
-    node->first_child = g_tool[display];
+    node->first_child = g_tool[display].node;
 
     // calculates initial step
     switch (control->properties)
@@ -427,8 +432,9 @@ void naveg_init(void)
         // creates the controls list
         g_controls_list[i] = node_create(NULL);
 
-        // creates the tools list
-        g_tool[i] = node_create(NULL);
+        // initialize the tools
+        g_tool[i].state = TOOL_OFF;
+        g_tool[i].node = node_create(NULL);
 
         // initialize the current control
         g_current_control[i] = NULL;
@@ -580,8 +586,28 @@ void naveg_foot_change(uint8_t foot)
     control_set(foot, g_foots[foot]);
 }
 
-void naveg_load_tool(uint8_t display)
+void naveg_tool(uint8_t display)
 {
-    screen_tool(display, g_tools_display[display]);
+    if (g_tool[display].state == TOOL_OFF)
+    {
+        g_tool[display].state = TOOL_ON;
+        screen_tool(display, g_tools_display[display]);
+    }
+    else
+    {
+        g_tool[display].state = TOOL_OFF;
+        control_t *control = NULL;
+        if (g_current_control[display])
+        {
+            control = g_current_control[display]->data;
+            screen_control(display, control);
+            foot_control_add(control);
+        }
+        else
+        {
+            screen_control(display, NULL);
+            screen_footer(display, NULL, NULL);
+        }
+    }
 }
 

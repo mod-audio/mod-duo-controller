@@ -78,8 +78,8 @@ float naveg_get_control(uint8_t effect_instance, const char *symbol);
 control_t *naveg_next_control(uint8_t display);
 // change the foot value
 void naveg_foot_change(uint8_t foot);
-// load the matching display tool
-void naveg_load_tool(uint8_t display);
+// toggle between control and tool
+void naveg_tool(uint8_t display);
 
 
 /*
