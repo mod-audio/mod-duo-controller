@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "glcd.h"
 #include "glcd_widget.h"
+#include "naveg.h"
 
 #include <string.h>
 
@@ -18,6 +19,26 @@
 *           LOCAL DEFINES
 ************************************************************************************************************************
 */
+
+#if (TOOL_PEAKMETER == TOOL_DISPLAY0)
+#define PEAKMETER_DISPLAY   TOOL_DISPLAY0
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY1)
+#define PEAKMETER_DISPLAY   TOOL_DISPLAY1
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY2)
+#define PEAKMETER_DISPLAY   TOOL_DISPLAY2
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY3)
+#define PEAKMETER_DISPLAY   TOOL_DISPLAY3
+#endif
+
+#if (TOOL_TUNER == TOOL_DISPLAY0)
+#define TUNER_DISPLAY   TOOL_DISPLAY0
+#elif (TOOL_TUNER == TOOL_DISPLAY1)
+#define TUNER_DISPLAY   TOOL_DISPLAY1
+#elif (TOOL_TUNER == TOOL_DISPLAY2)
+#define TUNER_DISPLAY   TOOL_DISPLAY2
+#elif (TOOL_TUNER == TOOL_DISPLAY3)
+#define TUNER_DISPLAY   TOOL_DISPLAY3
+#endif
 
 
 /*
@@ -46,6 +67,8 @@
 *           LOCAL GLOBAL VARIABLES
 ************************************************************************************************************************
 */
+
+static peakmeter_t g_peakmeter;
 
 
 /*
@@ -78,11 +101,20 @@
 
 // TODO: capitalize strings, truncate, replace underline by space
 
+void screen_init(void)
+{
+    g_peakmeter.font = alterebro15;
+    g_peakmeter.value1 = -30.0;
+    g_peakmeter.value2 = -30.0;
+    g_peakmeter.value3 = -30.0;
+    g_peakmeter.value4 = -30.0;
+}
+
 void screen_control(uint8_t display, control_t *control)
 {
     if (!control)
     {
-        glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 50, GLCD_WHITE);
+        glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 51, GLCD_WHITE);
 
         char text[16];
         strcpy(text, "ROTARY #");
@@ -252,7 +284,6 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     widget_textbox(display, footer);
 }
 
-
 void screen_tool(uint8_t display, uint8_t tool)
 {
     glcd_clear(display, GLCD_WHITE);
@@ -268,11 +299,37 @@ void screen_tool(uint8_t display, uint8_t tool)
             break;
 
         case TOOL_PEAKMETER:
-            glcd_text(display, 0, 0, "PEAKMETER", System5x7, GLCD_BLACK);
+            widget_peakmeter(display, &g_peakmeter);
             break;
 
         case TOOL_NAVEG:
             glcd_text(display, 0, 0, "PEDALBOARDS", System5x7, GLCD_BLACK);
             break;
     }
+}
+
+void screen_set_peakmeter(uint8_t peakmeter, float value)
+{
+    switch (peakmeter)
+    {
+        case 0:
+            g_peakmeter.value1 = value;
+            break;
+
+        case 1:
+            g_peakmeter.value2 = value;
+            break;
+
+        case 2:
+            g_peakmeter.value3 = value;
+            break;
+
+        case 3:
+            g_peakmeter.value4 = value;
+            break;
+    }
+
+    // checks if peakmeter is enable and update it
+    if (naveg_is_tool_mode(PEAKMETER_DISPLAY))
+        widget_peakmeter(PEAKMETER_DISPLAY, &g_peakmeter);
 }

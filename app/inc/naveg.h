@@ -79,7 +79,9 @@ control_t *naveg_next_control(uint8_t display);
 // change the foot value
 void naveg_foot_change(uint8_t foot);
 // toggle between control and tool
-void naveg_tool(uint8_t display);
+void naveg_toggle_tool(uint8_t display);
+// returns if display is in tool mode
+uint8_t naveg_is_tool_mode(uint8_t display);
 
 
 /*

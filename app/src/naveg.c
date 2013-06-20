@@ -426,6 +426,8 @@ void naveg_init(void)
 {
     uint32_t i;
 
+    screen_init();
+
     // create the nodes
     for (i = 0; i < SLOTS_COUNT; i++)
     {
@@ -483,6 +485,9 @@ void naveg_inc_control(uint8_t display)
     node_t *node = g_current_control[display];
     if (!node) return;
 
+    // if is in tool mode return
+    if (g_tool[display].state == TOOL_ON) return;
+
     control_t *control = node->data;
     control->step++;
     if (control->step >= control->steps) control->step = control->steps - 1;
@@ -497,6 +502,9 @@ void naveg_dec_control(uint8_t display)
 {
     node_t *node = g_current_control[display];
     if (!node) return;
+
+    // if is in tool mode return
+    if (g_tool[display].state == TOOL_ON) return;
 
     control_t *control = node->data;
     control->step--;
@@ -548,6 +556,10 @@ float naveg_get_control(uint8_t effect_instance, const char *symbol)
 
 control_t *naveg_next_control(uint8_t display)
 {
+    // if is in tool mode return
+    if (g_tool[display].state == TOOL_ON) return NULL;
+
+    // if there is no controls
     if (!g_current_control[display])
     {
         screen_control(display, NULL);
@@ -586,7 +598,7 @@ void naveg_foot_change(uint8_t foot)
     control_set(foot, g_foots[foot]);
 }
 
-void naveg_tool(uint8_t display)
+void naveg_toggle_tool(uint8_t display)
 {
     if (g_tool[display].state == TOOL_OFF)
     {
@@ -611,3 +623,7 @@ void naveg_tool(uint8_t display)
     }
 }
 
+uint8_t naveg_is_tool_mode(uint8_t display)
+{
+    return g_tool[display].state;
+}

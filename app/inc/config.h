@@ -108,10 +108,15 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PEDALBOARD_LOAD_CMD
 #define HARDWARE_CONNECTED_CMD
 #define HARDWARE_DISCONNECTED_CMD
+// peakmeter <peakmeter_number> <peakmeter_value>
+#define PEAKMETER_CMD       "peakmeter %i %f"
 
 //// Tools configuration
-// enumeration of tools (identification)
-enum {TOOL_SYSTEM, TOOL_TUNER, TOOL_PEAKMETER, TOOL_NAVEG};
+// tools identification (don't change)
+#define TOOL_SYSTEM         0
+#define TOOL_TUNER          1
+#define TOOL_PEAKMETER      2
+#define TOOL_NAVEG          3
 
 // time in milliseconds to enter in tool mode (hold rotary encoder button)
 #define TOOL_MODE_TIME      2000

@@ -75,9 +75,9 @@ typedef struct GRAPH_T {
 } graph_t;
 
 typedef struct PEAKMETER_T {
-    uint8_t x, xname, y, width, height;
-    float min, max, value, oldvalue, peak, oldpeak;
-    const char *name;
+    float peak1, peak2, peak3, peak4;
+    float value1, value2, value3, value4;
+    const uint8_t *font;
 } peakmeter_t;
 
 typedef struct TUNER_T {
@@ -112,6 +112,7 @@ void widget_textbox(uint8_t display, textbox_t textbox);
 void widget_listbox(uint8_t display, listbox_t listbox);
 void widget_listbox2(uint8_t display, listbox_t listbox);
 void widget_graph(uint8_t display, graph_t graph);
+void widget_peakmeter(uint8_t display, peakmeter_t *pkm);
 
 
 /*

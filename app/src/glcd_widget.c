@@ -80,7 +80,7 @@ static const uint8_t GraphVPositionTable[] = {
 ************************************************************************************************************************
 */
 
-#define ABS(x)      (x > 0 ? x : -x)
+#define ABS(x)      ((x) > 0 ? (x) : -(x))
 #define ROUND(x)    ((x) > 0.0 ? (((float)(x)) + 0.5) : (((float)(x)) - 0.5))
 
 
@@ -136,6 +136,36 @@ static uint8_t get_text_width(const char *text, const uint8_t *font)
     text_width -= FONT_INTERCHAR_SPACE;
 
     return text_width;
+}
+
+static void draw_peakmeter_bar(uint8_t display, uint8_t pkm, float value)
+{
+    uint8_t height, y_black, y_chess, h_black, h_chess;
+    const uint8_t h_black_max = 20, h_chess_max = 22;
+    const uint8_t x_bar[] = {4, 30, 57, 83};
+    const float h_max = 42.0, max_dB = 0.0, min_dB = -30.0;
+
+    // calculates the bar height
+    if (value > max_dB) value = max_dB;
+    if (value < min_dB) value = min_dB;
+    value = ABS(min_dB) - ABS(value);
+    height = (uint8_t) ROUND((h_max * value) / 30.0);
+
+    // draws the black area
+    if (height > h_chess_max)
+    {
+        h_black = height - h_chess_max;
+        y_black = 13 + (h_black_max - h_black);
+        glcd_rect_fill(display, x_bar[pkm], y_black, 16, h_black, GLCD_BLACK);
+    }
+
+    // draws the chess area
+    if (height > 0)
+    {
+        h_chess = (height > h_chess_max ? h_chess_max : height);
+        y_chess = 33 + (h_chess_max - h_chess);
+        glcd_rect_fill(display, x_bar[pkm], y_chess, 16, h_chess, GLCD_CHESS);
+    }
 }
 
 
@@ -272,7 +302,6 @@ void widget_listbox(uint8_t display, listbox_t listbox)
             y_line += font_height + listbox.line_space;
         }
     }
-
 }
 
 
@@ -426,4 +455,65 @@ void widget_graph(uint8_t display, graph_t graph)
 
     // draws the unit box
     widget_textbox(display, unit_box);
+}
+
+void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardcoded
+{
+    // draws the title
+    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
+    textbox_t title;
+    title.text_color = GLCD_WHITE;
+    title.align = ALIGN_LEFT_TOP;
+    title.top_margin = 1;
+    title.bottom_margin = 0;
+    title.left_margin = 2;
+    title.right_margin = 0;
+    title.font = pkm->font;
+    title.text = "Peak Meter";
+    widget_textbox(display, title);
+    glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
+
+    // draws the bars contours
+    glcd_rect(display,  2, 11, 20, 45, GLCD_BLACK);
+    glcd_rect(display, 28, 11, 20, 45, GLCD_BLACK);
+    glcd_rect(display, 55, 11, 20, 45, GLCD_BLACK);
+    glcd_rect(display, 81, 11, 20, 45, GLCD_BLACK);
+
+    // draws the scale
+    textbox_t scale;
+    scale.text_color = GLCD_BLACK;
+    scale.align = ALIGN_RIGHT_NONE;
+    scale.top_margin = 0;
+    scale.bottom_margin = 0;
+    scale.left_margin = 0;
+    scale.right_margin = 2;
+    scale.font = pkm->font;
+    scale.y = 11;
+    scale.text = "0dB";
+    widget_textbox(display, scale);
+    scale.y = 30;
+    scale.text = "-15dB";
+    widget_textbox(display, scale);
+    scale.y = 49;
+    scale.text = "-30dB";
+    widget_textbox(display, scale);
+
+    // draws the subtitles
+    glcd_text(display,  6, 57,  "IN1", pkm->font, GLCD_BLACK);
+    glcd_text(display, 32, 57,  "IN2", pkm->font, GLCD_BLACK);
+    glcd_text(display, 56, 57, "OUT1", pkm->font, GLCD_BLACK);
+    glcd_text(display, 81, 57, "OUT2", pkm->font, GLCD_BLACK);
+
+    // clean the peakmeters bars
+    glcd_rect_fill(display,   4, 13, 16, 42, GLCD_WHITE);
+    glcd_rect_fill(display,  30, 13, 16, 42, GLCD_WHITE);
+    glcd_rect_fill(display,  57, 13, 16, 42, GLCD_WHITE);
+    glcd_rect_fill(display,  83, 13, 16, 42, GLCD_WHITE);
+
+    // draws the peakmeters bars
+    draw_peakmeter_bar(display, 0, pkm->value1);
+    draw_peakmeter_bar(display, 1, pkm->value2);
+    draw_peakmeter_bar(display, 2, pkm->value3);
+    draw_peakmeter_bar(display, 3, pkm->value4);
+
 }

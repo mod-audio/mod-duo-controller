@@ -21,6 +21,7 @@
 #include "actuator.h"
 #include "data.h"
 #include "naveg.h"
+#include "screen.h"
 
 
 /*
@@ -84,6 +85,7 @@ static void control_add_cb(proto_t *proto);
 static void control_rm_cb(proto_t *proto);
 static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
+static void peakmeter_cb(proto_t *proto);
 
 
 /*
@@ -144,6 +146,7 @@ int main(void)
     protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
     protocol_add_command(CONTROL_SET_CMD, control_set_cb);
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
+    protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
 
     // navegation initialization
     naveg_init();
@@ -294,7 +297,7 @@ static void actuators_task(void *pvParameters)
                 }
                 if (BUTTON_HOLD(status))
                 {
-                    naveg_tool(id);
+                    naveg_toggle_tool(id);
                 }
                 if (ENCODER_TURNED_CW(status))
                 {
@@ -382,3 +385,7 @@ static void control_get_cb(proto_t *proto)
     protocol_response(resp, proto);
 }
 
+static void peakmeter_cb(proto_t *proto)
+{
+    screen_set_peakmeter(atoi(proto->list[1]), atof(proto->list[2]));
+}
