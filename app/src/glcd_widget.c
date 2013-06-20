@@ -148,113 +148,85 @@ static uint8_t get_text_width(const char *text, const uint8_t *font)
 void widget_textbox(uint8_t display, textbox_t textbox)
 {
     uint8_t text_width, text_height;
-    uint8_t rect_x, rect_y, rect_width, rect_height;
 
     // TODO: create width limitation
 
     text_width = get_text_width(textbox.text, textbox.font);
     text_height = textbox.font[FONT_HEIGHT];
-    rect_width = text_width + textbox.left_margin + textbox.right_margin;
-    rect_height = text_height + textbox.top_margin + textbox.bottom_margin;
 
     switch (textbox.align)
     {
         case ALIGN_LEFT_TOP:
             textbox.x = textbox.left_margin;
             textbox.y = textbox.top_margin;
-            rect_x = 0;
-            rect_y = 0;
             break;
 
         case ALIGN_CENTER_TOP:
             textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
             textbox.y = textbox.top_margin;
-            rect_x = textbox.x - textbox.left_margin;
-            rect_y = 0;
             break;
 
         case ALIGN_RIGHT_TOP:
             textbox.x = DISPLAY_WIDTH - text_width - textbox.right_margin;
             textbox.y = textbox.top_margin;
-            rect_x = textbox.x - textbox.left_margin;
-            rect_y = 0;
             break;
 
         case ALIGN_LEFT_MIDDLE:
             textbox.x = textbox.left_margin;
             textbox.y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
-            rect_x = 0;
-            rect_y = textbox.y - textbox.top_margin;
             break;
 
         case ALIGN_CENTER_MIDDLE:
             textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
             textbox.y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
-            rect_x = textbox.x - textbox.left_margin;
-            rect_y = textbox.y - textbox.top_margin;
             break;
 
         case ALIGN_RIGHT_MIDDLE:
             textbox.x = DISPLAY_WIDTH - text_width - textbox.right_margin;
             textbox.y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
-            rect_x = textbox.x - textbox.left_margin;
-            rect_y = textbox.y - textbox.top_margin;
             break;
 
         case ALIGN_LEFT_BOTTOM:
             textbox.x = textbox.left_margin;
             textbox.y = DISPLAY_HEIGHT - text_height - textbox.bottom_margin;
-            rect_x = 0;
-            rect_y = textbox.y - textbox.top_margin;
             break;
 
         case ALIGN_CENTER_BOTTOM:
             textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
             textbox.y = DISPLAY_HEIGHT - text_height - textbox.bottom_margin;
-            rect_x = textbox.x - textbox.left_margin;
-            rect_y = textbox.y - textbox.top_margin;
             break;
 
         case ALIGN_RIGHT_BOTTOM:
             textbox.x = DISPLAY_WIDTH - text_width - textbox.right_margin;
             textbox.y = DISPLAY_HEIGHT - text_height - textbox.bottom_margin;
-            rect_x = textbox.x - textbox.left_margin;
-            rect_y = textbox.y - textbox.top_margin;
             break;
 
         default:
         case ALIGN_NONE_NONE:
-            rect_x = textbox.x;
-            rect_y = textbox.y;
-            textbox.x += textbox.left_margin;
-            textbox.y += textbox.top_margin;
             break;
 
         case ALIGN_LEFT_NONE:
             textbox.x = textbox.left_margin;
             textbox.y += textbox.top_margin;
-            rect_x = 0;
-            rect_y = textbox.y;
             break;
 
         case ALIGN_RIGHT_NONE:
             textbox.x = DISPLAY_WIDTH - text_width - textbox.right_margin;
             textbox.y += textbox.top_margin;
-            rect_x = textbox.x - textbox.left_margin;
-            rect_y = textbox.y;
             break;
 
         case ALIGN_CENTER_NONE:
             textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
             textbox.y += textbox.top_margin;
-            rect_x = textbox.x - textbox.left_margin;
-            rect_y = textbox.y;
             break;
 
         // TODO: others NONE options
     }
 
-    glcd_rect_fill(display, rect_x, rect_y, rect_width, rect_height, ~textbox.text_color);
+    // clear the text area
+    glcd_rect_fill(display, textbox.x, textbox.y, text_width, text_height, GLCD_WHITE);
+
+    // draws the text
     glcd_text(display, textbox.x, textbox.y, textbox.text, textbox.font, textbox.text_color);
 }
 

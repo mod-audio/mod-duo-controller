@@ -51,6 +51,27 @@ void glcd_widget_textbox_test(void)
     text1.align = ALIGN_RIGHT_BOTTOM;
     widget_textbox(0, text1);
 
+    text1.text = "TextNN";
+    text1.align = ALIGN_NONE_NONE;
+    text1.x = 20;
+    text1.y = 15;
+    widget_textbox(0, text1);
+
+    text1.text = "TextLN";
+    text1.align = ALIGN_LEFT_NONE;
+    text1.y = 40;
+    widget_textbox(0, text1);
+
+    text1.text = "TextRN";
+    text1.align = ALIGN_RIGHT_NONE;
+    text1.y = 40;
+    widget_textbox(0, text1);
+
+    text1.text = "TextCN";
+    text1.align = ALIGN_CENTER_NONE;
+    text1.y = 40;
+    widget_textbox(0, text1);
+
     // display 1
     text1.text_color = GLCD_WHITE;
     text1.font = alterebro15;
@@ -95,13 +116,34 @@ void glcd_widget_textbox_test(void)
     text1.align = ALIGN_RIGHT_BOTTOM;
     widget_textbox(1, text1);
 
+    text1.text = "TextNN";
+    text1.align = ALIGN_NONE_NONE;
+    text1.x = 20;
+    text1.y = 15;
+    widget_textbox(1, text1);
+
+    text1.text = "TextLN";
+    text1.align = ALIGN_LEFT_NONE;
+    text1.y = 40;
+    widget_textbox(1, text1);
+
+    text1.text = "TextRN";
+    text1.align = ALIGN_RIGHT_NONE;
+    text1.y = 40;
+    widget_textbox(1, text1);
+
+    text1.text = "TextCN";
+    text1.align = ALIGN_CENTER_NONE;
+    text1.y = 40;
+    widget_textbox(1, text1);
+
     // display 2
     text1.text_color = GLCD_BLACK;
     text1.font = System5x7;
-    text1.top_margin = 1;
-    text1.bottom_margin = 1;
-    text1.left_margin = 1;
-    text1.right_margin = 1;
+    text1.top_margin = 3;
+    text1.bottom_margin = 3;
+    text1.left_margin = 3;
+    text1.right_margin = 3;
 
     text1.text = "TextLT";
     text1.align = ALIGN_LEFT_TOP;
@@ -139,6 +181,92 @@ void glcd_widget_textbox_test(void)
     text1.align = ALIGN_RIGHT_BOTTOM;
     widget_textbox(2, text1);
 
+    text1.text = "TextNN";
+    text1.align = ALIGN_NONE_NONE;
+    text1.x = 20;
+    text1.y = 15;
+    widget_textbox(2, text1);
+
+    text1.text = "TextLN";
+    text1.align = ALIGN_LEFT_NONE;
+    text1.y = 40;
+    widget_textbox(2, text1);
+
+    text1.text = "TextRN";
+    text1.align = ALIGN_RIGHT_NONE;
+    text1.y = 40;
+    widget_textbox(2, text1);
+
+    text1.text = "TextCN";
+    text1.align = ALIGN_CENTER_NONE;
+    text1.y = 40;
+    widget_textbox(2, text1);
+
+    // display 3
+    glcd_clear(3, GLCD_BLACK);
+    text1.text_color = GLCD_WHITE;
+    text1.font = System5x7;
+    text1.top_margin = 3;
+    text1.bottom_margin = 3;
+    text1.left_margin = 3;
+    text1.right_margin = 3;
+
+    text1.text = "TextLT";
+    text1.align = ALIGN_LEFT_TOP;
+    widget_textbox(3, text1);
+
+    text1.text = "TextCT";
+    text1.align = ALIGN_CENTER_TOP;
+    widget_textbox(3, text1);
+
+    text1.text = "TextRT";
+    text1.align = ALIGN_RIGHT_TOP;
+    widget_textbox(3, text1);
+
+    text1.text = "TextLM";
+    text1.align = ALIGN_LEFT_MIDDLE;
+    widget_textbox(3, text1);
+
+    text1.text = "TextCM";
+    text1.align = ALIGN_CENTER_MIDDLE;
+    widget_textbox(3, text1);
+
+    text1.text = "TextRM";
+    text1.align = ALIGN_RIGHT_MIDDLE;
+    widget_textbox(3, text1);
+
+    text1.text = "TextLB";
+    text1.align = ALIGN_LEFT_BOTTOM;
+    widget_textbox(3, text1);
+
+    text1.text = "TextCB";
+    text1.align = ALIGN_CENTER_BOTTOM;
+    widget_textbox(3, text1);
+
+    text1.text = "TextRB";
+    text1.align = ALIGN_RIGHT_BOTTOM;
+    widget_textbox(3, text1);
+
+    text1.text = "TextNN";
+    text1.align = ALIGN_NONE_NONE;
+    text1.x = 20;
+    text1.y = 15;
+    widget_textbox(3, text1);
+
+    text1.text = "TextLN";
+    text1.align = ALIGN_LEFT_NONE;
+    text1.y = 40;
+    widget_textbox(3, text1);
+
+    text1.text = "TextRN";
+    text1.align = ALIGN_RIGHT_NONE;
+    text1.y = 40;
+    widget_textbox(3, text1);
+
+    text1.text = "TextCN";
+    text1.align = ALIGN_CENTER_NONE;
+    text1.y = 40;
+    widget_textbox(3, text1);
 
     glcd_update();
 
