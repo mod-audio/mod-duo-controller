@@ -387,15 +387,7 @@ void glcd_backlight(uint8_t display, uint8_t state)
 
 void glcd_clear(uint8_t display, uint8_t color)
 {
-    uint8_t i, j;
-
-    for (i = 0; i < DISPLAY_HEIGHT/8; i++)
-    {
-        for (j = 0; j < DISPLAY_WIDTH; j++)
-        {
-            g_buffer[display][i][j] = color;
-        }
-    }
+    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, color);
 }
 
 void glcd_set_pixel(uint8_t display, uint8_t x, uint8_t y, uint8_t color)
