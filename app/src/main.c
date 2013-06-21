@@ -86,6 +86,7 @@ static void control_rm_cb(proto_t *proto);
 static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
 static void peakmeter_cb(proto_t *proto);
+static void tuner_cb(proto_t *proto);
 
 
 /*
@@ -147,6 +148,7 @@ int main(void)
     protocol_add_command(CONTROL_SET_CMD, control_set_cb);
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
     protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
+    protocol_add_command(TUNER_CMD, tuner_cb);
 
     // navegation initialization
     naveg_init();
@@ -388,4 +390,9 @@ static void control_get_cb(proto_t *proto)
 static void peakmeter_cb(proto_t *proto)
 {
     screen_set_peakmeter(atoi(proto->list[1]), atof(proto->list[2]));
+}
+
+static void tuner_cb(proto_t *proto)
+{
+    screen_set_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
 }

@@ -67,6 +67,7 @@ void screen_controls_index(uint8_t display, uint8_t current, uint8_t max);
 void screen_footer(uint8_t display, const char *name, const char *value);
 void screen_tool(uint8_t display, uint8_t tool);
 void screen_set_peakmeter(uint8_t peakmeter, float value);
+void screen_set_tuner(float frequency, char *note, int8_t cents);
 
 
 /*

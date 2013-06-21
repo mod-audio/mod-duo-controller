@@ -168,6 +168,36 @@ static void draw_peakmeter_bar(uint8_t display, uint8_t pkm, float value)
     }
 }
 
+static void draw_arrow(uint8_t display, uint8_t x, uint8_t y)
+{
+    uint8_t i, w = 0;
+    static uint8_t last_x, last_y;
+
+    // clears the old arrow
+    if (last_x > 0 && last_y > 0)
+    {
+        for (i = 0; i < 4; i++)
+        {
+            w += 2;
+            glcd_hline(display, last_x-i, last_y+i, w, GLCD_WHITE);
+        }
+    }
+
+    // draws the new arrow
+    if (x < 3) x = 3;
+    if (x > 123) x = 123;
+    w = 0;
+    for (i = 0; i < 4; i++)
+    {
+        w += 2;
+        glcd_hline(display, x-i, y+i, w, GLCD_BLACK);
+    }
+
+    // store the current arrow position
+    last_x = x;
+    last_y = y;
+}
+
 
 /*
 ************************************************************************************************************************
@@ -457,6 +487,7 @@ void widget_graph(uint8_t display, graph_t graph)
     widget_textbox(display, unit_box);
 }
 
+
 void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardcoded
 {
     // draws the title
@@ -515,5 +546,67 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardc
     draw_peakmeter_bar(display, 1, pkm->value2);
     draw_peakmeter_bar(display, 2, pkm->value3);
     draw_peakmeter_bar(display, 3, pkm->value4);
+}
 
+
+void widget_tuner(uint8_t display, tuner_t *tuner) //FIXME: function hardcoded
+{
+    // draws the title
+    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
+    textbox_t title;
+    title.text_color = GLCD_WHITE;
+    title.align = ALIGN_LEFT_TOP;
+    title.top_margin = 1;
+    title.bottom_margin = 0;
+    title.left_margin = 2;
+    title.right_margin = 0;
+    title.font = tuner->font;
+    title.text = "Tuner";
+    widget_textbox(display, title);
+    glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
+
+    // draws the scale
+    glcd_hline(display, 0, 32, DISPLAY_WIDTH, GLCD_BLACK);
+    glcd_vline(display, 14, 29, 7, GLCD_BLACK);
+    glcd_vline(display, 47, 29, 7, GLCD_BLACK);
+    glcd_vline(display, 80, 29, 7, GLCD_BLACK);
+    glcd_vline(display, 113, 29, 7, GLCD_BLACK);
+    glcd_vline(display, 31, 25, 15, GLCD_BLACK);
+    glcd_vline(display, 97, 25, 15, GLCD_BLACK);
+    glcd_vline(display, 63, 16, 32, GLCD_BLACK);
+    glcd_vline(display, 64, 16, 32, GLCD_BLACK);
+
+    // clears subtitles
+    glcd_rect_fill(display, 0, 55, DISPLAY_WIDTH, tuner->font[FONT_HEIGHT], GLCD_WHITE);
+
+    // draws subtitles
+    char freq_str[16];
+    uint8_t i = float_to_str(tuner->frequency, freq_str, sizeof(freq_str), 2);
+    freq_str[i++] = 'H';
+    freq_str[i++] = 'z';
+    freq_str[i++] = 0;
+    textbox_t freq, note;
+    freq.text_color = GLCD_BLACK;
+    freq.align = ALIGN_LEFT_BOTTOM;
+    freq.top_margin = 0;
+    freq.bottom_margin = 0;
+    freq.left_margin = 1;
+    freq.right_margin = 0;
+    freq.font = tuner->font;
+    freq.text = freq_str;
+    widget_textbox(display, freq);
+    note.text_color = GLCD_BLACK;
+    note.align = ALIGN_RIGHT_BOTTOM;
+    note.top_margin = 0;
+    note.bottom_margin = 0;
+    note.left_margin = 0;
+    note.right_margin = 1;
+    note.font = tuner->font;
+    note.text = tuner->note;
+    widget_textbox(display, note);
+
+    // arrow
+    const int8_t cents_min = -32, cents_max = 32;
+    uint8_t x = ((DISPLAY_WIDTH-1) * (tuner->cents - cents_min)) / (cents_max - cents_min);
+    draw_arrow(display, x, 50);
 }

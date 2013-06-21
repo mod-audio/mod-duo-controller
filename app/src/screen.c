@@ -69,6 +69,7 @@
 */
 
 static peakmeter_t g_peakmeter;
+static tuner_t g_tuner;
 
 
 /*
@@ -108,6 +109,11 @@ void screen_init(void)
     g_peakmeter.value2 = -30.0;
     g_peakmeter.value3 = -30.0;
     g_peakmeter.value4 = -30.0;
+
+    g_tuner.font = alterebro15;
+    g_tuner.frequency = 0.0;
+    g_tuner.note = 0;
+    g_tuner.cents = 0;
 }
 
 void screen_control(uint8_t display, control_t *control)
@@ -295,7 +301,7 @@ void screen_tool(uint8_t display, uint8_t tool)
             break;
 
         case TOOL_TUNER:
-            glcd_text(display, 0, 0, "TUNER", System5x7, GLCD_BLACK);
+            widget_tuner(display, &g_tuner);
             break;
 
         case TOOL_PEAKMETER:
@@ -332,4 +338,15 @@ void screen_set_peakmeter(uint8_t peakmeter, float value)
     // checks if peakmeter is enable and update it
     if (naveg_is_tool_mode(PEAKMETER_DISPLAY))
         widget_peakmeter(PEAKMETER_DISPLAY, &g_peakmeter);
+}
+
+void screen_set_tuner(float frequency, char *note, int8_t cents)
+{
+    g_tuner.frequency = frequency;
+    g_tuner.note = note;
+    g_tuner.cents = cents;
+
+    // checks if tuner is enable and update it
+    if (naveg_is_tool_mode(TUNER_DISPLAY))
+        widget_tuner(TUNER_DISPLAY, &g_tuner);
 }

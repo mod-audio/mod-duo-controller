@@ -81,10 +81,10 @@ typedef struct PEAKMETER_T {
 } peakmeter_t;
 
 typedef struct TUNER_T {
-    uint8_t x, y, width, height;
-    uint8_t color;
-    int8_t cent_min, cent_max, cent, note_index;
-    float note_freq, read_freq, tuner_calibration;
+    const uint8_t *font;
+    float frequency;
+    char *note;
+    int8_t cents;
 } tuner_t;
 
 
@@ -113,6 +113,7 @@ void widget_listbox(uint8_t display, listbox_t listbox);
 void widget_listbox2(uint8_t display, listbox_t listbox);
 void widget_graph(uint8_t display, graph_t graph);
 void widget_peakmeter(uint8_t display, peakmeter_t *pkm);
+void widget_tuner(uint8_t display, tuner_t *tuner);
 
 
 /*

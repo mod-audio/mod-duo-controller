@@ -110,6 +110,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define HARDWARE_DISCONNECTED_CMD
 // peakmeter <peakmeter_number> <peakmeter_value>
 #define PEAKMETER_CMD       "peakmeter %i %f"
+// tuner <frequency> <cents>
+#define TUNER_CMD           "tuner %f %s %i"
 
 //// Tools configuration
 // tools identification (don't change)
