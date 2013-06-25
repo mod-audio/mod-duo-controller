@@ -83,7 +83,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
-
 //// Protocol commands configuration
 #define SAY_CMD             "say %s ..."
 // led <led_id> <red> <green> <blue>
@@ -105,13 +104,14 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define BYPASS_SET_CMD      "bypass_set %i %i"
 // bypass_get <effect_instance>
 #define BYPASS_GET_CMD      "bypass_get %i"
-#define PEDALBOARD_LOAD_CMD
-#define HARDWARE_CONNECTED_CMD
-#define HARDWARE_DISCONNECTED_CMD
+// banks <bank_data>
+#define BANKS_CMD           "banks ..."
 // peakmeter <peakmeter_number> <peakmeter_value>
 #define PEAKMETER_CMD       "peakmeter %i %f"
 // tuner <frequency> <cents>
 #define TUNER_CMD           "tuner %f %s %i"
+#define HARDWARE_CONNECTED_CMD
+#define HARDWARE_DISCONNECTED_CMD
 
 //// Tools configuration
 // tools identification (don't change)
@@ -128,6 +128,39 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define TOOL_DISPLAY1       TOOL_TUNER
 #define TOOL_DISPLAY2       TOOL_PEAKMETER
 #define TOOL_DISPLAY3       TOOL_NAVEG
+
+// peakmeter tool display definition (don't change)
+#if (TOOL_PEAKMETER == TOOL_DISPLAY0)
+#define PEAKMETER_DISPLAY   TOOL_DISPLAY0
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY1)
+#define PEAKMETER_DISPLAY   TOOL_DISPLAY1
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY2)
+#define PEAKMETER_DISPLAY   TOOL_DISPLAY2
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY3)
+#define PEAKMETER_DISPLAY   TOOL_DISPLAY3
+#endif
+
+// tuner tool display definition (don't change)
+#if (TOOL_TUNER == TOOL_DISPLAY0)
+#define TUNER_DISPLAY   TOOL_DISPLAY0
+#elif (TOOL_TUNER == TOOL_DISPLAY1)
+#define TUNER_DISPLAY   TOOL_DISPLAY1
+#elif (TOOL_TUNER == TOOL_DISPLAY2)
+#define TUNER_DISPLAY   TOOL_DISPLAY2
+#elif (TOOL_TUNER == TOOL_DISPLAY3)
+#define TUNER_DISPLAY   TOOL_DISPLAY3
+#endif
+
+// banks/pedalboards navegation display definition (don't change)
+#if (TOOL_NAVEG == TOOL_DISPLAY0)
+#define NAVEG_DISPLAY   TOOL_DISPLAY0
+#elif (TOOL_NAVEG == TOOL_DISPLAY1)
+#define NAVEG_DISPLAY   TOOL_DISPLAY1
+#elif (TOOL_NAVEG == TOOL_DISPLAY2)
+#define NAVEG_DISPLAY   TOOL_DISPLAY2
+#elif (TOOL_NAVEG == TOOL_DISPLAY3)
+#define NAVEG_DISPLAY   TOOL_DISPLAY3
+#endif
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0

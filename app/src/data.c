@@ -74,13 +74,15 @@
 ************************************************************************************************************************
 */
 
-void data_parse_control(char **data, control_t *control)
+control_t *data_parse_control(char **data)
 {
+    control_t *control;
     uint32_t len = strarr_length(data);
 
     // checks if all data was received
     if (len >= 14)
     {
+        control = (control_t *) MALLOC(sizeof(control_t));
         control->effect_instance = atoi(data[1]);
         control->symbol = str_duplicate(data[2]);
         control->label = str_duplicate(data[3]);
@@ -112,6 +114,8 @@ void data_parse_control(char **data, control_t *control)
             control->scale_points[i]->value = atof(data[16 + (i*2)]);
         }
     }
+
+    return control;
 }
 
 void data_free_control(control_t *control)
@@ -133,4 +137,50 @@ void data_free_control(control_t *control)
     if (control->scale_points) FREE(control->scale_points);
 
     FREE(control);
+}
+
+bp_list_t *data_parse_bp_list(char **list_data, uint32_t list_count)
+{
+    if (!list_data || list_count == 0) return NULL;
+
+    list_count /= 2;
+
+    // creates a array of bank
+    bp_list_t *bp_list;
+    bp_list = (bp_list_t *) MALLOC(sizeof(bp_list_t));
+    bp_list->selected = 0;
+    bp_list->count = list_count;
+    bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count + 1));
+    bp_list->uids = (char **) MALLOC(sizeof(char *) * (list_count + 1));
+
+    // fills the bp_list struct
+    uint32_t i = 0, j = 0;
+    while (list_data[i])
+    {
+        bp_list->names[j] = str_duplicate(list_data[i + 0]);
+        bp_list->uids[j] = str_duplicate(list_data[i + 1]);
+        i += 2;
+        j++;
+    }
+
+    // does the list null terminated
+    bp_list->names[j] = NULL;
+    bp_list->uids[j] = NULL;
+
+    return bp_list;
+}
+
+void data_free_bp_list(bp_list_t *bp_list)
+{
+    if (!bp_list) return;
+
+    uint32_t i = 0;
+    while (bp_list->names[i])
+    {
+        FREE(bp_list->names[i]);
+        FREE(bp_list->uids[i]);
+        i++;
+    }
+
+    FREE(bp_list);
 }

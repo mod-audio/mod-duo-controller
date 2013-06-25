@@ -75,12 +75,10 @@ typedef struct PEDALBOARD_T {
     control_t **controls;
 } pedalboard_t;
 
-typedef struct BANK_T {
-    char *name;
-    uint8_t pedalboards_count;
-    uint8_t *pedalboards_indexes;
-    char **pedalboards_uid;
-} bank_t;
+typedef struct BP_LIST_T {
+    char **names, **uids;
+    uint8_t count, selected;
+} bp_list_t;
 
 
 /*
@@ -103,8 +101,10 @@ typedef struct BANK_T {
 ************************************************************************************************************************
 */
 
-void data_parse_control(char **data, control_t *control);
+control_t * data_parse_control(char **data);
 void data_free_control(control_t *control);
+bp_list_t *data_parse_bp_list(char **list_data, uint32_t list_count);
+void data_free_bp_list(bp_list_t *bp_list);
 
 
 /*

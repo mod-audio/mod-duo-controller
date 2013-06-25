@@ -87,6 +87,7 @@ static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
 static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
+static void banks_pedalboards_cb(proto_t *proto);
 
 
 /*
@@ -149,6 +150,7 @@ int main(void)
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
     protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
+    protocol_add_command(BANKS_CMD, banks_pedalboards_cb);
 
     // navegation initialization
     naveg_init();
@@ -296,6 +298,7 @@ static void actuators_task(void *pvParameters)
                 if (BUTTON_CLICKED(status))
                 {
                     naveg_next_control(id);
+                    naveg_bp_enter();
                 }
                 if (BUTTON_HOLD(status))
                 {
@@ -304,10 +307,12 @@ static void actuators_task(void *pvParameters)
                 if (ENCODER_TURNED_CW(status))
                 {
                     naveg_inc_control(id);
+                    naveg_bp_down();
                 }
                 if (ENCODER_TURNED_ACW(status))
                 {
                     naveg_dec_control(id);
+                    naveg_bp_up();
                 }
             }
 
@@ -334,7 +339,7 @@ static void actuators_task(void *pvParameters)
 
 static void say_cb(proto_t *proto)
 {
-    protocol_response(strarr_join(&(proto->list[1])), proto);
+    protocol_response(proto->list[1], proto);
 }
 
 static void led_cb(proto_t *proto)
@@ -356,8 +361,7 @@ static void led_cb(proto_t *proto)
 
 static void control_add_cb(proto_t *proto)
 {
-    control_t *control = (control_t *) MALLOC(sizeof(control_t));
-    data_parse_control(proto->list, control);
+    control_t *control = data_parse_control(proto->list);
 
     if (control->hardware_type == QUADRA_HW)
     {
@@ -395,4 +399,16 @@ static void peakmeter_cb(proto_t *proto)
 static void tuner_cb(proto_t *proto)
 {
     screen_set_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
+}
+
+static void banks_pedalboards_cb(proto_t *proto)
+{
+    bp_list_t *bp_list = naveg_get_bp_list();
+
+    // free the current list
+    if (bp_list) data_free_bp_list(bp_list);
+
+    // parses the new list
+    bp_list = data_parse_bp_list(&(proto->list[1]), proto->list_count);
+    naveg_save_bp_list(bp_list);
 }

@@ -76,8 +76,10 @@ struct TOOL_T {
 ************************************************************************************************************************
 */
 
-node_t *g_controls_list[SLOTS_COUNT], *g_current_control[SLOTS_COUNT];
-control_t *g_foots[SLOTS_COUNT];
+static node_t *g_controls_list[SLOTS_COUNT], *g_current_control[SLOTS_COUNT];
+static control_t *g_foots[SLOTS_COUNT];
+static bp_list_t *g_bp_list;
+static uint8_t g_bp_hover;
 
 
 /*
@@ -200,7 +202,6 @@ static void display_control_add(control_t *control)
     g_controls_index[display].current = g_controls_index[display].total;
     screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
 }
-
 
 // control removed from display
 static void display_control_rm(uint8_t effect_instance, const char *symbol)
@@ -455,6 +456,9 @@ void naveg_init(void)
         // initialize the tap tempo
         g_tap_tempo[i].state = TT_INIT;
     }
+
+    g_bp_list = NULL;
+    g_bp_hover = 0;
 }
 
 void naveg_add_control(control_t *control)
@@ -626,4 +630,41 @@ void naveg_toggle_tool(uint8_t display)
 uint8_t naveg_is_tool_mode(uint8_t display)
 {
     return g_tool[display].state;
+}
+
+void naveg_save_bp_list(bp_list_t *bp_list)
+{
+    g_bp_list = bp_list;
+}
+
+bp_list_t *naveg_get_bp_list(void)
+{
+    return g_bp_list;
+}
+
+void naveg_bp_enter(void)
+{
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF  || !g_bp_list) return;
+
+    g_bp_list->selected = g_bp_hover;
+    screen_bp_list("BANKS", g_bp_list, g_bp_hover);
+}
+
+void naveg_bp_up(void)
+{
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_bp_list) return;
+
+    if (g_bp_hover > 0) g_bp_hover--;
+
+    screen_bp_list("BANKS", g_bp_list, g_bp_hover);
+}
+
+void naveg_bp_down(void)
+{
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_bp_list) return;
+
+    g_bp_hover++;
+    if (g_bp_hover >= g_bp_list->count) g_bp_hover = g_bp_list->count - 1;
+
+    screen_bp_list("BANKS", g_bp_list, g_bp_hover);
 }

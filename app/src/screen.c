@@ -20,26 +20,6 @@
 ************************************************************************************************************************
 */
 
-#if (TOOL_PEAKMETER == TOOL_DISPLAY0)
-#define PEAKMETER_DISPLAY   TOOL_DISPLAY0
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY1)
-#define PEAKMETER_DISPLAY   TOOL_DISPLAY1
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY2)
-#define PEAKMETER_DISPLAY   TOOL_DISPLAY2
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY3)
-#define PEAKMETER_DISPLAY   TOOL_DISPLAY3
-#endif
-
-#if (TOOL_TUNER == TOOL_DISPLAY0)
-#define TUNER_DISPLAY   TOOL_DISPLAY0
-#elif (TOOL_TUNER == TOOL_DISPLAY1)
-#define TUNER_DISPLAY   TOOL_DISPLAY1
-#elif (TOOL_TUNER == TOOL_DISPLAY2)
-#define TUNER_DISPLAY   TOOL_DISPLAY2
-#elif (TOOL_TUNER == TOOL_DISPLAY3)
-#define TUNER_DISPLAY   TOOL_DISPLAY3
-#endif
-
 
 /*
 ************************************************************************************************************************
@@ -182,7 +162,7 @@ void screen_control(uint8_t display, control_t *control)
     // list type control
     else if (control->properties == CONTROL_PROP_ENUMERATION)
     {
-        const char **labels_list;
+        char **labels_list;
         labels_list = MALLOC(control->scale_points_count * sizeof(char *));
         if (!labels_list) while(1);
 
@@ -294,6 +274,8 @@ void screen_tool(uint8_t display, uint8_t tool)
 {
     glcd_clear(display, GLCD_WHITE);
 
+    bp_list_t *bp_list;
+
     switch (tool)
     {
         case TOOL_SYSTEM:
@@ -309,7 +291,8 @@ void screen_tool(uint8_t display, uint8_t tool)
             break;
 
         case TOOL_NAVEG:
-            glcd_text(display, 0, 0, "PEDALBOARDS", System5x7, GLCD_BLACK);
+            bp_list = naveg_get_bp_list();
+            screen_bp_list("BANKS", bp_list, bp_list->selected);
             break;
     }
 }
@@ -349,4 +332,57 @@ void screen_set_tuner(float frequency, char *note, int8_t cents)
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(TUNER_DISPLAY))
         widget_tuner(TUNER_DISPLAY, &g_tuner);
+}
+
+void screen_bp_list(const char *title, bp_list_t *list, uint8_t hover)
+{
+    listbox_t list_box;
+    textbox_t title_box, empty;
+
+    // draws the title
+    title_box.text_color = GLCD_BLACK;
+    title_box.font = alterebro15;
+    title_box.top_margin = 0;
+    title_box.bottom_margin = 0;
+    title_box.left_margin = 0;
+    title_box.right_margin = 0;
+    title_box.text = title;
+    title_box.align = ALIGN_LEFT_TOP;
+    widget_textbox(NAVEG_DISPLAY, title_box);
+
+    // title line separator
+    glcd_hline(NAVEG_DISPLAY, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
+
+    // draws the list
+    if (list)
+    {
+        uint8_t count = strarr_length(list->names);
+        list_box.x = 0;
+        list_box.y = 11;
+        list_box.width = 128;
+        list_box.height = 53;
+        list_box.color = GLCD_BLACK;
+        list_box.hover = hover;
+        list_box.selected = list->selected;
+        list_box.count = count;
+        list_box.list = list->names;
+        list_box.font = alterebro15;
+        list_box.line_space = 1;
+        list_box.line_top_margin = 1;
+        list_box.line_bottom_margin = 0;
+        list_box.text_left_margin = 2;
+        widget_listbox(NAVEG_DISPLAY, list_box);
+    }
+    else
+    {
+        empty.text_color = GLCD_BLACK;
+        empty.font = alterebro24;
+        empty.top_margin = 0;
+        empty.bottom_margin = 0;
+        empty.left_margin = 0;
+        empty.right_margin = 0;
+        empty.text = "NO BANKS";
+        empty.align = ALIGN_CENTER_MIDDLE;
+        widget_textbox(NAVEG_DISPLAY, empty);
+    }
 }
