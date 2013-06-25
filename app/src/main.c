@@ -87,7 +87,8 @@ static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
 static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
-static void banks_pedalboards_cb(proto_t *proto);
+static void banks_cb(proto_t *proto);
+static void pedalboard_cb(proto_t *proto);
 
 
 /*
@@ -150,7 +151,8 @@ int main(void)
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
     protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
-    protocol_add_command(BANKS_CMD, banks_pedalboards_cb);
+    protocol_add_command(BANKS_CMD, banks_cb);
+    protocol_add_command(PEDALBOARDS_CMD, pedalboard_cb);
 
     // navegation initialization
     naveg_init();
@@ -401,14 +403,26 @@ static void tuner_cb(proto_t *proto)
     screen_set_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
 }
 
-static void banks_pedalboards_cb(proto_t *proto)
+static void banks_cb(proto_t *proto)
 {
-    bp_list_t *bp_list = naveg_get_bp_list();
+    bp_list_t *bp_list = naveg_get_banks();
 
     // free the current list
-    if (bp_list) data_free_bp_list(bp_list);
+    if (bp_list) data_free_banks_list(bp_list);
 
-    // parses the new list
-    bp_list = data_parse_bp_list(&(proto->list[1]), proto->list_count);
-    naveg_save_bp_list(bp_list);
+    // parses the list
+    bp_list = data_parse_banks_list(&(proto->list[1]), proto->list_count);
+    naveg_set_banks(bp_list);
+}
+
+static void pedalboard_cb(proto_t *proto)
+{
+    bp_list_t *bp_list = naveg_get_pedalboards();
+
+    // free the current list
+    if (bp_list) data_free_pedalboards_list(bp_list);
+
+    // parses the list
+    bp_list = data_parse_pedalboards_list(&(proto->list[1]), proto->list_count);
+    naveg_set_pedalboards(bp_list);
 }

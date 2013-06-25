@@ -25,6 +25,8 @@
 ************************************************************************************************************************
 */
 
+static char g_back_to_bank[] = {"< Back to bank list"};
+
 
 /*
 ************************************************************************************************************************
@@ -139,7 +141,7 @@ void data_free_control(control_t *control)
     FREE(control);
 }
 
-bp_list_t *data_parse_bp_list(char **list_data, uint32_t list_count)
+bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
 {
     if (!list_data || list_count == 0) return NULL;
 
@@ -148,6 +150,7 @@ bp_list_t *data_parse_bp_list(char **list_data, uint32_t list_count)
     // creates a array of bank
     bp_list_t *bp_list;
     bp_list = (bp_list_t *) MALLOC(sizeof(bp_list_t));
+    bp_list->hover = 0;
     bp_list->selected = 0;
     bp_list->count = list_count;
     bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count + 1));
@@ -170,11 +173,62 @@ bp_list_t *data_parse_bp_list(char **list_data, uint32_t list_count)
     return bp_list;
 }
 
-void data_free_bp_list(bp_list_t *bp_list)
+void data_free_banks_list(bp_list_t *bp_list)
 {
     if (!bp_list) return;
 
     uint32_t i = 0;
+    while (bp_list->names[i])
+    {
+        FREE(bp_list->names[i]);
+        FREE(bp_list->uids[i]);
+        i++;
+    }
+
+    FREE(bp_list);
+}
+
+bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
+{
+    if (!list_data || list_count == 0) return NULL;
+
+    list_count = (list_count / 2) + 1;
+
+    // creates a array of bank
+    bp_list_t *bp_list;
+    bp_list = (bp_list_t *) MALLOC(sizeof(bp_list_t));
+    bp_list->hover = 0;
+    bp_list->selected = 1;
+    bp_list->count = list_count;
+    bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count + 1));
+    bp_list->uids = (char **) MALLOC(sizeof(char *) * (list_count + 1));
+
+    // first line is 'back to banks list'
+    bp_list->names[0] = g_back_to_bank;
+    bp_list->uids[0] = NULL;
+
+    // fills the bp_list struct
+    uint32_t i = 0, j = 1;
+    while (list_data[i])
+    {
+        bp_list->names[j] = str_duplicate(list_data[i + 0]);
+        bp_list->uids[j] = str_duplicate(list_data[i + 1]);
+        i += 2;
+        j++;
+    }
+
+    // does the list null terminated
+    bp_list->names[j] = NULL;
+    bp_list->uids[j] = NULL;
+
+    return bp_list;
+}
+
+void data_free_pedalboards_list(bp_list_t *bp_list)
+{
+    if (!bp_list) return;
+
+    uint32_t i = 1;
     while (bp_list->names[i])
     {
         FREE(bp_list->names[i]);

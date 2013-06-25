@@ -82,10 +82,14 @@ void naveg_foot_change(uint8_t foot);
 void naveg_toggle_tool(uint8_t display);
 // returns if display is in tool mode
 uint8_t naveg_is_tool_mode(uint8_t display);
-// stores the banks/pedalbords list
-void naveg_save_bp_list(bp_list_t *bp_list);
-// returns the banks/pedalbords list like
-bp_list_t *naveg_get_bp_list(void);
+// stores the banks list
+void naveg_set_banks(bp_list_t *bp_list);
+// returns the banks list
+bp_list_t *naveg_get_banks(void);
+// stores the pedalboards list of current bank
+void naveg_set_pedalboards(bp_list_t *bp_list);
+// returns the pedalboards list of current bank
+bp_list_t *naveg_get_pedalboards(void);
 // runs the enter action on banks/pedalbords navegation
 void naveg_bp_enter(void);
 // goes one step up on list

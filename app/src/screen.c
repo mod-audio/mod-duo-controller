@@ -291,8 +291,9 @@ void screen_tool(uint8_t display, uint8_t tool)
             break;
 
         case TOOL_NAVEG:
-            bp_list = naveg_get_bp_list();
-            screen_bp_list("BANKS", bp_list, bp_list->selected);
+            bp_list = naveg_get_banks();
+            bp_list->hover = bp_list->selected;
+            screen_bp_list("BANKS", bp_list);
             break;
     }
 }
@@ -334,10 +335,13 @@ void screen_set_tuner(float frequency, char *note, int8_t cents)
         widget_tuner(TUNER_DISPLAY, &g_tuner);
 }
 
-void screen_bp_list(const char *title, bp_list_t *list, uint8_t hover)
+void screen_bp_list(const char *title, bp_list_t *list)
 {
     listbox_t list_box;
     textbox_t title_box, empty;
+
+    // clears the title
+    glcd_rect_fill(NAVEG_DISPLAY, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
 
     // draws the title
     title_box.text_color = GLCD_BLACK;
@@ -362,7 +366,7 @@ void screen_bp_list(const char *title, bp_list_t *list, uint8_t hover)
         list_box.width = 128;
         list_box.height = 53;
         list_box.color = GLCD_BLACK;
-        list_box.hover = hover;
+        list_box.hover = list->hover;
         list_box.selected = list->selected;
         list_box.count = count;
         list_box.list = list->names;

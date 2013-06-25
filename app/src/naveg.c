@@ -26,6 +26,7 @@
 
 enum {TT_INIT, TT_COUNTING};
 enum {TOOL_OFF, TOOL_ON};
+enum {BANKS_LIST, PEDALBOARD_LIST};
 
 
 /*
@@ -78,8 +79,8 @@ struct TOOL_T {
 
 static node_t *g_controls_list[SLOTS_COUNT], *g_current_control[SLOTS_COUNT];
 static control_t *g_foots[SLOTS_COUNT];
-static bp_list_t *g_bp_list;
-static uint8_t g_bp_hover;
+static bp_list_t *g_banks, *g_pedalboards;
+static uint8_t g_bp_state;
 
 
 /*
@@ -457,8 +458,8 @@ void naveg_init(void)
         g_tap_tempo[i].state = TT_INIT;
     }
 
-    g_bp_list = NULL;
-    g_bp_hover = 0;
+    g_banks = NULL;
+    g_pedalboards = NULL;
 }
 
 void naveg_add_control(control_t *control)
@@ -632,39 +633,104 @@ uint8_t naveg_is_tool_mode(uint8_t display)
     return g_tool[display].state;
 }
 
-void naveg_save_bp_list(bp_list_t *bp_list)
+void naveg_set_banks(bp_list_t *bp_list)
 {
-    g_bp_list = bp_list;
+    g_banks = bp_list;
 }
 
-bp_list_t *naveg_get_bp_list(void)
+bp_list_t *naveg_get_banks(void)
 {
-    return g_bp_list;
+    return g_banks;
+}
+
+void naveg_set_pedalboards(bp_list_t *bp_list)
+{
+    g_pedalboards = bp_list;
+}
+
+bp_list_t *naveg_get_pedalboards(void)
+{
+    return g_pedalboards;
 }
 
 void naveg_bp_enter(void)
 {
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF  || !g_bp_list) return;
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF  || !g_banks || !g_pedalboards) return;
 
-    g_bp_list->selected = g_bp_hover;
-    screen_bp_list("BANKS", g_bp_list, g_bp_hover);
+    bp_list_t *bp_list;
+    const char *title;
+
+    if (g_bp_state == BANKS_LIST)
+    {
+        g_bp_state = PEDALBOARD_LIST;
+        g_pedalboards->hover = 0;
+        bp_list = g_pedalboards;
+        title = g_banks->names[g_banks->hover];
+    }
+    else if (g_bp_state == PEDALBOARD_LIST)
+    {
+        // checks if is the first option (back to banks list)
+        if (g_pedalboards->hover == 0)
+        {
+            g_bp_state = BANKS_LIST;
+            g_banks->hover = g_banks->selected;
+            bp_list = g_banks;
+            title = "BANKS";
+        }
+        else
+        {
+            g_banks->selected = g_banks->hover;
+            g_pedalboards->selected = g_pedalboards->hover;
+            bp_list = g_pedalboards;
+            title = g_banks->names[g_banks->hover];
+        }
+    }
+
+    screen_bp_list(title, bp_list);
 }
 
 void naveg_bp_up(void)
 {
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_bp_list) return;
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks || !g_pedalboards) return;
 
-    if (g_bp_hover > 0) g_bp_hover--;
+    bp_list_t *bp_list;
+    const char *title;
 
-    screen_bp_list("BANKS", g_bp_list, g_bp_hover);
+    if (g_bp_state == BANKS_LIST)
+    {
+        if (g_banks->hover > 0) g_banks->hover--;
+        bp_list = g_banks;
+        title = "BANKS";
+    }
+    else if (g_bp_state == PEDALBOARD_LIST)
+    {
+        if (g_pedalboards->hover > 0) g_pedalboards->hover--;
+        bp_list = g_pedalboards;
+        title = g_banks->names[g_banks->hover];
+    }
+
+    screen_bp_list(title, bp_list);
 }
 
 void naveg_bp_down(void)
 {
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_bp_list) return;
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks || !g_pedalboards) return;
 
-    g_bp_hover++;
-    if (g_bp_hover >= g_bp_list->count) g_bp_hover = g_bp_list->count - 1;
+    bp_list_t *bp_list;
+    const char *title;
 
-    screen_bp_list("BANKS", g_bp_list, g_bp_hover);
+    if (g_bp_state == BANKS_LIST)
+    {
+        if (g_banks->hover < (g_banks->count - 1)) g_banks->hover++;
+        bp_list = g_banks;
+        title = "BANKS";
+    }
+    else if (g_bp_state == PEDALBOARD_LIST)
+    {
+        if (g_pedalboards->hover < (g_pedalboards->count - 1)) g_pedalboards->hover++;
+        bp_list = g_pedalboards;
+        title = g_banks->names[g_banks->hover];
+    }
+
+    screen_bp_list(title, bp_list);
 }

@@ -77,7 +77,7 @@ typedef struct PEDALBOARD_T {
 
 typedef struct BP_LIST_T {
     char **names, **uids;
-    uint8_t count, selected;
+    uint8_t count, hover, selected;
 } bp_list_t;
 
 
@@ -103,8 +103,10 @@ typedef struct BP_LIST_T {
 
 control_t * data_parse_control(char **data);
 void data_free_control(control_t *control);
-bp_list_t *data_parse_bp_list(char **list_data, uint32_t list_count);
-void data_free_bp_list(bp_list_t *bp_list);
+bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count);
+void data_free_banks_list(bp_list_t *bp_list);
+bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count);
+void data_free_pedalboards_list(bp_list_t *bp_list);
 
 
 /*

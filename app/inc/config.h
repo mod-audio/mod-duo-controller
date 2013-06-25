@@ -106,9 +106,11 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define BYPASS_GET_CMD      "bypass_get %i"
 // banks <bank_data>
 #define BANKS_CMD           "banks ..."
+// pedalboards <pedalboard_data>
+#define PEDALBOARDS_CMD     "pedalboards ..."
 // peakmeter <peakmeter_number> <peakmeter_value>
 #define PEAKMETER_CMD       "peakmeter %i %f"
-// tuner <frequency> <cents>
+// tuner <frequency> <note> <cents>
 #define TUNER_CMD           "tuner %f %s %i"
 #define HARDWARE_CONNECTED_CMD
 #define HARDWARE_DISCONNECTED_CMD
