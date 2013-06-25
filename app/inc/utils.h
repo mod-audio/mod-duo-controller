@@ -32,6 +32,9 @@
 ************************************************************************************************************************
 */
 
+// uncomment the define below to enable the quotation marks evaluation on strarr_split parser
+#define ENABLE_QUOTATION_MARKS
+
 
 /*
 ************************************************************************************************************************
@@ -65,7 +68,7 @@ char** strarr_split(char *str);
 // returns the string array length
 uint32_t strarr_length(char **str_array);
 // joins a string array in a single string
-char* strarr_join(char **str_array);
+char* strarr_join(char** const str_array);
 
 // converts integer to string and returns the string length
 uint32_t int_to_str(int32_t num, char *string, uint32_t string_size, uint8_t zero_leading);

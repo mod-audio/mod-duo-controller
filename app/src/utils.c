@@ -85,6 +85,26 @@ static char* reverse(char* str, uint32_t str_len)
     return str;
 }
 
+static void parse_quote(char *str)
+{
+    char *pquote, *pstr = str;
+
+    while (*pstr)
+    {
+        if (*pstr == '"')
+        {
+            // shift the string to left
+            pquote = pstr;
+            while (*pquote)
+            {
+                *pquote = *(pquote+1);
+                pquote++;
+            }
+        }
+        pstr++;
+    }
+}
+
 
 /*
 ************************************************************************************************************************
@@ -97,6 +117,7 @@ char** strarr_split(char *str)
     uint32_t count;
     char *pstr, **list = NULL;
     const char token = ' ';
+    uint8_t quote = 0;
 
     if (!str) return list;
 
@@ -105,7 +126,21 @@ char** strarr_split(char *str)
     count = 1;
     while (*pstr)
     {
-        if (*pstr == token) count++;
+        if (*pstr == token && quote == 0)
+        {
+            count++;
+        }
+#ifdef ENABLE_QUOTATION_MARKS
+        if (*pstr == '"')
+        {
+            if (quote == 0) quote = 1;
+            else
+            {
+                if (*(pstr+1) == '"') pstr++;
+                else quote = 0;
+            }
+        }
+#endif
         pstr++;
     }
 
@@ -119,21 +154,37 @@ char** strarr_split(char *str)
     count = 0;
     while (*pstr)
     {
-        if (*pstr == token)
+        if (*pstr == token && quote == 0)
         {
             *pstr = '\0';
             list[++count] = pstr + 1;
         }
+#ifdef ENABLE_QUOTATION_MARKS
+        if (*pstr == '"')
+        {
+            if (quote == 0) quote = 1;
+            else
+            {
+                if (*(pstr+1) == '"') pstr++;
+                else quote = 0;
+            }
+        }
+#endif
         pstr++;
     }
 
     list[++count] = NULL;
 
+#ifdef ENABLE_QUOTATION_MARKS
+    count = 0;
+    while (list[count]) parse_quote(list[count++]);
+#endif
+
     return list;
 }
 
 
-uint32_t strarr_length(char **str_array)
+uint32_t strarr_length(char** const str_array)
 {
     uint32_t count = 0;
 
