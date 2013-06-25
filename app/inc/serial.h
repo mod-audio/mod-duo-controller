@@ -35,7 +35,8 @@
 */
 
 // buffer size
-#define SERIAL_BUFFER_SIZE      256
+#define SERIAL_RX_BUFFER_SIZE   512
+#define SERIAL_TX_BUFFER_SIZE   128
 
 // baud-rates
 #define SERIAL0_BAUDRATE        115200

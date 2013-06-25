@@ -49,12 +49,12 @@ const uint32_t PRIORITIES[] = {
 */
 
 typedef struct {
-    volatile uint32_t tx_head;                  // UART Tx ring buffer head index
-    volatile uint32_t tx_tail;                  // UART Tx ring buffer tail index
-    volatile uint32_t rx_head;                  // UART Rx ring buffer head index
-    volatile uint32_t rx_tail;                  // UART Rx ring buffer tail index
-    volatile uint8_t  tx[SERIAL_BUFFER_SIZE];   // UART Tx data ring buffer
-    volatile uint8_t  rx[SERIAL_BUFFER_SIZE];   // UART Rx data ring buffer
+    volatile uint32_t tx_head;                      // UART Tx ring buffer head index
+    volatile uint32_t tx_tail;                      // UART Tx ring buffer tail index
+    volatile uint32_t rx_head;                      // UART Rx ring buffer head index
+    volatile uint32_t rx_tail;                      // UART Rx ring buffer tail index
+    volatile uint8_t  tx[SERIAL_TX_BUFFER_SIZE];    // UART Tx data ring buffer
+    volatile uint8_t  rx[SERIAL_RX_BUFFER_SIZE];    // UART Rx data ring buffer
 } UART_RING_BUFFER_T;
 
 
@@ -64,18 +64,19 @@ typedef struct {
 ************************************************************************************************************************
 */
 
-// Buf mask
-#define __BUF_MASK                  (SERIAL_BUFFER_SIZE-1)
+// Buf masks
+#define BUF_RX_MASK                     (SERIAL_RX_BUFFER_SIZE-1)
+#define BUF_TX_MASK                     (SERIAL_TX_BUFFER_SIZE-1)
 // Check buf is full or not
-#define BUF_IS_FULL(head, tail)     ((tail & __BUF_MASK) == ((head+1) & __BUF_MASK))
+#define BUF_IS_FULL(head,tail,mask)     ((tail & mask) == ((head+1) & mask))
 // Check buf is empty
-#define BUF_IS_EMPTY(head, tail)    ((head & __BUF_MASK) == (tail & __BUF_MASK))
+#define BUF_IS_EMPTY(head,tail,mask)    ((head & mask) == (tail & mask))
 // Reset buf
-#define BUF_RESET(bufidx)	        (bufidx = 0)
+#define BUF_RESET(bufidx)	            (bufidx = 0)
 // Increment buf
-#define BUF_INCR(bufidx)	        (bufidx = (bufidx+1) & __BUF_MASK)
+#define BUF_INCR(bufidx,mask)	        (bufidx = (bufidx+1) & mask)
 // Buf size
-#define BUF_SIZE(head,tail)	        ((head - tail) & __BUF_MASK)
+#define BUF_SIZE(head,tail,mask)	    ((head - tail) & mask)
 
 // Get uart port
 #define GET_UART(port)              (port == 0 ? UART0 : port == 1 ? UART1 : UART2)
@@ -128,10 +129,10 @@ static void uart_receive(uint8_t port)
         {
 			// Check if buffer is more space
             // If no more space, remaining character will be trimmed out
-			if (!BUF_IS_FULL(g_ringbuf[port].rx_head,g_ringbuf[port].rx_tail))
+			if (!BUF_IS_FULL(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail, BUF_RX_MASK))
             {
 				g_ringbuf[port].rx[g_ringbuf[port].rx_head] = tmpc;
-				BUF_INCR(g_ringbuf[port].rx_head);
+				BUF_INCR(g_ringbuf[port].rx_head, BUF_RX_MASK);
 			}
 		}
 		// no more data
@@ -154,20 +155,20 @@ static void uart_transmit(uint8_t port)
 	// Wait until THR empty
     while (UART_CheckBusy(uart) == SET);
 
-	while (!BUF_IS_EMPTY(g_ringbuf[port].tx_head, g_ringbuf[port].tx_tail))
+	while (!BUF_IS_EMPTY(g_ringbuf[port].tx_head, g_ringbuf[port].tx_tail, BUF_TX_MASK))
     {
         // Move a piece of data into the transmit FIFO
     	if (UART_Send(uart, (uint8_t *)&g_ringbuf[port].tx[g_ringbuf[port].tx_tail], 1, NONE_BLOCKING))
         {
             // Update transmit ring FIFO tail pointer
-            BUF_INCR(g_ringbuf[port].tx_tail);
+            BUF_INCR(g_ringbuf[port].tx_tail, BUF_TX_MASK);
     	}
         else break;
     }
 
     // If there is no more data to send, disable the transmit
     // interrupt - else enable it or keep it enabled
-	if (BUF_IS_EMPTY(g_ringbuf[port].tx_head, g_ringbuf[port].tx_tail))
+	if (BUF_IS_EMPTY(g_ringbuf[port].tx_head, g_ringbuf[port].tx_tail, BUF_TX_MASK))
     {
     	UART_IntConfig(uart, UART_INTCFG_THRE, DISABLE);
 
@@ -302,14 +303,14 @@ uint32_t serial_send(uint8_t port, uint8_t *txbuf, uint32_t buflen)
 
 	// Loop until transmit run buffer is full or until n_bytes
 	// expires
-	while ((buflen > 0) && (!BUF_IS_FULL(g_ringbuf[port].tx_head, g_ringbuf[port].tx_tail)))
+	while ((buflen > 0) && (!BUF_IS_FULL(g_ringbuf[port].tx_head, g_ringbuf[port].tx_tail, BUF_TX_MASK)))
 	{
 		// Write data from buffer into ring buffer
 		g_ringbuf[port].tx[g_ringbuf[port].tx_head] = *data;
 		data++;
 
 		// Increment head pointer
-		BUF_INCR(g_ringbuf[port].tx_head);
+		BUF_INCR(g_ringbuf[port].tx_head, BUF_TX_MASK);
 
 		// Increment data count and decrement buffer size count
 		bytes++;
@@ -347,14 +348,14 @@ uint32_t serial_read(uint8_t port, uint8_t *rxbuf, uint32_t buflen)
 
 	// Loop until receive buffer ring is empty or
     // until max_bytes expires
-	while ((buflen > 0) && (!BUF_IS_EMPTY(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail)))
+	while ((buflen > 0) && (!BUF_IS_EMPTY(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail, BUF_RX_MASK)))
 	{
 		// Read data from ring buffer into user buffer
 		*data = g_ringbuf[port].rx[g_ringbuf[port].rx_tail];
 		data++;
 
 		// Update tail pointer
-		BUF_INCR(g_ringbuf[port].rx_tail);
+		BUF_INCR(g_ringbuf[port].rx_tail, BUF_RX_MASK);
 
 		// Increment data count and decrement buffer size count
 		bytes++;
@@ -400,7 +401,7 @@ void UART0_IRQHandler(void)
         if (tmp == UART_IIR_INTID_CTI)
         {
             msg.port = port;
-            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail);
+            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail, BUF_RX_MASK);
             g_callback[port](&msg);
         }
 	}
@@ -445,7 +446,7 @@ void UART1_IRQHandler(void)
         if (tmp == UART_IIR_INTID_CTI)
         {
             msg.port = port;
-            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail);
+            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail, BUF_RX_MASK);
             g_callback[port](&msg);
         }
 	}
@@ -490,7 +491,7 @@ void UART2_IRQHandler(void)
         if (tmp == UART_IIR_INTID_CTI)
         {
             msg.port = port;
-            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail);
+            msg.data_size = BUF_SIZE(g_ringbuf[port].rx_head, g_ringbuf[port].rx_tail, BUF_RX_MASK);
             g_callback[port](&msg);
         }
 	}
