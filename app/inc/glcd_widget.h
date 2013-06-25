@@ -58,8 +58,8 @@ typedef struct TEXTBOX_T {
 
 typedef struct LISTBOX_T {
     uint8_t x, y, width, height, color;
-    uint8_t selected, count;
-    const char **list;
+    uint8_t hover, selected, count;
+    char** list;
     const uint8_t *font;
     uint8_t line_space, line_top_margin, line_bottom_margin;
     uint8_t text_left_margin;

@@ -295,6 +295,8 @@ void widget_listbox(uint8_t display, listbox_t listbox)
 {
     uint8_t i, font_height, max_lines, y_line;
     uint8_t first_line, focus, center_focus, focus_height;
+    char aux[DISPLAY_WIDTH/5];
+    const char *line_txt;
 
     glcd_rect_fill(display, listbox.x, listbox.y, listbox.width, listbox.height, ~listbox.color);
 
@@ -304,9 +306,9 @@ void widget_listbox(uint8_t display, listbox_t listbox)
     center_focus = (max_lines / 2) - (1 - (max_lines % 2));
     first_line = 0;
 
-    if (listbox.selected > center_focus && listbox.count > max_lines)
+    if (listbox.hover > center_focus && listbox.count > max_lines)
     {
-        first_line = listbox.selected - center_focus;
+        first_line = listbox.hover - center_focus;
         if (first_line > ABS(listbox.count - max_lines))
         {
             first_line = ABS(listbox.count - max_lines);
@@ -314,7 +316,7 @@ void widget_listbox(uint8_t display, listbox_t listbox)
     }
 
     if (max_lines > listbox.count) max_lines = listbox.count;
-    focus = listbox.selected - first_line;
+    focus = listbox.hover - first_line;
     focus_height = font_height + listbox.line_top_margin + listbox.line_bottom_margin;
     y_line = listbox.y + listbox.line_space;
 
@@ -322,7 +324,20 @@ void widget_listbox(uint8_t display, listbox_t listbox)
     {
         if (i < listbox.count)
         {
-            glcd_text(display, listbox.x + listbox.text_left_margin, y_line, listbox.list[first_line + i], listbox.font, listbox.color);
+            line_txt = listbox.list[first_line + i];
+
+            if ((first_line + i) == listbox.selected)
+            {
+                uint8_t j = 0;
+                aux[j++] = ' ';
+                aux[j++] = '>';
+                aux[j++] = ' ';
+                while (*line_txt) aux[j++] = *line_txt++;
+                aux[j] = 0;
+                line_txt = aux;
+            }
+
+            glcd_text(display, listbox.x + listbox.text_left_margin, y_line, line_txt, listbox.font, listbox.color);
 
             if (i == focus)
             {
