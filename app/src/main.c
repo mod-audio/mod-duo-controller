@@ -268,7 +268,9 @@ static void displays_task(void *pvParameters)
 
     while (1)
     {
+        taskENTER_CRITICAL();
         glcd_update();
+        taskEXIT_CRITICAL();
         taskYIELD();
     }
 }
@@ -300,7 +302,7 @@ static void actuators_task(void *pvParameters)
                 if (BUTTON_CLICKED(status))
                 {
                     naveg_next_control(id);
-                    naveg_bp_enter();
+                    naveg_bp_enter(id);
                 }
                 if (BUTTON_HOLD(status))
                 {
@@ -309,12 +311,12 @@ static void actuators_task(void *pvParameters)
                 if (ENCODER_TURNED_CW(status))
                 {
                     naveg_inc_control(id);
-                    naveg_bp_down();
+                    naveg_bp_down(id);
                 }
                 if (ENCODER_TURNED_ACW(status))
                 {
                     naveg_dec_control(id);
-                    naveg_bp_up();
+                    naveg_bp_up(id);
                 }
             }
 

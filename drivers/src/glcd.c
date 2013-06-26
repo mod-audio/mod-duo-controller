@@ -49,6 +49,10 @@
 #define FONT_CHAR_COUNT         5
 #define FONT_WIDTH_TABLE        6
 
+// function bits definition
+// this is used to block/unblock the glcd functions
+enum {SET_PIXEL, CLEAR, HLINE, VLINE, LINE, RECT, RECT_FILL, RECT_INVERT, DRAW_IMAGE, TEXT};
+
 
 /*
 ************************************************************************************************************************
@@ -89,7 +93,7 @@
 #define READ_BUFFER(disp,x,y)           (((x) < DISPLAY_WIDTH && (y) < DISPLAY_HEIGHT) ? \
                                         g_buffer[(disp)][((y)/8)][(x)] : 0)
 #define WRITE_BUFFER(disp,x,y,data)     if ((x) < DISPLAY_WIDTH && (y) < DISPLAY_HEIGHT) \
-                                        g_buffer[(disp)][((y)/8)][(x)] = (data)
+                                        g_buffer[(disp)][((y)/8)][(x)] = (data); g_need_update[(disp)] = 1
 
 // backlight macros
 #if defined GLCD_BACKLIGHT_TURN_ON_WITH_ONE
@@ -104,6 +108,11 @@
 #define ABS_DIFF(a, b)                  ((a > b) ? (a - b) : (b - a))
 #define SWAP(a, b)                      do{uint8_t t; t = a; a = b; b = t;} while(0)
 
+// block/unblock macros
+#define BLOCK(disp,func)                g_blocked[(disp)] |= (1 << (func))
+#define UNBLOCK(disp,func)              g_blocked[(disp)] &= ~(1 << (func))
+#define IS_BLOCKED(disp,func)           (g_blocked[(disp)] & (1 << (func)))
+
 
 /*
 ************************************************************************************************************************
@@ -112,6 +121,8 @@
 */
 
 static uint8_t g_buffer[DISPLAY_COUNT][DISPLAY_HEIGHT/8][DISPLAY_WIDTH];
+static uint8_t g_need_update[DISPLAY_COUNT];
+static uint32_t g_blocked[DISPLAY_COUNT];
 
 
 /*
@@ -364,6 +375,8 @@ void glcd_init(void)
     {
         glcd_clear(i, GLCD_WHITE);
         write_frame(i);
+        g_need_update[i] = 0;
+        g_blocked[i] = 0;
     }
 }
 
@@ -387,21 +400,35 @@ void glcd_backlight(uint8_t display, uint8_t state)
 
 void glcd_clear(uint8_t display, uint8_t color)
 {
+    if (IS_BLOCKED(display,CLEAR)) return;
+    BLOCK(display,CLEAR);
+
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, color);
+
+    UNBLOCK(display,CLEAR);
 }
 
 void glcd_set_pixel(uint8_t display, uint8_t x, uint8_t y, uint8_t color)
 {
     uint8_t data;
+
+    if (IS_BLOCKED(display,SET_PIXEL)) return;
+    BLOCK(display,SET_PIXEL);
+
     data = READ_BUFFER(display, x, y);
     if (color == GLCD_BLACK) data |= (0x01 << (y % 8));
     else data &= ~(0x01 << (y % 8));
     WRITE_BUFFER(display, x, y, data);
+
+    UNBLOCK(display,SET_PIXEL);
 }
 
 void glcd_hline(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint8_t color)
 {
     uint8_t i = 0, tmp = color;
+
+    if (IS_BLOCKED(display,HLINE)) return;
+    BLOCK(display,HLINE);
 
     while (width--)
     {
@@ -419,11 +446,16 @@ void glcd_hline(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint8_t co
 
         glcd_set_pixel(display, x++, y, tmp);
     }
+
+    UNBLOCK(display,HLINE);
 }
 
 void glcd_vline(uint8_t display, uint8_t x, uint8_t y, uint8_t height, uint8_t color)
 {
     uint8_t i = 0, tmp = color;
+
+    if (IS_BLOCKED(display,VLINE)) return;
+    BLOCK(display,VLINE);
 
     while (height--)
     {
@@ -441,12 +473,17 @@ void glcd_vline(uint8_t display, uint8_t x, uint8_t y, uint8_t height, uint8_t c
 
         glcd_set_pixel(display, x, y++, tmp);
     }
+
+    UNBLOCK(display,VLINE);
 }
 
 void glcd_line(uint8_t display, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t color)
 {
     uint8_t deltax, deltay, x, y, steep;
     int8_t error, ystep;
+
+    if (IS_BLOCKED(display,LINE)) return;
+    BLOCK(display,LINE);
 
     steep = ABS_DIFF(y1, y2) > ABS_DIFF(x1, x2);
 
@@ -495,19 +532,29 @@ void glcd_line(uint8_t display, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, 
             error = error + deltax;
         }
     }
+
+    UNBLOCK(display,LINE);
 }
 
 void glcd_rect(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t color)
 {
+    if (IS_BLOCKED(display,RECT)) return;
+    BLOCK(display,RECT);
+
     glcd_hline(display, x, y, width, color);
     glcd_hline(display, x, y+height-1, width, color);
     glcd_vline(display, x, y, height, color);
     glcd_vline(display, x+width-1, y, height, color);
+
+    UNBLOCK(display,RECT);
 }
 
 void glcd_rect_fill(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t color)
 {
     uint8_t i = 0, tmp = color;
+
+    if (IS_BLOCKED(display,RECT_FILL)) return;
+    BLOCK(display,RECT_FILL);
 
     while (width--)
     {
@@ -520,11 +567,16 @@ void glcd_rect_fill(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint8_
 
         glcd_vline(display, x++, y, height, tmp);
     }
+
+    UNBLOCK(display,RECT_FILL);
 }
 
 void glcd_rect_invert(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint8_t height)
 {
     uint8_t mask, page_offset, h, i, data, data_tmp, x_tmp;
+
+    if (IS_BLOCKED(display,RECT_INVERT)) return;
+    BLOCK(display,RECT_INVERT);
 
     page_offset = y % 8;
     mask = 0xFF;
@@ -581,12 +633,17 @@ void glcd_rect_invert(uint8_t display, uint8_t x, uint8_t y, uint8_t width, uint
             WRITE_BUFFER(display, x_tmp, y, data);
         }
     }
+
+    UNBLOCK(display,RECT_INVERT);
 }
 
 void glcd_draw_image(uint8_t display, uint8_t x, uint8_t y, const uint8_t *image, uint8_t color)
 {
     uint8_t i, j, height, width;
     char data;
+
+    if (IS_BLOCKED(display,DRAW_IMAGE)) return;
+    BLOCK(display,DRAW_IMAGE);
 
     width = (uint8_t) *image++;
     height = (uint8_t) *image++;
@@ -600,12 +657,17 @@ void glcd_draw_image(uint8_t display, uint8_t x, uint8_t y, const uint8_t *image
             WRITE_BUFFER(display, x+i, y+j, data);
         }
     }
+
+    UNBLOCK(display,DRAW_IMAGE);
 }
 
 void glcd_text(uint8_t display, uint8_t x, uint8_t y, const char *text, const uint8_t *font, uint8_t color)
 {
     uint8_t i, j, x_tmp, y_tmp, c, bytes, data;
     uint16_t char_data_index, page;
+
+    if (IS_BLOCKED(display,TEXT)) return;
+    BLOCK(display,TEXT);
 
     // default font
     if (!font) font = FONT_DEFAULT;
@@ -684,6 +746,8 @@ void glcd_text(uint8_t display, uint8_t x, uint8_t y, const char *text, const ui
 
         text++;
     }
+
+    UNBLOCK(display,TEXT);
 }
 
 void glcd_update(void)
@@ -692,7 +756,11 @@ void glcd_update(void)
 
     for (i = 0; i < DISPLAY_COUNT; i++)
     {
-        switcher_channel(i);
-        write_frame(i);
+        if (g_need_update[i] && g_blocked[i] == 0)
+        {
+            switcher_channel(i);
+            write_frame(i);
+            g_need_update[i] = 0;
+        }
     }
 }

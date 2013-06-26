@@ -115,6 +115,14 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define HARDWARE_CONNECTED_CMD
 #define HARDWARE_DISCONNECTED_CMD
 
+//// Control propertires definitions
+#define CONTROL_PROP_LINEAR         0
+#define CONTROL_PROP_LOGARITHMIC    1
+#define CONTROL_PROP_ENUMERATION    2
+#define CONTROL_PROP_TOGGLED        3
+#define CONTROL_PROP_TRIGGER        4
+#define CONTROL_PROP_TAP_TEMPO      5
+
 //// Tools configuration
 // tools identification (don't change)
 #define TOOL_SYSTEM         0
@@ -163,14 +171,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #elif (TOOL_NAVEG == TOOL_DISPLAY3)
 #define NAVEG_DISPLAY   TOOL_DISPLAY3
 #endif
-
-//// Control propertires definitions
-#define CONTROL_PROP_LINEAR         0
-#define CONTROL_PROP_LOGARITHMIC    1
-#define CONTROL_PROP_ENUMERATION    2
-#define CONTROL_PROP_TOGGLED        3
-#define CONTROL_PROP_TRIGGER        4
-#define CONTROL_PROP_TAP_TEMPO      5
 
 //// Serial names definition
 #define SERIAL_WEBGUI       0
