@@ -674,7 +674,6 @@ void naveg_bp_enter(uint8_t display)
         if (g_pedalboards->hover == 0)
         {
             g_bp_state = BANKS_LIST;
-            g_banks->hover = g_banks->selected;
             bp_list = g_banks;
             title = "BANKS";
         }
