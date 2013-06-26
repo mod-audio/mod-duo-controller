@@ -653,8 +653,9 @@ bp_list_t *naveg_get_pedalboards(void)
     return g_pedalboards;
 }
 
-void naveg_bp_enter(void)
+void naveg_bp_enter(uint8_t display)
 {
+    if (display != NAVEG_DISPLAY) return;
     if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF  || !g_banks || !g_pedalboards) return;
 
     bp_list_t *bp_list;
@@ -689,8 +690,9 @@ void naveg_bp_enter(void)
     screen_bp_list(title, bp_list);
 }
 
-void naveg_bp_up(void)
+void naveg_bp_up(uint8_t display)
 {
+    if (display != NAVEG_DISPLAY) return;
     if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks || !g_pedalboards) return;
 
     bp_list_t *bp_list;
@@ -712,8 +714,9 @@ void naveg_bp_up(void)
     screen_bp_list(title, bp_list);
 }
 
-void naveg_bp_down(void)
+void naveg_bp_down(uint8_t display)
 {
+    if (display != NAVEG_DISPLAY) return;
     if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks || !g_pedalboards) return;
 
     bp_list_t *bp_list;
