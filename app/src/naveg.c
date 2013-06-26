@@ -80,7 +80,7 @@ struct TOOL_T {
 static node_t *g_controls_list[SLOTS_COUNT], *g_current_control[SLOTS_COUNT];
 static control_t *g_foots[SLOTS_COUNT];
 static bp_list_t *g_banks, *g_pedalboards;
-static uint8_t g_bp_state;
+static uint8_t g_bp_state, g_current_pedalboard;
 
 
 /*
@@ -151,6 +151,20 @@ static void step_to_value(control_t *control)
     }
 }
 
+uint8_t copy_command(char *buffer, const char *command)
+{
+    uint8_t i = 0;
+    const char *cmd = command;
+
+    while (*cmd != '%' && *cmd != '.')
+    {
+        buffer[i++] = *cmd;
+        cmd++;
+    }
+
+    return i;
+}
+
 // control assigned to display
 static void display_control_add(control_t *control)
 {
@@ -195,12 +209,17 @@ static void display_control_add(control_t *control)
             break;
     }
 
+    // update the controls index value
+    g_controls_index[display].total++;
+    g_controls_index[display].current = g_controls_index[display].total;
+
+    // if tool is enabled don't draws the control
+    if (g_tool[display].state == TOOL_ON) return;
+
     // update the control screen
     screen_control(display, control);
 
-    // update the controls index
-    g_controls_index[display].total++;
-    g_controls_index[display].current = g_controls_index[display].total;
+    // update the controls index screen
     screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
 }
 
@@ -344,16 +363,9 @@ static void foot_control_rm(uint8_t effect_instance, const char *symbol)
 static void control_set(uint8_t display, control_t *control)
 {
     char buffer[128];
-    const char *cmd = CONTROL_SET_CMD;
+    uint8_t i;
 
-    // locate the first token
-    uint8_t i = 0;
-    while (*cmd != '%')
-    {
-        buffer[i++] = *cmd;
-        cmd++;
-    }
-
+    i = copy_command(buffer, CONTROL_SET_CMD);
     uint32_t delta, now;
 
     switch (control->properties)
@@ -417,6 +429,45 @@ static void control_set(uint8_t display, control_t *control)
 
 }
 
+static void request_pedalboards_list(const char *bank_uid)
+{
+    uint8_t i, buffer[128];
+
+    i = copy_command((char *)buffer, PEDALBOARDS_LIST_CMD);
+
+    // copy the bank uid
+    const char *p = bank_uid;
+    while (*p)
+    {
+        buffer[i++] = *p;
+        p++;
+    }
+
+    // send the data to GUI
+    serial_send(SERIAL_WEBGUI, buffer, i);
+
+    // waits the pedalboards list be received
+    g_pedalboards = NULL;
+    while (g_pedalboards == NULL);
+}
+
+static void request_load_pedalboard(const char *pedalboard_uid)
+{
+    uint8_t i, buffer[128];
+    i = copy_command((char *)buffer, PEDALBOARD_CMD);
+
+    // copy the pedalboard uid
+    const char *p = pedalboard_uid;
+    while (*p)
+    {
+        buffer[i++] = *p;
+        p++;
+    }
+
+    // send the data to GUI
+    serial_send(SERIAL_WEBGUI, buffer, i);
+}
+
 
 /*
 ************************************************************************************************************************
@@ -460,6 +511,7 @@ void naveg_init(void)
 
     g_banks = NULL;
     g_pedalboards = NULL;
+    g_current_pedalboard = 1;
 }
 
 void naveg_add_control(control_t *control)
@@ -605,26 +657,40 @@ void naveg_foot_change(uint8_t foot)
 
 void naveg_toggle_tool(uint8_t display)
 {
+    // clears the display
+    screen_clear(display);
+
+    // changes the display to tool mode
     if (g_tool[display].state == TOOL_OFF)
     {
+        // initial state to banks/pedalboards navigation
+        g_bp_state = BANKS_LIST;
+
+        // draws the tool
         g_tool[display].state = TOOL_ON;
         screen_tool(display, g_tools_display[display]);
     }
+    // changes the display to control mode
     else
     {
         g_tool[display].state = TOOL_OFF;
+
+        // checks if there is controls assigned
         control_t *control = NULL;
-        if (g_current_control[display])
-        {
-            control = g_current_control[display]->data;
-            screen_control(display, control);
-            foot_control_add(control);
-        }
+        if (g_current_control[display]) control = g_current_control[display]->data;
+
+        // draws the control
+        screen_control(display, control);
+
+        // draws the controls index
+        if (control)
+            screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
+
+        // draws the footer
+        if (g_foots[display])
+            foot_control_add(g_foots[display]);
         else
-        {
-            screen_control(display, NULL);
             screen_footer(display, NULL, NULL);
-        }
     }
 }
 
@@ -656,17 +722,27 @@ bp_list_t *naveg_get_pedalboards(void)
 void naveg_bp_enter(uint8_t display)
 {
     if (display != NAVEG_DISPLAY) return;
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF  || !g_banks || !g_pedalboards) return;
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks) return;
 
     bp_list_t *bp_list;
     const char *title;
 
     if (g_bp_state == BANKS_LIST)
     {
+        request_pedalboards_list(g_banks->uids[g_banks->hover]);
         g_bp_state = PEDALBOARD_LIST;
         g_pedalboards->hover = 0;
         bp_list = g_pedalboards;
         title = g_banks->names[g_banks->hover];
+
+        // sets the selected pedalboard out of range (initial state)
+        g_pedalboards->selected = g_pedalboards->count;
+
+        // defines the selected pedalboard
+        if (g_banks->selected == g_banks->hover)
+        {
+            g_pedalboards->selected = g_current_pedalboard;
+        }
     }
     else if (g_bp_state == PEDALBOARD_LIST)
     {
@@ -681,8 +757,10 @@ void naveg_bp_enter(uint8_t display)
         {
             g_banks->selected = g_banks->hover;
             g_pedalboards->selected = g_pedalboards->hover;
+            g_current_pedalboard = g_pedalboards->selected;
             bp_list = g_pedalboards;
             title = g_banks->names[g_banks->hover];
+            request_load_pedalboard(g_pedalboards->uids[g_pedalboards->selected]);
         }
     }
 
@@ -692,7 +770,7 @@ void naveg_bp_enter(uint8_t display)
 void naveg_bp_up(uint8_t display)
 {
     if (display != NAVEG_DISPLAY) return;
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks || !g_pedalboards) return;
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks) return;
 
     bp_list_t *bp_list;
     const char *title;
@@ -716,7 +794,7 @@ void naveg_bp_up(uint8_t display)
 void naveg_bp_down(uint8_t display)
 {
     if (display != NAVEG_DISPLAY) return;
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks || !g_pedalboards) return;
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks) return;
 
     bp_list_t *bp_list;
     const char *title;

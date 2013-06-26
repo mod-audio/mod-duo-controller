@@ -96,6 +96,11 @@ void screen_init(void)
     g_tuner.cents = 0;
 }
 
+void screen_clear(uint8_t display)
+{
+    glcd_clear(display, GLCD_WHITE);
+}
+
 void screen_control(uint8_t display, control_t *control)
 {
     if (!control)
@@ -272,8 +277,6 @@ void screen_footer(uint8_t display, const char *name, const char *value)
 
 void screen_tool(uint8_t display, uint8_t tool)
 {
-    glcd_clear(display, GLCD_WHITE);
-
     bp_list_t *bp_list;
 
     switch (tool)

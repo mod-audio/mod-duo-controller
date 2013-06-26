@@ -80,38 +80,41 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define ENCODER2_PINS       {0, 5, 2, 26, 2, 1}
 #define ENCODER3_PINS       {0, 7, 2, 27, 2, 2}
 
-
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
 //// Protocol commands configuration
-#define SAY_CMD             "say %s ..."
+#define SAY_CMD                 "say %s ..."
 // led <led_id> <red> <green> <blue>
-#define LED_CMD             "led %i %i %i %i ..."
+#define LED_CMD                 "led %i %i %i %i ..."
 // control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min>
 //             <step> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
-#define CONTROL_ADD_CMD     "control_add %i %s %s %i %s %f %f %f %i %i %i %i %i ..."
+#define CONTROL_ADD_CMD         "control_add %i %s %s %i %s %f %f %f %i %i %i %i %i ..."
 // control_rm <effect_instance> <symbol>
-#define CONTROL_REMOVE_CMD  "control_rm %i %s"
+#define CONTROL_REMOVE_CMD      "control_rm %i %s"
 // control_get <effect_instance> <symbol>
-#define CONTROL_GET_CMD     "control_get %i %s"
+#define CONTROL_GET_CMD         "control_get %i %s"
 // control_set <effect_instance> <symbol> <value>
-#define CONTROL_SET_CMD     "control_set %i %s %f"
+#define CONTROL_SET_CMD         "control_set %i %s %f"
 // bypass_add <effect_instance> <hw_type> <hw_id> <actuator_type> <actuator_id> <bypass_value> <bypass_label>
-#define BYPASS_ADD_CMD      "bypass_add %i %i %i %i %i %i %s"
+#define BYPASS_ADD_CMD          "bypass_add %i %i %i %i %i %i %s"
 // bypass_rm <effect_instance>
-#define BYPASS_REMOVE_CMD   "bypass_rm %i"
+#define BYPASS_REMOVE_CMD       "bypass_rm %i"
 // bypass_set <effect_instance> <bypass_value>
-#define BYPASS_SET_CMD      "bypass_set %i %i"
+#define BYPASS_SET_CMD          "bypass_set %i %i"
 // bypass_get <effect_instance>
-#define BYPASS_GET_CMD      "bypass_get %i"
-// banks <bank_data>
-#define BANKS_CMD           "banks ..."
-// pedalboards <pedalboard_data>
-#define PEDALBOARDS_CMD     "pedalboards ..."
+#define BYPASS_GET_CMD          "bypass_get %i"
+// banks <banks_data>
+#define BANKS_CMD               "banks ..."
+// pedalboards <pedalboards_data>
+#define PEDALBOARDS_CMD         "pedalboards ..."
+// pedalboards_list <bank_uid>
+#define PEDALBOARDS_LIST_CMD    "pedalboards_list %s"
+// pedalboard <pedalboard_uid>
+#define PEDALBOARD_CMD          "pedalboard %s"
 // peakmeter <peakmeter_number> <peakmeter_value>
-#define PEAKMETER_CMD       "peakmeter %i %f"
+#define PEAKMETER_CMD           "peakmeter %i %f"
 // tuner <frequency> <note> <cents>
-#define TUNER_CMD           "tuner %f %s %i"
+#define TUNER_CMD               "tuner %f %s %i"
 #define HARDWARE_CONNECTED_CMD
 #define HARDWARE_DISCONNECTED_CMD
 
