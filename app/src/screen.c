@@ -113,7 +113,8 @@ void screen_control(uint8_t display, control_t *control)
         text[9] = 0;
 
         textbox_t title;
-        title.text_color = GLCD_BLACK;
+        title.color = GLCD_BLACK;
+        title.mode = TEXT_SINGLE_LINE;
         title.font = alterebro24;
         title.top_margin = 0;
         title.bottom_margin = 0;
@@ -131,7 +132,8 @@ void screen_control(uint8_t display, control_t *control)
 
     // control title label
     textbox_t title;
-    title.text_color = GLCD_BLACK;
+    title.color = GLCD_BLACK;
+    title.mode = TEXT_SINGLE_LINE;
     title.font = alterebro24;
     title.top_margin = 2;
     title.bottom_margin = 0;
@@ -210,7 +212,8 @@ void screen_controls_index(uint8_t display, uint8_t current, uint8_t max)
 
     // draws the max field
     textbox_t index;
-    index.text_color = GLCD_BLACK;
+    index.color = GLCD_BLACK;
+    index.mode = TEXT_SINGLE_LINE;
     index.font = System5x7;
     index.bottom_margin = 0;
     index.left_margin = 0;
@@ -242,7 +245,8 @@ void screen_footer(uint8_t display, const char *name, const char *value)
         text[7] = 0;
 
         textbox_t title;
-        title.text_color = GLCD_BLACK;
+        title.color = GLCD_BLACK;
+        title.mode = TEXT_SINGLE_LINE;
         title.font = alterebro24;
         title.top_margin = 0;
         title.bottom_margin = 0;
@@ -257,7 +261,8 @@ void screen_footer(uint8_t display, const char *name, const char *value)
 
     // draws the name field
     textbox_t footer;
-    footer.text_color = GLCD_BLACK;
+    footer.color = GLCD_BLACK;
+    footer.mode = TEXT_SINGLE_LINE;
     footer.font = alterebro24;
     footer.top_margin = 0;
     footer.bottom_margin = 0;
@@ -347,7 +352,8 @@ void screen_bp_list(const char *title, bp_list_t *list)
     glcd_rect_fill(NAVEG_DISPLAY, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
 
     // draws the title
-    title_box.text_color = GLCD_BLACK;
+    title_box.color = GLCD_BLACK;
+    title_box.mode = TEXT_SINGLE_LINE;
     title_box.font = alterebro15;
     title_box.top_margin = 0;
     title_box.bottom_margin = 0;
@@ -382,7 +388,8 @@ void screen_bp_list(const char *title, bp_list_t *list)
     }
     else
     {
-        empty.text_color = GLCD_BLACK;
+        empty.color = GLCD_BLACK;
+        empty.mode = TEXT_SINGLE_LINE;
         empty.font = alterebro24;
         empty.top_margin = 0;
         empty.bottom_margin = 0;

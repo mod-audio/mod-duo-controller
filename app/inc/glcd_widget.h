@@ -31,7 +31,11 @@ typedef enum {ALIGN_LEFT_TOP, ALIGN_LEFT_MIDDLE, ALIGN_LEFT_BOTTOM,
               ALIGN_RIGHT_TOP, ALIGN_RIGHT_MIDDLE, ALIGN_RIGHT_BOTTOM,
               ALIGN_NONE_NONE, ALIGN_LEFT_NONE, ALIGN_RIGHT_NONE, ALIGN_CENTER_NONE} align_t;
 
+typedef enum {TEXT_SINGLE_LINE, TEXT_MULTI_LINES} text_mode_t;
+
 typedef enum {GRAPH_TYPE_LINEAR, GRAPH_TYPE_LOG, GRAPH_TYPE_V, GRAPH_TYPE_A} graph_type_t;
+
+typedef enum {OK_ONLY, OK_CANCEL, CANCEL_ONLY, YES_NO} popup_type_t;
 
 
 /*
@@ -49,11 +53,12 @@ typedef enum {GRAPH_TYPE_LINEAR, GRAPH_TYPE_LOG, GRAPH_TYPE_V, GRAPH_TYPE_A} gra
 
 
 typedef struct TEXTBOX_T {
-    uint8_t x, y, text_color;
+    uint8_t x, y, width, height, color;
     align_t align;
     const char *text;
     const uint8_t *font;
     uint8_t top_margin, bottom_margin, right_margin, left_margin;
+    text_mode_t mode;
 } textbox_t;
 
 typedef struct LISTBOX_T {
@@ -87,6 +92,14 @@ typedef struct TUNER_T {
     int8_t cents;
 } tuner_t;
 
+typedef struct POPUP_T {
+    uint8_t x, y, width, height;
+    const uint8_t *font;
+    const char *title, *content;
+    popup_type_t type;
+    uint8_t button_selected;
+} popup_t;
+
 
 /*
 ************************************************************************************************************************
@@ -114,6 +127,7 @@ void widget_listbox2(uint8_t display, listbox_t listbox);
 void widget_graph(uint8_t display, graph_t graph);
 void widget_peakmeter(uint8_t display, peakmeter_t *pkm);
 void widget_tuner(uint8_t display, tuner_t *tuner);
+void widget_popup(uint8_t display, popup_t *popup);
 
 
 /*
