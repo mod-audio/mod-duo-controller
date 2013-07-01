@@ -205,66 +205,66 @@ static void draw_arrow(uint8_t display, uint8_t x, uint8_t y)
 ************************************************************************************************************************
 */
 
-void widget_textbox(uint8_t display, textbox_t textbox)
+void widget_textbox(uint8_t display, textbox_t *textbox)
 {
     uint8_t text_width, text_height;
 
-    if (textbox.mode == TEXT_SINGLE_LINE)
+    if (textbox->mode == TEXT_SINGLE_LINE)
     {
-        text_width = get_text_width(textbox.text, textbox.font);
-        text_height = textbox.font[FONT_HEIGHT];
+        text_width = get_text_width(textbox->text, textbox->font);
+        text_height = textbox->font[FONT_HEIGHT];
     }
     else
     {
-        text_width = textbox.width;
-        text_height = textbox.height;
+        text_width = textbox->width;
+        text_height = textbox->height;
     }
 
-    switch (textbox.align)
+    switch (textbox->align)
     {
         case ALIGN_LEFT_TOP:
-            textbox.x = textbox.left_margin;
-            textbox.y = textbox.top_margin;
+            textbox->x = textbox->left_margin;
+            textbox->y = textbox->top_margin;
             break;
 
         case ALIGN_CENTER_TOP:
-            textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
-            textbox.y = textbox.top_margin;
+            textbox->x = (DISPLAY_WIDTH / 2) - (text_width / 2);
+            textbox->y = textbox->top_margin;
             break;
 
         case ALIGN_RIGHT_TOP:
-            textbox.x = DISPLAY_WIDTH - text_width - textbox.right_margin;
-            textbox.y = textbox.top_margin;
+            textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
+            textbox->y = textbox->top_margin;
             break;
 
         case ALIGN_LEFT_MIDDLE:
-            textbox.x = textbox.left_margin;
-            textbox.y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
+            textbox->x = textbox->left_margin;
+            textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
             break;
 
         case ALIGN_CENTER_MIDDLE:
-            textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
-            textbox.y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
+            textbox->x = (DISPLAY_WIDTH / 2) - (text_width / 2);
+            textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
             break;
 
         case ALIGN_RIGHT_MIDDLE:
-            textbox.x = DISPLAY_WIDTH - text_width - textbox.right_margin;
-            textbox.y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
+            textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
+            textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
             break;
 
         case ALIGN_LEFT_BOTTOM:
-            textbox.x = textbox.left_margin;
-            textbox.y = DISPLAY_HEIGHT - text_height - textbox.bottom_margin;
+            textbox->x = textbox->left_margin;
+            textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
             break;
 
         case ALIGN_CENTER_BOTTOM:
-            textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
-            textbox.y = DISPLAY_HEIGHT - text_height - textbox.bottom_margin;
+            textbox->x = (DISPLAY_WIDTH / 2) - (text_width / 2);
+            textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
             break;
 
         case ALIGN_RIGHT_BOTTOM:
-            textbox.x = DISPLAY_WIDTH - text_width - textbox.right_margin;
-            textbox.y = DISPLAY_HEIGHT - text_height - textbox.bottom_margin;
+            textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
+            textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
             break;
 
         default:
@@ -272,35 +272,35 @@ void widget_textbox(uint8_t display, textbox_t textbox)
             break;
 
         case ALIGN_LEFT_NONE:
-            textbox.x = textbox.left_margin;
-            textbox.y += textbox.top_margin;
+            textbox->x = textbox->left_margin;
+            textbox->y += textbox->top_margin;
             break;
 
         case ALIGN_RIGHT_NONE:
-            textbox.x = DISPLAY_WIDTH - text_width - textbox.right_margin;
-            textbox.y += textbox.top_margin;
+            textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
+            textbox->y += textbox->top_margin;
             break;
 
         case ALIGN_CENTER_NONE:
-            textbox.x = (DISPLAY_WIDTH / 2) - (text_width / 2);
-            textbox.y += textbox.top_margin;
+            textbox->x = (DISPLAY_WIDTH / 2) - (text_width / 2);
+            textbox->y += textbox->top_margin;
             break;
 
         // TODO: others NONE options
     }
 
     // clear the text area
-    glcd_rect_fill(display, textbox.x, textbox.y, text_width, text_height, GLCD_WHITE);
+    glcd_rect_fill(display, textbox->x, textbox->y, text_width, text_height, GLCD_WHITE);
 
     // draws the text
-    if (textbox.mode == TEXT_SINGLE_LINE)
+    if (textbox->mode == TEXT_SINGLE_LINE)
     {
-        glcd_text(display, textbox.x, textbox.y, textbox.text, textbox.font, textbox.color);
+        glcd_text(display, textbox->x, textbox->y, textbox->text, textbox->font, textbox->color);
     }
     else
     {
         uint8_t i = 0, index;
-        const char *ptext = textbox.text;
+        const char *ptext = textbox->text;
         char buffer[DISPLAY_WIDTH/2];
 
         text_width = 0;
@@ -310,25 +310,25 @@ void widget_textbox(uint8_t display, textbox_t textbox)
         while (*ptext)
         {
             // gets the index of the current character
-            if (!FONT_IS_MONO_SPACED(textbox.font)) index = FONT_WIDTH_TABLE + ((*ptext) - textbox.font[FONT_FIRST_CHAR]);
+            if (!FONT_IS_MONO_SPACED(textbox->font)) index = FONT_WIDTH_TABLE + ((*ptext) - textbox->font[FONT_FIRST_CHAR]);
 
             // calculates the text width
-            text_width += textbox.font[index] + FONT_INTERCHAR_SPACE;
+            text_width += textbox->font[index] + FONT_INTERCHAR_SPACE;
 
             // buffering
             buffer[i++] = *ptext;
 
             // checks the width limit
-            if (text_width >= textbox.width)
+            if (text_width >= textbox->width)
             {
                 buffer[i-1] = 0;
-                glcd_text(display, textbox.x, textbox.y + text_height, buffer, textbox.font, textbox.color);
-                text_height += textbox.font[FONT_HEIGHT] + 1;
+                glcd_text(display, textbox->x, textbox->y + text_height, buffer, textbox->font, textbox->color);
+                text_height += textbox->font[FONT_HEIGHT] + 1;
                 text_width = 0;
                 i = 0;
 
                 // checks the height limit
-                if (text_height > textbox.height) break;
+                if (text_height > textbox->height) break;
             }
             else ptext++;
         }
@@ -337,48 +337,48 @@ void widget_textbox(uint8_t display, textbox_t textbox)
         if (text_width > 0)
         {
             buffer[i] = 0;
-            glcd_text(display, textbox.x, textbox.y + text_height, buffer, textbox.font, textbox.color);
+            glcd_text(display, textbox->x, textbox->y + text_height, buffer, textbox->font, textbox->color);
         }
     }
 }
 
 
-void widget_listbox(uint8_t display, listbox_t listbox)
+void widget_listbox(uint8_t display, listbox_t *listbox)
 {
     uint8_t i, font_height, max_lines, y_line;
     uint8_t first_line, focus, center_focus, focus_height;
     char aux[DISPLAY_WIDTH/5];
     const char *line_txt;
 
-    glcd_rect_fill(display, listbox.x, listbox.y, listbox.width, listbox.height, ~listbox.color);
+    glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
 
-    font_height = listbox.font[FONT_HEIGHT];
-    max_lines = listbox.height / (font_height + listbox.line_space);
+    font_height = listbox->font[FONT_HEIGHT];
+    max_lines = listbox->height / (font_height + listbox->line_space);
 
     center_focus = (max_lines / 2) - (1 - (max_lines % 2));
     first_line = 0;
 
-    if (listbox.hover > center_focus && listbox.count > max_lines)
+    if (listbox->hover > center_focus && listbox->count > max_lines)
     {
-        first_line = listbox.hover - center_focus;
-        if (first_line > ABS(listbox.count - max_lines))
+        first_line = listbox->hover - center_focus;
+        if (first_line > ABS(listbox->count - max_lines))
         {
-            first_line = ABS(listbox.count - max_lines);
+            first_line = ABS(listbox->count - max_lines);
         }
     }
 
-    if (max_lines > listbox.count) max_lines = listbox.count;
-    focus = listbox.hover - first_line;
-    focus_height = font_height + listbox.line_top_margin + listbox.line_bottom_margin;
-    y_line = listbox.y + listbox.line_space;
+    if (max_lines > listbox->count) max_lines = listbox->count;
+    focus = listbox->hover - first_line;
+    focus_height = font_height + listbox->line_top_margin + listbox->line_bottom_margin;
+    y_line = listbox->y + listbox->line_space;
 
     for (i = 0; i < max_lines; i++)
     {
-        if (i < listbox.count)
+        if (i < listbox->count)
         {
-            line_txt = listbox.list[first_line + i];
+            line_txt = listbox->list[first_line + i];
 
-            if ((first_line + i) == listbox.selected)
+            if ((first_line + i) == listbox->selected)
             {
                 uint8_t j = 0;
                 aux[j++] = ' ';
@@ -389,39 +389,39 @@ void widget_listbox(uint8_t display, listbox_t listbox)
                 line_txt = aux;
             }
 
-            glcd_text(display, listbox.x + listbox.text_left_margin, y_line, line_txt, listbox.font, listbox.color);
+            glcd_text(display, listbox->x + listbox->text_left_margin, y_line, line_txt, listbox->font, listbox->color);
 
             if (i == focus)
             {
-                glcd_rect_invert(display, listbox.x, y_line - listbox.line_top_margin, listbox.width, focus_height);
+                glcd_rect_invert(display, listbox->x, y_line - listbox->line_top_margin, listbox->width, focus_height);
             }
 
-            y_line += font_height + listbox.line_space;
+            y_line += font_height + listbox->line_space;
         }
     }
 }
 
 
-void widget_listbox2(uint8_t display, listbox_t listbox) //FIXME: function hardcoded
+void widget_listbox2(uint8_t display, listbox_t *listbox) //FIXME: function hardcoded
 {
-    glcd_rect_fill(display, listbox.x, listbox.y, listbox.width, listbox.height, ~listbox.color);
+    glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
 
-    if (listbox.selected > 0)
+    if (listbox->selected > 0)
     {
-        glcd_text(display, listbox.x + listbox.text_left_margin, 19, listbox.list[listbox.selected-1], alterebro15, listbox.color);
+        glcd_text(display, listbox->x + listbox->text_left_margin, 19, listbox->list[listbox->selected-1], alterebro15, listbox->color);
     }
 
-    if (listbox.selected < (listbox.count - 1))
+    if (listbox->selected < (listbox->count - 1))
     {
-        glcd_text(display, listbox.x + listbox.text_left_margin, 41, listbox.list[listbox.selected+1], listbox.font, listbox.color);
+        glcd_text(display, listbox->x + listbox->text_left_margin, 41, listbox->list[listbox->selected+1], listbox->font, listbox->color);
     }
 
-    glcd_text(display, listbox.x + listbox.text_left_margin + 2, 27, listbox.list[listbox.selected], alterebro24, listbox.color);
-    glcd_rect_invert(display, listbox.x, 27, listbox.width, 13);
+    glcd_text(display, listbox->x + listbox->text_left_margin + 2, 27, listbox->list[listbox->selected], alterebro24, listbox->color);
+    glcd_rect_invert(display, listbox->x, 27, listbox->width, 13);
 }
 
 
-void widget_graph(uint8_t display, graph_t graph)
+void widget_graph(uint8_t display, graph_t *graph)
 {
     const uint8_t *graph_table = NULL;
     uint8_t i, n = 0;
@@ -430,49 +430,49 @@ void widget_graph(uint8_t display, graph_t graph)
     char value_str[16];
 
     // clear the graph area
-    glcd_rect_fill(display, graph.x, graph.y, GRAPH_WIDTH, GRAPH_HEIGHT, ~graph.color);
+    glcd_rect_fill(display, graph->x, graph->y, GRAPH_WIDTH, GRAPH_HEIGHT, ~graph->color);
 
     // init the value box
-    float_to_str(graph.value, value_str, sizeof(value_str), 2);
+    float_to_str(graph->value, value_str, sizeof(value_str), 2);
     value_box.mode = TEXT_SINGLE_LINE;
     value_box.text = value_str;
     value_box.color = GLCD_BLACK;
-    value_box.font = graph.font;
+    value_box.font = graph->font;
     value_box.top_margin = 0;
     value_box.bottom_margin = 0;
     value_box.left_margin = 2;
     value_box.right_margin = 2;
     value_box.align = ALIGN_NONE_NONE;
-    value_box.x = graph.x;
-    value_box.y = graph.y;
+    value_box.x = graph->x;
+    value_box.y = graph->y;
 
     // init the unit box
     unit_box.mode = TEXT_SINGLE_LINE;
     unit_box.color = GLCD_BLACK;
-    unit_box.font = graph.font;
+    unit_box.font = graph->font;
     unit_box.top_margin = 0;
     unit_box.bottom_margin = 0;
     unit_box.left_margin = 0;
     unit_box.right_margin = 0;
-    unit_box.text = graph.unit;
+    unit_box.text = graph->unit;
     unit_box.align = ALIGN_NONE_NONE;
-    unit_box.x = value_box.x + get_text_width(value_str, graph.font) + 4;
+    unit_box.x = value_box.x + get_text_width(value_str, graph->font) + 4;
     unit_box.y = value_box.y;
 
     // linear
     // y = a*x + b
-    // y1 = 0, y2 = GRAPH_NUM_BARS, x1 = graph.min, x2 = graph.max
+    // y1 = 0, y2 = GRAPH_NUM_BARS, x1 = graph->min, x2 = graph->max
     // a = (y2 - y1) / (x2 - x1)
     // b = y1 - (a * x1)
-    if (graph.type == GRAPH_TYPE_LINEAR)
+    if (graph->type == GRAPH_TYPE_LINEAR)
     {
         graph_table = GraphLinTable;
-        a = ((float) GRAPH_NUM_BARS) / (graph.max - graph.min);
-        b = -(a * graph.min);
-        value = a * graph.value + b;
+        a = ((float) GRAPH_NUM_BARS) / (graph->max - graph->min);
+        b = -(a * graph->min);
+        value = a * graph->value + b;
         n = (uint8_t) ROUND(value);
 
-        x = graph.x;
+        x = graph->x;
 
         uint8_t zero, height;
 
@@ -485,75 +485,75 @@ void widget_graph(uint8_t display, graph_t graph)
             // calculates the y and height a
             if (i < zero)
             {
-                y = graph.y + GRAPH_HEIGHT - zero;
+                y = graph->y + GRAPH_HEIGHT - zero;
                 height = zero - graph_table[i];
             }
             else
             {
-                y = graph.y + GRAPH_HEIGHT - graph_table[i];
+                y = graph->y + GRAPH_HEIGHT - graph_table[i];
                 height = graph_table[i] - zero;
             }
 
             // draws the full column
             if (i < n)
             {
-                glcd_rect_fill(display, x, y, GRAPH_BAR_WIDTH, height, graph.color);
+                glcd_rect_fill(display, x, y, GRAPH_BAR_WIDTH, height, graph->color);
             }
             // draws the empty column
             else
             {
-                glcd_vline(display, x + 2, y, height, graph.color);
+                glcd_vline(display, x + 2, y, height, graph->color);
             }
 
             x += (GRAPH_BAR_WIDTH + GRAPH_BAR_SPACE);
         }
 
         // recalculate the textbox position if necessary
-        if (zero > graph.font[FONT_HEIGHT])
+        if (zero > graph->font[FONT_HEIGHT])
         {
-            unit_box.x = GRAPH_WIDTH - get_text_width(graph.unit, graph.font);
-            unit_box.y = graph.y + GRAPH_HEIGHT - graph.font[FONT_HEIGHT];
+            unit_box.x = GRAPH_WIDTH - get_text_width(graph->unit, graph->font);
+            unit_box.y = graph->y + GRAPH_HEIGHT - graph->font[FONT_HEIGHT];
 
-            value_box.x = unit_box.x - get_text_width(value_box.text, graph.font) - 4;
+            value_box.x = unit_box.x - get_text_width(value_box.text, graph->font) - 4;
             value_box.y = unit_box.y;
         }
     }
 
     // log
     // y = a * log(x) + b
-    // y1 = 0, y2 = GRAPH_NUM_BARS, x1 = log(graph.min), x2 = log(graph.max)
+    // y1 = 0, y2 = GRAPH_NUM_BARS, x1 = log(graph->min), x2 = log(graph->max)
     // a = (y2 - y1) / (x2 - x1)
     // b = y1 - (a * x1)
-    else if (graph.type == GRAPH_TYPE_LOG)
+    else if (graph->type == GRAPH_TYPE_LOG)
     {
         graph_table = GraphLogTable;
-        min = log2(graph.min);
-        max = log2(graph.max);
+        min = log2(graph->min);
+        max = log2(graph->max);
         a = ((float) GRAPH_NUM_BARS) / (max - min);
         b = -(a * min);
-        value = log2(graph.value);
+        value = log2(graph->value);
         value = a * value + b;
         n = (uint8_t) ROUND(value);
 
-        x = graph.x;
+        x = graph->x;
 
         for (i = 0; i < GRAPH_NUM_BARS; i++)
         {
-            y = graph.y + GRAPH_HEIGHT - graph_table[i];
+            y = graph->y + GRAPH_HEIGHT - graph_table[i];
 
             if (i < n)
-                glcd_rect_fill(display, x, y, GRAPH_BAR_WIDTH, graph_table[i], graph.color);
+                glcd_rect_fill(display, x, y, GRAPH_BAR_WIDTH, graph_table[i], graph->color);
             else
-                glcd_vline(display, x + 2, y, graph_table[i], graph.color);
+                glcd_vline(display, x + 2, y, graph_table[i], graph->color);
             x += (GRAPH_BAR_WIDTH + GRAPH_BAR_SPACE);
         }
     }
 
     // draws the value box
-    widget_textbox(display, value_box);
+    widget_textbox(display, &value_box);
 
     // draws the unit box
-    widget_textbox(display, unit_box);
+    widget_textbox(display, &unit_box);
 }
 
 
@@ -571,7 +571,7 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardc
     title.right_margin = 0;
     title.font = pkm->font;
     title.text = "Peak Meter";
-    widget_textbox(display, title);
+    widget_textbox(display, &title);
     glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
 
     // draws the bars contours
@@ -592,13 +592,13 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardc
     scale.font = pkm->font;
     scale.y = 11;
     scale.text = "0dB";
-    widget_textbox(display, scale);
+    widget_textbox(display, &scale);
     scale.y = 30;
     scale.text = "-15dB";
-    widget_textbox(display, scale);
+    widget_textbox(display, &scale);
     scale.y = 49;
     scale.text = "-30dB";
-    widget_textbox(display, scale);
+    widget_textbox(display, &scale);
 
     // draws the subtitles
     glcd_text(display,  6, 57,  "IN1", pkm->font, GLCD_BLACK);
@@ -634,7 +634,7 @@ void widget_tuner(uint8_t display, tuner_t *tuner) //FIXME: function hardcoded
     title.right_margin = 0;
     title.font = tuner->font;
     title.text = "Tuner";
-    widget_textbox(display, title);
+    widget_textbox(display, &title);
     glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
 
     // draws the scale
@@ -667,7 +667,7 @@ void widget_tuner(uint8_t display, tuner_t *tuner) //FIXME: function hardcoded
     freq.right_margin = 0;
     freq.font = tuner->font;
     freq.text = freq_str;
-    widget_textbox(display, freq);
+    widget_textbox(display, &freq);
     note.color = GLCD_BLACK;
     note.mode = TEXT_SINGLE_LINE;
     note.align = ALIGN_RIGHT_BOTTOM;
@@ -677,7 +677,7 @@ void widget_tuner(uint8_t display, tuner_t *tuner) //FIXME: function hardcoded
     note.right_margin = 1;
     note.font = tuner->font;
     note.text = tuner->note;
-    widget_textbox(display, note);
+    widget_textbox(display, &note);
 
     // arrow
     const int8_t cents_min = -32, cents_max = 32;
@@ -710,7 +710,7 @@ void widget_popup(uint8_t display, popup_t *popup)
     title.y = popup->y + 1;
     title.font = popup->font;
     title.text = popup->title;
-    widget_textbox(display, title);
+    widget_textbox(display, &title);
 
     // draws the content
     textbox_t content;
@@ -727,7 +727,7 @@ void widget_popup(uint8_t display, popup_t *popup)
     content.width = popup->width - 4;
     content.height = (popup->font[FONT_HEIGHT] * 3);
     content.text = popup->content;
-    widget_textbox(display, content);
+    widget_textbox(display, &content);
 
     uint8_t button_x, button_y, button_w, button_h;
     const char *button_text;

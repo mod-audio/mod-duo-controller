@@ -123,7 +123,7 @@ void screen_control(uint8_t display, control_t *control)
         title.text = text;
         title.align = ALIGN_CENTER_NONE;
         title.y = 25 - (alterebro24[FONT_HEIGHT] / 2);
-        widget_textbox(display, title);
+        widget_textbox(display, &title);
         return;
     }
 
@@ -141,7 +141,7 @@ void screen_control(uint8_t display, control_t *control)
     title.right_margin = 0;
     title.text = control->label;
     title.align = ALIGN_LEFT_TOP;
-    widget_textbox(display, title);
+    widget_textbox(display, &title);
 
     // horizontal title line
     glcd_hline(display, 0, 16, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
@@ -163,7 +163,7 @@ void screen_control(uint8_t display, control_t *control)
         graph.value = control->value;
         graph.unit = unit;
         graph.type = control->properties;
-        widget_graph(display, graph);
+        widget_graph(display, &graph);
     }
 
     // list type control
@@ -193,7 +193,7 @@ void screen_control(uint8_t display, control_t *control)
         list.line_top_margin = 1;
         list.line_bottom_margin = 0;
         list.text_left_margin = 1;
-        widget_listbox2(display, list);
+        widget_listbox2(display, &list);
 
         FREE(labels_list);
     }
@@ -221,12 +221,12 @@ void screen_controls_index(uint8_t display, uint8_t current, uint8_t max)
     index.align = ALIGN_RIGHT_TOP;
     index.top_margin = 8;
     index.text = str_max;
-    widget_textbox(display, index);
+    widget_textbox(display, &index);
 
     // draws the current field
     index.top_margin = 0;
     index.text = str_current;
-    widget_textbox(display, index);
+    widget_textbox(display, &index);
 }
 
 void screen_footer(uint8_t display, const char *name, const char *value)
@@ -255,7 +255,7 @@ void screen_footer(uint8_t display, const char *name, const char *value)
         title.text = text;
         title.align = ALIGN_CENTER_NONE;
         title.y = 52;
-        widget_textbox(display, title);
+        widget_textbox(display, &title);
         return;
     }
 
@@ -271,13 +271,13 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     footer.text = name;
     footer.y = 52;
     footer.align = ALIGN_LEFT_NONE;
-    widget_textbox(display, footer);
+    widget_textbox(display, &footer);
 
     // draws the value field
     footer.right_margin = 4;
     footer.text = value;
     footer.align = ALIGN_RIGHT_NONE;
-    widget_textbox(display, footer);
+    widget_textbox(display, &footer);
 }
 
 void screen_tool(uint8_t display, uint8_t tool)
@@ -361,7 +361,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
     title_box.right_margin = 0;
     title_box.text = title;
     title_box.align = ALIGN_LEFT_TOP;
-    widget_textbox(NAVEG_DISPLAY, title_box);
+    widget_textbox(NAVEG_DISPLAY, &title_box);
 
     // title line separator
     glcd_hline(NAVEG_DISPLAY, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
@@ -384,7 +384,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
         list_box.line_top_margin = 1;
         list_box.line_bottom_margin = 0;
         list_box.text_left_margin = 2;
-        widget_listbox(NAVEG_DISPLAY, list_box);
+        widget_listbox(NAVEG_DISPLAY, &list_box);
     }
     else
     {
@@ -397,6 +397,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
         empty.right_margin = 0;
         empty.text = "NO BANKS";
         empty.align = ALIGN_CENTER_MIDDLE;
-        widget_textbox(NAVEG_DISPLAY, empty);
+        widget_textbox(NAVEG_DISPLAY, &empty);
     }
 }
+
