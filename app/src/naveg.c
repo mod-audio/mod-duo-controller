@@ -28,6 +28,8 @@ enum {TT_INIT, TT_COUNTING};
 enum {TOOL_OFF, TOOL_ON};
 enum {BANKS_LIST, PEDALBOARD_LIST};
 
+#define MAX_CHARS_MENU_NAME     (128/4)
+
 
 /*
 ************************************************************************************************************************
@@ -40,6 +42,11 @@ static const uint8_t g_tools_display[] = {
     TOOL_DISPLAY1,
     TOOL_DISPLAY2,
     TOOL_DISPLAY3
+};
+
+static const menu_desc_t g_menu_desc[] = {
+    SYSTEM_MENU
+    {NULL, 0, -1, -1, NULL}
 };
 
 
@@ -81,6 +88,9 @@ static node_t *g_controls_list[SLOTS_COUNT], *g_current_control[SLOTS_COUNT];
 static control_t *g_foots[SLOTS_COUNT];
 static bp_list_t *g_banks, *g_pedalboards;
 static uint8_t g_bp_state, g_current_pedalboard;
+static node_t *g_menu, *g_current_menu;
+menu_item_t *g_current_item;
+uint8_t g_max_items_list;
 
 
 /*
@@ -468,6 +478,230 @@ static void request_load_pedalboard(const char *pedalboard_uid)
     serial_send(SERIAL_WEBGUI, buffer, i);
 }
 
+static void bp_enter(void)
+{
+    bp_list_t *bp_list;
+    const char *title;
+
+    if (!g_banks) return;
+
+    if (g_bp_state == BANKS_LIST)
+    {
+        request_pedalboards_list(g_banks->uids[g_banks->hover]);
+        g_bp_state = PEDALBOARD_LIST;
+        g_pedalboards->hover = 0;
+        bp_list = g_pedalboards;
+        title = g_banks->names[g_banks->hover];
+
+        // sets the selected pedalboard out of range (initial state)
+        g_pedalboards->selected = g_pedalboards->count;
+
+        // defines the selected pedalboard
+        if (g_banks->selected == g_banks->hover)
+        {
+            g_pedalboards->selected = g_current_pedalboard;
+        }
+    }
+    else if (g_bp_state == PEDALBOARD_LIST)
+    {
+        // checks if is the first option (back to banks list)
+        if (g_pedalboards->hover == 0)
+        {
+            g_bp_state = BANKS_LIST;
+            bp_list = g_banks;
+            title = "BANKS";
+        }
+        else
+        {
+            g_banks->selected = g_banks->hover;
+            g_pedalboards->selected = g_pedalboards->hover;
+            g_current_pedalboard = g_pedalboards->selected;
+            bp_list = g_pedalboards;
+            title = g_banks->names[g_banks->hover];
+            request_load_pedalboard(g_pedalboards->uids[g_pedalboards->selected]);
+        }
+    }
+
+    screen_bp_list(title, bp_list);
+}
+
+static void bp_up(void)
+{
+    bp_list_t *bp_list;
+    const char *title;
+
+    if (!g_banks) return;
+
+    if (g_bp_state == BANKS_LIST)
+    {
+        if (g_banks->hover > 0) g_banks->hover--;
+        bp_list = g_banks;
+        title = "BANKS";
+    }
+    else if (g_bp_state == PEDALBOARD_LIST)
+    {
+        if (g_pedalboards->hover > 0) g_pedalboards->hover--;
+        bp_list = g_pedalboards;
+        title = g_banks->names[g_banks->hover];
+    }
+
+    screen_bp_list(title, bp_list);
+}
+
+static void bp_down(void)
+{
+    bp_list_t *bp_list;
+    const char *title;
+
+    if (!g_banks) return;
+
+    if (g_bp_state == BANKS_LIST)
+    {
+        if (g_banks->hover < (g_banks->count - 1)) g_banks->hover++;
+        bp_list = g_banks;
+        title = "BANKS";
+    }
+    else if (g_bp_state == PEDALBOARD_LIST)
+    {
+        if (g_pedalboards->hover < (g_pedalboards->count - 1)) g_pedalboards->hover++;
+        bp_list = g_pedalboards;
+        title = g_banks->names[g_banks->hover];
+    }
+
+    screen_bp_list(title, bp_list);
+}
+
+static void menu_enter(void)
+{
+    uint8_t i;
+    node_t *node = g_current_menu;
+    menu_item_t *item;
+
+    // checks the current item
+    if (g_current_item->desc->type == MENU_LIST)
+    {
+        // locates the clicked item
+        node = g_current_menu->first_child;
+        //for (i = 0; i < g_menu_data.hover; i++) node = node->next;
+        for (i = 0; i < g_current_item->data.hover; i++) node = node->next;
+
+        // gets the menu item
+        item = node->data;
+
+        // checks if is 'back to previous'
+        if (item->desc->type == MENU_RETURN)
+        {
+            node = node->parent->parent;
+            item = node->data;
+        }
+
+        // updates the current item
+        if (item->desc->type != MENU_ON_OFF && item->desc->type != MENU_NONE) g_current_item = node->data;
+    }
+    else if (g_current_item->desc->type == MENU_CONFIRM || g_current_item->desc->type == MENU_CANCEL)
+    {
+        // gets the menu item
+        item = g_current_menu->data;
+        g_current_item = item;
+    }
+
+    // checks the selected item
+    if (item->desc->type == MENU_LIST)
+    {
+        // changes the current menu
+        g_current_menu = node;
+
+        // initialize the counter
+        item->data.list_count = 0;
+
+        // adds the menu lines
+        for (node = node->first_child; node; node = node->next)
+        {
+            menu_item_t *item_child = node->data;
+            item->data.list[item->data.list_count++] = item_child->name;
+        }
+    }
+    else if (item->desc->type == MENU_CONFIRM)
+    {
+        // highlights the default button
+        item->data.hover = 1;
+
+        // defines the buttons count
+        item->data.list_count = 2;
+    }
+    else if (item->desc->type == MENU_CANCEL)
+    {
+        // highlights the default button
+        item->data.hover = 0;
+
+        // defines the buttons count
+        item->data.list_count = 1;
+    }
+    else if (item->desc->type == MENU_ON_OFF)
+    {
+        // keeps the current item
+        item = g_current_item;
+    }
+    else if (item->desc->type == MENU_NONE)
+    {
+        // keeps the current item
+        item = g_current_item;
+    }
+
+    screen_system_menu(item);
+}
+
+static void menu_up(void)
+{
+    menu_item_t *item = g_current_item;
+    if (item->data.hover > 0) item->data.hover--;
+    screen_system_menu(item);
+}
+
+static void menu_down(void)
+{
+    menu_item_t *item = g_current_item;
+    if (item->data.hover < (item->data.list_count - 1)) item->data.hover++;
+    screen_system_menu(item);
+}
+
+static void create_menu_tree(node_t *parent, const menu_desc_t *desc)
+{
+    uint8_t i, j;
+    menu_item_t *item;
+
+    for (i = 0, j = 0; g_menu_desc[i].name; i++)
+    {
+        if (desc->id == g_menu_desc[i].parent_id)
+        {
+            item = (menu_item_t *) MALLOC(sizeof(menu_item_t));
+            item->data.hover = 0;
+            item->data.selected = 0xFF;
+            item->data.list_count = 0;
+            item->data.list = (char **) MALLOC(g_max_items_list * sizeof(char *));
+            item->desc = &g_menu_desc[i];
+            item->name = MALLOC(MAX_CHARS_MENU_NAME);
+            strcpy(item->name, g_menu_desc[i].name);
+
+            node_t *node;
+            node = node_child(parent, item);
+
+            if (item->desc->type == MENU_LIST) create_menu_tree(node, &g_menu_desc[i]);
+        }
+    }
+}
+
+static void reset_menu_hover(node_t *menu_node)
+{
+    node_t *node;
+    for (node = menu_node->first_child; node; node = node->next)
+    {
+        menu_item_t *item = node->data;
+        item->data.hover = 0;
+        reset_menu_hover(node);
+    }
+}
+
 
 /*
 ************************************************************************************************************************
@@ -512,6 +746,32 @@ void naveg_init(void)
     g_banks = NULL;
     g_pedalboards = NULL;
     g_current_pedalboard = 1;
+
+    // counts the maximum items amount in a list
+    uint8_t count = 0;
+    for (i = 0; g_menu_desc[i].name; i++)
+    {
+        uint8_t j = i + 1;
+        for (; g_menu_desc[j].name; j++)
+        {
+            if (g_menu_desc[i].id == g_menu_desc[j].parent_id) count++;
+        }
+
+        if (count > g_max_items_list) g_max_items_list = count;
+        count = 0;
+    }
+
+    // adds one to line 'back to previous menu'
+    g_max_items_list++;
+
+    // creates the menu tree (recursively)
+    const menu_desc_t root_desc = {"root", 0, -1, -1, NULL};
+    g_menu = node_create(NULL);
+    create_menu_tree(g_menu, &root_desc);
+
+    // sets the current menu
+    g_current_menu = g_menu;
+    g_current_item = g_menu->first_child->data;
 }
 
 void naveg_add_control(control_t *control)
@@ -719,98 +979,27 @@ bp_list_t *naveg_get_pedalboards(void)
     return g_pedalboards;
 }
 
-void naveg_bp_enter(uint8_t display)
+void naveg_enter(uint8_t display)
 {
-    if (display != NAVEG_DISPLAY) return;
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks) return;
-
-    bp_list_t *bp_list;
-    const char *title;
-
-    if (g_bp_state == BANKS_LIST)
-    {
-        request_pedalboards_list(g_banks->uids[g_banks->hover]);
-        g_bp_state = PEDALBOARD_LIST;
-        g_pedalboards->hover = 0;
-        bp_list = g_pedalboards;
-        title = g_banks->names[g_banks->hover];
-
-        // sets the selected pedalboard out of range (initial state)
-        g_pedalboards->selected = g_pedalboards->count;
-
-        // defines the selected pedalboard
-        if (g_banks->selected == g_banks->hover)
-        {
-            g_pedalboards->selected = g_current_pedalboard;
-        }
-    }
-    else if (g_bp_state == PEDALBOARD_LIST)
-    {
-        // checks if is the first option (back to banks list)
-        if (g_pedalboards->hover == 0)
-        {
-            g_bp_state = BANKS_LIST;
-            bp_list = g_banks;
-            title = "BANKS";
-        }
-        else
-        {
-            g_banks->selected = g_banks->hover;
-            g_pedalboards->selected = g_pedalboards->hover;
-            g_current_pedalboard = g_pedalboards->selected;
-            bp_list = g_pedalboards;
-            title = g_banks->names[g_banks->hover];
-            request_load_pedalboard(g_pedalboards->uids[g_pedalboards->selected]);
-        }
-    }
-
-    screen_bp_list(title, bp_list);
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_enter();
+    if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_enter();
 }
 
-void naveg_bp_up(uint8_t display)
+void naveg_up(uint8_t display)
 {
-    if (display != NAVEG_DISPLAY) return;
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks) return;
-
-    bp_list_t *bp_list;
-    const char *title;
-
-    if (g_bp_state == BANKS_LIST)
-    {
-        if (g_banks->hover > 0) g_banks->hover--;
-        bp_list = g_banks;
-        title = "BANKS";
-    }
-    else if (g_bp_state == PEDALBOARD_LIST)
-    {
-        if (g_pedalboards->hover > 0) g_pedalboards->hover--;
-        bp_list = g_pedalboards;
-        title = g_banks->names[g_banks->hover];
-    }
-
-    screen_bp_list(title, bp_list);
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_up();
+    if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_up();
 }
 
-void naveg_bp_down(uint8_t display)
+void naveg_down(uint8_t display)
 {
-    if (display != NAVEG_DISPLAY) return;
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_OFF || !g_banks) return;
+    if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_down();
+    if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_down();
+}
 
-    bp_list_t *bp_list;
-    const char *title;
-
-    if (g_bp_state == BANKS_LIST)
-    {
-        if (g_banks->hover < (g_banks->count - 1)) g_banks->hover++;
-        bp_list = g_banks;
-        title = "BANKS";
-    }
-    else if (g_bp_state == PEDALBOARD_LIST)
-    {
-        if (g_pedalboards->hover < (g_pedalboards->count - 1)) g_pedalboards->hover++;
-        bp_list = g_pedalboards;
-        title = g_banks->names[g_banks->hover];
-    }
-
-    screen_bp_list(title, bp_list);
+void naveg_reset_menu(void)
+{
+    g_current_menu = g_menu;
+    g_current_item = g_menu->first_child->data;
+    reset_menu_hover(g_menu);
 }

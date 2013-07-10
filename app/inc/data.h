@@ -24,6 +24,8 @@
 ************************************************************************************************************************
 */
 
+typedef enum {MENU_NONE, MENU_RETURN, MENU_LIST, MENU_SELECT, MENU_CONFIRM, MENU_CANCEL, MENU_ON_OFF} menu_types_t;
+
 
 /*
 ************************************************************************************************************************
@@ -54,31 +56,31 @@ typedef struct CONTROL_T {
     scale_point_t **scale_points;
 } control_t;
 
-typedef struct BYPASS_T {
-    uint8_t hardware_type, hardware_id;
-    uint8_t actuator_type, actuator_id;
-    char *label;
-    uint8_t value;
-} bypass_t;
-
-typedef struct EFFECT_T {
-    uint8_t instance;
-    bypass_t bypass;
-} effect_t;
-
-typedef struct PEDALBOARD_T {
-    char *uid;
-    char *name;
-    uint8_t effects_count;
-    effect_t **effects;
-    uint8_t controls_count;
-    control_t **controls;
-} pedalboard_t;
-
 typedef struct BP_LIST_T {
     char **names, **uids;
     uint8_t count, hover, selected;
 } bp_list_t;
+
+typedef struct MENU_DESC_T {
+    const char *name;
+    menu_types_t type;
+    int8_t id, parent_id;
+    void (*action_cb) (void *data);
+} menu_desc_t;
+
+typedef struct MENU_DATA_T {
+    char **list;
+    uint8_t list_count;
+    uint8_t selected, hover;
+
+    char *popup_title, *popup_content;
+} menu_data_t;
+
+typedef struct MENU_ITEM_T {
+    char *name;
+    const menu_desc_t *desc;
+    menu_data_t data;
+} menu_item_t;
 
 
 /*

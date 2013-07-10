@@ -90,12 +90,14 @@ bp_list_t *naveg_get_banks(void);
 void naveg_set_pedalboards(bp_list_t *bp_list);
 // returns the pedalboards list of current bank
 bp_list_t *naveg_get_pedalboards(void);
-// runs the enter action on banks/pedalbords navegation
-void naveg_bp_enter(uint8_t display);
-// goes one step up on list
-void naveg_bp_up(uint8_t display);
-// goes one step down on list
-void naveg_bp_down(uint8_t display);
+// runs the enter action on tool mode
+void naveg_enter(uint8_t display);
+// runs the up action on tool mode
+void naveg_up(uint8_t display);
+// runs the down action on tool mode
+void naveg_down(uint8_t display);
+// resets to root menu
+void naveg_reset_menu(void);
 
 
 /*

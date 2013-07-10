@@ -302,7 +302,7 @@ static void actuators_task(void *pvParameters)
                 if (BUTTON_CLICKED(status))
                 {
                     naveg_next_control(id);
-                    naveg_bp_enter(id);
+                    naveg_enter(id);
                 }
                 if (BUTTON_HOLD(status))
                 {
@@ -311,12 +311,12 @@ static void actuators_task(void *pvParameters)
                 if (ENCODER_TURNED_CW(status))
                 {
                     naveg_inc_control(id);
-                    naveg_bp_down(id);
+                    naveg_down(id);
                 }
                 if (ENCODER_TURNED_ACW(status))
                 {
                     naveg_dec_control(id);
-                    naveg_bp_up(id);
+                    naveg_up(id);
                 }
             }
 

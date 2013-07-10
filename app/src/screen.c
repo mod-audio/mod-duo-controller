@@ -287,7 +287,8 @@ void screen_tool(uint8_t display, uint8_t tool)
     switch (tool)
     {
         case TOOL_SYSTEM:
-            glcd_text(display, 0, 0, "SYSTEM", System5x7, GLCD_BLACK);
+            naveg_reset_menu();
+            naveg_enter(SYSTEM_DISPLAY);
             break;
 
         case TOOL_TUNER:
@@ -401,3 +402,74 @@ void screen_bp_list(const char *title, bp_list_t *list)
     }
 }
 
+void screen_system_menu(menu_item_t *item)
+{
+    // clears the title
+    glcd_rect_fill(SYSTEM_DISPLAY, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
+
+    // draws the title
+    textbox_t title_box;
+    title_box.color = GLCD_BLACK;
+    title_box.mode = TEXT_SINGLE_LINE;
+    title_box.font = alterebro15;
+    title_box.top_margin = 0;
+    title_box.bottom_margin = 0;
+    title_box.left_margin = 0;
+    title_box.right_margin = 0;
+    title_box.text = item->name;
+    title_box.align = ALIGN_LEFT_TOP;
+    widget_textbox(SYSTEM_DISPLAY, &title_box);
+
+    // title line separator
+    glcd_hline(SYSTEM_DISPLAY, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
+    glcd_hline(SYSTEM_DISPLAY, 0, 10, DISPLAY_WIDTH, GLCD_WHITE);
+
+    // menu list
+    listbox_t list;
+    list.x = 0;
+    list.y = 11;
+    list.width = 128;
+    list.height = 53;
+    list.color = GLCD_BLACK;
+    list.hover = item->data.hover;
+    list.selected = item->data.selected;
+    list.count = item->data.list_count;
+    list.list = item->data.list;
+    list.font = alterebro15;
+    list.line_space = 1;
+    list.line_top_margin = 1;
+    list.line_bottom_margin = 0;
+    list.text_left_margin = 2;
+
+    // popup
+    popup_t popup;
+    popup.x = 10;
+    popup.y = 5;
+    popup.width = DISPLAY_WIDTH - 20;
+    popup.height = DISPLAY_HEIGHT - 10;
+    popup.font = alterebro15;
+    popup.title = "Popup Title";
+    popup.content = "popup content";
+    popup.button_selected = item->data.hover;
+
+    switch (item->desc->type)
+    {
+        case MENU_LIST:
+        case MENU_SELECT:
+            widget_listbox(SYSTEM_DISPLAY, &list);
+            break;
+
+        case MENU_CONFIRM:
+        case MENU_CANCEL:
+            popup.type = (item->desc->type == MENU_CONFIRM ? YES_NO : CANCEL_ONLY);
+            widget_popup(SYSTEM_DISPLAY, &popup);
+            break;
+
+        case MENU_NONE:
+        case MENU_RETURN:
+            break;
+
+        case MENU_ON_OFF:
+            break;
+    }
+}
