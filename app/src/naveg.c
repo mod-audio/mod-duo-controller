@@ -582,7 +582,6 @@ static void menu_enter(void)
     {
         // locates the clicked item
         node = g_current_menu->first_child;
-        //for (i = 0; i < g_menu_data.hover; i++) node = node->next;
         for (i = 0; i < g_current_item->data.hover; i++) node = node->next;
 
         // gets the menu item
@@ -619,6 +618,13 @@ static void menu_enter(void)
         {
             menu_item_t *item_child = node->data;
             item->data.list[item->data.list_count++] = item_child->name;
+
+            // checks if is ON / OFF type and insert the value
+            if (item_child->desc->type == MENU_ON_OFF)
+            {
+                strcpy(item_child->name, item_child->desc->name);
+                strcat(item_child->name, (item_child->data.hover ? " ON" : "OFF"));
+            }
         }
     }
     else if (item->desc->type == MENU_CONFIRM)
@@ -639,13 +645,19 @@ static void menu_enter(void)
     }
     else if (item->desc->type == MENU_ON_OFF)
     {
+        item->data.hover = 1 - item->data.hover;
+
+        // calls the action callback
+        if (item->desc->action_cb)
+            item->desc->action_cb(item);
+
         // keeps the current item
-        item = g_current_item;
+        //item = g_current_item;
     }
     else if (item->desc->type == MENU_NONE)
     {
         // keeps the current item
-        item = g_current_item;
+        //item = g_current_item;
     }
 
     screen_system_menu(item);
@@ -697,7 +709,7 @@ static void reset_menu_hover(node_t *menu_node)
     for (node = menu_node->first_child; node; node = node->next)
     {
         menu_item_t *item = node->data;
-        item->data.hover = 0;
+        if (item->desc->type == MENU_LIST) item->data.hover = 0;
         reset_menu_hover(node);
     }
 }

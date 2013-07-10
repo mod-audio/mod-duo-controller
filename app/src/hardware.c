@@ -14,6 +14,7 @@
 #include "LPC177x_8x.h"
 #include "lpc177x_8x_gpio.h"
 #include "lpc177x_8x_timer.h"
+#include "lpc177x_8x_clkpwr.h"
 
 
 /*
@@ -47,10 +48,6 @@ struct COOLER_T {
 *           LOCAL MACROS
 ************************************************************************************************************************
 */
-
-#define CPU_POWER_ON()          GPIO_ClearValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));    \
-                                delay_ms(200);                                              \
-                                GPIO_SetValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN))
 
 #define UNBLOCK_ARM_RESET()     GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_INPUT)
 #define BLOCK_ARM_RESET()       GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_OUTPUT); \
@@ -107,8 +104,11 @@ void hardware_setup(void)
 
     // CPU power pins configuration
     GPIO_SetDir(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN), GPIO_DIRECTION_OUTPUT);
-    GPIO_SetDir(CPU_STATUS_PORT, (1 << CPU_STATUS_PIN), GPIO_DIRECTION_OUTPUT);
-    if (!hardware_cpu_status()) CPU_POWER_ON();
+    GPIO_SetDir(CPU_STATUS_PORT, (1 << CPU_STATUS_PIN), GPIO_DIRECTION_INPUT);
+    GPIO_SetValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
+
+    // FIXME: enable below line
+    //hardware_cpu_power_on();
 
     // configures the cooler
     GPIO_SetDir(COOLER_PORT, (1 << COOLER_PIN), GPIO_DIRECTION_OUTPUT);
@@ -119,6 +119,10 @@ void hardware_setup(void)
     led_init(&g_leds[1], (const led_pins_t)LED1_PINS);
     led_init(&g_leds[2], (const led_pins_t)LED2_PINS);
     led_init(&g_leds[3], (const led_pins_t)LED3_PINS);
+
+    // True bypass
+    GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
+    hardware_true_bypass(BYPASS);
 
     // actuators creation
     actuator_create(ROTARY_ENCODER, 0, hardware_actuators(ENCODER0));
@@ -206,6 +210,17 @@ void hardware_setup(void)
 	TIM_Cmd(LPC_TIM1, ENABLE);
 }
 
+void hardware_cpu_power_on(void)
+{
+    // Power on the CPU
+    if (hardware_cpu_status() == 0)
+    {
+        GPIO_ClearValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
+        while (hardware_cpu_status() == 0) delay_ms(1);
+        GPIO_SetValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
+    }
+}
+
 uint8_t hardware_cpu_status(void)
 {
     uint32_t status = GPIO_ReadValue(CPU_STATUS_PORT);
@@ -256,6 +271,14 @@ void *hardware_actuators(uint8_t actuator_id)
 uint32_t hardware_time_stamp(void)
 {
     return g_counter;
+}
+
+void hardware_true_bypass(uint8_t value)
+{
+    if (value)
+        GPIO_SetValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
+    else
+        GPIO_ClearValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
 }
 
 void TIMER0_IRQHandler(void)

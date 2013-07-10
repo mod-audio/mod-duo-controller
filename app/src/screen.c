@@ -404,6 +404,8 @@ void screen_bp_list(const char *title, bp_list_t *list)
 
 void screen_system_menu(menu_item_t *item)
 {
+    static menu_item_t *last_item;
+
     // clears the title
     glcd_rect_fill(SYSTEM_DISPLAY, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
 
@@ -416,8 +418,10 @@ void screen_system_menu(menu_item_t *item)
     title_box.bottom_margin = 0;
     title_box.left_margin = 0;
     title_box.right_margin = 0;
-    title_box.text = item->name;
     title_box.align = ALIGN_LEFT_TOP;
+    title_box.text = item->name;
+    if (item->desc->type == MENU_NONE || item->desc->type == MENU_ON_OFF)
+        title_box.text = last_item->name;
     widget_textbox(SYSTEM_DISPLAY, &title_box);
 
     // title line separator
@@ -431,10 +435,6 @@ void screen_system_menu(menu_item_t *item)
     list.width = 128;
     list.height = 53;
     list.color = GLCD_BLACK;
-    list.hover = item->data.hover;
-    list.selected = item->data.selected;
-    list.count = item->data.list_count;
-    list.list = item->data.list;
     list.font = alterebro15;
     list.line_space = 1;
     list.line_top_margin = 1;
@@ -448,28 +448,46 @@ void screen_system_menu(menu_item_t *item)
     popup.width = DISPLAY_WIDTH - 20;
     popup.height = DISPLAY_HEIGHT - 10;
     popup.font = alterebro15;
-    popup.title = "Popup Title";
-    popup.content = "popup content";
-    popup.button_selected = item->data.hover;
 
     switch (item->desc->type)
     {
         case MENU_LIST:
         case MENU_SELECT:
+            list.hover = item->data.hover;
+            list.selected = item->data.selected;
+            list.count = item->data.list_count;
+            list.list = item->data.list;
             widget_listbox(SYSTEM_DISPLAY, &list);
+            last_item = item;
             break;
 
         case MENU_CONFIRM:
         case MENU_CANCEL:
             popup.type = (item->desc->type == MENU_CONFIRM ? YES_NO : CANCEL_ONLY);
+            popup.title = "Popup Title";
+            popup.content = "popup content";
+            popup.button_selected = item->data.hover;
             widget_popup(SYSTEM_DISPLAY, &popup);
             break;
 
         case MENU_NONE:
         case MENU_RETURN:
+            list.hover = last_item->data.hover;
+            list.selected = last_item->data.selected;
+            list.count = last_item->data.list_count;
+            list.list = last_item->data.list;
+            widget_listbox(SYSTEM_DISPLAY, &list);
             break;
 
         case MENU_ON_OFF:
+            strcpy(item->name, item->desc->name);
+            strcat(item->name, (item->data.hover ? " ON" : "OFF"));
+
+            list.hover = last_item->data.hover;
+            list.selected = last_item->data.selected;
+            list.count = last_item->data.list_count;
+            list.list = last_item->data.list;
+            widget_listbox(SYSTEM_DISPLAY, &list);
             break;
     }
 }

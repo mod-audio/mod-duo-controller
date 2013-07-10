@@ -5,8 +5,8 @@
 ************************************************************************************************************************
 */
 
-#ifndef HARDWARE_H
-#define HARDWARE_H
+#ifndef SYS_MENU_CB_H
+#define SYS_MENU_CB_H
 
 
 /*
@@ -17,8 +17,6 @@
 
 #include <stdint.h>
 
-#include "led.h"
-
 
 /*
 ************************************************************************************************************************
@@ -26,18 +24,12 @@
 ************************************************************************************************************************
 */
 
-#define BYPASS      0
-#define PROCESS     1
-
 
 /*
 ************************************************************************************************************************
 *           CONFIGURATION DEFINES
 ************************************************************************************************************************
 */
-
-#define TIMER0_PRIORITY     3
-#define TIMER1_PRIORITY     2
 
 
 /*
@@ -67,22 +59,8 @@
 ************************************************************************************************************************
 */
 
-// does the hardware setup
-void hardware_setup(void);
-// power on the cpu
-void hardware_cpu_power_on(void);
-// returns the CPU status: zero if CPU is turned off or non-zero if CPU is turned on
-uint8_t hardware_cpu_status(void);
-// defines the cooler duty cycle
-void hardware_cooler(uint8_t duty_cycle);
-// returns the led object relative to led id
-led_t *hardware_leds(uint8_t led_id);
-// returns the actuator object relative to actuator id
-void *hardware_actuators(uint8_t actuator_id);
-// returns the time stamp (a variable increment in each millisecond)
-uint32_t hardware_time_stamp(void);
-// enables/disables the true bypass
-void hardware_true_bypass(uint8_t value);
+void sys_true_bypass_cb(void *arg);
+
 
 /*
 ************************************************************************************************************************

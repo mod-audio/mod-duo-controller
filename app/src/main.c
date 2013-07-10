@@ -90,7 +90,6 @@ static void tuner_cb(proto_t *proto);
 static void banks_cb(proto_t *proto);
 static void pedalboard_cb(proto_t *proto);
 
-
 /*
 ************************************************************************************************************************
 *           LOCAL CONFIGURATION ERRORS

@@ -80,6 +80,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define ENCODER2_PINS       {0, 5, 2, 26, 2, 1}
 #define ENCODER3_PINS       {0, 7, 2, 27, 2, 2}
 
+//// True bypass configuration
+#define TRUE_BYPASS_PORT    3
+#define TRUE_BYPASS_PIN     19
+
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
 //// Protocol commands configuration
@@ -187,37 +191,39 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #endif
 
 //// System menu configuration
+// includes the system menu callbacks
+#include "sys_menu_cb.h"
 // menu definition, format: {name, type, id, parent_id, action_callback}
 #define SYSTEM_MENU     \
-    {"SETTINGS",                MENU_LIST,       0,     -1,     NULL},    \
-    {"True Bypass",             MENU_ON_OFF,     1,      0,     NULL},    \
-    {"Pedalboard",              MENU_LIST,       2,      0,     NULL},    \
-    {"< Back to SETTINGS",      MENU_RETURN,     3,      2,     NULL},    \
-    {"Reset State",             MENU_CONFIRM,    4,      2,     NULL},    \
-    {"Save State",              MENU_CONFIRM,    5,      2,     NULL},    \
-    {"Expression Pedal",        MENU_LIST,       6,      2,     NULL},    \
-    {"< Back to Pedalboard",    MENU_RETURN,     7,      6,     NULL},    \
-    {"Bluetooth",               MENU_LIST,       8,      0,     NULL},    \
-    {"< Back to SETTINGS",      MENU_RETURN,     9,      8,     NULL},    \
-    {"Status",                  MENU_ON_OFF,    10,      8,     NULL},    \
-    {"Name",                    MENU_NONE,      11,      8,     NULL},    \
-    {"Address",                 MENU_NONE,      12,      8,     NULL},    \
-    {"PIN",                     MENU_NONE,      13,      8,     NULL},    \
-    {"Reset PIN",               MENU_CONFIRM,   14,      8,     NULL},    \
-    {"Jack",                    MENU_LIST,      15,      0,     NULL},    \
-    {"< Back to SETTINGS",      MENU_RETURN,    16,     15,     NULL},    \
-    {"Quality",                 MENU_SELECT,    17,     15,     NULL},    \
-    {"Normal",                  MENU_SELECT,    18,     15,     NULL},    \
-    {"Performance",             MENU_SELECT,    19,     15,     NULL},    \
-    {"Info",                    MENU_LIST,      20,      0,     NULL},    \
-    {"< Back to SETTINGS",      MENU_RETURN,    21,     20,     NULL},    \
-    {"CPU",                     MENU_LIST,      22,     20,     NULL},    \
-    {"< Back to Info",          MENU_RETURN,    23,     22,     NULL},    \
-    {"Services",                MENU_LIST,      24,     20,     NULL},    \
-    {"< Back to Info",          MENU_RETURN,    25,     24,     NULL},    \
-    {"Versions",                MENU_LIST,      26,     20,     NULL},    \
-    {"< Back to Info",          MENU_RETURN,    27,     26,     NULL},    \
-    {"Factory Restore",         MENU_CANCEL,    28,      0,     NULL},
+    {"SETTINGS",                            MENU_LIST,       0,     -1,     NULL},    \
+    {"True Bypass                   ",      MENU_ON_OFF,     1,      0,     sys_true_bypass_cb},    \
+    {"Pedalboard",                          MENU_LIST,       2,      0,     NULL},    \
+    {"< Back to SETTINGS",                  MENU_RETURN,     3,      2,     NULL},    \
+    {"Reset State",                         MENU_CONFIRM,    4,      2,     NULL},    \
+    {"Save State",                          MENU_CONFIRM,    5,      2,     NULL},    \
+    {"Expression Pedal",                    MENU_LIST,       6,      2,     NULL},    \
+    {"< Back to Pedalboard",                MENU_RETURN,     7,      6,     NULL},    \
+    {"Bluetooth",                           MENU_LIST,       8,      0,     NULL},    \
+    {"< Back to SETTINGS",                  MENU_RETURN,     9,      8,     NULL},    \
+    {"Status                           ",   MENU_ON_OFF,    10,      8,     NULL},    \
+    {"Name",                                MENU_NONE,      11,      8,     NULL},    \
+    {"Address",                             MENU_NONE,      12,      8,     NULL},    \
+    {"PIN",                                 MENU_NONE,      13,      8,     NULL},    \
+    {"Reset PIN",                           MENU_CONFIRM,   14,      8,     NULL},    \
+    {"Jack",                                MENU_LIST,      15,      0,     NULL},    \
+    {"< Back to SETTINGS",                  MENU_RETURN,    16,     15,     NULL},    \
+    {"Quality",                             MENU_SELECT,    17,     15,     NULL},    \
+    {"Normal",                              MENU_SELECT,    18,     15,     NULL},    \
+    {"Performance",                         MENU_SELECT,    19,     15,     NULL},    \
+    {"Info",                                MENU_LIST,      20,      0,     NULL},    \
+    {"< Back to SETTINGS",                  MENU_RETURN,    21,     20,     NULL},    \
+    {"CPU",                                 MENU_LIST,      22,     20,     NULL},    \
+    {"< Back to Info",                      MENU_RETURN,    23,     22,     NULL},    \
+    {"Services",                            MENU_LIST,      24,     20,     NULL},    \
+    {"< Back to Info",                      MENU_RETURN,    25,     24,     NULL},    \
+    {"Versions",                            MENU_LIST,      26,     20,     NULL},    \
+    {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},    \
+    {"Factory Restore",                     MENU_CANCEL,    28,      0,     NULL},
 
 //// Serial names definition
 #define SERIAL_WEBGUI       0
