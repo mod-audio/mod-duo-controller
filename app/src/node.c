@@ -77,11 +77,11 @@ node_t *node_create(void *data)
     if (self)
     {
         self->data = data;
-        self->parent = NULL;
-        self->first_child = NULL;
-        self->last_child = NULL;
-        self->next = NULL;
-        self->prev = NULL;
+        self->parent = 0;
+        self->first_child = 0;
+        self->last_child = 0;
+        self->next = 0;
+        self->prev = 0;
     }
 
     return self;
@@ -115,7 +115,7 @@ node_t *node_child(node_t *parent, void *data)
 
 node_t *node_cut(node_t *node)
 {
-    if (!node) return NULL;
+    if (!node) return 0;
 
     // if has previous...
     if (node->prev)
@@ -124,7 +124,7 @@ node_t *node_cut(node_t *node)
         if (!node->next)
         {
             if (node->parent) node->parent->last_child = node->prev;
-            node->prev->next = NULL;
+            node->prev->next = 0;
         }
 
         // ... and has next, this is a intermediary node
@@ -139,20 +139,20 @@ node_t *node_cut(node_t *node)
     else if (node->next)
     {
         if (node->parent) node->parent->first_child = node->next;
-        node->next->prev = NULL;
+        node->next->prev = 0;
     }
 
     // if doesn't has siblings but has parent...
     else if (node->parent)
     {
-        node->parent->first_child = NULL;
-        node->parent->last_child = NULL;
+        node->parent->first_child = 0;
+        node->parent->last_child = 0;
     }
 
     // No parent, no siblings :(
-    node->parent = NULL;
-    node->prev = NULL;
-    node->next = NULL;
+    node->parent = 0;
+    node->prev = 0;
+    node->next = 0;
 
     return node;
 }
