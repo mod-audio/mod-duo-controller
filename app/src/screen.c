@@ -171,7 +171,6 @@ void screen_control(uint8_t display, control_t *control)
     {
         char **labels_list;
         labels_list = MALLOC(control->scale_points_count * sizeof(char *));
-        if (!labels_list) while(1);
 
         uint8_t i;
         for (i = 0; i < control->scale_points_count; i++)

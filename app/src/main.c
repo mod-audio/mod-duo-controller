@@ -186,12 +186,10 @@ static void serial_cb(serial_msg_t *msg)
 
     // does a copy of message
     msg_copy = pvPortMalloc(sizeof(serial_msg_t));
-    if (!msg_copy) while (1);
     memcpy(msg_copy, msg, sizeof(serial_msg_t));
 
     // allocate memory to store the message
     msg_copy->data = pvPortMalloc(msg->data_size + 1);
-    if (!msg_copy->data) while (1);
 
     // read the message and append a NULL terminator
     serial_read(msg_copy->port, msg_copy->data, msg_copy->data_size);
@@ -210,7 +208,6 @@ static void actuators_cb(void *actuator)
     // does a copy of actuator id and status
     uint8_t *actuator_info;
     actuator_info = (uint8_t *) pvPortMalloc(sizeof(uint8_t) * 3);
-    if (!actuator_info) while (1);
 
     // fills the actuator info vector
     actuator_info[0] = ((button_t *)(actuator))->type;
@@ -238,7 +235,7 @@ static void procotol_task(void *pvParameters)
 
     UNUSED_PARAM(pvParameters);
 
-    while(1)
+    while (1)
     {
         portBASE_TYPE xStatus;
 
