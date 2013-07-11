@@ -78,7 +78,7 @@ static char g_back_to_bank[] = {"< Back to bank list"};
 
 control_t *data_parse_control(char **data)
 {
-    control_t *control;
+    control_t *control = NULL;
     uint32_t len = strarr_length(data);
 
     // checks if all data was received
