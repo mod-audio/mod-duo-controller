@@ -225,9 +225,16 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},    \
     {"Factory Restore",                     MENU_CANCEL,    28,      0,     NULL},
 
-//// Serial names definition
+//// Serial definitions
+#include "serial.h"
+// UART ports
 #define SERIAL_WEBGUI       0
 #define SERIAL_LINUX        1
+// UART send macros
+static const uint8_t end_msg = 0;
+#define SEND_TO_WEBGUI(data,len)            serial_send(SERIAL_WEBGUI, (uint8_t*)(data), (len)); \
+                                            serial_send(SERIAL_WEBGUI, (uint8_t*)&end_msg, 1)
+#define SEND_TO_LINUX(data,len)             serial_send(SERIAL_LINUX, (uint8_t*)(data), (len))
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR       GREEN

@@ -10,7 +10,6 @@
 #include "config.h"
 #include "screen.h"
 #include "utils.h"
-#include "serial.h"
 #include "led.h"
 #include "hardware.h"
 
@@ -432,11 +431,9 @@ static void control_set(uint8_t display, control_t *control)
 
     // insert the value on buffer
     i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
-    buffer[i] = 0;
 
     // send the data to GUI
-    serial_send(SERIAL_WEBGUI, (uint8_t*)buffer, i);
-
+    SEND_TO_WEBGUI(buffer, i);
 }
 
 static void request_pedalboards_list(const char *bank_uid)
@@ -454,7 +451,7 @@ static void request_pedalboards_list(const char *bank_uid)
     }
 
     // send the data to GUI
-    serial_send(SERIAL_WEBGUI, buffer, i);
+    SEND_TO_WEBGUI(buffer, i);
 
     // waits the pedalboards list be received
     g_pedalboards = NULL;
@@ -475,7 +472,7 @@ static void request_load_pedalboard(const char *pedalboard_uid)
     }
 
     // send the data to GUI
-    serial_send(SERIAL_WEBGUI, buffer, i);
+    SEND_TO_WEBGUI(buffer, i);
 }
 
 static void bp_enter(void)
