@@ -106,6 +106,8 @@ control_t *data_parse_control(char **data)
     if (len >= 15 && control->properties == CONTROL_PROP_ENUMERATION)
     {
         control->scale_points_count = atoi(data[14]);
+        if (control->scale_points_count == 0) return control;
+
         control->scale_points = (scale_point_t **) MALLOC(sizeof(scale_point_t*) * control->scale_points_count);
 
         uint8_t i;
