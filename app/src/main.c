@@ -367,18 +367,21 @@ static void control_add_cb(proto_t *proto)
     {
         naveg_add_control(control);
     }
-
     // TODO: implement the others hardwares type
+
+    protocol_response("resp 0", proto);
 }
 
 static void control_rm_cb(proto_t *proto)
 {
     naveg_remove_control(atoi(proto->list[1]), proto->list[2]);
+    protocol_response("resp 0", proto);
 }
 
 static void control_set_cb(proto_t *proto)
 {
     naveg_set_control(atoi(proto->list[1]), proto->list[2], atof(proto->list[3]));
+    protocol_response("resp 0", proto);
 }
 
 static void control_get_cb(proto_t *proto)
@@ -394,11 +397,13 @@ static void control_get_cb(proto_t *proto)
 static void peakmeter_cb(proto_t *proto)
 {
     screen_set_peakmeter(atoi(proto->list[1]), atof(proto->list[2]));
+    protocol_response("resp 0", proto);
 }
 
 static void tuner_cb(proto_t *proto)
 {
     screen_set_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
+    protocol_response("resp 0", proto);
 }
 
 static void banks_cb(proto_t *proto)
