@@ -98,6 +98,9 @@ uint8_t g_max_items_list;
 ************************************************************************************************************************
 */
 
+static void display_control_add(control_t *control);
+static void display_control_rm(uint8_t effect_instance, const char *symbol);
+
 
 /*
 ************************************************************************************************************************
@@ -177,11 +180,28 @@ uint8_t copy_command(char *buffer, const char *command)
 // control assigned to display
 static void display_control_add(control_t *control)
 {
-    uint8_t display = control->actuator_id;
+    uint8_t display;
+    node_t *node;
+
+    // checks if control is already in controls list
+    node = search_control(control->effect_instance, control->symbol, &display);
+    if (node)
+    {
+        if (display != control->actuator_id)
+        {
+            display_control_rm(control->effect_instance, control->symbol);
+        }
+        else
+        {
+            data_free_control(control);
+            return;
+        }
+    }
+
+    display = control->actuator_id;
 
     // adds the control to controls list
-    node_t *node = node_child(g_controls_list[display], control);
-    // TODO: test if node is NULL
+    node = node_child(g_controls_list[display], control);
 
     // makes the node the current control
     g_current_control[display] = node;
@@ -676,10 +696,11 @@ static void menu_down(void)
 
 static void create_menu_tree(node_t *parent, const menu_desc_t *desc)
 {
-    uint8_t i, j;
+    uint8_t i;
     menu_item_t *item;
-
-    for (i = 0, j = 0; g_menu_desc[i].name; i++)
+// FIXME: quando essa função executa não dá mais para endereçar controles
+return;
+    for (i = 0; g_menu_desc[i].name; i++)
     {
         if (desc->id == g_menu_desc[i].parent_id)
         {
@@ -774,7 +795,7 @@ void naveg_init(void)
     g_max_items_list++;
 
     // creates the menu tree (recursively)
-    const menu_desc_t root_desc = {"root", 0, -1, -1, NULL};
+    const menu_desc_t root_desc = {"root", MENU_LIST, -1, -1, NULL};
     g_menu = node_create(NULL);
     create_menu_tree(g_menu, &root_desc);
 
