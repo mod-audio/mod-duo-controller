@@ -23,6 +23,11 @@
 #include "naveg.h"
 #include "screen.h"
 
+#include "usb.h"
+#include "usbhw.h"
+#include "usbcore.h"
+#include "cdcuser.h"
+
 
 /*
 ************************************************************************************************************************
@@ -60,7 +65,7 @@
 ************************************************************************************************************************
 */
 
-static xQueueHandle g_serial_queue, g_actuators_queue;
+static xQueueHandle g_msg_queue, g_actuators_queue;
 
 
 /*
@@ -70,8 +75,9 @@ static xQueueHandle g_serial_queue, g_actuators_queue;
 */
 
 // local functions
-static void serial_cb(serial_msg_t *msg);
+static void serial_cb(uint8_t port);
 static void actuators_cb(void *actuator);
+static void usb_receive_cb(uint32_t msg_size);
 
 // tasks
 static void procotol_task(void *pvParameters);
@@ -88,7 +94,8 @@ static void control_get_cb(proto_t *proto);
 static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
 static void banks_cb(proto_t *proto);
-static void pedalboard_cb(proto_t *proto);
+static void pedalboards_cb(proto_t *proto);
+
 
 /*
 ************************************************************************************************************************
@@ -116,8 +123,7 @@ int main(void)
     hardware_setup();
 
     // serial initialization and callbacks definitions
-    serial_init();
-    serial_set_callback(SERIAL0, serial_cb);
+    serial_init(1, SERIAL1_BAUDRATE, SERIAL1_PRIORITY);
     serial_set_callback(SERIAL1, serial_cb);
 
     // actuators callbacks
@@ -151,13 +157,22 @@ int main(void)
     protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(BANKS_CMD, banks_cb);
-    protocol_add_command(PEDALBOARDS_CMD, pedalboard_cb);
+    protocol_add_command(PEDALBOARDS_CMD, pedalboards_cb);
 
     // navegation initialization
     naveg_init();
 
+    // CDC initialization
+    CDC_Init();
+    CDC_SetMessageCallback(usb_receive_cb);
+
+    // usb initialization
+    USB_Init(1);
+    USB_Connect(USB_CONNECT);
+    while (!USB_Configuration);
+
     // create the queues
-    g_serial_queue = xQueueCreate(5, sizeof(serial_msg_t *));
+    g_msg_queue = xQueueCreate(5, sizeof(msg_t *));
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create tasks
@@ -180,26 +195,23 @@ int main(void)
 */
 
 // this callback is called from a ISR
-static void serial_cb(serial_msg_t *msg)
+static void serial_cb(uint8_t port)
 {
-    serial_msg_t *msg_copy;
+    uint8_t buffer[128];
+    uint32_t read;
 
-    // does a copy of message
-    msg_copy = pvPortMalloc(sizeof(serial_msg_t));
-    memcpy(msg_copy, msg, sizeof(serial_msg_t));
+    read = serial_read(port, buffer, sizeof(buffer));
+    serial_send(port, buffer, read);
+}
 
-    // allocate memory to store the message
-    msg_copy->data = pvPortMalloc(msg->data_size + 1);
+// this callback is called from UART ISR in case of error
+void serial_error(uint8_t port, uint32_t error)
+{
+    UNUSED_PARAM(port);
+    UNUSED_PARAM(error);
 
-    // read the message and append a NULL terminator
-    serial_read(msg_copy->port, msg_copy->data, msg_copy->data_size);
-    msg_copy->data[msg_copy->data_size] = 0;
-
-    // sends the message to queue
-    portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(g_serial_queue, &msg_copy, &xHigherPriorityTaskWoken);
-
-    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+    // FIXME: need feedback when an error happen
+    while (1);
 }
 
 // this callback is called from a ISR
@@ -221,6 +233,27 @@ static void actuators_cb(void *actuator)
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
+static void usb_receive_cb(uint32_t msg_size)
+{
+    uint8_t *msg_copy;
+
+    // does a copy of the message
+    msg_copy = pvPortMalloc(msg_size);
+    CDC_GetMessage(msg_copy);
+
+    // creates a message struct
+    msg_t *msg;
+    msg = pvPortMalloc(sizeof(msg_t));
+    msg->sender_id = 0;
+    msg->data = (char*) msg_copy;
+    msg->data_size = msg_size;
+
+    // queue the message
+    portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendFromISR(g_msg_queue, &msg, &xHigherPriorityTaskWoken);
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+
 
 /*
 ************************************************************************************************************************
@@ -230,8 +263,7 @@ static void actuators_cb(void *actuator)
 
 static void procotol_task(void *pvParameters)
 {
-    msg_t proto_msg;
-    serial_msg_t *serial_msg;
+    msg_t *msg;
 
     UNUSED_PARAM(pvParameters);
 
@@ -239,21 +271,18 @@ static void procotol_task(void *pvParameters)
     {
         portBASE_TYPE xStatus;
 
-        // take the message from queue
-        xStatus = xQueueReceive(g_serial_queue, &serial_msg, portMAX_DELAY);
+        // takes the message from queue
+        xStatus = xQueueReceive(g_msg_queue, &msg, portMAX_DELAY);
 
         // checks if message has successfully taken
         if (xStatus == pdPASS)
         {
-            // convert serial_msg to proto_msg
-            proto_msg.sender_id = (int) serial_msg->port;
-            proto_msg.data = (char *) serial_msg->data;
-            proto_msg.data_size = (uint32_t) serial_msg->data_size;
-            protocol_parse(&proto_msg);
+            // parses the message
+            protocol_parse(msg);
 
-            // free the memory
-            vPortFree(serial_msg->data);
-            vPortFree(serial_msg);
+            // free the message memory
+            vPortFree(msg->data);
+            vPortFree(msg);
         }
     }
 }
@@ -418,7 +447,7 @@ static void banks_cb(proto_t *proto)
     naveg_set_banks(bp_list);
 }
 
-static void pedalboard_cb(proto_t *proto)
+static void pedalboards_cb(proto_t *proto)
 {
     bp_list_t *bp_list = naveg_get_pedalboards();
 

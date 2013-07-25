@@ -17,7 +17,6 @@
 
 #include <stdint.h>
 #include "config.h"
-#include "serial.h"
 
 
 /*
@@ -33,7 +32,7 @@
 ************************************************************************************************************************
 */
 
-#define PROTOCOL_MAX_COMMANDS           10
+#define PROTOCOL_MAX_COMMANDS           15
 
 // error messages configuration
 #define MESSAGE_COMMAND_NOT_FOUND       "not found"
@@ -42,7 +41,7 @@
 #define MESSAGE_INVALID_ARGUMENT        "invalid argument"
 
 // defines the function to send responses to sender
-#define SEND_TO_SENDER(id,msg,len)      serial_send((uint8_t)id,(uint8_t*)msg,len+1)
+#define SEND_TO_SENDER(id,msg,len)      SEND_TO_WEBGUI(msg,len)
 
 
 /*

@@ -119,8 +119,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PEAKMETER_CMD           "peakmeter %i %f"
 // tuner <frequency> <note> <cents>
 #define TUNER_CMD               "tuner %f %s %i"
-#define HARDWARE_CONNECTED_CMD
-#define HARDWARE_DISCONNECTED_CMD
+// hw_con <hw_type> <hw_id>
+#define HW_CONNECTED_CMD        "hw_con %i %i"
+// hw_dis <hw_type> <hw_id>
+#define HW_DISCONNECTED_CMD     "hw_dis %i %i"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -225,16 +227,23 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},    \
     {"Factory Restore",                     MENU_CANCEL,    28,      0,     NULL},
 
-//// Serial definitions
+
+//// Serial Configurations
+#define SERIAL0_BAUDRATE        115200
+#define SERIAL1_BAUDRATE        115200
+#define SERIAL0_PRIORITY        6
+#define SERIAL1_PRIORITY        7
+
+//// Communication macros
+#include "cdcuser.h"
 #include "serial.h"
-// UART ports
-#define SERIAL_WEBGUI       0
-#define SERIAL_LINUX        1
-// UART send macros
 static const uint8_t end_msg = 0;
-#define SEND_TO_WEBGUI(data,len)            serial_send(SERIAL_WEBGUI, (uint8_t*)(data), (len)); \
-                                            serial_send(SERIAL_WEBGUI, (uint8_t*)&end_msg, 1)
-#define SEND_TO_LINUX(data,len)             serial_send(SERIAL_LINUX, (uint8_t*)(data), (len))
+#define SEND_TO_WEBGUI(data,len)            CDC_Send((uint8_t*)(data), (len)); \
+                                            CDC_Send(&end_msg, sizeof(end_msg))
+#define SEND_TO_LINUX(data,len)             serial_send(SERIAL1, (uint8_t*)(data), (len))
+
+// The serial ISR use freeRTOS API so the priorities values must be
+// equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR       GREEN

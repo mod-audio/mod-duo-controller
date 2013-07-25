@@ -20,6 +20,8 @@ PDL_INC 	= ./pdl/inc
 PDL_SRC 	= ./pdl/src
 DRIVERS_INC	= ./drivers/inc
 DRIVERS_SRC	= ./drivers/src
+USB_INC 	= ./usb/inc
+USB_SRC 	= ./usb/src
 OUT_DIR		= ./out
 TESTS_SRC	= ./tests
 
@@ -28,7 +30,7 @@ PDL = lpc177x_8x_gpio.c lpc177x_8x_pinsel.c lpc177x_8x_clkpwr.c lpc177x_8x_uart.
 
 # C source files
 SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) \
-	  $(addprefix $(PDL_SRC)/,$(PDL)) $(wildcard $(DRIVERS_SRC)/*.c)
+	  $(addprefix $(PDL_SRC)/,$(PDL)) $(wildcard $(DRIVERS_SRC)/*.c) $(wildcard $(USB_SRC)/*.c)
 
 # Build tests?
 ifdef TESTS
@@ -39,7 +41,7 @@ endif
 OBJ = $(SRC:.c=.o)
 
 # include directories
-INC = $(APP_INC) $(CMSIS_INC) $(RTOS_INC) $(PDL_INC) $(DRIVERS_INC) $(TESTS_SRC)
+INC = $(APP_INC) $(CMSIS_INC) $(RTOS_INC) $(PDL_INC) $(DRIVERS_INC) $(USB_INC) $(TESTS_SRC)
 
 # build again when changes this files
 BUILD_ON_CHANGE = Makefile $(APP_INC)/config.h
