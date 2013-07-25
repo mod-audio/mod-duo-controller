@@ -102,14 +102,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_GET_CMD         "control_get %i %s"
 // control_set <effect_instance> <symbol> <value>
 #define CONTROL_SET_CMD         "control_set %i %s %f"
-// bypass_add <effect_instance> <hw_type> <hw_id> <actuator_type> <actuator_id> <bypass_value> <bypass_label>
-#define BYPASS_ADD_CMD          "bypass_add %i %i %i %i %i %i %s"
-// bypass_rm <effect_instance>
-#define BYPASS_REMOVE_CMD       "bypass_rm %i"
-// bypass_set <effect_instance> <bypass_value>
-#define BYPASS_SET_CMD          "bypass_set %i %i"
-// bypass_get <effect_instance>
-#define BYPASS_GET_CMD          "bypass_get %i"
 // banks <banks_data>
 #define BANKS_CMD               "banks ..."
 // pedalboards <pedalboards_data>
@@ -134,6 +126,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_PROP_TOGGLED        3
 #define CONTROL_PROP_TRIGGER        4
 #define CONTROL_PROP_TAP_TEMPO      5
+#define CONTROL_PROP_BYPASS         6
 
 //// Tools configuration
 // tools identification (don't change)

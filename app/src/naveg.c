@@ -360,6 +360,14 @@ static void foot_control_add(control_t *control)
                 g_tap_tempo[control->actuator_id].state = TT_COUNTING;
             }
             break;
+
+        case CONTROL_PROP_BYPASS:
+            if (control->value <= 0)
+                led_set_color(hardware_leds(control->actuator_id), BLACK);
+            else
+                led_set_color(hardware_leds(control->actuator_id), BYPASS_COLOR);
+            screen_footer(control->actuator_id, control->label, (control->value ? "BYP" : "PROC"));
+            break;
     }
 }
 
@@ -408,6 +416,7 @@ static void control_set(uint8_t display, control_t *control)
             break;
 
         case CONTROL_PROP_TOGGLED:
+        case CONTROL_PROP_BYPASS:
             if (control->value > 0) control->value = 0;
             else control->value = 1;
 
