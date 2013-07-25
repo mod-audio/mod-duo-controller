@@ -186,7 +186,7 @@ void hardware_setup(void)
     // Timer 1 configuration
     // this timer is used to actuators clock
 
-	// initialize timer 1, prescale count time of 10us
+	// initialize timer 1, prescale count time of 100us
 	TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
 	TIM_ConfigStruct.PrescaleValue	= 100;
 	// use channel 1, MR1
