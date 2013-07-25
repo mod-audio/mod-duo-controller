@@ -42,6 +42,12 @@
 ************************************************************************************************************************
 */
 
+typedef struct RINGBUFF_T {
+    uint32_t head, tail;
+    uint8_t *buffer;
+    uint32_t size;
+} ringbuff_t;
+
 
 /*
 ************************************************************************************************************************
@@ -88,8 +94,19 @@ void delay_us(uint32_t time);
 void delay_ms(uint32_t time);
 
 // time convertion functions
+// known units (not is case sensitive): bpm, hz, s, ms
 float convert_to_ms(const char *unit_from, float value);
 float convert_from_ms(const char *unit_to, float value);
+
+// ring buffer functions
+// ringbuf_create: buffer_size must be power of 2
+ringbuff_t *ringbuf_create(uint32_t buffer_size);
+// ringbuff_write: returns the number of bytes written
+uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size);
+// ringbuff_read: returns the number of bytes read
+uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size);
+// ringbuff_size: returns the amount of unread bytes
+uint32_t ringbuff_size(ringbuff_t *rb);
 
 
 /*

@@ -40,6 +40,11 @@
 ************************************************************************************************************************
 */
 
+#define MASK(rb)                ((uint32_t)(rb->size - 1))
+#define BUFFER_IS_FULL(rb)      ((rb->tail & MASK(rb)) == ((rb->head + 1) & MASK(rb)))
+#define BUFFER_IS_EMPTY(rb)     ((rb->head & MASK(rb)) == (rb->tail & MASK(rb)))
+#define BUFFER_INC(rb,idx)      (rb->idx = (rb->idx + 1) & MASK(rb))
+
 
 /*
 ************************************************************************************************************************
@@ -367,7 +372,7 @@ float convert_to_ms(const char *unit_from, float value)
     uint8_t i;
 
     // lower case unit string
-    for (i = 0; unit_from[i]; i++)
+    for (i = 0; unit_from[i] && i < (sizeof(unit)-1); i++)
     {
         if (i == (sizeof(unit) - 1)) break;
         unit[i] = unit_from[i] | 0x20;
@@ -400,7 +405,7 @@ float convert_from_ms(const char *unit_to, float value)
     uint8_t i;
 
     // lower case unit string
-    for (i = 0; unit_to[i]; i++)
+    for (i = 0; unit_to[i] && i < (sizeof(unit)-1); i++)
     {
         if (i == (sizeof(unit) - 1)) break;
         unit[i] = unit_to[i] | 0x20;
@@ -425,4 +430,52 @@ float convert_from_ms(const char *unit_to, float value)
     }
 
     return 0.0;
+}
+
+ringbuff_t *ringbuf_create(uint32_t buffer_size)
+{
+    ringbuff_t *rb = (ringbuff_t *) MALLOC(sizeof(ringbuff_t));
+    rb->head = 0;
+    rb->tail = 0;
+    rb->size = buffer_size;
+    rb->buffer = (uint8_t *) MALLOC(buffer_size);
+    return rb;
+}
+
+uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size)
+{
+    uint32_t bytes = 0;
+
+    while (data_size > 0 && !BUFFER_IS_FULL(rb))
+    {
+        rb->buffer[rb->head] = *data++;
+        BUFFER_INC(rb, head);
+
+        data_size--;
+        bytes++;
+    }
+
+    return bytes;
+}
+
+uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size)
+{
+    uint32_t bytes = 0;
+    uint8_t *data = buffer;
+
+    while (buffer_size > 0 && !BUFFER_IS_EMPTY(rb))
+    {
+        *data++ = rb->buffer[rb->tail];
+        BUFFER_INC(rb, tail);
+
+        buffer_size--;
+        bytes++;
+    }
+
+    return bytes;
+}
+
+uint32_t ringbuff_size(ringbuff_t *rb)
+{
+    return ((rb->head - rb->tail) & MASK(rb));
 }
