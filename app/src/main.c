@@ -85,6 +85,7 @@ static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
 
 // protocol callbacks
+static void ping_cb(proto_t *proto);
 static void say_cb(proto_t *proto);
 static void led_cb(proto_t *proto);
 static void control_add_cb(proto_t *proto);
@@ -148,6 +149,7 @@ int main(void)
     glcd_init();
 
     // protocol definitions
+    protocol_add_command(PING_CMD, ping_cb);
     protocol_add_command(SAY_CMD, say_cb);
     protocol_add_command(LED_CMD, led_cb);
     protocol_add_command(CONTROL_ADD_CMD, control_add_cb);
@@ -365,6 +367,11 @@ static void actuators_task(void *pvParameters)
 *           PROTOCOL CALLBACKS
 ************************************************************************************************************************
 */
+
+static void ping_cb(proto_t *proto)
+{
+    protocol_response("resp 0", proto);
+}
 
 static void say_cb(proto_t *proto)
 {

@@ -87,6 +87,9 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
 //// Protocol commands configuration
+// ping
+#define PING_CMD                "ping"
+// say <message>
 #define SAY_CMD                 "say %s ..."
 // led <led_id> <red> <green> <blue>
 #define LED_CMD                 "led %i %i %i %i ..."
