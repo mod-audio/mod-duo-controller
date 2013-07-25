@@ -24,8 +24,7 @@
 ************************************************************************************************************************
 */
 
-#define SERIAL0     0
-#define SERIAL1     1
+enum {SERIAL0, SERIAL1, SERIAL2, SERIAL3};
 
 
 /*
@@ -35,18 +34,8 @@
 */
 
 // buffer size
-#define SERIAL_RX_BUFFER_SIZE   512
-#define SERIAL_TX_BUFFER_SIZE   128
-
-// baud-rates
-#define SERIAL0_BAUDRATE        115200
-#define SERIAL1_BAUDRATE        115200
-
-// priorities
-// The serial ISR use freeRTOS API so the priorities values must be
-// equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
-#define SERIAL0_PRIORITY        6
-#define SERIAL1_PRIORITY        7
+#define SERIAL_RX_BUFFER_SIZE   64
+#define SERIAL_TX_BUFFER_SIZE   64
 
 
 /*
@@ -54,12 +43,6 @@
 *           DATA TYPES
 ************************************************************************************************************************
 */
-
-typedef struct SERIAL_MSG_T {
-    uint8_t port;
-    uint8_t *data;
-    uint32_t data_size;
-} serial_msg_t;
 
 
 /*
@@ -82,15 +65,15 @@ typedef struct SERIAL_MSG_T {
 ************************************************************************************************************************
 */
 
-void serial_init(void);
-void serial_set_callback(uint8_t port, void (*receive_cb)(serial_msg_t *msg));
-uint32_t serial_send(uint8_t port, uint8_t *txbuf, uint32_t buflen);
-uint32_t serial_read(uint8_t port, uint8_t *rxbuf, uint32_t buflen);
+void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority);
+void serial_set_callback(uint8_t port, void (*receive_cb)(uint8_t _port));
+uint32_t serial_send(uint8_t port, uint8_t *data, uint32_t data_size);
+uint32_t serial_read(uint8_t port, uint8_t *data, uint32_t data_size);
 
-// handlers
-void UART0_IRQHandler(void);
-void UART1_IRQHandler(void);
-void UART2_IRQHandler(void);
+// this function will be called automatically from UART interrupt in case of error
+// the user must create this function in your application code
+// the error_bits can be: UART_LSR_OE, UART_LSR_PE, UART_LSR_FE, UART_LSR_BI, UART_LSR_RXFE
+extern void serial_error(uint8_t port, uint32_t error_bits);
 
 
 /*
