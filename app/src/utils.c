@@ -355,15 +355,46 @@ char *str_duplicate(const char *str)
     return copy;
 }
 
-void delay_us(uint32_t time)
+void delay_us(volatile uint32_t time)
 {
-    volatile uint32_t delay = (time*50);
-    while (delay--);
+    register uint32_t _time asm ("r0");
+    _time = time;
+
+    __asm__ volatile
+    (
+        "1:\n\t"
+            "mov r1, #0x0015\n\t"
+            "2:\n\t"
+                "sub r1, r1, #1\n\t"
+                "cbz r1, 3f\n\t"
+                "b 2b\n\t"
+            "3:\n\t"
+                "sub r0, r0, #1\n\t"
+                "cbz r0, 4f\n\t"
+                "b 1b\n\t"
+            "4:\n\t"
+    );
 }
 
-void delay_ms(uint32_t time)
+void delay_ms(volatile uint32_t time)
 {
-    while (time--) delay_us(900);
+    register uint32_t _time asm ("r0");
+    _time = time;
+
+    __asm__ volatile
+    (
+        "1:\n\t"
+            "mov r1, #0x5600\n\t"
+            "2:\n\t"
+                "sub r1, r1, #1\n\t"
+                "cbz r1, 3f\n\t"
+                "b 2b\n\t"
+            "3:\n\t"
+                "sub r0, r0, #1\n\t"
+                "cbz r0, 4f\n\t"
+                "b 1b\n\t"
+            "4:\n\t"
+    );
 }
 
 float convert_to_ms(const char *unit_from, float value)

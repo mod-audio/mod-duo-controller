@@ -90,8 +90,8 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
 char *str_duplicate(const char *str);
 
 // delay functions
-void delay_us(uint32_t time);
-void delay_ms(uint32_t time);
+void delay_us(volatile uint32_t time);
+void delay_ms(volatile uint32_t time);
 
 // time convertion functions
 // known units (not is case sensitive): bpm, hz, s, ms
