@@ -148,6 +148,7 @@ void led_init(led_t *led, const led_pins_t pins)
 void led_set_color(led_t *led, const color_t color)
 {
     led->color = color;
+    leds_clock();
 }
 
 
