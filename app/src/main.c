@@ -178,9 +178,9 @@ int main(void)
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create tasks
-    xTaskCreate(procotol_task, NULL, 1000, NULL, 2, NULL);
-    xTaskCreate(actuators_task, NULL, 1000, NULL, 2, NULL);
-    xTaskCreate(displays_task, NULL, 1000, NULL, 1, NULL);
+    xTaskCreate(procotol_task, NULL, 512, NULL, 2, NULL);
+    xTaskCreate(actuators_task, NULL, 512, NULL, 2, NULL);
+    xTaskCreate(displays_task, NULL, 512, NULL, 1, NULL);
 
     // Start the scheduler
     vTaskStartScheduler();
@@ -464,4 +464,26 @@ static void pedalboards_cb(proto_t *proto)
     // parses the list
     bp_list = data_parse_pedalboards_list(&(proto->list[1]), proto->list_count);
     naveg_set_pedalboards(bp_list);
+}
+
+// TODO: better error handling
+void HardFault_Handler(void)
+{
+    led_set_color(hardware_leds(0), WHITE);
+    while (1);
+}
+void MemManage_Handler(void)
+{
+    led_set_color(hardware_leds(1), WHITE);
+    while (1);
+}
+void BusFault_Handler(void)
+{
+    led_set_color(hardware_leds(2), WHITE);
+    while (1);
+}
+void UsageFault_Handler(void)
+{
+    led_set_color(hardware_leds(3), WHITE);
+    while (1);
 }
