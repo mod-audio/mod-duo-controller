@@ -163,7 +163,7 @@ static void step_to_value(control_t *control)
     }
 }
 
-uint8_t copy_command(char *buffer, const char *command)
+static uint8_t copy_command(char *buffer, const char *command)
 {
     uint8_t i = 0;
     const char *cmd = command;
@@ -707,8 +707,7 @@ static void create_menu_tree(node_t *parent, const menu_desc_t *desc)
 {
     uint8_t i;
     menu_item_t *item;
-// FIXME: quando essa função executa não dá mais para endereçar controles
-return;
+
     for (i = 0; g_menu_desc[i].name; i++)
     {
         if (desc->id == g_menu_desc[i].parent_id)
