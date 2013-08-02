@@ -107,9 +107,6 @@ void hardware_setup(void)
     GPIO_SetDir(CPU_STATUS_PORT, (1 << CPU_STATUS_PIN), GPIO_DIRECTION_INPUT);
     GPIO_SetValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
 
-    // FIXME: enable below line
-    //hardware_cpu_power_on();
-
     // configures the cooler
     GPIO_SetDir(COOLER_PORT, (1 << COOLER_PIN), GPIO_DIRECTION_OUTPUT);
     hardware_cooler(100);
@@ -159,73 +156,55 @@ void hardware_setup(void)
     // timer structs declaration
     TIM_TIMERCFG_Type TIM_ConfigStruct;
     TIM_MATCHCFG_Type TIM_MatchConfigStruct ;
-	// initialize timer 0, prescale count time of 10us
-	TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-	TIM_ConfigStruct.PrescaleValue	= 10;
-	// use channel 0, MR0
-	TIM_MatchConfigStruct.MatchChannel = 0;
-	// enable interrupt when MR0 matches the value in TC register
-	TIM_MatchConfigStruct.IntOnMatch   = TRUE;
-	// enable reset on MR0: TIMER will reset if MR0 matches it
-	TIM_MatchConfigStruct.ResetOnMatch = TRUE;
-	// stop on MR0 if MR0 matches it
-	TIM_MatchConfigStruct.StopOnMatch  = FALSE;
-	// set Match value, count value of 5 (5 * 10us = 50us --> 20 kHz)
-	TIM_MatchConfigStruct.MatchValue   = 5;
-	// set configuration for Tim_config and Tim_MatchConfig
-	TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &TIM_ConfigStruct);
-	TIM_ConfigMatch(LPC_TIM0, &TIM_MatchConfigStruct);
+    // initialize timer 0, prescale count time of 10us
+    TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
+    TIM_ConfigStruct.PrescaleValue    = 10;
+    // use channel 0, MR0
+    TIM_MatchConfigStruct.MatchChannel = 0;
+    // enable interrupt when MR0 matches the value in TC register
+    TIM_MatchConfigStruct.IntOnMatch   = TRUE;
+    // enable reset on MR0: TIMER will reset if MR0 matches it
+    TIM_MatchConfigStruct.ResetOnMatch = TRUE;
+    // stop on MR0 if MR0 matches it
+    TIM_MatchConfigStruct.StopOnMatch  = FALSE;
+    // set Match value, count value of 5 (5 * 10us = 50us --> 20 kHz)
+    TIM_MatchConfigStruct.MatchValue   = 5;
+    // set configuration for Tim_config and Tim_MatchConfig
+    TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &TIM_ConfigStruct);
+    TIM_ConfigMatch(LPC_TIM0, &TIM_MatchConfigStruct);
     // set priority
-	NVIC_SetPriority(TIMER0_IRQn, (TIMER0_PRIORITY << 3));
-	// enable interrupt for timer 0
-	NVIC_EnableIRQ(TIMER0_IRQn);
-	// to start timer
-	TIM_Cmd(LPC_TIM0, ENABLE);
+    NVIC_SetPriority(TIMER0_IRQn, (TIMER0_PRIORITY << 3));
+    // enable interrupt for timer 0
+    NVIC_EnableIRQ(TIMER0_IRQn);
+    // to start timer
+    TIM_Cmd(LPC_TIM0, ENABLE);
 
     ////////////////////////////////////////////////////////////////
     // Timer 1 configuration
     // this timer is used to actuators clock
 
-	// initialize timer 1, prescale count time of 100us
-	TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-	TIM_ConfigStruct.PrescaleValue	= 100;
-	// use channel 1, MR1
-	TIM_MatchConfigStruct.MatchChannel = 1;
-	// enable interrupt when MR1 matches the value in TC register
-	TIM_MatchConfigStruct.IntOnMatch   = TRUE;
-	// enable reset on MR1: TIMER will reset if MR1 matches it
-	TIM_MatchConfigStruct.ResetOnMatch = TRUE;
-	// stop on MR1 if MR1 matches it
-	TIM_MatchConfigStruct.StopOnMatch  = FALSE;
-	// set Match value, count value of 10 (10 * 100us = 1000us --> 1 kHz)
-	TIM_MatchConfigStruct.MatchValue   = 10;
-	// set configuration for Tim_config and Tim_MatchConfig
-	TIM_Init(LPC_TIM1, TIM_TIMER_MODE, &TIM_ConfigStruct);
-	TIM_ConfigMatch(LPC_TIM1, &TIM_MatchConfigStruct);
+    // initialize timer 1, prescale count time of 100us
+    TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
+    TIM_ConfigStruct.PrescaleValue    = 100;
+    // use channel 1, MR1
+    TIM_MatchConfigStruct.MatchChannel = 1;
+    // enable interrupt when MR1 matches the value in TC register
+    TIM_MatchConfigStruct.IntOnMatch   = TRUE;
+    // enable reset on MR1: TIMER will reset if MR1 matches it
+    TIM_MatchConfigStruct.ResetOnMatch = TRUE;
+    // stop on MR1 if MR1 matches it
+    TIM_MatchConfigStruct.StopOnMatch  = FALSE;
+    // set Match value, count value of 10 (10 * 100us = 1000us --> 1 kHz)
+    TIM_MatchConfigStruct.MatchValue   = 10;
+    // set configuration for Tim_config and Tim_MatchConfig
+    TIM_Init(LPC_TIM1, TIM_TIMER_MODE, &TIM_ConfigStruct);
+    TIM_ConfigMatch(LPC_TIM1, &TIM_MatchConfigStruct);
     // set priority
-	NVIC_SetPriority(TIMER1_IRQn, (TIMER1_PRIORITY << 3));
-	// enable interrupt for timer 1
-	NVIC_EnableIRQ(TIMER1_IRQn);
-	// to start timer
-	TIM_Cmd(LPC_TIM1, ENABLE);
-}
-
-void hardware_cpu_power_on(void)
-{
-    // Power on the CPU
-    if (hardware_cpu_status() == 0)
-    {
-        GPIO_ClearValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
-        while (hardware_cpu_status() == 0) delay_ms(1);
-        GPIO_SetValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
-    }
-}
-
-uint8_t hardware_cpu_status(void)
-{
-    uint32_t status = GPIO_ReadValue(CPU_STATUS_PORT);
-    status = (status >> CPU_STATUS_PIN) & 1;
-    return (1 - ((uint8_t) status));
+    NVIC_SetPriority(TIMER1_IRQn, (TIMER1_PRIORITY << 3));
+    // enable interrupt for timer 1
+    NVIC_EnableIRQ(TIMER1_IRQn);
+    // to start timer
+    TIM_Cmd(LPC_TIM1, ENABLE);
 }
 
 void hardware_cooler(uint8_t duty_cycle)
@@ -283,10 +262,10 @@ void hardware_true_bypass(uint8_t value)
 
 void TIMER0_IRQHandler(void)
 {
-	if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT) == SET)
-	{
+    if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT) == SET)
+    {
         // LEDs PWM
-		leds_clock();
+        leds_clock();
 
         // cooler PWM
         if (g_cooler.duty_cycle)
@@ -308,19 +287,19 @@ void TIMER0_IRQHandler(void)
                 }
             }
         }
-	}
+    }
 
-	TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
+    TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }
 
 
 void TIMER1_IRQHandler(void)
 {
-	if (TIM_GetIntStatus(LPC_TIM1, TIM_MR1_INT) == SET)
-	{
-		actuators_clock();
+    if (TIM_GetIntStatus(LPC_TIM1, TIM_MR1_INT) == SET)
+    {
+        actuators_clock();
         g_counter++;
-	}
+    }
 
-	TIM_ClearIntPending(LPC_TIM1, TIM_MR1_INT);
+    TIM_ClearIntPending(LPC_TIM1, TIM_MR1_INT);
 }

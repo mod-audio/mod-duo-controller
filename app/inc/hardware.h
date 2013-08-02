@@ -69,10 +69,6 @@
 
 // does the hardware setup
 void hardware_setup(void);
-// power on the cpu
-void hardware_cpu_power_on(void);
-// returns the CPU status: zero if CPU is turned off or non-zero if CPU is turned on
-uint8_t hardware_cpu_status(void);
 // defines the cooler duty cycle
 void hardware_cooler(uint8_t duty_cycle);
 // returns the led object relative to led id
