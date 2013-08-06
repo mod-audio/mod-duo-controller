@@ -5,8 +5,8 @@
 ************************************************************************************************************************
 */
 
-#ifndef PROTOCOL_H
-#define PROTOCOL_H
+#ifndef COMM_H
+#define COMM_H
 
 
 /*
@@ -16,7 +16,6 @@
 */
 
 #include <stdint.h>
-#include "comm.h"
 
 
 /*
@@ -32,38 +31,12 @@
 ************************************************************************************************************************
 */
 
-#define PROTOCOL_MAX_COMMANDS           15
-
-// error messages configuration
-#define MESSAGE_COMMAND_NOT_FOUND       "not found"
-#define MESSAGE_MANY_ARGUMENTS          "many arguments"
-#define MESSAGE_FEW_ARGUMENTS           "few arguments"
-#define MESSAGE_INVALID_ARGUMENT        "invalid argument"
-
-// defines the function to send responses to sender
-#define SEND_TO_SENDER(id,msg,len)      comm_webgui_send(msg,len)
-
 
 /*
 ************************************************************************************************************************
 *           DATA TYPES
 ************************************************************************************************************************
 */
-
-// This struct is used on callbacks argument
-typedef struct PROTO_T {
-    char **list;
-    uint32_t list_count;
-    char *response;
-    uint32_t response_size;
-} proto_t;
-
-// This struct must be used to pass a message to protocol parser
-typedef struct MSG_T {
-    int sender_id;
-    char *data;
-    uint32_t data_size;
-} msg_t;
 
 
 /*
@@ -86,10 +59,19 @@ typedef struct MSG_T {
 ************************************************************************************************************************
 */
 
-void protocol_parse(msg_t *msg);
-void protocol_add_command(const char *command, void (*callback)(proto_t *proto));
-void protocol_response(const char *response, proto_t *proto);
-void protocol_remove_commands(void);
+//// linux console communication functions
+// sends a message to linux console
+void comm_linux_send(const char *msg);
+
+//// webgui communication functions
+// sends a message to webgui
+void comm_webgui_send(const char *data, uint32_t data_size);
+// sets a function callback to webgui response
+void comm_webgui_set_response_cb(void (*resp_cb)(void *data));
+// invokes the response function callback
+void comm_webgui_response_cb(void *data);
+// blocks the execution until the webgui response be received
+void comm_webgui_wait_response(void);
 
 
 /*

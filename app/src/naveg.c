@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "led.h"
 #include "hardware.h"
+#include "comm.h"
 
 #include <string.h>
 #include <math.h>
@@ -168,7 +169,7 @@ static uint8_t copy_command(char *buffer, const char *command)
     uint8_t i = 0;
     const char *cmd = command;
 
-    while (*cmd != '%' && *cmd != '.')
+    while (*cmd && (*cmd != '%' && *cmd != '.'))
     {
         buffer[i++] = *cmd;
         cmd++;
@@ -462,14 +463,53 @@ static void control_set(uint8_t display, control_t *control)
     i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
 
     // send the data to GUI
-    SEND_TO_WEBGUI(buffer, i);
+    comm_webgui_send(buffer, i);
+}
+
+static void parse_banks_list(void *data)
+{
+    char **list = data;
+    uint32_t count = strarr_length(list) - 2;
+
+    // free the current banks list
+    if (g_banks) data_free_banks_list(g_banks);
+
+    // parses the list
+    g_banks = data_parse_banks_list(&list[2], count);
+    naveg_set_banks(g_banks);
+}
+
+static void request_banks_list(void)
+{
+    // sets the response callback
+    comm_webgui_set_response_cb(parse_banks_list);
+
+    // sends the data to GUI
+    comm_webgui_send(BANKS_CMD, strlen(BANKS_CMD));
+
+    // waits the banks list be received
+    comm_webgui_wait_response();
+}
+
+static void parse_pedalboards_list(void *data)
+{
+    char **list = data;
+    uint32_t count = strarr_length(list) - 2;
+
+    // free the current pedalboads list
+    if (g_pedalboards) data_free_pedalboards_list(g_pedalboards);
+
+    // parses the list
+    g_pedalboards = data_parse_pedalboards_list(&list[2], count);
+    naveg_set_pedalboards(g_pedalboards);
 }
 
 static void request_pedalboards_list(const char *bank_uid)
 {
-    uint8_t i, buffer[128];
+    uint8_t i;
+    char buffer[128];
 
-    i = copy_command((char *)buffer, PEDALBOARDS_LIST_CMD);
+    i = copy_command((char *)buffer, PEDALBOARDS_CMD);
 
     // copy the bank uid
     const char *p = bank_uid;
@@ -479,17 +519,21 @@ static void request_pedalboards_list(const char *bank_uid)
         p++;
     }
 
-    // send the data to GUI
-    SEND_TO_WEBGUI(buffer, i);
+    // sets the response callback
+    comm_webgui_set_response_cb(parse_pedalboards_list);
+
+    // sends the data to GUI
+    comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
-    g_pedalboards = NULL;
-    while (g_pedalboards == NULL);
+    comm_webgui_wait_response();
 }
 
-static void request_load_pedalboard(const char *pedalboard_uid)
+static void send_load_pedalboard(const char *pedalboard_uid)
 {
-    uint8_t i, buffer[128];
+    uint8_t i;
+    char buffer[128];
+
     i = copy_command((char *)buffer, PEDALBOARD_CMD);
 
     // copy the pedalboard uid
@@ -501,7 +545,7 @@ static void request_load_pedalboard(const char *pedalboard_uid)
     }
 
     // send the data to GUI
-    SEND_TO_WEBGUI(buffer, i);
+    comm_webgui_send(buffer, i);
 }
 
 static void bp_enter(void)
@@ -544,7 +588,7 @@ static void bp_enter(void)
             g_current_pedalboard = g_pedalboards->selected;
             bp_list = g_pedalboards;
             title = g_banks->names[g_banks->hover];
-            request_load_pedalboard(g_pedalboards->uids[g_pedalboards->selected]);
+            send_load_pedalboard(g_pedalboards->uids[g_pedalboards->selected]);
         }
     }
 
@@ -963,6 +1007,9 @@ void naveg_toggle_tool(uint8_t display)
     {
         // initial state to banks/pedalboards navigation
         g_bp_state = BANKS_LIST;
+
+        // requests the banks list
+        if (display == NAVEG_DISPLAY) request_banks_list();
 
         // draws the tool
         g_tool[display].state = TOOL_ON;

@@ -102,12 +102,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_GET_CMD         "control_get %i %s"
 // control_set <effect_instance> <symbol> <value>
 #define CONTROL_SET_CMD         "control_set %i %s %f"
-// banks <banks_data>
-#define BANKS_CMD               "banks ..."
-// pedalboards <pedalboards_data>
-#define PEDALBOARDS_CMD         "pedalboards ..."
-// pedalboards_list <bank_uid>
-#define PEDALBOARDS_LIST_CMD    "pedalboards_list %s"
+// banks
+#define BANKS_CMD               "banks"
+// pedalboards <bank_uid>
+#define PEDALBOARDS_CMD         "pedalboards %s"
 // pedalboard <pedalboard_uid>
 #define PEDALBOARD_CMD          "pedalboard %s"
 // peakmeter <peakmeter_number> <peakmeter_value>
@@ -118,6 +116,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define HW_CONNECTED_CMD        "hw_con %i %i"
 // hw_dis <hw_type> <hw_id>
 #define HW_DISCONNECTED_CMD     "hw_dis %i %i"
+// resp <status> ...
+#define RESPONSE_CMD            "resp %i ..."
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -225,21 +225,17 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 
 //// Serial Configurations
+// serial baudrates
 #define SERIAL0_BAUDRATE        115200
 #define SERIAL1_BAUDRATE        115200
+// If the serial ISR uses freeRTOS API, the priorities values must be
+// equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
 #define SERIAL0_PRIORITY        6
 #define SERIAL1_PRIORITY        7
 
-//// Communication macros
-#include "cdcuser.h"
-#include "serial.h"
-static const uint8_t end_msg = 0;
-#define SEND_TO_WEBGUI(data,len)            CDC_Send((uint8_t*)(data), (len)); \
-                                            CDC_Send(&end_msg, sizeof(end_msg))
-#define SEND_TO_LINUX(data,len)             serial_send(SERIAL1, (uint8_t*)(data), (len))
-
-// The serial ISR use freeRTOS API so the priorities values must be
-// equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
+//// Communication definitions
+// defines the UART port used to communication between HMI and linux serial console
+#define LINUX_SERIAL            0
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR       GREEN
