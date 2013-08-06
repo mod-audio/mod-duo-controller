@@ -168,36 +168,6 @@ static void draw_peakmeter_bar(uint8_t display, uint8_t pkm, float value)
     }
 }
 
-static void draw_arrow(uint8_t display, uint8_t x, uint8_t y)
-{
-    uint8_t i, w = 0;
-    static uint8_t last_x, last_y;
-
-    // clears the old arrow
-    if (last_x > 0 && last_y > 0)
-    {
-        for (i = 0; i < 4; i++)
-        {
-            w += 2;
-            glcd_hline(display, last_x-i, last_y+i, w, GLCD_WHITE);
-        }
-    }
-
-    // draws the new arrow
-    if (x < 3) x = 3;
-    if (x > 123) x = 123;
-    w = 0;
-    for (i = 0; i < 4; i++)
-    {
-        w += 2;
-        glcd_hline(display, x-i, y+i, w, GLCD_BLACK);
-    }
-
-    // store the current arrow position
-    last_x = x;
-    last_y = y;
-}
-
 
 /*
 ************************************************************************************************************************
@@ -557,7 +527,7 @@ void widget_graph(uint8_t display, graph_t *graph)
 }
 
 
-void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardcoded
+void widget_peakmeter(uint8_t display, peakmeter_t *pkm)
 {
     // draws the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
@@ -569,7 +539,7 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardc
     title.bottom_margin = 0;
     title.left_margin = 2;
     title.right_margin = 0;
-    title.font = pkm->font;
+    title.font = alterebro15;
     title.text = "Peak Meter";
     widget_textbox(display, &title);
     glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
@@ -589,7 +559,7 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardc
     scale.bottom_margin = 0;
     scale.left_margin = 0;
     scale.right_margin = 2;
-    scale.font = pkm->font;
+    scale.font = alterebro15;
     scale.y = 11;
     scale.text = "0dB";
     widget_textbox(display, &scale);
@@ -601,10 +571,10 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardc
     widget_textbox(display, &scale);
 
     // draws the subtitles
-    glcd_text(display,  6, 57,  "IN1", pkm->font, GLCD_BLACK);
-    glcd_text(display, 32, 57,  "IN2", pkm->font, GLCD_BLACK);
-    glcd_text(display, 56, 57, "OUT1", pkm->font, GLCD_BLACK);
-    glcd_text(display, 81, 57, "OUT2", pkm->font, GLCD_BLACK);
+    glcd_text(display,  6, 57,  "IN1", alterebro15, GLCD_BLACK);
+    glcd_text(display, 32, 57,  "IN2", alterebro15, GLCD_BLACK);
+    glcd_text(display, 56, 57, "OUT1", alterebro15, GLCD_BLACK);
+    glcd_text(display, 81, 57, "OUT2", alterebro15, GLCD_BLACK);
 
     // clean the peakmeters bars
     glcd_rect_fill(display,   4, 13, 16, 42, GLCD_WHITE);
@@ -620,7 +590,7 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm) //FIXME: function hardc
 }
 
 
-void widget_tuner(uint8_t display, tuner_t *tuner) //FIXME: function hardcoded
+void widget_tuner(uint8_t display, tuner_t *tuner)
 {
     // draws the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
@@ -632,57 +602,109 @@ void widget_tuner(uint8_t display, tuner_t *tuner) //FIXME: function hardcoded
     title.bottom_margin = 0;
     title.left_margin = 2;
     title.right_margin = 0;
-    title.font = tuner->font;
+    title.font = alterebro15;
     title.text = "Tuner";
     widget_textbox(display, &title);
     glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
 
-    // draws the scale
-    glcd_hline(display, 0, 32, DISPLAY_WIDTH, GLCD_BLACK);
-    glcd_vline(display, 14, 29, 7, GLCD_BLACK);
-    glcd_vline(display, 47, 29, 7, GLCD_BLACK);
-    glcd_vline(display, 80, 29, 7, GLCD_BLACK);
-    glcd_vline(display, 113, 29, 7, GLCD_BLACK);
-    glcd_vline(display, 31, 25, 15, GLCD_BLACK);
-    glcd_vline(display, 97, 25, 15, GLCD_BLACK);
-    glcd_vline(display, 63, 16, 32, GLCD_BLACK);
-    glcd_vline(display, 64, 16, 32, GLCD_BLACK);
-
     // clears subtitles
-    glcd_rect_fill(display, 0, 55, DISPLAY_WIDTH, tuner->font[FONT_HEIGHT], GLCD_WHITE);
+    glcd_rect_fill(display, 0, 51, DISPLAY_WIDTH, 12, GLCD_WHITE);
 
-    // draws subtitles
-    char freq_str[16];
+    // draws the frequency subtitle
+    char freq_str[16], input_str[8];
     uint8_t i = float_to_str(tuner->frequency, freq_str, sizeof(freq_str), 2);
     freq_str[i++] = 'H';
     freq_str[i++] = 'z';
     freq_str[i++] = 0;
-    textbox_t freq, note;
+    textbox_t freq, input;
     freq.color = GLCD_BLACK;
     freq.mode = TEXT_SINGLE_LINE;
-    freq.align = ALIGN_LEFT_BOTTOM;
+    freq.align = ALIGN_LEFT_NONE;
+    freq.y = 51;
     freq.top_margin = 0;
     freq.bottom_margin = 0;
     freq.left_margin = 1;
     freq.right_margin = 0;
-    freq.font = tuner->font;
+    freq.font = alterebro24;
     freq.text = freq_str;
     widget_textbox(display, &freq);
+
+    // draws the input subtitle
+    input_str[0] = 'I';
+    input_str[1] = 'N';
+    input_str[2] = '0' + tuner->input;
+    input_str[3] = 0;
+    input.color = GLCD_BLACK;
+    input.mode = TEXT_SINGLE_LINE;
+    input.align = ALIGN_RIGHT_NONE;
+    input.y = 51;
+    input.top_margin = 0;
+    input.bottom_margin = 0;
+    input.left_margin = 0;
+    input.right_margin = 1;
+    input.font = alterebro24;
+    input.text = input_str;
+    widget_textbox(display, &input);
+
+    // constants configurations
+    const uint8_t num_bars = 5, y_bars = 18, w_bar = 4, h_bar = 21, bars_space = 3;
+    const uint8_t cents_range = 50;
+
+    uint8_t x, n;
+
+    // calculates the number of bars that need be filled
+    n = (ABS(tuner->cents) + num_bars) / (cents_range / num_bars);
+
+    // draws the left side bars
+    for (i = 0, x = 1; i < num_bars; i++)
+    {
+        // checks if need fill the bar
+        if (tuner->cents < 0 && i >= (num_bars - n))
+            glcd_rect_fill(display, x, y_bars, w_bar, h_bar, GLCD_BLACK);
+        else
+            glcd_rect_fill(display, x, y_bars, w_bar, h_bar, GLCD_WHITE);
+
+        glcd_rect(display, x, y_bars, w_bar, h_bar, GLCD_BLACK);
+
+        x += w_bar + bars_space;
+    }
+
+    // draws the right side bars
+    for (i = 0, x = 95; i < num_bars; i++)
+    {
+        // checks if need fill the bar
+        if (tuner->cents > 0 && i < n)
+            glcd_rect_fill(display, x, y_bars, w_bar, h_bar, GLCD_BLACK);
+        else
+            glcd_rect_fill(display, x, y_bars, w_bar, h_bar, GLCD_WHITE);
+
+        glcd_rect(display, x, y_bars, w_bar, h_bar, GLCD_BLACK);
+
+        x += w_bar + bars_space;
+    }
+
+    // draws the note box
+    glcd_rect_fill(display, 36, 14, 56, 29, GLCD_WHITE);
+    textbox_t note;
     note.color = GLCD_BLACK;
     note.mode = TEXT_SINGLE_LINE;
-    note.align = ALIGN_RIGHT_BOTTOM;
+    note.align = ALIGN_CENTER_NONE;
     note.top_margin = 0;
-    note.bottom_margin = 0;
+    note.bottom_margin = 2;
     note.left_margin = 0;
-    note.right_margin = 1;
-    note.font = tuner->font;
+    note.right_margin = 0;
+    note.y = 15;
+    note.font = alterebro49;
     note.text = tuner->note;
     widget_textbox(display, &note);
 
-    // arrow
-    const int8_t cents_min = -32, cents_max = 32;
-    uint8_t x = ((DISPLAY_WIDTH-1) * (tuner->cents - cents_min)) / (cents_max - cents_min);
-    draw_arrow(display, x, 50);
+    // checks if is tuned
+    if (n == 0) glcd_rect_invert(display, 36, 14, 56, 29);
+    else glcd_rect(display, 36, 14, 56, 29, GLCD_BLACK);
+
+    // fixes the font extra footer
+    glcd_hline(display, 36, 43, 56, GLCD_WHITE);
+    glcd_hline(display, 36, 44, 56, GLCD_WHITE);
 }
 
 

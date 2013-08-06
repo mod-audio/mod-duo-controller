@@ -49,7 +49,7 @@
 */
 
 static peakmeter_t g_peakmeter;
-static tuner_t g_tuner;
+static tuner_t g_tuner = {0, NULL, 0, 1};
 
 
 /*
@@ -81,20 +81,6 @@ static tuner_t g_tuner;
 
 
 // TODO: capitalize strings, truncate, replace underline by space
-
-void screen_init(void)
-{
-    g_peakmeter.font = alterebro15;
-    g_peakmeter.value1 = -30.0;
-    g_peakmeter.value2 = -30.0;
-    g_peakmeter.value3 = -30.0;
-    g_peakmeter.value4 = -30.0;
-
-    g_tuner.font = alterebro15;
-    g_tuner.frequency = 0.0;
-    g_tuner.note = 0;
-    g_tuner.cents = 0;
-}
 
 void screen_clear(uint8_t display)
 {
@@ -291,10 +277,17 @@ void screen_tool(uint8_t display, uint8_t tool)
             break;
 
         case TOOL_TUNER:
+            g_tuner.frequency = 0.0;
+            g_tuner.note = "?";
+            g_tuner.cents = 0;
             widget_tuner(display, &g_tuner);
             break;
 
         case TOOL_PEAKMETER:
+            g_peakmeter.value1 = -30.0;
+            g_peakmeter.value2 = -30.0;
+            g_peakmeter.value3 = -30.0;
+            g_peakmeter.value4 = -30.0;
             widget_peakmeter(display, &g_peakmeter);
             break;
 

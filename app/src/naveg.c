@@ -795,8 +795,6 @@ void naveg_init(void)
 {
     uint32_t i;
 
-    screen_init();
-
     // create the nodes
     for (i = 0; i < SLOTS_COUNT; i++)
     {

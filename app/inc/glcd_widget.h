@@ -82,14 +82,13 @@ typedef struct GRAPH_T {
 typedef struct PEAKMETER_T {
     float peak1, peak2, peak3, peak4;
     float value1, value2, value3, value4;
-    const uint8_t *font;
 } peakmeter_t;
 
 typedef struct TUNER_T {
-    const uint8_t *font;
     float frequency;
     char *note;
     int8_t cents;
+    uint8_t input;
 } tuner_t;
 
 typedef struct POPUP_T {

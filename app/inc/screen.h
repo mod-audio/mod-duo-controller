@@ -61,7 +61,6 @@
 ************************************************************************************************************************
 */
 
-void screen_init(void);
 void screen_clear(uint8_t display);
 void screen_control(uint8_t display, control_t *control);
 void screen_controls_index(uint8_t display, uint8_t current, uint8_t max);
