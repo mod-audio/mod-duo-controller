@@ -73,6 +73,8 @@ typedef struct RINGBUFF_T {
 // these functions should be used in replacement to default malloc and free functions of stdlib.h
 void* MALLOC(uint32_t n);
 void FREE(void *pv);
+// this function must be defined in the application code, it will called when the memory allocation fail
+extern void malloc_fail(void);
 
 // splits the string in each whitespace occurrence and returns a array of strings NULL terminated
 char** strarr_split(char *str);

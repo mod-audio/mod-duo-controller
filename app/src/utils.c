@@ -118,25 +118,14 @@ static void parse_quote(char *str)
 ************************************************************************************************************************
 */
 
-// FIXME: includes to temporary malloc error alert
-#include "led.h"
-#include "hardware.h"
 void* MALLOC(uint32_t n)
 {
     void *pv = pvPortMalloc(n);
 
     if (!pv)
     {
-        // FIXME: temporary malloc error alert
-        led_set_color(hardware_leds(0), RED);
-        led_set_color(hardware_leds(1), RED);
-        led_set_color(hardware_leds(2), RED);
-        led_set_color(hardware_leds(3), RED);
-        led_blink(hardware_leds(0), 500, 500);
-        led_blink(hardware_leds(1), 500, 500);
-        led_blink(hardware_leds(2), 500, 500);
-        led_blink(hardware_leds(3), 500, 500);
-        while (1);
+        malloc_fail();
+        return NULL;
     }
 
     return pv;
