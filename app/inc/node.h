@@ -15,7 +15,7 @@
 ************************************************************************************************************************
 */
 
-#include "utils.h" // to MALLOC and FREE functions
+#include "config.h" // to MALLOC and FREE functions
 
 
 /*

@@ -437,7 +437,7 @@ static void peakmeter_cb(proto_t *proto)
 static void tuner_cb(proto_t *proto)
 {
     screen_set_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
-    protocol_response("resp 0", proto);
+    //protocol_response("resp 0", proto); FIXME: when enabled happen HardFault
 }
 
 static void resp_cb(proto_t *proto)
@@ -471,7 +471,7 @@ void UsageFault_Handler(void)
     while (1);
 }
 
-void malloc_fail(void)
+void vApplicationMallocFailedHook(void)
 {
     led_set_color(hardware_leds(0), RED);
     led_set_color(hardware_leds(1), RED);

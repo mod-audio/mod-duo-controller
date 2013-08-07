@@ -247,4 +247,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // defines the time that the led will stay turned on (in milliseconds)
 #define TAP_TEMPO_TIME_ON   20
 
+//// Dynamic menory allocation
+// these macros should be used in replacement to default malloc and free functions of stdlib.h
+#include "FreeRTOS.h"
+#define MALLOC(n)       pvPortMalloc(n)
+#define FREE(pv)        vPortFree(pv)
+
 #endif

@@ -118,24 +118,6 @@ static void parse_quote(char *str)
 ************************************************************************************************************************
 */
 
-void* MALLOC(uint32_t n)
-{
-    void *pv = pvPortMalloc(n);
-
-    if (!pv)
-    {
-        malloc_fail();
-        return NULL;
-    }
-
-    return pv;
-}
-
-void FREE(void *pv)
-{
-    if (pv) vPortFree(pv);
-}
-
 char** strarr_split(char *str)
 {
     uint32_t count;
