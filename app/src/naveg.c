@@ -100,7 +100,7 @@ uint8_t g_max_items_list;
 */
 
 static void display_control_add(control_t *control);
-static void display_control_rm(uint8_t effect_instance, const char *symbol);
+static void display_control_rm(int8_t effect_instance, const char *symbol);
 
 
 /*
@@ -117,7 +117,7 @@ static void display_control_rm(uint8_t effect_instance, const char *symbol);
 */
 
 // search for the control
-static node_t *search_control(uint8_t effect_instance, const char *symbol, uint8_t *display)
+static node_t *search_control(int8_t effect_instance, const char *symbol, uint8_t *display)
 {
     uint8_t i;
     node_t *node;
@@ -254,47 +254,66 @@ static void display_control_add(control_t *control)
 }
 
 // control removed from display
-static void display_control_rm(uint8_t effect_instance, const char *symbol)
+static void display_control_rm(int8_t effect_instance, const char *symbol)
 {
-    uint8_t display;
+    uint8_t display, all_effects, all_controls;
     control_t *control;
     node_t *node;
 
-    node = search_control(effect_instance, symbol, &display);
+    all_effects = (effect_instance == ALL_EFFECTS) ? 1 : 0;
+    all_controls = (strcmp(symbol, ALL_CONTROLS) == 0) ? 1 : 0;
 
-    // destroy the control
-    if (node)
+    for (display = 0; display < SLOTS_COUNT; display++)
     {
-        control = (control_t *) node->data;
+        node = g_controls_list[display]->first_child;
 
-        // update the controls index value
-        g_controls_index[display].total--;
-
-        // if node is the current control
-        if (node == g_current_control[display])
+        while (node)
         {
-            // if is the last control
-            if (g_controls_index[display].total == 0)
+            control = (control_t *) node->data;
+            if (all_effects || control->effect_instance == effect_instance)
             {
-                // no controls
-                g_current_control[display] = NULL;
+                if (all_controls || strcmp(control->symbol, symbol) == 0)
+                {
+                    // update the controls index value
+                    g_controls_index[display].total--;
+
+                    // if node is the current control
+                    if (node == g_current_control[display])
+                    {
+                        // if is the last control
+                        if (g_controls_index[display].total == 0)
+                        {
+                            // no controls
+                            g_current_control[display] = NULL;
+                        }
+
+                        // load the next control
+                        naveg_next_control(display);
+                    }
+
+                    // update the controls index screen
+                    if (g_controls_index[display].current > g_controls_index[display].total)
+                    {
+                        g_controls_index[display].current = g_controls_index[display].total;
+                    }
+                    screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
+
+                    // free the memory
+                    data_free_control(control);
+                    node->first_child = NULL;
+                    node_destroy(node);
+
+                    if (!all_effects && !all_controls) return;
+
+                    // need set the node again, because it was destroyed
+                    node = g_controls_list[display]->first_child;
+                }
+                else
+                    node = node->next;
             }
-
-            // load the next control
-            naveg_next_control(display);
+            else
+                node = node->next;
         }
-
-        // update the controls index screen
-        if (g_controls_index[display].current > g_controls_index[display].total)
-        {
-            g_controls_index[display].current = g_controls_index[display].total;
-        }
-        screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
-
-        // free the memory
-        data_free_control(control);
-        node->first_child = NULL;
-        node_destroy(node);
     }
 }
 
@@ -373,27 +392,32 @@ static void foot_control_add(control_t *control)
 }
 
 // control removed from foot
-static void foot_control_rm(uint8_t effect_instance, const char *symbol)
+static void foot_control_rm(int8_t effect_instance, const char *symbol)
 {
-    uint8_t i;
+    uint8_t i, all_effects, all_controls;
+
+    all_effects = (effect_instance == ALL_EFFECTS) ? 1 : 0;
+    all_controls = (strcmp(symbol, ALL_CONTROLS) == 0) ? 1 : 0;
 
     for (i = 0; i < FOOTSWITCHES_COUNT; i++)
     {
         if (g_foots[i] == NULL) continue;
 
         // checks if effect_instance and symbol match
-        if ((effect_instance == g_foots[i]->effect_instance) &&
-            (strcmp(symbol, g_foots[i]->symbol) == 0))
+        if (all_effects || effect_instance == g_foots[i]->effect_instance)
         {
-            // turn off the led
-            led_set_color(hardware_leds(i), BLACK);
+            if (all_controls || strcmp(symbol, g_foots[i]->symbol) == 0)
+            {
+                // turn off the led
+                led_set_color(hardware_leds(i), BLACK);
 
-            // remove the control
-            data_free_control(g_foots[i]);
-            g_foots[i] = NULL;
+                // remove the control
+                data_free_control(g_foots[i]);
+                g_foots[i] = NULL;
 
-            // update the footer
-            screen_footer(i, NULL, NULL);
+                // update the footer
+                screen_footer(i, NULL, NULL);
+            }
         }
     }
 }
@@ -871,7 +895,7 @@ void naveg_add_control(control_t *control)
     }
 }
 
-void naveg_remove_control(uint8_t effect_instance, const char *symbol)
+void naveg_remove_control(int8_t effect_instance, const char *symbol)
 {
     display_control_rm(effect_instance, symbol);
     foot_control_rm(effect_instance, symbol);
@@ -913,7 +937,7 @@ void naveg_dec_control(uint8_t display)
     control_set(display, control);
 }
 
-void naveg_set_control(uint8_t effect_instance, const char *symbol, float value)
+void naveg_set_control(int8_t effect_instance, const char *symbol, float value)
 {
     uint8_t display;
     node_t *node;
@@ -934,7 +958,7 @@ void naveg_set_control(uint8_t effect_instance, const char *symbol, float value)
     }
 }
 
-float naveg_get_control(uint8_t effect_instance, const char *symbol)
+float naveg_get_control(int8_t effect_instance, const char *symbol)
 {
     uint8_t display;
     node_t *node;
