@@ -399,10 +399,10 @@ void screen_system_menu(menu_item_t *item)
 
     // popup
     popup_t popup;
-    popup.x = 10;
-    popup.y = 5;
-    popup.width = DISPLAY_WIDTH - 20;
-    popup.height = DISPLAY_HEIGHT - 10;
+    popup.x = 0;
+    popup.y = 0;
+    popup.width = DISPLAY_WIDTH;
+    popup.height = DISPLAY_HEIGHT - 1;
     popup.font = alterebro15;
 
     switch (item->desc->type)
@@ -420,7 +420,7 @@ void screen_system_menu(menu_item_t *item)
         case MENU_CONFIRM:
         case MENU_CANCEL:
             popup.type = (item->desc->type == MENU_CONFIRM ? YES_NO : CANCEL_ONLY);
-            popup.title = "Popup Title";
+            popup.title = item->desc->name;
             popup.content = "popup content";
             popup.button_selected = item->data.hover;
             widget_popup(SYSTEM_DISPLAY, &popup);
