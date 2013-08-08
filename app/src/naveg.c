@@ -582,6 +582,9 @@ static void bp_enter(void)
     if (g_bp_state == BANKS_LIST)
     {
         request_pedalboards_list(g_banks->uids[g_banks->hover]);
+        if (!g_pedalboards) return;
+
+        // if reach here, received the pedalboards list
         g_bp_state = PEDALBOARD_LIST;
         g_pedalboards->hover = 0;
         bp_list = g_pedalboards;
