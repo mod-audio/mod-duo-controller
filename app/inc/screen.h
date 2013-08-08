@@ -66,10 +66,12 @@ void screen_control(uint8_t display, control_t *control);
 void screen_controls_index(uint8_t display, uint8_t current, uint8_t max);
 void screen_footer(uint8_t display, const char *name, const char *value);
 void screen_tool(uint8_t display, uint8_t tool);
-void screen_set_peakmeter(uint8_t peakmeter, float value);
-void screen_set_tuner(float frequency, char *note, int8_t cents);
 void screen_bp_list(const char *title, bp_list_t *list);
 void screen_system_menu(menu_item_t *item);
+void screen_peakmeter(uint8_t peakmeter, float value);
+void screen_tuner(float frequency, char *note, int8_t cents);
+void screen_clipmeter(uint8_t display, uint8_t happened_now);
+void screen_xrun(uint8_t happened_now);
 
 
 /*

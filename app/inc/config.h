@@ -93,8 +93,12 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define SAY_CMD                 "say %s ..."
 // led <led_id> <red> <green> <blue>
 #define LED_CMD                 "led %i %i %i %i ..."
+// ui_con
+#define GUI_CONNECTED_CMD       "ui_con"
+// ui_dis
+#define GUI_DISCONNECTED_CMD    "ui_dis"
 // control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min>
-//             <step> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
+//             <steps> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
 #define CONTROL_ADD_CMD         "control_add %i %s %s %i %s %f %f %f %i %i %i %i %i ..."
 // control_rm <effect_instance> <symbol>
 #define CONTROL_REMOVE_CMD      "control_rm %i %s"
@@ -108,10 +112,14 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PEDALBOARDS_CMD         "pedalboards %s"
 // pedalboard <pedalboard_uid>
 #define PEDALBOARD_CMD          "pedalboard %s"
+// clipmeter <clipmeter_id>
+#define CLIPMETER_CMD           "clipmeter %i"
 // peakmeter <peakmeter_number> <peakmeter_value>
 #define PEAKMETER_CMD           "peakmeter %i %f"
 // tuner <frequency> <note> <cents>
 #define TUNER_CMD               "tuner %f %s %i"
+// xrun
+#define XRUN_CMD                "xrun"
 // hw_con <hw_type> <hw_id>
 #define HW_CONNECTED_CMD        "hw_con %i %i"
 // hw_dis <hw_type> <hw_id>
@@ -223,6 +231,14 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},    \
     {"Factory Restore",                     MENU_CANCEL,    28,      0,     NULL},
 
+
+//// Icons configuration
+// xrun display
+#define XRUN_ICON_DISPLAY       0
+// xrun timeout (in milliseconds)
+#define XRUN_TIMEOUT            1000
+// clipmeter timeout (in milliseconds)
+#define CLIPMETER_TIMEOUT       100
 
 //// Serial Configurations
 // serial baudrates

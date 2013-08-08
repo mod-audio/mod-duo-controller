@@ -88,12 +88,15 @@ static void actuators_task(void *pvParameters);
 static void ping_cb(proto_t *proto);
 static void say_cb(proto_t *proto);
 static void led_cb(proto_t *proto);
+static void gui_connection_cb(proto_t *proto);
 static void control_add_cb(proto_t *proto);
 static void control_rm_cb(proto_t *proto);
 static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
+static void clipmeter_cb(proto_t *proto);
 static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
+static void xrun_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
 
 
@@ -151,12 +154,16 @@ int main(void)
     protocol_add_command(PING_CMD, ping_cb);
     protocol_add_command(SAY_CMD, say_cb);
     protocol_add_command(LED_CMD, led_cb);
+    protocol_add_command(GUI_CONNECTED_CMD, gui_connection_cb);
+    protocol_add_command(GUI_DISCONNECTED_CMD, gui_connection_cb);
     protocol_add_command(CONTROL_ADD_CMD, control_add_cb);
     protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
     protocol_add_command(CONTROL_SET_CMD, control_set_cb);
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
+    protocol_add_command(CLIPMETER_CMD, clipmeter_cb);
     protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
+    protocol_add_command(XRUN_CMD, xrun_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
 
     // navegation initialization
@@ -293,6 +300,11 @@ static void displays_task(void *pvParameters)
 
     while (1)
     {
+        // checks the screen icons
+        screen_clipmeter(0xFF, 0);
+        screen_xrun(0);
+
+        // update the glcd
         taskENTER_CRITICAL();
         glcd_update();
         taskEXIT_CRITICAL();
@@ -393,6 +405,11 @@ static void led_cb(proto_t *proto)
     protocol_response("resp 0", proto);
 }
 
+static void gui_connection_cb(proto_t *proto)
+{
+    protocol_response("resp 0", proto);
+}
+
 static void control_add_cb(proto_t *proto)
 {
     control_t *control = data_parse_control(proto->list);
@@ -430,20 +447,38 @@ static void control_get_cb(proto_t *proto)
 
 static void peakmeter_cb(proto_t *proto)
 {
-    screen_set_peakmeter(atoi(proto->list[1]), atof(proto->list[2]));
+    screen_peakmeter(atoi(proto->list[1]), atof(proto->list[2]));
     protocol_response("resp 0", proto);
 }
 
 static void tuner_cb(proto_t *proto)
 {
-    screen_set_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
+    screen_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
     //protocol_response("resp 0", proto); FIXME: when enabled happen HardFault
+}
+
+static void clipmeter_cb(proto_t *proto)
+{
+    screen_clipmeter(atoi(proto->list[1]), 1);
+    protocol_response("resp 0", proto);
+}
+
+static void xrun_cb(proto_t *proto)
+{
+    screen_xrun(1);
+    protocol_response("resp 0", proto);
 }
 
 static void resp_cb(proto_t *proto)
 {
     comm_webgui_response_cb(proto->list);
 }
+
+/*
+************************************************************************************************************************
+*           ERRORS CALLBACKS
+************************************************************************************************************************
+*/
 
 // TODO: better error feedback for below functions
 

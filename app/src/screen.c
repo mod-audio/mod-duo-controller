@@ -10,6 +10,7 @@
 #include "glcd.h"
 #include "glcd_widget.h"
 #include "naveg.h"
+#include "hardware.h"
 
 #include <string.h>
 
@@ -299,43 +300,6 @@ void screen_tool(uint8_t display, uint8_t tool)
     }
 }
 
-void screen_set_peakmeter(uint8_t peakmeter, float value)
-{
-    switch (peakmeter)
-    {
-        case 0:
-            g_peakmeter.value1 = value;
-            break;
-
-        case 1:
-            g_peakmeter.value2 = value;
-            break;
-
-        case 2:
-            g_peakmeter.value3 = value;
-            break;
-
-        case 3:
-            g_peakmeter.value4 = value;
-            break;
-    }
-
-    // checks if peakmeter is enable and update it
-    if (naveg_is_tool_mode(PEAKMETER_DISPLAY))
-        widget_peakmeter(PEAKMETER_DISPLAY, &g_peakmeter);
-}
-
-void screen_set_tuner(float frequency, char *note, int8_t cents)
-{
-    g_tuner.frequency = frequency;
-    g_tuner.note = note;
-    g_tuner.cents = cents;
-
-    // checks if tuner is enable and update it
-    if (naveg_is_tool_mode(TUNER_DISPLAY))
-        widget_tuner(TUNER_DISPLAY, &g_tuner);
-}
-
 void screen_bp_list(const char *title, bp_list_t *list)
 {
     listbox_t list_box;
@@ -481,5 +445,93 @@ void screen_system_menu(menu_item_t *item)
             list.list = last_item->data.list;
             widget_listbox(SYSTEM_DISPLAY, &list);
             break;
+    }
+}
+
+void screen_peakmeter(uint8_t peakmeter, float value)
+{
+    switch (peakmeter)
+    {
+        case 0:
+            g_peakmeter.value1 = value;
+            break;
+
+        case 1:
+            g_peakmeter.value2 = value;
+            break;
+
+        case 2:
+            g_peakmeter.value3 = value;
+            break;
+
+        case 3:
+            g_peakmeter.value4 = value;
+            break;
+    }
+
+    // checks if peakmeter is enable and update it
+    if (naveg_is_tool_mode(PEAKMETER_DISPLAY))
+        widget_peakmeter(PEAKMETER_DISPLAY, &g_peakmeter);
+}
+
+void screen_tuner(float frequency, char *note, int8_t cents)
+{
+    g_tuner.frequency = frequency;
+    g_tuner.note = note;
+    g_tuner.cents = cents;
+
+    // checks if tuner is enable and update it
+    if (naveg_is_tool_mode(TUNER_DISPLAY))
+        widget_tuner(TUNER_DISPLAY, &g_tuner);
+}
+
+void screen_clipmeter(uint8_t display, uint8_t happened_now)
+{
+    static uint8_t check_timeout[GLCD_COUNT];
+    static uint32_t last_time[GLCD_COUNT];
+    uint32_t time_elapsed;
+
+    if (display == 0xFF)
+    {
+        uint8_t i;
+        for (i = 0; i < GLCD_COUNT; i++)
+            screen_clipmeter(i, 0);
+    }
+
+    if (happened_now)
+    {
+        glcd_set_pixel(display, 126, 63, GLCD_BLACK);
+        last_time[display] = hardware_time_stamp();
+        check_timeout[display] = 1;
+    }
+
+    time_elapsed = hardware_time_stamp() - last_time[display];
+
+    if (check_timeout[display] && time_elapsed > CLIPMETER_TIMEOUT)
+    {
+        glcd_set_pixel(display, 126, 63, GLCD_WHITE);
+        check_timeout[display] = 0;
+    }
+}
+
+void screen_xrun(uint8_t happened_now)
+{
+    static uint8_t check_timeout;
+    static uint32_t last_time;
+    uint32_t time_elapsed;
+
+    if (happened_now)
+    {
+        glcd_set_pixel(XRUN_ICON_DISPLAY, 127, 63, GLCD_BLACK);
+        last_time = hardware_time_stamp();
+        check_timeout = 1;
+    }
+
+    time_elapsed = hardware_time_stamp() - last_time;
+
+    if (check_timeout && time_elapsed > XRUN_TIMEOUT)
+    {
+        glcd_set_pixel(XRUN_ICON_DISPLAY, 127, 63, GLCD_WHITE);
+        check_timeout = 0;
     }
 }
