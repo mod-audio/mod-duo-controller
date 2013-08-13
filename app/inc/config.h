@@ -251,7 +251,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// Communication definitions
 // defines the UART port used to communication between HMI and linux serial console
-#define LINUX_SERIAL            0
+#define LINUX_SERIAL            1
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR       GREEN

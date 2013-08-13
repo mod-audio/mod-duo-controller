@@ -22,6 +22,7 @@
 #include "data.h"
 #include "naveg.h"
 #include "screen.h"
+#include "cli.h"
 
 #include "usb.h"
 #include "usbhw.h"
@@ -83,6 +84,7 @@ static void usb_receive_cb(uint32_t msg_size);
 static void procotol_task(void *pvParameters);
 static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
+static void cli_task(void *pvParameters);
 
 // protocol callbacks
 static void ping_cb(proto_t *proto);
@@ -126,7 +128,7 @@ int main(void)
     hardware_setup();
 
     // serial initialization and callbacks definitions
-    serial_init(1, SERIAL1_BAUDRATE, SERIAL1_PRIORITY);
+    serial_init(SERIAL1, SERIAL1_BAUDRATE, SERIAL1_PRIORITY);
     serial_set_callback(SERIAL1, serial_cb);
 
     // actuators callbacks
@@ -186,6 +188,7 @@ int main(void)
     xTaskCreate(procotol_task, NULL, 512, NULL, 2, NULL);
     xTaskCreate(actuators_task, NULL, 512, NULL, 2, NULL);
     xTaskCreate(displays_task, NULL, 512, NULL, 1, NULL);
+    xTaskCreate(cli_task, NULL, 128, NULL, 1, NULL);
 
     // start the scheduler
     vTaskStartScheduler();
@@ -204,11 +207,11 @@ int main(void)
 // this callback is called from a ISR
 static void serial_cb(uint8_t port)
 {
-    uint8_t buffer[128];
-    uint32_t read;
+    char buffer[SERIAL_RX_BUFFER_SIZE];
+    uint32_t read_bytes;
 
-    read = serial_read(port, buffer, sizeof(buffer));
-    serial_send(port, buffer, read);
+    read_bytes = serial_read(port, (uint8_t*) buffer, sizeof(buffer));
+    cli_append_data(buffer, read_bytes);
 }
 
 // this callback is called from UART ISR in case of error
@@ -368,6 +371,17 @@ static void actuators_task(void *pvParameters)
 
             vPortFree(actuator_info);
         }
+    }
+}
+
+static void cli_task(void *pvParameters)
+{
+    UNUSED_PARAM(pvParameters);
+
+    while (1)
+    {
+        cli_process();
+        taskYIELD();
     }
 }
 
