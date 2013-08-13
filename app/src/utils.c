@@ -40,10 +40,9 @@
 ************************************************************************************************************************
 */
 
-#define MASK(rb)                ((uint32_t)(rb->size - 1))
-#define BUFFER_IS_FULL(rb)      ((rb->tail & MASK(rb)) == ((rb->head + 1) & MASK(rb)))
-#define BUFFER_IS_EMPTY(rb)     ((rb->head & MASK(rb)) == (rb->tail & MASK(rb)))
-#define BUFFER_INC(rb,idx)      (rb->idx = (rb->idx + 1) & MASK(rb))
+#define BUFFER_IS_FULL(rb)      (rb->tail == (rb->head + 1) % rb->size)
+#define BUFFER_IS_EMPTY(rb)     (rb->head == rb->tail)
+#define BUFFER_INC(rb,idx)      (rb->idx = (rb->idx + 1) % rb->size)
 
 
 /*
@@ -447,10 +446,11 @@ ringbuff_t *ringbuf_create(uint32_t buffer_size)
 uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size)
 {
     uint32_t bytes = 0;
+    const uint8_t *pdata = data;
 
     while (data_size > 0 && !BUFFER_IS_FULL(rb))
     {
-        rb->buffer[rb->head] = *data++;
+        rb->buffer[rb->head] = *pdata++;
         BUFFER_INC(rb, head);
 
         data_size--;
@@ -479,5 +479,5 @@ uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size)
 
 uint32_t ringbuff_size(ringbuff_t *rb)
 {
-    return ((rb->head - rb->tail) & MASK(rb));
+    return ((rb->head - rb->tail) % rb->size);
 }
