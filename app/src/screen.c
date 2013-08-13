@@ -496,6 +496,7 @@ void screen_clipmeter(uint8_t display, uint8_t happened_now)
         uint8_t i;
         for (i = 0; i < GLCD_COUNT; i++)
             screen_clipmeter(i, 0);
+        return;
     }
 
     if (happened_now)
