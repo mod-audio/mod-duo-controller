@@ -26,7 +26,7 @@ OUT_DIR		= ./out
 TESTS_SRC	= ./tests
 
 # Used PDL drivers
-PDL = lpc177x_8x_gpio.c lpc177x_8x_pinsel.c lpc177x_8x_clkpwr.c lpc177x_8x_uart.c lpc177x_8x_timer.c
+PDL = lpc177x_8x_gpio.c lpc177x_8x_pinsel.c lpc177x_8x_clkpwr.c lpc177x_8x_uart.c lpc177x_8x_timer.c lpc177x_8x_adc.c
 
 # C source files
 SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) \

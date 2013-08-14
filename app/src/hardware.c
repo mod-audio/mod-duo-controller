@@ -10,11 +10,14 @@
 #include "utils.h"
 #include "led.h"
 #include "actuator.h"
+#include "tpa6130.h"
 
 #include "LPC177x_8x.h"
 #include "lpc177x_8x_gpio.h"
+#include "lpc177x_8x_pinsel.h"
 #include "lpc177x_8x_timer.h"
 #include "lpc177x_8x_clkpwr.h"
+#include "lpc177x_8x_adc.h"
 
 
 /*
@@ -149,6 +152,15 @@ void hardware_setup(void)
     actuator_set_prop(hardware_actuators(ENCODER2), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
     actuator_set_prop(hardware_actuators(ENCODER3), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
 
+    // Headphone initialization (TPA and ADC)
+    tpa6130_init();
+    // ADC configuration
+    PINSEL_ConfigPin(HEADPHONE_ADC_PORT, HEADPHONE_ADC_PIN, HEADPHONE_ADC_PIN_CONF);
+    ADC_Init(LPC_ADC, HEADPHONE_ADC_CLOCK);
+    ADC_IntConfig(LPC_ADC, HEADPHONE_ADC_CHANNEL, DISABLE);
+    ADC_ChannelCmd(LPC_ADC, HEADPHONE_ADC_CHANNEL, ENABLE);
+    ADC_StartCmd(LPC_ADC, ADC_START_NOW);
+
     ////////////////////////////////////////////////////////////////
     // Timer 0 configuration
     // this timer is used to LEDs PWM and cooler PWM
@@ -181,7 +193,7 @@ void hardware_setup(void)
 
     ////////////////////////////////////////////////////////////////
     // Timer 1 configuration
-    // this timer is used to actuators clock
+    // this timer is for general purpose
 
     // initialize timer 1, prescale count time of 100us
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
@@ -260,6 +272,18 @@ void hardware_true_bypass(uint8_t value)
         GPIO_ClearValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
 }
 
+void hardware_headphone(void)
+{
+    uint32_t adc_value;
+
+    if (ADC_ChannelGetStatus(LPC_ADC, HEADPHONE_ADC_CHANNEL, ADC_DATA_DONE))
+    {
+        adc_value = ADC_ChannelGetData(LPC_ADC, HEADPHONE_ADC_CHANNEL);
+        adc_value = 63 - (adc_value >> 6);
+        tpa6130_set_volume(adc_value);
+    }
+}
+
 void TIMER0_IRQHandler(void)
 {
     if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT) == SET)
@@ -291,7 +315,6 @@ void TIMER0_IRQHandler(void)
 
     TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);
 }
-
 
 void TIMER1_IRQHandler(void)
 {

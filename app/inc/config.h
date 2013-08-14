@@ -84,6 +84,23 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define TRUE_BYPASS_PORT    3
 #define TRUE_BYPASS_PIN     19
 
+//// Headphone configuration
+// headphone controller ports and pins definition
+#define HEADPHONE_SDA_PORT      0
+#define HEADPHONE_SDA_PIN       9
+#define HEADPHONE_SCL_PORT      4
+#define HEADPHONE_SCL_PIN       29
+// ADC port and pin definition
+#define HEADPHONE_ADC_PORT      0
+#define HEADPHONE_ADC_PIN       24
+// ADC pin configuration, defines the ADC function number
+#define HEADPHONE_ADC_PIN_CONF  1
+// ADC headphone clock convertion in Hz
+#define HEADPHONE_ADC_CLOCK     1000
+// ADC headphone channel
+#define HEADPHONE_ADC_CHANNEL   1
+
+
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
 //// Protocol commands configuration
@@ -247,7 +264,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // If the serial ISR uses freeRTOS API, the priorities values must be
 // equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
 #define SERIAL0_PRIORITY        6
-#define SERIAL1_PRIORITY        7
+#define SERIAL1_PRIORITY        6
 
 //// Communication definitions
 // defines the UART port used to communication between HMI and linux serial console
