@@ -246,7 +246,11 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"< Back to Info",                      MENU_RETURN,    25,     24,     NULL},    \
     {"Versions",                            MENU_LIST,      26,     20,     NULL},    \
     {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},    \
-    {"Factory Restore",                     MENU_CANCEL,    28,      0,     NULL},
+    {"Factory Restore",                     MENU_CONFIRM,   28,      0,     sys_restore_cb},
+
+// popups text content, format : {menu_id, text_content}
+#define POPUP_CONTENT   \
+    {28, "To proceed with Factory Restore you need hold the last footswitch and click YES."},    \
 
 
 //// Icons configuration

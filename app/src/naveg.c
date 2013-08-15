@@ -49,6 +49,11 @@ static const menu_desc_t g_menu_desc[] = {
     {NULL, 0, -1, -1, NULL}
 };
 
+static const menu_popup_t g_menu_popups[] = {
+    POPUP_CONTENT
+    {-1, NULL}
+};
+
 
 /*
 ************************************************************************************************************************
@@ -696,6 +701,12 @@ static void menu_enter(void)
     }
     else if (g_current_item->desc->type == MENU_CONFIRM || g_current_item->desc->type == MENU_CANCEL)
     {
+        item = g_current_item;
+
+        // calls the action callback
+        if (item->desc->action_cb)
+            item->desc->action_cb(item);
+
         // gets the menu item
         item = g_current_menu->data;
         g_current_item = item;
@@ -731,6 +742,21 @@ static void menu_enter(void)
 
         // defines the buttons count
         item->data.list_count = 2;
+
+        // default popup content value
+        item->data.popup_content = NULL;
+
+        // locates the popup menu
+        i = 0;
+        while (g_menu_popups[i].popup_content)
+        {
+            if (item->desc->id == g_menu_popups[i].menu_id)
+            {
+                item->data.popup_content = g_menu_popups[i].popup_content;
+                break;
+            }
+            i++;
+        }
     }
     else if (item->desc->type == MENU_CANCEL)
     {

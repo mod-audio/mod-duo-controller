@@ -421,7 +421,7 @@ void screen_system_menu(menu_item_t *item)
         case MENU_CANCEL:
             popup.type = (item->desc->type == MENU_CONFIRM ? YES_NO : CANCEL_ONLY);
             popup.title = item->desc->name;
-            popup.content = "popup content";
+            popup.content = item->data.popup_content;
             popup.button_selected = item->data.hover;
             widget_popup(SYSTEM_DISPLAY, &popup);
             break;

@@ -73,8 +73,7 @@ typedef struct MENU_DATA_T {
     char **list;
     uint8_t list_count;
     uint8_t selected, hover;
-
-    char *popup_title, *popup_content;
+    const char *popup_content;
 } menu_data_t;
 
 typedef struct MENU_ITEM_T {
@@ -82,6 +81,11 @@ typedef struct MENU_ITEM_T {
     const menu_desc_t *desc;
     menu_data_t data;
 } menu_item_t;
+
+typedef struct MENU_POPUP_T {
+    int8_t menu_id;
+    const char *popup_content;
+} menu_popup_t;
 
 
 /*
