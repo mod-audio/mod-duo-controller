@@ -152,6 +152,13 @@ static void uart_handler(uint8_t port)
         // If any error exist, calls serial_error function
         if (status)
         {
+            // if happen framing error flush out the FIFO
+            if ((status & UART_LSR_FE) || (status & UART_LSR_RXFE))
+            {
+                uint8_t buffer[UART_TX_FIFO_SIZE];
+                UART_Receive(uart, buffer, UART_TX_FIFO_SIZE, NONE_BLOCKING);
+            }
+
             serial_error(port, status);
             return;
         }
