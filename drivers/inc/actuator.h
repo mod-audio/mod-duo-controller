@@ -30,6 +30,7 @@ typedef enum {
 } actuator_prop_t;
 
 // Events definition
+#define EV_NONE                 0x00
 #define EV_BUTTON_CLICKED       0x01
 #define EV_BUTTON_PRESSED       0x02
 #define EV_BUTTON_RELEASED      0x04

@@ -69,8 +69,8 @@
 *********************************************************************************************************
 */
 
-void *g_actuators_pointers[MAX_ACTUATORS];
-uint8_t g_actuators_count = 0;
+static void *g_actuators_pointers[MAX_ACTUATORS];
+static uint8_t g_actuators_count = 0;
 
 
 /*
@@ -79,7 +79,7 @@ uint8_t g_actuators_count = 0;
 *********************************************************************************************************
 */
 
-void event(void *actuator, uint8_t flags);
+static void event(void *actuator, uint8_t flags);
 
 
 /*
@@ -95,7 +95,7 @@ void event(void *actuator, uint8_t flags);
 *********************************************************************************************************
 */
 
-void event(void *actuator, uint8_t flags)
+static void event(void *actuator, uint8_t flags)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
