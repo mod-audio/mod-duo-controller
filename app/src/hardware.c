@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "led.h"
 #include "actuator.h"
+#include "glcd.h"
 #include "tpa6130.h"
 
 #include "LPC177x_8x.h"
@@ -25,6 +26,10 @@
 *           LOCAL DEFINES
 ************************************************************************************************************************
 */
+
+// check in hardware_setup() what is the function of each timer
+#define TIMER0_PRIORITY     3
+#define TIMER1_PRIORITY     2
 
 
 /*
@@ -102,8 +107,7 @@ void hardware_setup(void)
     SystemCoreClockUpdate();
 
     // ARM reset
-    // FIXME: after implement the unblock message, change this initial state to BLOCK_ARM_RESET
-    UNBLOCK_ARM_RESET();
+    BLOCK_ARM_RESET();
 
     // CPU power pins configuration
     GPIO_SetDir(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN), GPIO_DIRECTION_OUTPUT);
@@ -114,15 +118,18 @@ void hardware_setup(void)
     GPIO_SetDir(COOLER_PORT, (1 << COOLER_PIN), GPIO_DIRECTION_OUTPUT);
     hardware_cooler(100);
 
+    // True bypass
+    GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
+    hardware_true_bypass(BYPASS);
+
     // LEDs initialization
     led_init(&g_leds[0], (const led_pins_t)LED0_PINS);
     led_init(&g_leds[1], (const led_pins_t)LED1_PINS);
     led_init(&g_leds[2], (const led_pins_t)LED2_PINS);
     led_init(&g_leds[3], (const led_pins_t)LED3_PINS);
 
-    // True bypass
-    GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
-    hardware_true_bypass(BYPASS);
+    // displays initialization
+    glcd_init();
 
     // actuators creation
     actuator_create(ROTARY_ENCODER, 0, hardware_actuators(ENCODER0));
@@ -193,7 +200,7 @@ void hardware_setup(void)
 
     ////////////////////////////////////////////////////////////////
     // Timer 1 configuration
-    // this timer is for general purpose
+    // this timer is for actuators clock and time stamp
 
     // initialize timer 1, prescale count time of 100us
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
@@ -282,6 +289,12 @@ void hardware_headphone(void)
         adc_value = 63 - (adc_value >> 6);
         tpa6130_set_volume(adc_value);
     }
+}
+
+void hardware_reset(uint8_t unblock)
+{
+    if (unblock) UNBLOCK_ARM_RESET();
+    else BLOCK_ARM_RESET();
 }
 
 void TIMER0_IRQHandler(void)

@@ -26,8 +26,8 @@
 ************************************************************************************************************************
 */
 
-#define BYPASS      0
-#define PROCESS     1
+enum {BYPASS, PROCESS};
+enum {BLOCK, UNBLOCK};
 
 
 /*
@@ -35,9 +35,6 @@
 *           CONFIGURATION DEFINES
 ************************************************************************************************************************
 */
-
-#define TIMER0_PRIORITY     3
-#define TIMER1_PRIORITY     2
 
 
 /*
@@ -81,6 +78,8 @@ uint32_t hardware_time_stamp(void);
 void hardware_true_bypass(uint8_t value);
 // updates the headphone gain
 void hardware_headphone(void);
+// unblock/block the arm microcontroller reset
+void hardware_reset(uint8_t unblock);
 
 
 /*
