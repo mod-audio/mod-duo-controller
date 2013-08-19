@@ -747,7 +747,7 @@ void widget_popup(uint8_t display, popup_t *popup)
     content.x = title.x + 1;
     content.y = popup->y + popup->font[FONT_HEIGHT] + 3;
     content.width = popup->width - 4;
-    content.height = (popup->font[FONT_HEIGHT] * 3);
+    content.height = (popup->font[FONT_HEIGHT] * 5); // FIXME: need be relative to popup height
     content.text = popup->content;
     widget_textbox(display, &content);
 
