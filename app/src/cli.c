@@ -19,10 +19,8 @@
 */
 
 #define NEW_LINE            "\r\n"
-#define ARROW_DOWN_VT100    "\x1B[B"
-
-#define GRUB_SELECT_FIRST   ARROW_DOWN_VT100 NEW_LINE
-#define GRUB_SELECT_SECOND  ARROW_DOWN_VT100 ARROW_DOWN_VT100 NEW_LINE
+#define ESCAPE              "\x1B"
+#define ARROW_DOWN_VT100    ESCAPE "[B"
 
 #define GRUB_TEXT           "GNU GRUB"
 #define LOGIN_TEXT          "mod login:"
@@ -31,6 +29,7 @@
 
 #define MOD_LOGIN           "root" NEW_LINE
 #define MOD_PASSWORD        "mod" NEW_LINE
+#define REBOOT_CMD          "reboot" NEW_LINE
 
 
 /*
@@ -41,6 +40,14 @@
 
 // defines the stages of CLI
 enum {GRUB_STAGE, BOOT_STAGE, LOGIN_STAGE, PASSWORD_STAGE, PROMPT_STAGE};
+
+// grub entries
+static const char *g_grub_entries[] = {
+    NEW_LINE,
+    ARROW_DOWN_VT100 NEW_LINE,
+    ARROW_DOWN_VT100 ARROW_DOWN_VT100 NEW_LINE,
+    ARROW_DOWN_VT100 ARROW_DOWN_VT100 ARROW_DOWN_VT100 NEW_LINE
+};
 
 
 /*
@@ -65,7 +72,8 @@ enum {GRUB_STAGE, BOOT_STAGE, LOGIN_STAGE, PASSWORD_STAGE, PROMPT_STAGE};
 
 static char g_line_buffer[CLI_LINE_BUFFER_SIZE];
 static uint32_t g_line_idx;
-static uint8_t g_new_data;
+static uint8_t g_stage, g_new_data;
+static uint8_t g_boot_aborted = 0, g_grub_entry = REGULAR_ENTRY;
 
 
 /*
@@ -118,25 +126,34 @@ void cli_append_data(const char *data, uint32_t data_size)
 
 void cli_process(void)
 {
-    static uint8_t stage;
     char *pstr;
 
     if (!g_new_data) return;
 
-    switch (stage)
+    // TODO: need feedback on some stages
+
+    switch (g_stage)
     {
         case GRUB_STAGE:
             pstr = strstr(g_line_buffer, GRUB_TEXT);
             if (pstr)
             {
-                comm_linux_send(GRUB_SELECT_FIRST);
+                if (g_grub_entry == STOP_TIMEOUT)
+                {
+                    comm_linux_send(ESCAPE);
+                    g_boot_aborted = 1;
+                }
+                else
+                {
+                    comm_linux_send(g_grub_entries[g_grub_entry]);
+                    g_stage = LOGIN_STAGE;
+                }
+
                 clear_buffer();
-                stage = LOGIN_STAGE;
             }
             break;
 
         case BOOT_STAGE:
-            // TODO: parsing the boot information and feedback the user
             break;
 
         case LOGIN_STAGE:
@@ -145,7 +162,7 @@ void cli_process(void)
             {
                 comm_linux_send(MOD_LOGIN);
                 clear_buffer();
-                stage = PASSWORD_STAGE;
+                g_stage = PASSWORD_STAGE;
             }
             break;
 
@@ -155,11 +172,16 @@ void cli_process(void)
             {
                 comm_linux_send(MOD_PASSWORD);
                 clear_buffer();
-                stage = PROMPT_STAGE;
+                g_stage = PROMPT_STAGE;
             }
             break;
 
         case PROMPT_STAGE:
+            // reboot the cpu to finish the restore
+            if (g_grub_entry == RESTORE_ENTRY) cli_reboot_cpu();
+
+            // reset to regular grub entry
+            g_grub_entry = REGULAR_ENTRY;
             break;
     }
 
@@ -168,4 +190,24 @@ void cli_process(void)
     if (pstr) clear_buffer();
 
     g_new_data = 0;
+}
+
+void cli_grub_select(uint8_t entry)
+{
+    if (g_boot_aborted)
+    {
+        comm_linux_send(g_grub_entries[entry]);
+        g_boot_aborted = 0;
+        g_stage = LOGIN_STAGE;
+    }
+    else
+    {
+        g_grub_entry = entry;
+        g_stage = GRUB_STAGE;
+    }
+}
+
+void cli_reboot_cpu(void)
+{
+    comm_linux_send(REBOOT_CMD);
 }

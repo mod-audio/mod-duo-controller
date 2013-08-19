@@ -24,6 +24,8 @@
 ************************************************************************************************************************
 */
 
+enum {MODUSB_ENTRY, REGULAR_ENTRY, RESTORE_ENTRY, PENDRIVE_ENTRY, STOP_TIMEOUT = 0xFF};
+
 
 /*
 ************************************************************************************************************************
@@ -65,6 +67,10 @@
 void cli_append_data(const char *data, uint32_t data_size);
 // process the data received
 void cli_process(void);
+// selects an grub entry
+void cli_grub_select(uint8_t entry);
+// reboot the CPU
+void cli_reboot_cpu(void);
 
 
 /*
