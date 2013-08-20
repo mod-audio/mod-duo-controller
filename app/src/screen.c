@@ -80,9 +80,6 @@ static tuner_t g_tuner = {0, NULL, 0, 1};
 ************************************************************************************************************************
 */
 
-
-// TODO: capitalize strings, truncate, replace underline by space
-
 void screen_clear(uint8_t display)
 {
     glcd_clear(display, GLCD_WHITE);
@@ -103,6 +100,8 @@ void screen_control(uint8_t display, control_t *control)
         title.color = GLCD_BLACK;
         title.mode = TEXT_SINGLE_LINE;
         title.font = alterebro24;
+        title.height = 0;
+        title.width = 0;
         title.top_margin = 0;
         title.bottom_margin = 0;
         title.left_margin = 0;
@@ -126,6 +125,8 @@ void screen_control(uint8_t display, control_t *control)
     title.bottom_margin = 0;
     title.left_margin = 0;
     title.right_margin = 0;
+    title.height = 0;
+    title.width = 113;
     title.text = control->label;
     title.align = ALIGN_LEFT_TOP;
     widget_textbox(display, &title);
@@ -201,6 +202,8 @@ void screen_controls_index(uint8_t display, uint8_t current, uint8_t max)
     index.color = GLCD_BLACK;
     index.mode = TEXT_SINGLE_LINE;
     index.font = System5x7;
+    index.height = 0;
+    index.width = 0;
     index.bottom_margin = 0;
     index.left_margin = 0;
     index.right_margin = 1;
@@ -238,6 +241,8 @@ void screen_footer(uint8_t display, const char *name, const char *value)
         title.bottom_margin = 0;
         title.left_margin = 0;
         title.right_margin = 0;
+        title.height = 0;
+        title.width = 0;
         title.text = text;
         title.align = ALIGN_CENTER_NONE;
         title.y = 52;
@@ -250,9 +255,11 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     footer.color = GLCD_BLACK;
     footer.mode = TEXT_SINGLE_LINE;
     footer.font = alterebro24;
+    footer.height = 0;
     footer.top_margin = 0;
     footer.bottom_margin = 0;
     footer.left_margin = 0;
+    footer.width = 96;
     footer.right_margin = 0;
     footer.text = name;
     footer.y = 52;
@@ -260,6 +267,7 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     widget_textbox(display, &footer);
 
     // draws the value field
+    footer.width = 0;
     footer.right_margin = 4;
     footer.text = value;
     footer.align = ALIGN_RIGHT_NONE;
@@ -316,6 +324,8 @@ void screen_bp_list(const char *title, bp_list_t *list)
     title_box.bottom_margin = 0;
     title_box.left_margin = 0;
     title_box.right_margin = 0;
+    title_box.height = 0;
+    title_box.width = 0;
     title_box.text = title;
     title_box.align = ALIGN_LEFT_TOP;
     widget_textbox(NAVEG_DISPLAY, &title_box);
@@ -352,6 +362,8 @@ void screen_bp_list(const char *title, bp_list_t *list)
         empty.bottom_margin = 0;
         empty.left_margin = 0;
         empty.right_margin = 0;
+        empty.height = 0;
+        empty.width = 0;
         empty.text = "NO BANKS";
         empty.align = ALIGN_CENTER_MIDDLE;
         widget_textbox(NAVEG_DISPLAY, &empty);
@@ -374,6 +386,8 @@ void screen_system_menu(menu_item_t *item)
     title_box.bottom_margin = 0;
     title_box.left_margin = 0;
     title_box.right_margin = 0;
+    title_box.height = 0;
+    title_box.width = 0;
     title_box.align = ALIGN_LEFT_TOP;
     title_box.text = item->name;
     if (item->desc->type == MENU_NONE || item->desc->type == MENU_ON_OFF)

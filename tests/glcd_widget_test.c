@@ -14,6 +14,8 @@ void glcd_widget_textbox_test(void)
     text1.bottom_margin = 0;
     text1.left_margin = 0;
     text1.right_margin = 0;
+    text1.heigth = 0;
+    text1.width = 0;
 
     text1.text = "TextLT";
     text1.align = ALIGN_LEFT_TOP;

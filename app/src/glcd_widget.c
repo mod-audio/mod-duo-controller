@@ -190,6 +190,9 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
         text_height = textbox->height;
     }
 
+    if (textbox->width == 0) textbox->width = text_width;
+    if (textbox->height == 0) textbox->height = text_height;
+
     switch (textbox->align)
     {
         case ALIGN_LEFT_TOP:
@@ -260,55 +263,58 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
     }
 
     // clear the text area
-    glcd_rect_fill(display, textbox->x, textbox->y, text_width, text_height, GLCD_WHITE);
+    glcd_rect_fill(display, textbox->x, textbox->y, textbox->width, textbox->height, GLCD_WHITE);
 
-    // draws the text
-    if (textbox->mode == TEXT_SINGLE_LINE)
+    uint8_t i = 0, index;
+    const char *ptext = textbox->text;
+    char buffer[DISPLAY_WIDTH/2];
+
+    text_width = 0;
+    text_height = 0;
+    index = FONT_FIXED_WIDTH;
+
+    // width correction to get the last character in single line mode
+    if (textbox->mode == TEXT_SINGLE_LINE) textbox->width += 2;
+
+    while (*ptext)
     {
-        glcd_text(display, textbox->x, textbox->y, textbox->text, textbox->font, textbox->color);
-    }
-    else
-    {
-        uint8_t i = 0, index;
-        const char *ptext = textbox->text;
-        char buffer[DISPLAY_WIDTH/2];
+        // gets the index of the current character
+        if (!FONT_IS_MONO_SPACED(textbox->font)) index = FONT_WIDTH_TABLE + ((*ptext) - textbox->font[FONT_FIRST_CHAR]);
 
-        text_width = 0;
-        text_height = 0;
-        index = FONT_FIXED_WIDTH;
+        // calculates the text width
+        text_width += textbox->font[index] + FONT_INTERCHAR_SPACE;
 
-        while (*ptext)
+        // buffering
+        buffer[i++] = *ptext;
+
+        // checks the width limit
+        if (text_width >= textbox->width)
         {
-            // gets the index of the current character
-            if (!FONT_IS_MONO_SPACED(textbox->font)) index = FONT_WIDTH_TABLE + ((*ptext) - textbox->font[FONT_FIRST_CHAR]);
-
-            // calculates the text width
-            text_width += textbox->font[index] + FONT_INTERCHAR_SPACE;
-
-            // buffering
-            buffer[i++] = *ptext;
-
-            // checks the width limit
-            if (text_width >= textbox->width)
-            {
-                buffer[i-1] = 0;
-                glcd_text(display, textbox->x, textbox->y + text_height, buffer, textbox->font, textbox->color);
-                text_height += textbox->font[FONT_HEIGHT] + 1;
-                text_width = 0;
-                i = 0;
-
-                // checks the height limit
-                if (text_height > textbox->height) break;
-            }
-            else ptext++;
-        }
-
-        // draws the last line
-        if (text_width > 0)
-        {
-            buffer[i] = 0;
+            buffer[i-1] = 0;
             glcd_text(display, textbox->x, textbox->y + text_height, buffer, textbox->font, textbox->color);
+            text_height += textbox->font[FONT_HEIGHT] + 1;
+            text_width = 0;
+            i = 0;
+
+            // break if is single line text
+            if (textbox->mode == TEXT_SINGLE_LINE)
+            {
+                text_height = 0;
+                text_width = 0;
+                break;
+            }
+
+            // checks the height limit
+            if (text_height > textbox->height) break;
         }
+        else ptext++;
+    }
+
+    // draws the last line
+    if (text_width > 0)
+    {
+        buffer[i] = 0;
+        glcd_text(display, textbox->x, textbox->y + text_height, buffer, textbox->font, textbox->color);
     }
 }
 
@@ -415,6 +421,8 @@ void widget_graph(uint8_t display, graph_t *graph)
     value_box.align = ALIGN_NONE_NONE;
     value_box.x = graph->x;
     value_box.y = graph->y;
+    value_box.height = 0;
+    value_box.width = 0;
 
     // init the unit box
     unit_box.mode = TEXT_SINGLE_LINE;
@@ -428,6 +436,8 @@ void widget_graph(uint8_t display, graph_t *graph)
     unit_box.align = ALIGN_NONE_NONE;
     unit_box.x = value_box.x + get_text_width(value_str, graph->font) + 4;
     unit_box.y = value_box.y;
+    unit_box.height = 0;
+    unit_box.width = 0;
 
     // linear
     // y = a*x + b
@@ -539,6 +549,8 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm)
     title.bottom_margin = 0;
     title.left_margin = 2;
     title.right_margin = 0;
+    title.height = 0;
+    title.width = 0;
     title.font = alterebro15;
     title.text = "Peak Meter";
     widget_textbox(display, &title);
@@ -560,6 +572,8 @@ void widget_peakmeter(uint8_t display, peakmeter_t *pkm)
     scale.left_margin = 0;
     scale.right_margin = 2;
     scale.font = alterebro15;
+    scale.height = 0;
+    scale.width = 0;
     scale.y = 11;
     scale.text = "0dB";
     widget_textbox(display, &scale);
@@ -602,6 +616,8 @@ void widget_tuner(uint8_t display, tuner_t *tuner)
     title.bottom_margin = 0;
     title.left_margin = 2;
     title.right_margin = 0;
+    title.height = 0;
+    title.width = 0;
     title.font = alterebro15;
     title.text = "Tuner";
     widget_textbox(display, &title);
@@ -621,6 +637,8 @@ void widget_tuner(uint8_t display, tuner_t *tuner)
     freq.mode = TEXT_SINGLE_LINE;
     freq.align = ALIGN_LEFT_NONE;
     freq.y = 51;
+    freq.height = 0;
+    freq.width = 0;
     freq.top_margin = 0;
     freq.bottom_margin = 0;
     freq.left_margin = 1;
@@ -638,6 +656,8 @@ void widget_tuner(uint8_t display, tuner_t *tuner)
     input.mode = TEXT_SINGLE_LINE;
     input.align = ALIGN_RIGHT_NONE;
     input.y = 51;
+    input.height = 0;
+    input.width = 0;
     input.top_margin = 0;
     input.bottom_margin = 0;
     input.left_margin = 0;
@@ -694,6 +714,8 @@ void widget_tuner(uint8_t display, tuner_t *tuner)
     note.left_margin = 0;
     note.right_margin = 0;
     note.y = 15;
+    note.height = 0;
+    note.width = 0;
     note.font = alterebro49;
     note.text = tuner->note;
     widget_textbox(display, &note);
@@ -730,6 +752,8 @@ void widget_popup(uint8_t display, popup_t *popup)
     title.right_margin = 0;
     title.x = popup->x + 1;
     title.y = popup->y + 1;
+    title.height = 0;
+    title.width = 0;
     title.font = popup->font;
     title.text = popup->title;
     widget_textbox(display, &title);
