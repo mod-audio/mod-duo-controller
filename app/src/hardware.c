@@ -10,7 +10,6 @@
 #include "utils.h"
 #include "led.h"
 #include "actuator.h"
-#include "glcd.h"
 #include "tpa6130.h"
 
 #include "LPC177x_8x.h"
@@ -37,6 +36,27 @@
 *           LOCAL CONSTANTS
 ************************************************************************************************************************
 */
+
+static const led_pins_t LEDS_PINS[] = {
+    LED0_PINS,
+    LED1_PINS,
+    LED2_PINS,
+    LED3_PINS
+};
+
+static const uint8_t *ENCODER_PINS[] = {
+    (const uint8_t []) ENCODER0_PINS,
+    (const uint8_t []) ENCODER1_PINS,
+    (const uint8_t []) ENCODER2_PINS,
+    (const uint8_t []) ENCODER3_PINS
+};
+
+static const uint8_t *FOOTSWITCH_PINS[] = {
+    (const uint8_t []) FOOTSWITCH0_PINS,
+    (const uint8_t []) FOOTSWITCH1_PINS,
+    (const uint8_t []) FOOTSWITCH2_PINS,
+    (const uint8_t []) FOOTSWITCH3_PINS
+};
 
 
 /*
@@ -118,46 +138,29 @@ void hardware_setup(void)
     GPIO_SetDir(COOLER_PORT, (1 << COOLER_PIN), GPIO_DIRECTION_OUTPUT);
     hardware_cooler(100);
 
-    // True bypass
+    // true bypass
     GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
     hardware_true_bypass(BYPASS);
 
-    // LEDs initialization
-    led_init(&g_leds[0], (const led_pins_t)LED0_PINS);
-    led_init(&g_leds[1], (const led_pins_t)LED1_PINS);
-    led_init(&g_leds[2], (const led_pins_t)LED2_PINS);
-    led_init(&g_leds[3], (const led_pins_t)LED3_PINS);
+    // SLOTs initialization
+    uint8_t i;
+    for (i = 0; i < SLOTS_COUNT; i++)
+    {
+        // LEDs initialization
+        led_init(&g_leds[i], LEDS_PINS[i]);
 
-    // displays initialization
-    glcd_init();
+        // actuators creation
+        actuator_create(ROTARY_ENCODER, i, hardware_actuators(ENCODER0 + i));
+        actuator_create(BUTTON, i, hardware_actuators(FOOTSWITCH0 + i));
 
-    // actuators creation
-    actuator_create(ROTARY_ENCODER, 0, hardware_actuators(ENCODER0));
-    actuator_create(ROTARY_ENCODER, 1, hardware_actuators(ENCODER1));
-    actuator_create(ROTARY_ENCODER, 2, hardware_actuators(ENCODER2));
-    actuator_create(ROTARY_ENCODER, 3, hardware_actuators(ENCODER3));
-    actuator_create(BUTTON, 0, hardware_actuators(FOOTSWITCH0));
-    actuator_create(BUTTON, 1, hardware_actuators(FOOTSWITCH1));
-    actuator_create(BUTTON, 2, hardware_actuators(FOOTSWITCH2));
-    actuator_create(BUTTON, 3, hardware_actuators(FOOTSWITCH3));
-    // actuators pins configuration
-    actuator_set_pins(hardware_actuators(ENCODER0), (const uint8_t []) ENCODER0_PINS);
-    actuator_set_pins(hardware_actuators(ENCODER1), (const uint8_t []) ENCODER1_PINS);
-    actuator_set_pins(hardware_actuators(ENCODER2), (const uint8_t []) ENCODER2_PINS);
-    actuator_set_pins(hardware_actuators(ENCODER3), (const uint8_t []) ENCODER3_PINS);
-    actuator_set_pins(hardware_actuators(FOOTSWITCH0), (const uint8_t []) FOOTSWITCH0_PINS);
-    actuator_set_pins(hardware_actuators(FOOTSWITCH1), (const uint8_t []) FOOTSWITCH1_PINS);
-    actuator_set_pins(hardware_actuators(FOOTSWITCH2), (const uint8_t []) FOOTSWITCH2_PINS);
-    actuator_set_pins(hardware_actuators(FOOTSWITCH3), (const uint8_t []) FOOTSWITCH3_PINS);
-    // actuators properties
-    actuator_set_prop(hardware_actuators(ENCODER0), ENCODER_STEPS, 3);
-    actuator_set_prop(hardware_actuators(ENCODER1), ENCODER_STEPS, 3);
-    actuator_set_prop(hardware_actuators(ENCODER2), ENCODER_STEPS, 3);
-    actuator_set_prop(hardware_actuators(ENCODER3), ENCODER_STEPS, 3);
-    actuator_set_prop(hardware_actuators(ENCODER0), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
-    actuator_set_prop(hardware_actuators(ENCODER1), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
-    actuator_set_prop(hardware_actuators(ENCODER2), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
-    actuator_set_prop(hardware_actuators(ENCODER3), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
+        // actuators pins configuration
+        actuator_set_pins(hardware_actuators(ENCODER0 + i), ENCODER_PINS[i]);
+        actuator_set_pins(hardware_actuators(FOOTSWITCH0 + i), FOOTSWITCH_PINS[i]);
+
+        // actuators properties
+        actuator_set_prop(hardware_actuators(ENCODER0 + i), ENCODER_STEPS, 3);
+        actuator_set_prop(hardware_actuators(ENCODER0 + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
+    }
 
     // Headphone initialization (TPA and ADC)
     tpa6130_init();
@@ -252,13 +255,12 @@ led_t *hardware_leds(uint8_t led_id)
 
 void *hardware_actuators(uint8_t actuator_id)
 {
-    //if (actuator_id >= ENCODER0 && actuator_id <= ENCODER3)
-    if (actuator_id <= ENCODER3)
+    if ((int8_t)actuator_id >= ENCODER0 && actuator_id < (ENCODER0 + FOOTSWITCHES_COUNT))
     {
         return (&g_encoders[actuator_id - ENCODER0]);
     }
 
-    if (actuator_id >= FOOTSWITCH0 && actuator_id <= FOOTSWITCH3)
+    if ((int8_t)actuator_id >= FOOTSWITCH0 && actuator_id < (FOOTSWITCH0 + FOOTSWITCHES_COUNT))
     {
         return (&g_footswitches[actuator_id - FOOTSWITCH0]);
     }
