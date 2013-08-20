@@ -116,13 +116,13 @@ typedef struct ENCODER_T {
 */
 
 // Macros to read actuators state
-#define BUTTON_CLICKED(status)      (status & EV_BUTTON_CLICKED)
-#define BUTTON_PRESSED(status)      (status & EV_BUTTON_PRESSED)
-#define BUTTON_RELEASED(status)     (status & EV_BUTTON_RELEASED)
-#define BUTTON_HOLD(status)         (status & EV_BUTTON_HELD)
-#define ENCODER_TURNED(status)      (status & EV_ENCODER_TURNED)
-#define ENCODER_TURNED_CW(status)   (status & EV_ENCODER_TURNED_CW)
-#define ENCODER_TURNED_ACW(status)  (status & EV_ENCODER_TURNED_ACW)
+#define BUTTON_CLICKED(status)      ((status) & EV_BUTTON_CLICKED)
+#define BUTTON_PRESSED(status)      ((status) & EV_BUTTON_PRESSED)
+#define BUTTON_RELEASED(status)     ((status) & EV_BUTTON_RELEASED)
+#define BUTTON_HOLD(status)         ((status) & EV_BUTTON_HELD)
+#define ENCODER_TURNED(status)      ((status) & EV_ENCODER_TURNED)
+#define ENCODER_TURNED_CW(status)   ((status) & EV_ENCODER_TURNED_CW)
+#define ENCODER_TURNED_ACW(status)  ((status) & EV_ENCODER_TURNED_ACW)
 
 
 /*
