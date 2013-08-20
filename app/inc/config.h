@@ -81,8 +81,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define ENCODER3_PINS       {0, 7, 2, 27, 2, 2}
 
 //// True bypass configuration
-#define TRUE_BYPASS_PORT    3
-#define TRUE_BYPASS_PIN     19
+#define TRUE_BYPASS_PORT        3
+#define TRUE_BYPASS_PIN         19
 
 //// Headphone configuration
 // headphone controller ports and pins definition
@@ -215,11 +215,11 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// System menu configuration
 // includes the system menu callbacks
-#include "sys_menu_cb.h"
+#include "system.h"
 // menu definition, format: {name, type, id, parent_id, action_callback}
 #define SYSTEM_MENU     \
     {"SETTINGS",                            MENU_LIST,       0,     -1,     NULL},    \
-    {"True Bypass                   ",      MENU_ON_OFF,     1,      0,     sys_true_bypass_cb},    \
+    {"True Bypass                   ",      MENU_ON_OFF,     1,      0,     system_true_bypass_cb}, \
     {"Pedalboard",                          MENU_LIST,       2,      0,     NULL},    \
     {"< Back to SETTINGS",                  MENU_RETURN,     3,      2,     NULL},    \
     {"Reset State",                         MENU_CONFIRM,    4,      2,     NULL},    \
@@ -246,11 +246,11 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"< Back to Info",                      MENU_RETURN,    25,     24,     NULL},    \
     {"Versions",                            MENU_LIST,      26,     20,     NULL},    \
     {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},    \
-    {"Factory Restore",                     MENU_CONFIRM,   28,      0,     sys_restore_cb},
+    {"Factory Restore",                     MENU_CONFIRM,   28,      0,     system_restore_cb},
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
-    {28, "To proceed with Factory Restore you need hold the last footswitch and click YES."},    \
+    {28, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},    \
 
 
 //// Icons configuration
@@ -275,14 +275,24 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define LINUX_SERIAL            1
 
 //// Foot functions leds colors
-#define TOGGLED_COLOR       GREEN
-#define TRIGGER_COLOR       GREEN
-#define TAP_TEMPO_COLOR     GREEN
-#define BYPASS_COLOR        RED
+#define TOGGLED_COLOR           GREEN
+#define TRIGGER_COLOR           GREEN
+#define TAP_TEMPO_COLOR         GREEN
+#define BYPASS_COLOR            RED
 
-//// TAP TEMPO
+//// Tap Tempo
 // defines the time that the led will stay turned on (in milliseconds)
-#define TAP_TEMPO_TIME_ON   20
+#define TAP_TEMPO_TIME_ON       20
+
+//// Pendrive restore definitions
+// defines the display where the popup will be showed
+#define PENDRIVE_RESTORE_DISPLAY    0
+// defines the popup title when the pendrive restore is invoked
+#define PENDRIVE_RESTORE_TITLE      "Pendrive Restore"
+// defines the popup title when the pendrive restore is invoked
+#define PENDRIVE_RESTORE_CONTENT    "To proceed with Pendrive Restore you need to hold the footswitches 2 and 4 and click YES."
+// defines the timeout for wait the user response (in seconds)
+#define PENDRIVE_RESTORE_TIMEOUT    30
 
 //// Dynamic menory allocation
 // these macros should be used in replacement to default malloc and free functions of stdlib.h

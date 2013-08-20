@@ -84,7 +84,8 @@ static void usb_receive_cb(uint32_t msg_size);
 static void procotol_task(void *pvParameters);
 static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
-static void cli_task(void *pvParameters);
+static void monitor_task(void *pvParameters);
+static void setup_task(void *pvParameters);
 
 // protocol callbacks
 static void ping_cb(proto_t *proto);
@@ -127,68 +128,8 @@ int main(void)
     // initialize hardware
     hardware_setup();
 
-    // serial initialization and callbacks definitions
-    serial_init(SERIAL1, SERIAL1_BAUDRATE, SERIAL1_PRIORITY);
-    serial_set_callback(SERIAL1, serial_cb);
-
-    // actuators callbacks
-    actuator_set_event(hardware_actuators(ENCODER0), actuators_cb);
-    actuator_set_event(hardware_actuators(ENCODER1), actuators_cb);
-    actuator_set_event(hardware_actuators(ENCODER2), actuators_cb);
-    actuator_set_event(hardware_actuators(ENCODER3), actuators_cb);
-    actuator_enable_event(hardware_actuators(ENCODER0), EV_ALL_ENCODER_EVENTS);
-    actuator_enable_event(hardware_actuators(ENCODER1), EV_ALL_ENCODER_EVENTS);
-    actuator_enable_event(hardware_actuators(ENCODER2), EV_ALL_ENCODER_EVENTS);
-    actuator_enable_event(hardware_actuators(ENCODER3), EV_ALL_ENCODER_EVENTS);
-    actuator_set_event(hardware_actuators(FOOTSWITCH0), actuators_cb);
-    actuator_set_event(hardware_actuators(FOOTSWITCH1), actuators_cb);
-    actuator_set_event(hardware_actuators(FOOTSWITCH2), actuators_cb);
-    actuator_set_event(hardware_actuators(FOOTSWITCH3), actuators_cb);
-    actuator_enable_event(hardware_actuators(FOOTSWITCH0), EV_ALL_BUTTON_EVENTS);
-    actuator_enable_event(hardware_actuators(FOOTSWITCH1), EV_ALL_BUTTON_EVENTS);
-    actuator_enable_event(hardware_actuators(FOOTSWITCH2), EV_ALL_BUTTON_EVENTS);
-    actuator_enable_event(hardware_actuators(FOOTSWITCH3), EV_ALL_BUTTON_EVENTS);
-
-    // displays initialization
-    glcd_init();
-
-    // protocol definitions
-    protocol_add_command(PING_CMD, ping_cb);
-    protocol_add_command(SAY_CMD, say_cb);
-    protocol_add_command(LED_CMD, led_cb);
-    protocol_add_command(GUI_CONNECTED_CMD, gui_connection_cb);
-    protocol_add_command(GUI_DISCONNECTED_CMD, gui_connection_cb);
-    protocol_add_command(CONTROL_ADD_CMD, control_add_cb);
-    protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
-    protocol_add_command(CONTROL_SET_CMD, control_set_cb);
-    protocol_add_command(CONTROL_GET_CMD, control_get_cb);
-    protocol_add_command(CLIPMETER_CMD, clipmeter_cb);
-    protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
-    protocol_add_command(TUNER_CMD, tuner_cb);
-    protocol_add_command(XRUN_CMD, xrun_cb);
-    protocol_add_command(RESPONSE_CMD, resp_cb);
-
-    // navegation initialization
-    naveg_init();
-
-    // cdc initialization
-    CDC_Init();
-    CDC_SetMessageCallback(usb_receive_cb);
-
-    // usb initialization
-    USB_Init(1);
-    USB_Connect(USB_CONNECT);
-    while (!USB_Configuration);
-
-    // create the queues
-    g_msg_queue = xQueueCreate(5, sizeof(msg_t *));
-    g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
-
-    // create tasks
-    xTaskCreate(procotol_task, NULL, 512, NULL, 2, NULL);
-    xTaskCreate(actuators_task, NULL, 512, NULL, 2, NULL);
-    xTaskCreate(displays_task, NULL, 512, NULL, 1, NULL);
-    xTaskCreate(cli_task, NULL, 128, NULL, 1, NULL);
+    // this task is used to setup the system and create the other tasks
+    xTaskCreate(setup_task, NULL, 256, NULL, 1, NULL);
 
     // start the scheduler
     vTaskStartScheduler();
@@ -219,9 +160,6 @@ void serial_error(uint8_t port, uint32_t error)
 {
     UNUSED_PARAM(port);
     UNUSED_PARAM(error);
-
-    // FIXME: need feedback when an error happen
-    while (1);
 }
 
 // this callback is called from a ISR
@@ -303,10 +241,6 @@ static void displays_task(void *pvParameters)
 
     while (1)
     {
-        // checks the screen icons
-        screen_clipmeter(0xFF, 0);
-        screen_xrun(0);
-
         // update the glcd
         taskENTER_CRITICAL();
         glcd_update();
@@ -374,15 +308,97 @@ static void actuators_task(void *pvParameters)
     }
 }
 
-static void cli_task(void *pvParameters)
+static void monitor_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
     while (1)
     {
+        // reset the screen icons
+        screen_clipmeter(0xFF, 0);
+        screen_xrun(0);
+
+        // checks the headphone
+        hardware_headphone();
+
+        // process the command line
         cli_process();
         taskYIELD();
     }
+}
+
+static void setup_task(void *pvParameters)
+{
+    UNUSED_PARAM(pvParameters);
+
+    // displays initialization
+    glcd_init();
+
+    // serial initialization and callbacks definitions
+    serial_init(SERIAL1, SERIAL1_BAUDRATE, SERIAL1_PRIORITY);
+    serial_set_callback(SERIAL1, serial_cb);
+
+    // create the queues
+    g_msg_queue = xQueueCreate(5, sizeof(msg_t *));
+    g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
+
+    // create the tasks
+    xTaskCreate(procotol_task, NULL, 512, NULL, 2, NULL);
+    xTaskCreate(actuators_task, NULL, 512, NULL, 2, NULL);
+    xTaskCreate(displays_task, NULL, 512, NULL, 1, NULL);
+    xTaskCreate(monitor_task, NULL, 256, NULL, 1, NULL);
+
+    // checks the system boot
+    system_check_boot();
+
+    // actuators callbacks
+    actuator_set_event(hardware_actuators(ENCODER0), actuators_cb);
+    actuator_set_event(hardware_actuators(ENCODER1), actuators_cb);
+    actuator_set_event(hardware_actuators(ENCODER2), actuators_cb);
+    actuator_set_event(hardware_actuators(ENCODER3), actuators_cb);
+    actuator_enable_event(hardware_actuators(ENCODER0), EV_ALL_ENCODER_EVENTS);
+    actuator_enable_event(hardware_actuators(ENCODER1), EV_ALL_ENCODER_EVENTS);
+    actuator_enable_event(hardware_actuators(ENCODER2), EV_ALL_ENCODER_EVENTS);
+    actuator_enable_event(hardware_actuators(ENCODER3), EV_ALL_ENCODER_EVENTS);
+    actuator_set_event(hardware_actuators(FOOTSWITCH0), actuators_cb);
+    actuator_set_event(hardware_actuators(FOOTSWITCH1), actuators_cb);
+    actuator_set_event(hardware_actuators(FOOTSWITCH2), actuators_cb);
+    actuator_set_event(hardware_actuators(FOOTSWITCH3), actuators_cb);
+    actuator_enable_event(hardware_actuators(FOOTSWITCH0), EV_BUTTON_PRESSED);
+    actuator_enable_event(hardware_actuators(FOOTSWITCH1), EV_BUTTON_PRESSED);
+    actuator_enable_event(hardware_actuators(FOOTSWITCH2), EV_BUTTON_PRESSED);
+    actuator_enable_event(hardware_actuators(FOOTSWITCH3), EV_BUTTON_PRESSED);
+
+    // navegation initialization
+    naveg_init();
+
+    // protocol definitions
+    protocol_add_command(PING_CMD, ping_cb);
+    protocol_add_command(SAY_CMD, say_cb);
+    protocol_add_command(LED_CMD, led_cb);
+    protocol_add_command(GUI_CONNECTED_CMD, gui_connection_cb);
+    protocol_add_command(GUI_DISCONNECTED_CMD, gui_connection_cb);
+    protocol_add_command(CONTROL_ADD_CMD, control_add_cb);
+    protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
+    protocol_add_command(CONTROL_SET_CMD, control_set_cb);
+    protocol_add_command(CONTROL_GET_CMD, control_get_cb);
+    protocol_add_command(CLIPMETER_CMD, clipmeter_cb);
+    protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
+    protocol_add_command(TUNER_CMD, tuner_cb);
+    protocol_add_command(XRUN_CMD, xrun_cb);
+    protocol_add_command(RESPONSE_CMD, resp_cb);
+
+    // cdc initialization
+    CDC_Init();
+    CDC_SetMessageCallback(usb_receive_cb);
+
+    // usb initialization
+    USB_Init(1);
+    USB_Connect(USB_CONNECT);
+    while (!USB_Configuration);
+
+    // deletes itself
+    vTaskDelete(NULL);
 }
 
 

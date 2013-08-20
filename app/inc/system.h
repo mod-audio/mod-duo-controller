@@ -1,12 +1,12 @@
 
 /*
 ************************************************************************************************************************
-*
+* This library defines the system related functions, inclusive the system menu callbacks
 ************************************************************************************************************************
 */
 
-#ifndef SYS_MENU_CB_H
-#define SYS_MENU_CB_H
+#ifndef SYSTEM_H
+#define SYSTEM_H
 
 
 /*
@@ -59,7 +59,12 @@
 ************************************************************************************************************************
 */
 
-void sys_true_bypass_cb(void *arg);
+// this function checks if the boot will proceed normally or will be an alternative boot
+void system_check_boot(void);
+
+// system menu callbacks
+void system_true_bypass_cb(void *arg);
+void system_restore_cb(void *arg);
 
 
 /*
