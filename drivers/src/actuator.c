@@ -109,7 +109,7 @@ static void event(void *actuator, uint8_t flags)
                 status = button->status;
                 button->status &= button->events_flags;
                 button->event(button);
-                button->status = status & ~(button->events_flags & flags);
+                button->status = status & ~(button->events_flags & (flags & TRIGGER_FLAGS));
             }
             break;
 
@@ -119,7 +119,7 @@ static void event(void *actuator, uint8_t flags)
                 status = encoder->status;
                 encoder->status &= encoder->events_flags;
                 encoder->event(encoder);
-                encoder->status = status & ~(encoder->events_flags & flags);
+                encoder->status = status & ~(encoder->events_flags & (flags & TRIGGER_FLAGS));
             }
             break;
     }
