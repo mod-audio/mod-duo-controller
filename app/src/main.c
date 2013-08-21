@@ -484,7 +484,7 @@ static void peakmeter_cb(proto_t *proto)
 static void tuner_cb(proto_t *proto)
 {
     screen_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
-    //protocol_response("resp 0", proto); FIXME: when enabled happen HardFault
+    protocol_response("resp 0", proto);
 }
 
 static void clipmeter_cb(proto_t *proto)
