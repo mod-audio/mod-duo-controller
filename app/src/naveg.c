@@ -331,6 +331,8 @@ static void display_control_rm(int8_t effect_instance, const char *symbol)
 // control assigned to foot
 static void foot_control_add(control_t *control)
 {
+    uint8_t i;
+
     if (control->actuator_id >= FOOTSWITCHES_COUNT ||
        (g_foots[control->actuator_id] && g_foots[control->actuator_id] != control)) return;
 
@@ -369,7 +371,6 @@ static void foot_control_add(control_t *control)
                 led_blink(hardware_leds(control->actuator_id), time_ms / 2, time_ms / 2);
 
             // footer text composition
-            uint8_t i;
             char value_txt[32];
             i = int_to_str(control->value, value_txt, sizeof(value_txt), 0);
             value_txt[i++] = ' ';
@@ -398,6 +399,23 @@ static void foot_control_add(control_t *control)
             else
                 led_set_color(hardware_leds(control->actuator_id), BYPASS_COLOR);
             screen_footer(control->actuator_id, control->label, (control->value ? "BYP" : "PROC"));
+            break;
+
+        case CONTROL_PROP_ENUMERATION:
+            led_set_color(hardware_leds(control->actuator_id), ENUMERATED_COLOR);
+
+            // locates the current value
+            control->step = 0;
+            for (i = 0; i < control->scale_points_count; i++)
+            {
+                if (control->value == control->scale_points[i]->value)
+                {
+                    control->step = i;
+                    break;
+                }
+            }
+            control->steps = control->scale_points_count;
+            screen_footer(control->actuator_id, control->scale_points[i]->label, NULL);
             break;
     }
 }
@@ -446,10 +464,27 @@ static void control_set(uint8_t display, control_t *control)
         case CONTROL_PROP_LINEAR:
         case CONTROL_PROP_INTEGER:
         case CONTROL_PROP_LOGARITHMIC:
-        case CONTROL_PROP_ENUMERATION:
 
             // update the screen
             screen_control(display, control);
+            break;
+
+        case CONTROL_PROP_ENUMERATION:
+            if (control->actuator_type == KNOB)
+            {
+                // update the screen
+                screen_control(display, control);
+            }
+            else if (control->actuator_type == FOOT)
+            {
+                // increments the step
+                control->step++;
+                if (control->step >= control->scale_points_count) control->step = 0;
+
+                // updates the value and the screen
+                control->value = control->scale_points[control->step]->value;
+                screen_footer(control->actuator_id, control->scale_points[control->step]->label, NULL);
+            }
             break;
 
         case CONTROL_PROP_TOGGLED:

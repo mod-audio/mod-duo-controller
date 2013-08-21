@@ -303,7 +303,7 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     footer.top_margin = 0;
     footer.bottom_margin = 0;
     footer.left_margin = 0;
-    footer.width = 96;
+    footer.width = (value == NULL ? 124 : 96);
     footer.right_margin = 0;
     footer.text = name;
     footer.y = 52;
