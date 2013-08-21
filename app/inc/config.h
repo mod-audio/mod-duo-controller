@@ -152,6 +152,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_PROP_TRIGGER        4
 #define CONTROL_PROP_TAP_TEMPO      5
 #define CONTROL_PROP_BYPASS         6
+#define CONTROL_PROP_INTEGER        7
 
 //// Tools configuration
 // tools identification (don't change)

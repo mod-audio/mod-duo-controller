@@ -216,8 +216,8 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
             break;
 
         case ALIGN_CENTER_MIDDLE:
-            textbox->x = (DISPLAY_WIDTH / 2) - (text_width / 2);
-            textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
+            textbox->x = ((DISPLAY_WIDTH / 2) - (text_width / 2)) + (textbox->left_margin - textbox->right_margin);
+            textbox->y = ((DISPLAY_HEIGHT / 2) - (text_height / 2)) + (textbox->top_margin - textbox->bottom_margin);
             break;
 
         case ALIGN_RIGHT_MIDDLE:

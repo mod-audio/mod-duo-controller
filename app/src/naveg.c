@@ -156,6 +156,7 @@ static void step_to_value(control_t *control)
     switch (control->properties)
     {
         case CONTROL_PROP_LINEAR:
+        case CONTROL_PROP_INTEGER:
             control->value = (p_step * (control->maximum - control->minimum)) + control->minimum;
             break;
 
@@ -239,8 +240,13 @@ static void display_control_add(control_t *control)
                     break;
                 }
             }
-
             control->steps = control->scale_points_count;
+            break;
+
+        case CONTROL_PROP_INTEGER:
+            control->steps = (control->maximum - control->minimum) + 1;
+            control->step =
+                (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
             break;
     }
 
@@ -438,6 +444,7 @@ static void control_set(uint8_t display, control_t *control)
     switch (control->properties)
     {
         case CONTROL_PROP_LINEAR:
+        case CONTROL_PROP_INTEGER:
         case CONTROL_PROP_LOGARITHMIC:
         case CONTROL_PROP_ENUMERATION:
 

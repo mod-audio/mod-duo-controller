@@ -154,6 +154,50 @@ void screen_control(uint8_t display, control_t *control)
         widget_graph(display, &graph);
     }
 
+    // integer type control
+    else if (control->properties == CONTROL_PROP_INTEGER)
+    {
+        textbox_t value, unit;
+        char value_str[32];
+
+        // clear the text area
+        glcd_rect_fill(display, 0, 17, 128, 33, GLCD_WHITE);
+
+        // draws the value
+        int_to_str(control->value, value_str, sizeof(value_str), 0);
+        value.color = GLCD_BLACK;
+        value.mode = TEXT_SINGLE_LINE;
+        value.font = alterebro49;
+        value.top_margin = 3;
+        value.bottom_margin = 0;
+        value.left_margin = 0;
+        value.right_margin = (strcmp(control->unit, "none") == 0 ? 0 : 4);
+        value.height = 0;
+        value.width = 0;
+        value.text = value_str;
+        value.align = ALIGN_CENTER_MIDDLE;
+        widget_textbox(display, &value);
+
+        // draws the unit
+        if (strcmp(control->unit, "none") != 0)
+        {
+            unit.color = GLCD_BLACK;
+            unit.mode = TEXT_SINGLE_LINE;
+            unit.font = alterebro24;
+            unit.top_margin = 0;
+            unit.bottom_margin = 0;
+            unit.left_margin = 0;
+            unit.right_margin = 0;
+            unit.height = 0;
+            unit.width = 0;
+            unit.text = control->unit;
+            unit.align = ALIGN_NONE_NONE;
+            unit.x = value.x + value.width + 2;
+            unit.y = value.y + value.height - unit.font[FONT_HEIGHT];
+            widget_textbox(display, &unit);
+        }
+    }
+
     // list type control
     else if (control->properties == CONTROL_PROP_ENUMERATION)
     {
