@@ -106,6 +106,8 @@ uint8_t g_max_items_list;
 
 static void display_control_add(control_t *control);
 static void display_control_rm(int8_t effect_instance, const char *symbol);
+static void foot_control_add(control_t *control);
+static void foot_control_rm(int8_t effect_instance, const char *symbol);
 
 
 /*
@@ -194,10 +196,12 @@ static void display_control_add(control_t *control)
     node = search_control(control->effect_instance, control->symbol, &display);
     if (node)
     {
+        // if is in the list but in other actuator, removes it
         if (display != control->actuator_id)
         {
             display_control_rm(control->effect_instance, control->symbol);
         }
+        // if is in the list and in the same actuator, cancels the control addition
         else
         {
             data_free_control(control);
@@ -333,8 +337,27 @@ static void foot_control_add(control_t *control)
 {
     uint8_t i;
 
-    if (control->actuator_id >= FOOTSWITCHES_COUNT ||
-       (g_foots[control->actuator_id] && g_foots[control->actuator_id] != control)) return;
+    // checks the actuator id
+    if (control->actuator_id >= FOOTSWITCHES_COUNT) return;
+
+    // checks if the foot is already used by other control and not is state updating
+    if (g_foots[control->actuator_id] && g_foots[control->actuator_id] != control)
+    {
+        data_free_control(control);
+        return;
+    }
+
+    // checks in the foots list if the foot is already assigned
+    for (i = 0; i < FOOTSWITCHES_COUNT; i++)
+    {
+        if (control->effect_instance == g_foots[i]->effect_instance &&
+            control->actuator_id != g_foots[i]->actuator_id &&
+            strcmp(control->symbol, g_foots[i]->symbol) == 0)
+        {
+            foot_control_rm(g_foots[i]->effect_instance, g_foots[i]->symbol);
+            break;
+        }
+    }
 
     // stores the foot
     g_foots[control->actuator_id] = control;
