@@ -659,12 +659,15 @@ static void request_pedalboards_list(const char *bank_uid)
     comm_webgui_wait_response();
 }
 
-static void send_load_pedalboard(const char *pedalboard_uid)
+static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
 {
     uint8_t i;
     char buffer[128];
 
     i = copy_command((char *)buffer, PEDALBOARD_CMD);
+
+    // copy the bank id
+    i += int_to_str(bank_id, &buffer[i], 8, 0);
 
     // copy the pedalboard uid
     const char *p = pedalboard_uid;
@@ -721,7 +724,7 @@ static void bp_enter(void)
             g_pedalboards->selected = g_pedalboards->hover;
 
             // request to GUI load the pedalboard
-            send_load_pedalboard(g_pedalboards->uids[g_pedalboards->selected]);
+            send_load_pedalboard(g_banks->selected, g_pedalboards->uids[g_pedalboards->selected]);
 
             // does a copy of pedalboards list if the bank changed
             if (g_current_bank != g_banks->selected)
@@ -987,7 +990,7 @@ static uint8_t check_bank_config(uint8_t foot)
                         }
 
                         g_last_pedalboards->selected = g_current_pedalboard;
-                        send_load_pedalboard(g_last_pedalboards->uids[g_last_pedalboards->selected]);
+                        send_load_pedalboard(g_current_bank, g_last_pedalboards->uids[g_last_pedalboards->selected]);
                     }
                     break;
 
@@ -1007,7 +1010,7 @@ static uint8_t check_bank_config(uint8_t foot)
                         }
 
                         g_last_pedalboards->selected = g_current_pedalboard;
-                        send_load_pedalboard(g_last_pedalboards->uids[g_last_pedalboards->selected]);
+                        send_load_pedalboard(g_current_bank, g_last_pedalboards->uids[g_last_pedalboards->selected]);
                     }
                     break;
             }

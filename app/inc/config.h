@@ -129,8 +129,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define BANK_CONFIG_CMD         "bank_config %i %i %i %i %i"
 // pedalboards <bank_uid>
 #define PEDALBOARDS_CMD         "pedalboards %s"
-// pedalboard <pedalboard_uid>
-#define PEDALBOARD_CMD          "pedalboard %s"
+// pedalboard <bank_id> <pedalboard_uid>
+#define PEDALBOARD_CMD          "pedalboard %i %s"
 // clipmeter <clipmeter_id>
 #define CLIPMETER_CMD           "clipmeter %i"
 // peakmeter <peakmeter_number> <peakmeter_value>
