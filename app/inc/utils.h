@@ -102,6 +102,10 @@ uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size)
 uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size);
 // ringbuff_size: returns the amount of unread bytes
 uint32_t ringbuff_size(ringbuff_t *rb);
+// ringbuff_is_full: returns non zero is buffer is full
+uint32_t ringbuf_is_full(ringbuff_t *rb);
+// ringbuff_is_empty: returns non zero is buffer is empty
+uint32_t ringbuf_is_empty(ringbuff_t *rb);
 
 
 /*

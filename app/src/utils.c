@@ -483,3 +483,13 @@ uint32_t ringbuff_size(ringbuff_t *rb)
 {
     return ((rb->head - rb->tail) % rb->size);
 }
+
+uint32_t ringbuf_is_full(ringbuff_t *rb)
+{
+    return BUFFER_IS_FULL(rb);
+}
+
+uint32_t ringbuf_is_empty(ringbuff_t *rb)
+{
+    return BUFFER_IS_EMPTY(rb);
+}
