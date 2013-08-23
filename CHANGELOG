@@ -1,3 +1,9 @@
+0.11.2
+======
+  - FIX: jack_bufsize command
+  - FIX: save/reset pedalboard commands
+  - FIX: serial send to long buffers
+
 0.11.1
 ======
   - FIX: load pedalboard
