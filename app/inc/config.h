@@ -232,34 +232,34 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #include "system.h"
 // menu definition, format: {name, type, id, parent_id, action_callback}
 #define SYSTEM_MENU     \
-    {"SETTINGS",                            MENU_LIST,       0,     -1,     NULL},    \
-    {"True Bypass                   ",      MENU_ON_OFF,     1,      0,     system_true_bypass_cb}, \
-    {"Pedalboard",                          MENU_LIST,       2,      0,     NULL},    \
-    {"< Back to SETTINGS",                  MENU_RETURN,     3,      2,     NULL},    \
-    {"Reset State",                         MENU_CONFIRM,    4,      2,     NULL},    \
-    {"Save State",                          MENU_CONFIRM,    5,      2,     NULL},    \
-    {"Expression Pedal",                    MENU_LIST,       6,      2,     NULL},    \
-    {"< Back to Pedalboard",                MENU_RETURN,     7,      6,     NULL},    \
-    {"Bluetooth",                           MENU_LIST,       8,      0,     NULL},    \
-    {"< Back to SETTINGS",                  MENU_RETURN,     9,      8,     NULL},    \
-    {"Status                           ",   MENU_ON_OFF,    10,      8,     NULL},    \
-    {"Name",                                MENU_NONE,      11,      8,     NULL},    \
-    {"Address",                             MENU_NONE,      12,      8,     NULL},    \
-    {"PIN",                                 MENU_NONE,      13,      8,     NULL},    \
-    {"Reset PIN",                           MENU_CONFIRM,   14,      8,     NULL},    \
-    {"Jack",                                MENU_LIST,      15,      0,     NULL},    \
-    {"< Back to SETTINGS",                  MENU_RETURN,    16,     15,     NULL},    \
-    {"Quality",                             MENU_NONE,      17,     15,     NULL},    \
-    {"Normal",                              MENU_NONE,      18,     15,     NULL},    \
-    {"Performance",                         MENU_NONE,      19,     15,     NULL},    \
-    {"Info",                                MENU_LIST,      20,      0,     NULL},    \
-    {"< Back to SETTINGS",                  MENU_RETURN,    21,     20,     NULL},    \
-    {"CPU",                                 MENU_LIST,      22,     20,     NULL},    \
-    {"< Back to Info",                      MENU_RETURN,    23,     22,     NULL},    \
-    {"Services",                            MENU_LIST,      24,     20,     NULL},    \
-    {"< Back to Info",                      MENU_RETURN,    25,     24,     NULL},    \
-    {"Versions",                            MENU_LIST,      26,     20,     NULL},    \
-    {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},    \
+    {"SETTINGS",                            MENU_LIST,       0,     -1,     NULL},                      \
+    {"True Bypass                   ",      MENU_ON_OFF,     1,      0,     system_true_bypass_cb},     \
+    {"Pedalboard",                          MENU_LIST,       2,      0,     NULL},                      \
+    {"< Back to SETTINGS",                  MENU_RETURN,     3,      2,     NULL},                      \
+    {"Reset State",                         MENU_CONFIRM,    4,      2,     NULL},                      \
+    {"Save State",                          MENU_CONFIRM,    5,      2,     NULL},                      \
+    {"Expression Pedal",                    MENU_LIST,       6,      2,     NULL},                      \
+    {"< Back to Pedalboard",                MENU_RETURN,     7,      6,     NULL},                      \
+    {"Bluetooth",                           MENU_LIST,       8,      0,     NULL},                      \
+    {"< Back to SETTINGS",                  MENU_RETURN,     9,      8,     NULL},                      \
+    {"Status                           ",   MENU_ON_OFF,    10,      8,     NULL},                      \
+    {"Name",                                MENU_NONE,      11,      8,     NULL},                      \
+    {"Address",                             MENU_NONE,      12,      8,     NULL},                      \
+    {"PIN",                                 MENU_NONE,      13,      8,     NULL},                      \
+    {"Reset PIN",                           MENU_CONFIRM,   14,      8,     NULL},                      \
+    {"Jack",                                MENU_SELECT,    15,      0,     NULL},                      \
+    {"< Back to SETTINGS",                  MENU_RETURN,    16,     15,     NULL},                      \
+    {"Quality",                             MENU_NONE,      17,     15,     system_jack_quality},       \
+    {"Normal",                              MENU_NONE,      18,     15,     system_jack_normal},        \
+    {"Performance",                         MENU_NONE,      19,     15,     system_jack_performance},   \
+    {"Info",                                MENU_LIST,      20,      0,     NULL},                      \
+    {"< Back to SETTINGS",                  MENU_RETURN,    21,     20,     NULL},                      \
+    {"CPU",                                 MENU_LIST,      22,     20,     NULL},                      \
+    {"< Back to Info",                      MENU_RETURN,    23,     22,     NULL},                      \
+    {"Services",                            MENU_LIST,      24,     20,     NULL},                      \
+    {"< Back to Info",                      MENU_RETURN,    25,     24,     NULL},                      \
+    {"Versions",                            MENU_LIST,      26,     20,     NULL},                      \
+    {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},                      \
     {"Factory Restore",                     MENU_CONFIRM,   28,      0,     system_restore_cb},
 
 // popups text content, format : {menu_id, text_content}
@@ -321,9 +321,9 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PEDALBOARD_PREV_FOOTER_TEXT "-"
 
 //// Jack buffer size configuration
-#define JACK_BUF_SIZE_QUALITY       128
+#define JACK_BUF_SIZE_QUALITY       512
 #define JACK_BUF_SIZE_NORMAL        256
-#define JACK_BUF_SIZE_PERFORMANCE   512
+#define JACK_BUF_SIZE_PERFORMANCE   128
 
 //// Pendrive restore definitions
 // defines the display where the popup will be showed
