@@ -320,6 +320,8 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
 
 char *str_duplicate(const char *str)
 {
+    if (!str) return NULL;
+
     char *copy = MALLOC(strlen(str) + 1);
     strcpy(copy, str);
     return copy;
