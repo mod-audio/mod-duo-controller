@@ -669,6 +669,9 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
     // copy the bank id
     i += int_to_str(bank_id, &buffer[i], 8, 0);
 
+    // inserts one space
+    buffer[i++] = ' ';
+
     // copy the pedalboard uid
     const char *p = pedalboard_uid;
     while (*p)
