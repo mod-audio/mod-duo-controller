@@ -189,6 +189,29 @@ static uint8_t copy_command(char *buffer, const char *command)
     return i;
 }
 
+// puts '> ' at start of string
+static void select_item(char *item_str)
+{
+    char buffer[MAX_CHARS_MENU_NAME];
+
+    if (item_str[0] == '>') return;
+
+    strcpy(buffer, "> ");
+    strcat(buffer, item_str);
+    strcpy(item_str, buffer);
+}
+
+// removes '> ' from start of string
+static void deselect_item(char *item_str)
+{
+    char buffer[MAX_CHARS_MENU_NAME];
+
+    if (item_str[0] != '>') return;
+
+    strcpy(buffer, &item_str[2]);
+    strcpy(item_str, buffer);
+}
+
 // duplicate the bp_list object
 static bp_list_t* duplicate_bp_list(const bp_list_t *src)
 {
@@ -805,7 +828,7 @@ static void menu_enter(void)
     menu_item_t *item;
 
     // checks the current item
-    if (g_current_item->desc->type == MENU_LIST)
+    if (g_current_item->desc->type == MENU_LIST || g_current_item->desc->type == MENU_SELECT)
     {
         // locates the clicked item
         node = g_current_menu->first_child;
@@ -838,7 +861,7 @@ static void menu_enter(void)
     }
 
     // checks the selected item
-    if (item->desc->type == MENU_LIST)
+    if (item->desc->type == MENU_LIST || item->desc->type == MENU_SELECT)
     {
         // changes the current menu
         g_current_menu = node;
@@ -898,14 +921,23 @@ static void menu_enter(void)
         // calls the action callback
         if (item->desc->action_cb)
             item->desc->action_cb(item);
-
-        // keeps the current item
-        //item = g_current_item;
     }
     else if (item->desc->type == MENU_NONE)
     {
-        // keeps the current item
-        //item = g_current_item;
+        // checks if the parent item type is MENU_SELECT
+        if (g_current_item->desc->type == MENU_SELECT)
+        {
+            // deselects all items
+            for (i = 1; i < g_current_item->data.list_count; i++)
+                deselect_item(g_current_item->data.list[i]);
+
+            // selects the current item
+            select_item(item->name);
+        }
+
+        // calls the action callback
+        if (item->desc->action_cb)
+            item->desc->action_cb(item);
     }
 
     screen_system_menu(item);
@@ -946,7 +978,8 @@ static void create_menu_tree(node_t *parent, const menu_desc_t *desc)
             node_t *node;
             node = node_child(parent, item);
 
-            if (item->desc->type == MENU_LIST) create_menu_tree(node, &g_menu_desc[i]);
+            if (item->desc->type == MENU_LIST || item->desc->type == MENU_SELECT)
+                create_menu_tree(node, &g_menu_desc[i]);
         }
     }
 }
@@ -957,7 +990,7 @@ static void reset_menu_hover(node_t *menu_node)
     for (node = menu_node->first_child; node; node = node->next)
     {
         menu_item_t *item = node->data;
-        if (item->desc->type == MENU_LIST) item->data.hover = 0;
+        if (item->desc->type == MENU_LIST || item->desc->type == MENU_SELECT) item->data.hover = 0;
         reset_menu_hover(node);
     }
 }
