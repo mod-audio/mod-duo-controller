@@ -412,6 +412,15 @@ static void setup_task(void *pvParameters)
 
 static void ping_cb(proto_t *proto)
 {
+    static uint8_t ping_ok;
+
+    if (!ping_ok)
+    {
+        hardware_set_true_bypass(PROCESS);
+        hardware_reset(UNBLOCK);
+        ping_ok = 1;
+    }
+
     protocol_response("resp 0", proto);
 }
 
