@@ -92,6 +92,7 @@ static led_t g_leds[LEDS_COUNT];
 static encoder_t g_encoders[ENCODERS_COUNT];
 static button_t g_footswitches[FOOTSWITCHES_COUNT];
 static uint32_t g_counter;
+static uint8_t g_true_bypass;
 
 
 /*
@@ -140,7 +141,7 @@ void hardware_setup(void)
 
     // true bypass
     GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
-    hardware_true_bypass(BYPASS);
+    hardware_set_true_bypass(BYPASS);
 
     // SLOTs initialization
     uint8_t i;
@@ -273,12 +274,19 @@ uint32_t hardware_time_stamp(void)
     return g_counter;
 }
 
-void hardware_true_bypass(uint8_t value)
+void hardware_set_true_bypass(uint8_t value)
 {
     if (value)
         GPIO_SetValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
     else
         GPIO_ClearValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
+
+    g_true_bypass = value;
+}
+
+uint8_t hardware_get_true_bypass(void)
+{
+    return g_true_bypass;
 }
 
 void hardware_headphone(void)
