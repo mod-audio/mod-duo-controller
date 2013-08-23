@@ -126,8 +126,11 @@ static void uart_transmit(uint8_t port)
     count = ringbuff_read(g_tx_buffer[port], buffer, UART_TX_FIFO_SIZE);
     if (count > 0) UART_Send(uart, buffer, count, NONE_BLOCKING);
 
-    // Enable THRE interrupt
-    UART_IntConfig(uart, UART_INTCFG_THRE, ENABLE);
+    // Enable THRE interrupt if buffer is not empty
+    if (!ringbuf_is_empty(g_tx_buffer[port]))
+    {
+        UART_IntConfig(uart, UART_INTCFG_THRE, ENABLE);
+    }
 }
 
 static void uart_handler(uint8_t port)
@@ -304,7 +307,6 @@ void serial_set_callback(uint8_t port, void (*receive_cb)(uint8_t _port))
 
 uint32_t serial_send(uint8_t port, uint8_t *data, uint32_t data_size)
 {
-    uint32_t count;
     LPC_UART_TypeDef *uart = GET_UART(port);
 
     // Temporarily lock out UART transmit interrupts during this
@@ -312,18 +314,25 @@ uint32_t serial_send(uint8_t port, uint8_t *data, uint32_t data_size)
     // with the index values
     UART_IntConfig(uart, UART_INTCFG_THRE, DISABLE);
 
-    count = ringbuff_write(g_tx_buffer[port], data, data_size);
+    uint32_t written, to_write, index;
+    written = ringbuff_write(g_tx_buffer[port], data, data_size);
+    to_write = data_size - written;
+    index = written;
 
-    // checks if need forces the first send
-    if (ringbuff_size(g_tx_buffer[port]) == data_size)
+    uart_transmit(port);
+
+    // waits until all data be sent
+    while (to_write > 0)
     {
-        uart_transmit(port);
+        if (!ringbuf_is_full(g_tx_buffer[port]))
+        {
+            written = ringbuff_write(g_tx_buffer[port], &data[index], to_write);
+            to_write -= written;
+            index += written;
+        }
     }
 
-    // Enable THRE interrupt
-    UART_IntConfig(uart, UART_INTCFG_THRE, ENABLE);
-
-    return count;
+    return data_size;
 }
 
 uint32_t serial_read(uint8_t port, uint8_t *data, uint32_t data_size)
