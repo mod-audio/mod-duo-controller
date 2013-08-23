@@ -236,8 +236,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"True Bypass                   ",      MENU_ON_OFF,     1,      0,     system_true_bypass_cb},     \
     {"Pedalboard",                          MENU_LIST,       2,      0,     NULL},                      \
     {"< Back to SETTINGS",                  MENU_RETURN,     3,      2,     NULL},                      \
-    {"Reset State",                         MENU_CONFIRM,    4,      2,     NULL},                      \
-    {"Save State",                          MENU_CONFIRM,    5,      2,     NULL},                      \
+    {"Reset State",                         MENU_CONFIRM,    4,      2,     system_reset_pedalboard},   \
+    {"Save State",                          MENU_CONFIRM,    5,      2,     system_save_pedalboard},    \
     {"Expression Pedal",                    MENU_LIST,       6,      2,     NULL},                      \
     {"< Back to Pedalboard",                MENU_RETURN,     7,      6,     NULL},                      \
     {"Bluetooth",                           MENU_LIST,       8,      0,     NULL},                      \
@@ -264,6 +264,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
+    {4, "Are you sure that you want reset the pedalboard values to last saved state?"},                 \
+    {5, "Are you sure that you want save the current pedalboard values like default?"},                 \
     {28, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
 
 
