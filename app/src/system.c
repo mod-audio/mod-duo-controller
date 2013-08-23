@@ -11,9 +11,12 @@
 #include "naveg.h"
 #include "hardware.h"
 #include "actuator.h"
+#include "comm.h"
 #include "cli.h"
 #include "glcd_widget.h"
 #include "glcd.h"
+
+#include <string.h>
 
 
 /*
@@ -164,7 +167,44 @@ void system_check_boot(void)
 void system_true_bypass_cb(void *arg)
 {
     menu_item_t *item = arg;
-    hardware_true_bypass(item->data.hover);
+    item->data.hover = 1 - hardware_get_true_bypass();
+    hardware_set_true_bypass(item->data.hover);
+}
+
+void system_reset_pedalboard(void *arg)
+{
+    menu_item_t *item = arg;
+
+    // checks if is the YES button
+    if (item->data.hover == 0)
+        comm_webgui_send(PEDALBOARD_RESET_CMD, strlen(PEDALBOARD_RESET_CMD));
+}
+
+void system_save_pedalboard(void *arg)
+{
+    menu_item_t *item = arg;
+
+    // checks if is the YES button
+    if (item->data.hover == 0)
+        comm_webgui_send(PEDALBOARD_SAVE_CMD, strlen(PEDALBOARD_SAVE_CMD));
+}
+
+void system_jack_quality(void *arg)
+{
+    UNUSED_PARAM(arg);
+    cli_jack_set_bufsize(JACK_BUF_SIZE_QUALITY);
+}
+
+void system_jack_normal(void *arg)
+{
+    UNUSED_PARAM(arg);
+    cli_jack_set_bufsize(JACK_BUF_SIZE_NORMAL);
+}
+
+void system_jack_performance(void *arg)
+{
+    UNUSED_PARAM(arg);
+    cli_jack_set_bufsize(JACK_BUF_SIZE_PERFORMANCE);
 }
 
 void system_restore_cb(void *arg)

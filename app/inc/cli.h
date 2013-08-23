@@ -71,6 +71,8 @@ void cli_process(void);
 void cli_grub_select(uint8_t entry);
 // reboot the CPU
 void cli_reboot_cpu(void);
+// sets the jack buffer size
+void cli_jack_set_bufsize(uint16_t bufsize);
 
 
 /*

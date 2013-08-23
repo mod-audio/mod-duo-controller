@@ -8,6 +8,7 @@
 #include "cli.h"
 #include "config.h"
 #include "comm.h"
+#include "utils.h"
 
 #include <string.h>
 
@@ -30,6 +31,7 @@
 #define MOD_LOGIN           "root" NEW_LINE
 #define MOD_PASSWORD        "mod" NEW_LINE
 #define REBOOT_CMD          "reboot" NEW_LINE
+#define JACK_BUSIZE_CMD     "jack_bufsize" NEW_LINE
 
 
 /*
@@ -199,6 +201,9 @@ void cli_grub_select(uint8_t entry)
         comm_linux_send(g_grub_entries[entry]);
         g_boot_aborted = 0;
         g_stage = LOGIN_STAGE;
+
+        // if is restore entry jumps go direct to prompt stage
+        if (entry == RESTORE_ENTRY) g_stage = PROMPT_STAGE;
     }
     else
     {
@@ -210,4 +215,15 @@ void cli_grub_select(uint8_t entry)
 void cli_reboot_cpu(void)
 {
     comm_linux_send(REBOOT_CMD);
+}
+
+void cli_jack_set_bufsize(uint16_t bufsize)
+{
+    char buffer[32], bufsize_str[8];
+
+    int_to_str(bufsize, bufsize_str, sizeof(bufsize_str), 0);
+    strcpy(buffer, "jack_bufsize ");
+    strcat(buffer, bufsize_str);
+    strcat(buffer, NEW_LINE);
+    comm_linux_send(buffer);
 }

@@ -131,6 +131,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PEDALBOARDS_CMD         "pedalboards %s"
 // pedalboard <bank_id> <pedalboard_uid>
 #define PEDALBOARD_CMD          "pedalboard %i %s"
+// pedalboard_reset
+#define PEDALBOARD_RESET_CMD    "pedalboard_reset"
+// pedalboard_save
+#define PEDALBOARD_SAVE_CMD     "pedalboard_save"
 // clipmeter <clipmeter_id>
 #define CLIPMETER_CMD           "clipmeter %i"
 // peakmeter <peakmeter_number> <peakmeter_value>
@@ -245,9 +249,9 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"Reset PIN",                           MENU_CONFIRM,   14,      8,     NULL},    \
     {"Jack",                                MENU_LIST,      15,      0,     NULL},    \
     {"< Back to SETTINGS",                  MENU_RETURN,    16,     15,     NULL},    \
-    {"Quality",                             MENU_SELECT,    17,     15,     NULL},    \
-    {"Normal",                              MENU_SELECT,    18,     15,     NULL},    \
-    {"Performance",                         MENU_SELECT,    19,     15,     NULL},    \
+    {"Quality",                             MENU_NONE,      17,     15,     NULL},    \
+    {"Normal",                              MENU_NONE,      18,     15,     NULL},    \
+    {"Performance",                         MENU_NONE,      19,     15,     NULL},    \
     {"Info",                                MENU_LIST,      20,      0,     NULL},    \
     {"< Back to SETTINGS",                  MENU_RETURN,    21,     20,     NULL},    \
     {"CPU",                                 MENU_LIST,      22,     20,     NULL},    \
@@ -315,6 +319,11 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PEDALBOARD_NEXT_FOOTER_TEXT "+"
 // defines the previous pedalboard footer text
 #define PEDALBOARD_PREV_FOOTER_TEXT "-"
+
+//// Jack buffer size configuration
+#define JACK_BUF_SIZE_QUALITY       128
+#define JACK_BUF_SIZE_NORMAL        256
+#define JACK_BUF_SIZE_PERFORMANCE   512
 
 //// Pendrive restore definitions
 // defines the display where the popup will be showed
