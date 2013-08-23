@@ -134,8 +134,11 @@ void data_free_control(control_t *control)
     uint8_t i;
     for (i = 0; i < control->scale_points_count; i++)
     {
-        FREE(control->scale_points[i]->label);
-        FREE(control->scale_points[i]);
+        if (control->scale_points[i])
+        {
+            FREE(control->scale_points[i]->label);
+            FREE(control->scale_points[i]);
+        }
     }
 
     if (control->scale_points) FREE(control->scale_points);
@@ -187,6 +190,8 @@ void data_free_banks_list(bp_list_t *bp_list)
         i++;
     }
 
+    FREE(bp_list->names);
+    FREE(bp_list->uids);
     FREE(bp_list);
 }
 
@@ -238,5 +243,7 @@ void data_free_pedalboards_list(bp_list_t *bp_list)
         i++;
     }
 
+    FREE(bp_list->names);
+    FREE(bp_list->uids);
     FREE(bp_list);
 }
