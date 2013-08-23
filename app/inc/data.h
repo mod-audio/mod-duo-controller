@@ -62,6 +62,12 @@ typedef struct BP_LIST_T {
     uint8_t count, hover, selected;
 } bp_list_t;
 
+typedef struct BANK_CONFIG_T {
+    uint8_t hardware_type, hardware_id;
+    uint8_t actuator_type, actuator_id;
+    uint8_t function;
+} bank_config_t;
+
 typedef struct MENU_DESC_T {
     const char *name;
     menu_types_t type;

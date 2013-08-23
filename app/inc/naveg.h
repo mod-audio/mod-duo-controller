@@ -89,6 +89,8 @@ uint8_t naveg_is_tool_mode(uint8_t display);
 void naveg_set_banks(bp_list_t *bp_list);
 // returns the banks list
 bp_list_t *naveg_get_banks(void);
+// configurates the bank
+void naveg_bank_config(bank_config_t *bank_conf);
 // stores the pedalboards list of current bank
 void naveg_set_pedalboards(bp_list_t *bp_list);
 // returns the pedalboards list of current bank

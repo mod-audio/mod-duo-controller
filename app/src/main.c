@@ -96,6 +96,7 @@ static void control_add_cb(proto_t *proto);
 static void control_rm_cb(proto_t *proto);
 static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
+static void bank_config_cb(proto_t *proto);
 static void clipmeter_cb(proto_t *proto);
 static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
@@ -382,6 +383,7 @@ static void setup_task(void *pvParameters)
     protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
     protocol_add_command(CONTROL_SET_CMD, control_set_cb);
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
+    protocol_add_command(BANK_CONFIG_CMD, bank_config_cb);
     protocol_add_command(CLIPMETER_CMD, clipmeter_cb);
     protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
@@ -475,6 +477,18 @@ static void control_get_cb(proto_t *proto)
     protocol_response(resp, proto);
 }
 
+static void bank_config_cb(proto_t *proto)
+{
+    bank_config_t bank_func;
+    bank_func.hardware_type = atoi(proto->list[1]);
+    bank_func.hardware_id = atoi(proto->list[2]);
+    bank_func.actuator_type = atoi(proto->list[3]);
+    bank_func.actuator_id = atoi(proto->list[4]);
+    bank_func.function = atoi(proto->list[5]);
+    naveg_bank_config(&bank_func);
+    protocol_response("resp 0", proto);
+}
+
 static void peakmeter_cb(proto_t *proto)
 {
     screen_peakmeter(atoi(proto->list[1]), atof(proto->list[2]));
@@ -514,25 +528,25 @@ static void resp_cb(proto_t *proto)
 
 void HardFault_Handler(void)
 {
-    led_set_color(hardware_leds(0), WHITE);
+    led_set_color(hardware_leds(0), CYAN);
     while (1);
 }
 
 void MemManage_Handler(void)
 {
-    led_set_color(hardware_leds(1), WHITE);
+    led_set_color(hardware_leds(1), CYAN);
     while (1);
 }
 
 void BusFault_Handler(void)
 {
-    led_set_color(hardware_leds(2), WHITE);
+    led_set_color(hardware_leds(2), CYAN);
     while (1);
 }
 
 void UsageFault_Handler(void)
 {
-    led_set_color(hardware_leds(3), WHITE);
+    led_set_color(hardware_leds(3), CYAN);
     while (1);
 }
 

@@ -125,6 +125,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_SET_CMD         "control_set %i %s %f"
 // banks
 #define BANKS_CMD               "banks"
+// bank_config <hw_type> <hw_id> <actuator_type> <actuator_id> <function>
+#define BANK_CONFIG_CMD         "bank_config %i %i %i %i %i"
 // pedalboards <bank_uid>
 #define PEDALBOARDS_CMD         "pedalboards %s"
 // pedalboard <pedalboard_uid>
@@ -153,6 +155,13 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_PROP_TAP_TEMPO      5
 #define CONTROL_PROP_BYPASS         6
 #define CONTROL_PROP_INTEGER        7
+
+//// Banks functions definition
+#define BANK_FUNC_NONE              0
+#define BANK_FUNC_TRUE_BYPASS       1
+#define BANK_FUNC_PEDALBOARD_NEXT   2
+#define BANK_FUNC_PEDALBOARD_PREV   3
+#define BANK_FUNC_AMOUNT            4
 
 //// Tools configuration
 // tools identification (don't change)
@@ -251,7 +260,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
-    {28, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},    \
+    {28, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
 
 
 //// Icons configuration
@@ -281,10 +290,31 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define TAP_TEMPO_COLOR         GREEN
 #define ENUMERATED_COLOR        GREEN
 #define BYPASS_COLOR            RED
+#define TRUE_BYPASS_COLOR       WHITE
+#define PEDALBOARD_NEXT_COLOR   WHITE
+#define PEDALBOARD_PREV_COLOR   WHITE
 
 //// Tap Tempo
 // defines the time that the led will stay turned on (in milliseconds)
 #define TAP_TEMPO_TIME_ON       20
+
+//// Toggled
+// defines the toggled footer text
+#define TOGGLED_ON_FOOTER_TEXT      "ON"
+#define TOGGLED_OFF_FOOTER_TEXT     "OFF"
+
+//// Bypass
+// defines the bypass footer text
+#define BYPASS_ON_FOOTER_TEXT       "BYP"
+#define BYPASS_OFF_FOOTER_TEXT      "PROC"
+
+//// Bank configuration functions
+// defines the true bypass footer text
+#define TRUE_BYPASS_FOOTER_TEXT     "TRUE BYPASS"
+// defines the next pedalboard footer text
+#define PEDALBOARD_NEXT_FOOTER_TEXT "+"
+// defines the previous pedalboard footer text
+#define PEDALBOARD_PREV_FOOTER_TEXT "-"
 
 //// Pendrive restore definitions
 // defines the display where the popup will be showed
