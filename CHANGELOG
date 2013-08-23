@@ -1,3 +1,7 @@
+0.11.1
+======
+  - FIX: load pedalboard
+
 0.11
 ====
   - NEW: menu system functions: pedalboard_reset, pedalboard_save, jack_bufsize
