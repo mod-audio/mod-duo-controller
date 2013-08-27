@@ -1,3 +1,7 @@
+0.11.3
+======
+  - FIX: usb priority
+
 0.11.2
 ======
   - FIX: jack_bufsize command

@@ -157,6 +157,7 @@ void USB_Init(uint8_t corenum)
         LPC_USB->StCtrl = 0x3;
     }
 
+    NVIC_SetPriority(USB_IRQn, (USB_PRIORITY << 3));
     NVIC_EnableIRQ(USB_IRQn);   /* enable USB interrupt */
     USB_Reset();
     USB_SetAddress(0);
