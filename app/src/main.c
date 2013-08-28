@@ -347,7 +347,7 @@ static void setup_task(void *pvParameters)
     xTaskCreate(procotol_task, NULL, 512, NULL, 2, NULL);
     xTaskCreate(actuators_task, NULL, 512, NULL, 2, NULL);
     xTaskCreate(displays_task, NULL, 512, NULL, 1, NULL);
-    xTaskCreate(monitor_task, NULL, 256, NULL, 1, NULL);
+    xTaskCreate(monitor_task, NULL, 128, NULL, 1, NULL);
 
     // checks the system boot
     system_check_boot();
