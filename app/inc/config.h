@@ -65,10 +65,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 // Footswitches ports and pins definitions
 // button definition: {BUTTON_PORT, BUTTON_PIN}
-#define FOOTSWITCH0_PINS    {2, 17}
-#define FOOTSWITCH1_PINS    {2, 16}
-#define FOOTSWITCH2_PINS    {2, 15}
-#define FOOTSWITCH3_PINS    {2, 14}
+#define FOOTSWITCH0_PINS    {2, 14}
+#define FOOTSWITCH1_PINS    {2, 15}
+#define FOOTSWITCH2_PINS    {2, 16}
+#define FOOTSWITCH3_PINS    {2, 17}
 
 // Amount of encoders
 #define ENCODERS_COUNT      SLOTS_COUNT

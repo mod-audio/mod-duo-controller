@@ -1,3 +1,7 @@
+0.11.5
+======
+  - FIX: footswitches inversion
+
 0.11.4
 ======
   - FIX: monitor task stack size
