@@ -36,6 +36,8 @@
 ************************************************************************************************************************
 */
 
+#define MSG_QUEUE_DEPTH     5
+
 
 /*
 ************************************************************************************************************************
@@ -67,6 +69,7 @@
 */
 
 static xQueueHandle g_msg_queue, g_actuators_queue;
+static uint8_t g_msg_buffer[CDC_RX_BUFFER_SIZE];
 
 
 /*
@@ -184,22 +187,19 @@ static void actuators_cb(void *actuator)
 
 static void usb_receive_cb(uint32_t msg_size)
 {
-    uint8_t *msg_copy;
+    static uint32_t idx, msg_sizes[MSG_QUEUE_DEPTH];
 
-    // does a copy of the message
-    msg_copy = pvPortMalloc(msg_size);
-    CDC_GetMessage(msg_copy);
+    // stores the message size
+    msg_sizes[idx] = msg_size;
 
-    // creates a message struct
-    msg_t *msg;
-    msg = pvPortMalloc(sizeof(msg_t));
-    msg->sender_id = 0;
-    msg->data = (char*) msg_copy;
-    msg->data_size = msg_size;
-
-    // queue the message
+    // queue the message size
     portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(g_msg_queue, &msg, &xHigherPriorityTaskWoken);
+    xQueueSendFromISR(g_msg_queue, &msg_sizes[idx], &xHigherPriorityTaskWoken);
+
+    // goes to next msg_size position
+    if (++idx == MSG_QUEUE_DEPTH) idx = 0;
+
+    // forces switch to task after leave this callback
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
@@ -212,7 +212,7 @@ static void usb_receive_cb(uint32_t msg_size)
 
 static void procotol_task(void *pvParameters)
 {
-    msg_t *msg;
+    uint32_t msg_size;
 
     UNUSED_PARAM(pvParameters);
 
@@ -221,17 +221,20 @@ static void procotol_task(void *pvParameters)
         portBASE_TYPE xStatus;
 
         // takes the message from queue
-        xStatus = xQueueReceive(g_msg_queue, &msg, portMAX_DELAY);
+        xStatus = xQueueReceive(g_msg_queue, &msg_size, portMAX_DELAY);
 
         // checks if message has successfully taken
         if (xStatus == pdPASS)
         {
-            // parses the message
-            protocol_parse(msg);
+            // gets the message
+            CDC_GetMessage(g_msg_buffer, msg_size);
 
-            // free the message memory
-            vPortFree(msg->data);
-            vPortFree(msg);
+            // parses the message
+            msg_t msg;
+            msg.sender_id = 0;
+            msg.data = (char *) g_msg_buffer;
+            msg.data_size = msg_size;
+            protocol_parse(&msg);
         }
     }
 }
@@ -340,13 +343,13 @@ static void setup_task(void *pvParameters)
     serial_set_callback(SERIAL1, serial_cb);
 
     // create the queues
-    g_msg_queue = xQueueCreate(5, sizeof(msg_t *));
+    g_msg_queue = xQueueCreate(MSG_QUEUE_DEPTH, sizeof(uint32_t *));
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create the tasks
-    xTaskCreate(procotol_task, NULL, 512, NULL, 2, NULL);
-    xTaskCreate(actuators_task, NULL, 512, NULL, 2, NULL);
-    xTaskCreate(displays_task, NULL, 512, NULL, 1, NULL);
+    xTaskCreate(procotol_task, NULL, 512, NULL, 3, NULL);
+    xTaskCreate(actuators_task, NULL, 256, NULL, 2, NULL);
+    xTaskCreate(displays_task, NULL, 128, NULL, 1, NULL);
     xTaskCreate(monitor_task, NULL, 128, NULL, 1, NULL);
 
     // checks the system boot

@@ -17,7 +17,7 @@
 /* CDC User Functions */
 void CDC_Init(void);
 void CDC_SetMessageCallback(void (*callback)(uint32_t msg_size));
-uint32_t CDC_GetMessage(uint8_t *msg_buffer);
+uint32_t CDC_GetMessage(uint8_t *msg_buffer, uint32_t msg_size);
 void CDC_Send(const uint8_t *data, uint32_t data_size);
 
 /* CDC Requests Callback Functions */

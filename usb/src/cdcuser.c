@@ -156,9 +156,9 @@ void CDC_SetMessageCallback(void (*callback)(uint32_t msg_size))
     g_cdc_callback = callback;
 }
 
-uint32_t CDC_GetMessage(uint8_t *msg_buffer)
+uint32_t CDC_GetMessage(uint8_t *msg_buffer, uint32_t msg_size)
 {
-    return ringbuff_read(g_rx_buffer, msg_buffer, ringbuff_size(g_rx_buffer));
+    return ringbuff_read(g_rx_buffer, msg_buffer, msg_size);
 }
 
 void CDC_Send(const uint8_t *data, uint32_t data_size)
