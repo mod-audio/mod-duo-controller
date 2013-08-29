@@ -419,18 +419,29 @@ static void foot_control_add(control_t *control)
     {
         // toggled specification: http://lv2plug.in/ns/lv2core/#toggled
         case CONTROL_PROP_TOGGLED:
+            // updates the led
             if (control->value <= 0)
                 led_set_color(hardware_leds(control->actuator_id), BLACK);
             else
                 led_set_color(hardware_leds(control->actuator_id), TOGGLED_COLOR);
 
+            // if is in tool mode break
+            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+
+            // updates the footer
             screen_footer(control->actuator_id, control->label,
                          (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT));
             break;
 
         // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
         case CONTROL_PROP_TRIGGER:
+            // updates the led
             led_set_color(hardware_leds(control->actuator_id), TRIGGER_COLOR);
+
+            // if is in tool mode break
+            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+
+            // updates the footer
             screen_footer(control->actuator_id, control->label, NULL);
             break;
 
@@ -447,17 +458,11 @@ static void foot_control_add(control_t *control)
             else
                 led_blink(hardware_leds(control->actuator_id), time_ms / 2, time_ms / 2);
 
-            // footer text composition
-            char value_txt[32];
-            i = int_to_str(control->value, value_txt, sizeof(value_txt), 0);
-            value_txt[i++] = ' ';
-            strcpy(&value_txt[i], control->unit);
-            screen_footer(control->actuator_id, control->label, value_txt);
-
             // calculates the maximum tap tempo value
             if (g_tap_tempo[control->actuator_id].state == TT_INIT)
             {
                 uint32_t max;
+
                 // time unit (ms, s)
                 if (strcmp(control->unit, "ms") == 0 || strcmp(control->unit, "s") == 0)
                     max = (uint32_t)(convert_to_ms(control->unit, control->maximum) + 0.5);
@@ -468,19 +473,37 @@ static void foot_control_add(control_t *control)
                 g_tap_tempo[control->actuator_id].max = max;
                 g_tap_tempo[control->actuator_id].state = TT_COUNTING;
             }
+
+            // if is in tool mode break
+            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+
+            // footer text composition
+            char value_txt[32];
+            i = int_to_str(control->value, value_txt, sizeof(value_txt), 0);
+            value_txt[i++] = ' ';
+            strcpy(&value_txt[i], control->unit);
+
+            // updates the footer
+            screen_footer(control->actuator_id, control->label, value_txt);
             break;
 
         case CONTROL_PROP_BYPASS:
+            // updates the led
             if (control->value <= 0)
                 led_set_color(hardware_leds(control->actuator_id), BYPASS_COLOR);
             else
                 led_set_color(hardware_leds(control->actuator_id), BLACK);
 
+            // if is in tool mode break
+            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+
+            // updates the footer
             screen_footer(control->actuator_id, control->label,
                          (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
             break;
 
         case CONTROL_PROP_ENUMERATION:
+            // updates the led
             led_set_color(hardware_leds(control->actuator_id), ENUMERATED_COLOR);
 
             // locates the current value
@@ -494,6 +517,11 @@ static void foot_control_add(control_t *control)
                 }
             }
             control->steps = control->scale_points_count;
+
+            // if is in tool mode break
+            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+
+            // updates the footer
             screen_footer(control->actuator_id, control->scale_points[i]->label, NULL);
             break;
     }
@@ -1323,6 +1351,9 @@ void naveg_foot_change(uint8_t foot)
 {
     // checks the foot id
     if (foot >= FOOTSWITCHES_COUNT) return;
+
+    // if is in tool mode return
+    if (g_tool[foot].state == TOOL_ON) return;
 
     // checks if the foot is used like bank function
     if (check_bank_config(foot)) return;
