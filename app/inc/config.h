@@ -139,8 +139,16 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CLIPMETER_CMD           "clipmeter %i"
 // peakmeter <peakmeter_number> <peakmeter_value>
 #define PEAKMETER_CMD           "peakmeter %i %f"
+// peakmeter on
+#define PEAKMETER_ON_CMD        "peakmeter on"
+// peakmeter off
+#define PEAKMETER_OFF_CMD       "peakmeter off"
 // tuner <frequency> <note> <cents>
 #define TUNER_CMD               "tuner %f %s %i"
+// tuner on
+#define TUNER_ON_CMD            "tuner on"
+// tuner off
+#define TUNER_OFF_CMD           "tuner off"
 // xrun
 #define XRUN_CMD                "xrun"
 // hw_con <hw_type> <hw_id>

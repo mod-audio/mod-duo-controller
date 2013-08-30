@@ -1376,8 +1376,21 @@ void naveg_toggle_tool(uint8_t display)
         // initial state to banks/pedalboards navigation
         g_bp_state = BANKS_LIST;
 
-        // requests the banks list
-        if (display == NAVEG_DISPLAY) request_banks_list();
+        // action to do when the tool is enabled
+        switch (display)
+        {
+            case NAVEG_DISPLAY:
+                request_banks_list();
+                break;
+
+            case PEAKMETER_DISPLAY:
+                comm_webgui_send(PEAKMETER_ON_CMD, strlen(PEAKMETER_ON_CMD));
+                break;
+
+            case TUNER_DISPLAY:
+                comm_webgui_send(TUNER_ON_CMD, strlen(TUNER_ON_CMD));
+                break;
+        }
 
         // draws the tool
         g_tool[display].state = TOOL_ON;
@@ -1387,6 +1400,18 @@ void naveg_toggle_tool(uint8_t display)
     else
     {
         g_tool[display].state = TOOL_OFF;
+
+        // action to do when the tool is disabled
+        switch (display)
+        {
+            case PEAKMETER_DISPLAY:
+                comm_webgui_send(PEAKMETER_OFF_CMD, strlen(PEAKMETER_OFF_CMD));
+                break;
+
+            case TUNER_DISPLAY:
+                comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+                break;
+        }
 
         // checks if there is controls assigned
         control_t *control = NULL;
