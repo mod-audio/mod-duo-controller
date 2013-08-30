@@ -434,8 +434,7 @@ void screen_system_menu(menu_item_t *item)
     title_box.width = 0;
     title_box.align = ALIGN_LEFT_TOP;
     title_box.text = item->name;
-    if (item->desc->type == MENU_NONE || item->desc->type == MENU_ON_OFF)
-        title_box.text = last_item->name;
+    if (item->desc->type == MENU_NONE || MENU_ITEM_IS_TOGGLE_TYPE(item)) title_box.text = last_item->name;
     widget_textbox(SYSTEM_DISPLAY, &title_box);
 
     // title line separator
@@ -494,8 +493,16 @@ void screen_system_menu(menu_item_t *item)
             break;
 
         case MENU_ON_OFF:
+        case MENU_YES_NO:
+        case MENU_BYP_PROC:
             strcpy(item->name, item->desc->name);
-            strcat(item->name, (item->data.hover ? " ON" : "OFF"));
+
+            if (item->desc->type == MENU_ON_OFF)
+                strcat(item->name, (item->data.hover ? " ON" : "OFF"));
+            else if (item->desc->type == MENU_YES_NO)
+                strcat(item->name, (item->data.hover ? "YES" : " NO"));
+            else if (item->desc->type == MENU_BYP_PROC)
+                strcat(item->name, (item->data.hover ? "BYP" : "PROC"));
 
             list.hover = last_item->data.hover;
             list.selected = last_item->data.selected;

@@ -241,7 +241,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // menu definition, format: {name, type, id, parent_id, action_callback}
 #define SYSTEM_MENU     \
     {"SETTINGS",                            MENU_LIST,       0,     -1,     NULL},                      \
-    {"True Bypass                   ",      MENU_ON_OFF,     1,      0,     system_true_bypass_cb},     \
+    {"True Bypass                 ",        MENU_BYP_PROC,   1,      0,     system_true_bypass_cb},     \
     {"Pedalboard",                          MENU_LIST,       2,      0,     NULL},                      \
     {"< Back to SETTINGS",                  MENU_RETURN,     3,      2,     NULL},                      \
     {"Reset State",                         MENU_CONFIRM,    4,      2,     system_reset_pedalboard},   \

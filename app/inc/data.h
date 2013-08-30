@@ -24,7 +24,8 @@
 ************************************************************************************************************************
 */
 
-typedef enum {MENU_NONE, MENU_RETURN, MENU_LIST, MENU_SELECT, MENU_CONFIRM, MENU_CANCEL, MENU_ON_OFF} menu_types_t;
+typedef enum {MENU_NONE, MENU_RETURN, MENU_LIST, MENU_SELECT, MENU_CONFIRM, MENU_CANCEL, MENU_ON_OFF,
+              MENU_YES_NO, MENU_BYP_PROC} menu_types_t;
 
 
 /*
@@ -106,6 +107,9 @@ typedef struct MENU_POPUP_T {
 *           MACRO'S
 ************************************************************************************************************************
 */
+
+#define MENU_ITEM_IS_TOGGLE_TYPE(item)      (item->desc->type == MENU_ON_OFF || item->desc->type == MENU_YES_NO || \
+                                             item->desc->type == MENU_BYP_PROC)
 
 
 /*

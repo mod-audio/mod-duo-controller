@@ -873,7 +873,7 @@ static void menu_enter(void)
         }
 
         // updates the current item
-        if (item->desc->type != MENU_ON_OFF && item->desc->type != MENU_NONE) g_current_item = node->data;
+        if (!MENU_ITEM_IS_TOGGLE_TYPE(item) && item->desc->type != MENU_NONE) g_current_item = node->data;
     }
     else if (g_current_item->desc->type == MENU_CONFIRM || g_current_item->desc->type == MENU_CANCEL)
     {
@@ -903,11 +903,21 @@ static void menu_enter(void)
             menu_item_t *item_child = node->data;
             item->data.list[item->data.list_count++] = item_child->name;
 
-            // checks if is ON / OFF type and insert the value
+            // checks if is toogle type and insert the right value
             if (item_child->desc->type == MENU_ON_OFF)
             {
                 strcpy(item_child->name, item_child->desc->name);
                 strcat(item_child->name, (item_child->data.hover ? " ON" : "OFF"));
+            }
+            else if (item_child->desc->type == MENU_YES_NO)
+            {
+                strcpy(item_child->name, item_child->desc->name);
+                strcat(item_child->name, (item_child->data.hover ? "YES" : " NO"));
+            }
+            else if (item_child->desc->type == MENU_BYP_PROC)
+            {
+                strcpy(item_child->name, item_child->desc->name);
+                strcat(item_child->name, (item_child->data.hover ? "  BYP" : "PROC"));
             }
         }
     }
@@ -942,7 +952,7 @@ static void menu_enter(void)
         // defines the buttons count
         item->data.list_count = 1;
     }
-    else if (item->desc->type == MENU_ON_OFF)
+    else if (MENU_ITEM_IS_TOGGLE_TYPE(item))
     {
         item->data.hover = 1 - item->data.hover;
 
