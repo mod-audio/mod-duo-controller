@@ -891,8 +891,7 @@ static void menu_enter(void)
         item = g_current_item;
 
         // calls the action callback
-        if (item->desc->action_cb)
-            item->desc->action_cb(item);
+        if (item->desc->action_cb) item->desc->action_cb(item);
 
         // gets the menu item
         item = g_current_menu->data;
@@ -931,6 +930,9 @@ static void menu_enter(void)
                 strcat(item_child->name, (item_child->data.hover ? "  BYP" : "PROC"));
             }
         }
+
+        // calls the action callback
+        if (item->desc->action_cb) item->desc->action_cb(item);
     }
     else if (item->desc->type == MENU_CONFIRM)
     {
@@ -968,8 +970,7 @@ static void menu_enter(void)
         item->data.hover = 1 - item->data.hover;
 
         // calls the action callback
-        if (item->desc->action_cb)
-            item->desc->action_cb(item);
+        if (item->desc->action_cb) item->desc->action_cb(item);
     }
     else if (item->desc->type == MENU_NONE)
     {
@@ -985,8 +986,7 @@ static void menu_enter(void)
         }
 
         // calls the action callback
-        if (item->desc->action_cb)
-            item->desc->action_cb(item);
+        if (item->desc->action_cb) item->desc->action_cb(item);
     }
 
     screen_system_menu(item);

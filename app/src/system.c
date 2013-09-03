@@ -13,6 +13,7 @@
 #include "actuator.h"
 #include "comm.h"
 #include "cli.h"
+#include "screen.h"
 #include "glcd_widget.h"
 #include "glcd.h"
 
@@ -171,7 +172,7 @@ void system_true_bypass_cb(void *arg)
     hardware_set_true_bypass(item->data.hover);
 }
 
-void system_reset_pedalboard(void *arg)
+void system_reset_pedalboard_cb(void *arg)
 {
     menu_item_t *item = arg;
 
@@ -180,7 +181,7 @@ void system_reset_pedalboard(void *arg)
         comm_webgui_send(PEDALBOARD_RESET_CMD, strlen(PEDALBOARD_RESET_CMD));
 }
 
-void system_save_pedalboard(void *arg)
+void system_save_pedalboard_cb(void *arg)
 {
     menu_item_t *item = arg;
 
@@ -189,22 +190,85 @@ void system_save_pedalboard(void *arg)
         comm_webgui_send(PEDALBOARD_SAVE_CMD, strlen(PEDALBOARD_SAVE_CMD));
 }
 
-void system_jack_quality(void *arg)
+void system_jack_quality_cb(void *arg)
 {
     UNUSED_PARAM(arg);
     cli_jack_set_bufsize(JACK_BUF_SIZE_QUALITY);
 }
 
-void system_jack_normal(void *arg)
+void system_jack_normal_cb(void *arg)
 {
     UNUSED_PARAM(arg);
     cli_jack_set_bufsize(JACK_BUF_SIZE_NORMAL);
 }
 
-void system_jack_performance(void *arg)
+void system_jack_performance_cb(void *arg)
 {
     UNUSED_PARAM(arg);
     cli_jack_set_bufsize(JACK_BUF_SIZE_PERFORMANCE);
+}
+
+void system_services_cb(void *arg)
+{
+    menu_item_t *item = arg;
+    const char *response;
+    char *pstr;
+    const char *services[] = {"is-active jackd",
+                              "is-active mod-host",
+                              "is-active mod-ui",
+                              "is-active mod-bluez",
+                              NULL};
+
+    uint8_t i = 0;
+    while (services[i])
+    {
+        cli_systemctl(services[i]);
+        response = cli_get_response();
+
+        pstr = strstr(item->data.list[i+1], ":");
+        if (pstr && response)
+        {
+            pstr++;
+            *pstr++ = ' ';
+            strcpy(pstr, response);
+            screen_system_menu(item);
+        }
+
+        i++;
+    }
+}
+
+void system_versions_cb(void *arg)
+{
+    menu_item_t *item = arg;
+    const char *response;
+    char *pstr;
+    const char *versions[] = {"jack2-mod",
+                              "mod-host",
+                              "mod-ui",
+                              "mod-controller",
+                              "mod-python",
+                              "mod-resources",
+                              "mod-bluez",
+                              NULL};
+
+    uint8_t i = 0;
+    while (versions[i])
+    {
+        cli_package_version(versions[i]);
+        response = cli_get_response();
+
+        pstr = strstr(item->data.list[i+1], ":");
+        if (pstr && response)
+        {
+            pstr++;
+            *pstr++ = ' ';
+            strcpy(pstr, response);
+            screen_system_menu(item);
+        }
+
+        i++;
+    }
 }
 
 void system_restore_cb(void *arg)

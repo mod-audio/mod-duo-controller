@@ -72,7 +72,7 @@ typedef struct BANK_CONFIG_T {
 typedef struct MENU_DESC_T {
     const char *name;
     menu_types_t type;
-    int8_t id, parent_id;
+    int16_t id, parent_id;
     void (*action_cb) (void *data);
 } menu_desc_t;
 
@@ -90,7 +90,7 @@ typedef struct MENU_ITEM_T {
 } menu_item_t;
 
 typedef struct MENU_POPUP_T {
-    int8_t menu_id;
+    int16_t menu_id;
     const char *popup_content;
 } menu_popup_t;
 

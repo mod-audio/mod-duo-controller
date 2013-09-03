@@ -34,6 +34,7 @@ enum {MODUSB_ENTRY, REGULAR_ENTRY, RESTORE_ENTRY, PENDRIVE_ENTRY, STOP_TIMEOUT =
 */
 
 #define CLI_LINE_BUFFER_SIZE        1024
+#define CLI_RESPONSE_BUFFER_SIZE    512
 
 
 /*
@@ -63,8 +64,12 @@ enum {MODUSB_ENTRY, REGULAR_ENTRY, RESTORE_ENTRY, PENDRIVE_ENTRY, STOP_TIMEOUT =
 ************************************************************************************************************************
 */
 
+// initializes all resources needed by CLI
+void cli_init(void);
 // appends data to line buffer
 void cli_append_data(const char *data, uint32_t data_size);
+// returns the console response
+const char* cli_get_response(void);
 // process the data received
 void cli_process(void);
 // selects an grub entry
@@ -73,6 +78,10 @@ void cli_grub_select(uint8_t entry);
 void cli_reboot_cpu(void);
 // sets the jack buffer size
 void cli_jack_set_bufsize(uint16_t bufsize);
+// requests information from systemctl
+void cli_systemctl(const char *parameters);
+// requests the package version from pacman
+void cli_package_version(const char *package_name);
 
 
 /*

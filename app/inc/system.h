@@ -64,11 +64,13 @@ void system_check_boot(void);
 
 // system menu callbacks
 void system_true_bypass_cb(void *arg);
-void system_reset_pedalboard(void *arg);
-void system_save_pedalboard(void *arg);
-void system_jack_quality(void *arg);
-void system_jack_normal(void *arg);
-void system_jack_performance(void *arg);
+void system_reset_pedalboard_cb(void *arg);
+void system_save_pedalboard_cb(void *arg);
+void system_jack_quality_cb(void *arg);
+void system_jack_normal_cb(void *arg);
+void system_jack_performance_cb(void *arg);
+void system_services_cb(void *arg);
+void system_versions_cb(void *arg);
 void system_restore_cb(void *arg);
 
 

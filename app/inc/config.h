@@ -238,43 +238,66 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 //// System menu configuration
 // includes the system menu callbacks
 #include "system.h"
-// menu definition, format: {name, type, id, parent_id, action_callback}
+// defines the menu id's
+#define ROOT_ID             ( 0 * 20)
+#define TRUE_BYPASS_ID      ( 1 * 20)
+#define PEDALBOARD_ID       ( 2 * 20)
+#define EXP_PEDAL_ID        ( 3 * 20)
+#define BLUETOOTH_ID        ( 4 * 20)
+#define JACK_ID             ( 5 * 20)
+#define INFO_ID             ( 6 * 20)
+#define CPU_ID              ( 7 * 20)
+#define SERVICES_ID         ( 8 * 20)
+#define VERSIONS_ID         ( 9 * 20)
+#define FACTORY_ID          (10 * 20)
+
+// menu definition format: {name, type, id, parent_id, action_callback}
 #define SYSTEM_MENU     \
-    {"SETTINGS",                            MENU_LIST,       0,     -1,     NULL},                      \
-    {"True Bypass                 ",        MENU_BYP_PROC,   1,      0,     system_true_bypass_cb},     \
-    {"Pedalboard",                          MENU_LIST,       2,      0,     NULL},                      \
-    {"< Back to SETTINGS",                  MENU_RETURN,     3,      2,     NULL},                      \
-    {"Reset State",                         MENU_CONFIRM,    4,      2,     system_reset_pedalboard},   \
-    {"Save State",                          MENU_CONFIRM,    5,      2,     system_save_pedalboard},    \
-    {"Expression Pedal",                    MENU_LIST,       6,      2,     NULL},                      \
-    {"< Back to Pedalboard",                MENU_RETURN,     7,      6,     NULL},                      \
-    {"Bluetooth",                           MENU_LIST,       8,      0,     NULL},                      \
-    {"< Back to SETTINGS",                  MENU_RETURN,     9,      8,     NULL},                      \
-    {"Status                           ",   MENU_ON_OFF,    10,      8,     NULL},                      \
-    {"Name",                                MENU_NONE,      11,      8,     NULL},                      \
-    {"Address",                             MENU_NONE,      12,      8,     NULL},                      \
-    {"PIN",                                 MENU_NONE,      13,      8,     NULL},                      \
-    {"Reset PIN",                           MENU_CONFIRM,   14,      8,     NULL},                      \
-    {"Jack",                                MENU_SELECT,    15,      0,     NULL},                      \
-    {"< Back to SETTINGS",                  MENU_RETURN,    16,     15,     NULL},                      \
-    {"Quality",                             MENU_NONE,      17,     15,     system_jack_quality},       \
-    {"Normal",                              MENU_NONE,      18,     15,     system_jack_normal},        \
-    {"Performance",                         MENU_NONE,      19,     15,     system_jack_performance},   \
-    {"Info",                                MENU_LIST,      20,      0,     NULL},                      \
-    {"< Back to SETTINGS",                  MENU_RETURN,    21,     20,     NULL},                      \
-    {"CPU",                                 MENU_LIST,      22,     20,     NULL},                      \
-    {"< Back to Info",                      MENU_RETURN,    23,     22,     NULL},                      \
-    {"Services",                            MENU_LIST,      24,     20,     NULL},                      \
-    {"< Back to Info",                      MENU_RETURN,    25,     24,     NULL},                      \
-    {"Versions",                            MENU_LIST,      26,     20,     NULL},                      \
-    {"< Back to Info",                      MENU_RETURN,    27,     26,     NULL},                      \
-    {"Factory Restore",                     MENU_CONFIRM,   28,      0,     system_restore_cb},
+    {"SETTINGS",                            MENU_LIST,      ROOT_ID,            -1,             NULL},                          \
+    {"True Bypass                 ",        MENU_BYP_PROC,  TRUE_BYPASS_ID,     ROOT_ID,        system_true_bypass_cb},         \
+    {"Pedalboard",                          MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL},                          \
+    {"< Back to SETTINGS",                  MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL},                          \
+    {"Reset State",                         MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  system_reset_pedalboard_cb},    \
+    {"Save State",                          MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  system_save_pedalboard_cb},     \
+    {"Expression Pedal",                    MENU_LIST,      EXP_PEDAL_ID,       PEDALBOARD_ID,  NULL},                          \
+    {"< Back to Pedalboard",                MENU_RETURN,    EXP_PEDAL_ID+1,     EXP_PEDAL_ID,   NULL},                          \
+    {"Bluetooth",                           MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        NULL},                          \
+    {"< Back to SETTINGS",                  MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL},                          \
+    {"Pair",                                MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   NULL},                          \
+    {"Status",                              MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL},                          \
+    {"Name",                                MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL},                          \
+    {"Address",                             MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL},                          \
+    {"Jack",                                MENU_SELECT,    JACK_ID,            ROOT_ID,        NULL},                          \
+    {"< Back to SETTINGS",                  MENU_RETURN,    JACK_ID+1,          JACK_ID,        NULL},                          \
+    {"Quality",                             MENU_NONE,      JACK_ID+2,          JACK_ID,        system_jack_quality_cb},        \
+    {"Normal",                              MENU_NONE,      JACK_ID+3,          JACK_ID,        system_jack_normal_cb},         \
+    {"Performance",                         MENU_NONE,      JACK_ID+4,          JACK_ID,        system_jack_performance_cb},    \
+    {"Info",                                MENU_LIST,      INFO_ID,            ROOT_ID,        NULL},                          \
+    {"< Back to SETTINGS",                  MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL},                          \
+    {"CPU",                                 MENU_LIST,      CPU_ID,             INFO_ID,        NULL},                          \
+    {"< Back to Info",                      MENU_RETURN,    CPU_ID+1,           CPU_ID,         NULL},                          \
+    {"Services",                            MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb},            \
+    {"< Back to Info",                      MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL},                          \
+    {"jack:",                               MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    NULL},                          \
+    {"mod-host:",                           MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    NULL},                          \
+    {"mod-ui:",                             MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    NULL},                          \
+    {"bluez:",                              MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    NULL},                          \
+    {"Versions",                            MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb},            \
+    {"< Back to Info",                      MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL},                          \
+    {"jack:",                               MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL},                          \
+    {"mod-host:",                           MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL},                          \
+    {"mod-ui:",                             MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL},                          \
+    {"mod-controller:",                     MENU_NONE,      VERSIONS_ID+6,      VERSIONS_ID,    NULL},                          \
+    {"mod-python:",                         MENU_NONE,      VERSIONS_ID+7,      VERSIONS_ID,    NULL},                          \
+    {"mod-resources:",                      MENU_NONE,      VERSIONS_ID+8,      VERSIONS_ID,    NULL},                          \
+    {"bluez:",                              MENU_NONE,      VERSIONS_ID+9,      VERSIONS_ID,    NULL},                          \
+    {"Factory Restore",                     MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb},             \
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
-    {4, "Are you sure that you want reset the pedalboard values to last saved state?"},                 \
-    {5, "Are you sure that you want save the current pedalboard values like default?"},                 \
-    {28, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
+    {PEDALBOARD_ID+2, "Are you sure that you want reset the pedalboard values to last saved state?"},       \
+    {PEDALBOARD_ID+3, "Are you sure that you want save the current pedalboard values like default?"},       \
+    {FACTORY_ID, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
 
 
 //// Icons configuration
@@ -344,6 +367,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PENDRIVE_RESTORE_CONTENT    "To proceed with Pendrive Restore you need to hold the footswitches 2 and 4 and click YES."
 // defines the timeout for wait the user response (in seconds)
 #define PENDRIVE_RESTORE_TIMEOUT    30
+
+//// Command line interface configurations
+// defines how much time wait for console response (in milliseconds)
+#define CLI_RESPONSE_TIMEOUT        500
 
 //// Dynamic menory allocation
 // these macros should be used in replacement to default malloc and free functions of stdlib.h
