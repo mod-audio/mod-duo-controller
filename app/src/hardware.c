@@ -204,7 +204,7 @@ void hardware_setup(void)
 
     ////////////////////////////////////////////////////////////////
     // Timer 1 configuration
-    // this timer is for actuators clock and time stamp
+    // this timer is for actuators clock and timestamp
 
     // initialize timer 1, prescale count time of 100us
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
@@ -269,7 +269,7 @@ void *hardware_actuators(uint8_t actuator_id)
     return NULL;
 }
 
-uint32_t hardware_time_stamp(void)
+uint32_t hardware_timestamp(void)
 {
     return g_counter;
 }

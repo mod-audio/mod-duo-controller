@@ -622,7 +622,7 @@ static void control_set(uint8_t display, control_t *control)
             break;
 
         case CONTROL_PROP_TAP_TEMPO:
-            now = hardware_time_stamp();
+            now = hardware_timestamp();
             delta = now - g_tap_tempo[control->actuator_id].time;
             g_tap_tempo[control->actuator_id].time = now;
 

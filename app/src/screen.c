@@ -567,11 +567,11 @@ void screen_clipmeter(uint8_t display, uint8_t happened_now)
     if (happened_now)
     {
         glcd_set_pixel(display, 126, 63, GLCD_BLACK);
-        last_time[display] = hardware_time_stamp();
+        last_time[display] = hardware_timestamp();
         check_timeout[display] = 1;
     }
 
-    time_elapsed = hardware_time_stamp() - last_time[display];
+    time_elapsed = hardware_timestamp() - last_time[display];
 
     if (check_timeout[display] && time_elapsed > CLIPMETER_TIMEOUT)
     {
@@ -589,11 +589,11 @@ void screen_xrun(uint8_t happened_now)
     if (happened_now)
     {
         glcd_set_pixel(XRUN_ICON_DISPLAY, 127, 63, GLCD_BLACK);
-        last_time = hardware_time_stamp();
+        last_time = hardware_timestamp();
         check_timeout = 1;
     }
 
-    time_elapsed = hardware_time_stamp() - last_time;
+    time_elapsed = hardware_timestamp() - last_time;
 
     if (check_timeout && time_elapsed > XRUN_TIMEOUT)
     {

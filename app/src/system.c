@@ -127,10 +127,10 @@ void system_check_boot(void)
         widget_popup(PENDRIVE_RESTORE_DISPLAY, &popup);
 
         // waits the user response or timeout
-        uint32_t timeout, inital_time = hardware_time_stamp();
+        uint32_t timeout, inital_time = hardware_timestamp();
         while (1)
         {
-            timeout = (hardware_time_stamp() - inital_time) / 1000;
+            timeout = (hardware_timestamp() - inital_time) / 1000;
             if (timeout >= PENDRIVE_RESTORE_TIMEOUT) break;
 
             // check the encoder status

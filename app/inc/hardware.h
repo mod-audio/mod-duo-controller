@@ -72,8 +72,8 @@ void hardware_cooler(uint8_t duty_cycle);
 led_t *hardware_leds(uint8_t led_id);
 // returns the actuator object relative to actuator id
 void *hardware_actuators(uint8_t actuator_id);
-// returns the time stamp (a variable increment in each millisecond)
-uint32_t hardware_time_stamp(void);
+// returns the timestamp (a variable increment in each millisecond)
+uint32_t hardware_timestamp(void);
 // set the true bypass value
 void hardware_set_true_bypass(uint8_t value);
 // get the true bypass value
