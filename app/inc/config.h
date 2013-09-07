@@ -261,12 +261,12 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"Save State",                          MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  system_save_pedalboard_cb},     \
     {"Expression Pedal",                    MENU_LIST,      EXP_PEDAL_ID,       PEDALBOARD_ID,  NULL},                          \
     {"< Back to Pedalboard",                MENU_RETURN,    EXP_PEDAL_ID+1,     EXP_PEDAL_ID,   NULL},                          \
-    {"Bluetooth",                           MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        NULL},                          \
+    {"Bluetooth",                           MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        system_bluetooth_cb},           \
     {"< Back to SETTINGS",                  MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL},                          \
-    {"Pair",                                MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   NULL},                          \
-    {"Status",                              MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL},                          \
-    {"Name",                                MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL},                          \
-    {"Address",                             MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL},                          \
+    {"Pair",                                MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   system_bluetooth_pair_cb},      \
+    {"Status:",                             MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL},                          \
+    {"Name:",                               MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL},                          \
+    {"Address:",                            MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL},                          \
     {"Jack",                                MENU_SELECT,    JACK_ID,            ROOT_ID,        NULL},                          \
     {"< Back to SETTINGS",                  MENU_RETURN,    JACK_ID+1,          JACK_ID,        NULL},                          \
     {"Quality",                             MENU_NONE,      JACK_ID+2,          JACK_ID,        system_jack_quality_cb},        \
@@ -371,6 +371,19 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 //// Command line interface configurations
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500
+// pacman packages names
+#define PACMAN_MOD_JACK         "jack2-mod"
+#define PACMAN_MOD_HOST         "mod-host"
+#define PACMAN_MOD_UI           "mod-ui"
+#define PACMAN_MOD_CONTROLLER   "mod-controller"
+#define PACMAN_MOD_PYTHON       "mod-python"
+#define PACMAN_MOD_RESOURCES    "mod-resources"
+#define PACMAN_MOD_BLUEZ        "mod-bluez"
+// systemctl services names
+#define SYSTEMCTL_JACK          "jackd"
+#define SYSTEMCTL_MOD_HOST      "mod-host"
+#define SYSTEMCTL_MOD_UI        "mod-ui"
+#define SYSTEMCTL_MOD_BLUEZ     "mod-bluez"
 
 //// Headphone configuration
 // defines the minimal volume variation (delta)

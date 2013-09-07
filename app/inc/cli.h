@@ -25,6 +25,7 @@
 */
 
 enum {MODUSB_ENTRY, REGULAR_ENTRY, RESTORE_ENTRY, PENDRIVE_ENTRY, STOP_TIMEOUT = 0xFF};
+enum {BLUETOOTH_NAME, BLUETOOTH_ADDRESS};
 
 
 /*
@@ -82,6 +83,8 @@ void cli_jack_set_bufsize(uint16_t bufsize);
 void cli_systemctl(const char *parameters);
 // requests the package version from pacman
 void cli_package_version(const char *package_name);
+// requests bluetooth information
+void cli_bluetooth(uint8_t what_info);
 
 
 /*

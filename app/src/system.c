@@ -77,6 +77,20 @@
 ************************************************************************************************************************
 */
 
+static void update_status(char *item_to_update)
+{
+    if (!item_to_update) return;
+
+    const char *response = cli_get_response();
+    char *pstr = strstr(item_to_update, ":");
+    if (pstr && response)
+    {
+        pstr++;
+        *pstr++ = ' ';
+        strcpy(pstr, response);
+    }
+}
+
 
 /*
 ************************************************************************************************************************
@@ -190,6 +204,28 @@ void system_save_pedalboard_cb(void *arg)
         comm_webgui_send(PEDALBOARD_SAVE_CMD, strlen(PEDALBOARD_SAVE_CMD));
 }
 
+void system_bluetooth_cb(void *arg)
+{
+    menu_item_t *item = arg;
+
+    cli_systemctl("is-active " SYSTEMCTL_MOD_BLUEZ);
+    update_status(item->data.list[2]);
+
+    cli_bluetooth(BLUETOOTH_NAME);
+    update_status(item->data.list[3]);
+
+    cli_bluetooth(BLUETOOTH_ADDRESS);
+    update_status(item->data.list[4]);
+
+    screen_system_menu(item);
+}
+
+void system_bluetooth_pair_cb(void *arg)
+{
+    UNUSED_PARAM(arg);
+    cli_systemctl("restart " SYSTEMCTL_MOD_BLUEZ);
+}
+
 void system_jack_quality_cb(void *arg)
 {
     UNUSED_PARAM(arg);
@@ -211,29 +247,18 @@ void system_jack_performance_cb(void *arg)
 void system_services_cb(void *arg)
 {
     menu_item_t *item = arg;
-    const char *response;
-    char *pstr;
-    const char *services[] = {"is-active jackd",
-                              "is-active mod-host",
-                              "is-active mod-ui",
-                              "is-active mod-bluez",
+    const char *services[] = {"is-active " SYSTEMCTL_JACK,
+                              "is-active " SYSTEMCTL_MOD_HOST,
+                              "is-active " SYSTEMCTL_MOD_UI,
+                              "is-active " SYSTEMCTL_MOD_BLUEZ,
                               NULL};
 
     uint8_t i = 0;
     while (services[i])
     {
         cli_systemctl(services[i]);
-        response = cli_get_response();
-
-        pstr = strstr(item->data.list[i+1], ":");
-        if (pstr && response)
-        {
-            pstr++;
-            *pstr++ = ' ';
-            strcpy(pstr, response);
-            screen_system_menu(item);
-        }
-
+        update_status(item->data.list[i+1]);
+        screen_system_menu(item);
         i++;
     }
 }
@@ -241,32 +266,21 @@ void system_services_cb(void *arg)
 void system_versions_cb(void *arg)
 {
     menu_item_t *item = arg;
-    const char *response;
-    char *pstr;
-    const char *versions[] = {"jack2-mod",
-                              "mod-host",
-                              "mod-ui",
-                              "mod-controller",
-                              "mod-python",
-                              "mod-resources",
-                              "mod-bluez",
+    const char *versions[] = {PACMAN_MOD_JACK,
+                              PACMAN_MOD_HOST,
+                              PACMAN_MOD_UI,
+                              PACMAN_MOD_CONTROLLER,
+                              PACMAN_MOD_PYTHON,
+                              PACMAN_MOD_RESOURCES,
+                              PACMAN_MOD_BLUEZ,
                               NULL};
 
     uint8_t i = 0;
     while (versions[i])
     {
         cli_package_version(versions[i]);
-        response = cli_get_response();
-
-        pstr = strstr(item->data.list[i+1], ":");
-        if (pstr && response)
-        {
-            pstr++;
-            *pstr++ = ' ';
-            strcpy(pstr, response);
-            screen_system_menu(item);
-        }
-
+        update_status(item->data.list[i+1]);
+        screen_system_menu(item);
         i++;
     }
 }

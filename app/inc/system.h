@@ -66,6 +66,8 @@ void system_check_boot(void);
 void system_true_bypass_cb(void *arg);
 void system_reset_pedalboard_cb(void *arg);
 void system_save_pedalboard_cb(void *arg);
+void system_bluetooth_cb(void *arg);
+void system_bluetooth_pair_cb(void *arg);
 void system_jack_quality_cb(void *arg);
 void system_jack_normal_cb(void *arg);
 void system_jack_performance_cb(void *arg);

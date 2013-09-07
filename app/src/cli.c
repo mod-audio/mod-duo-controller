@@ -327,3 +327,22 @@ void cli_package_version(const char *package_name)
     g_waiting_response = 1;
     comm_linux_send(buffer);
 }
+
+void cli_bluetooth(uint8_t what_info)
+{
+    // default response
+    strcpy(g_response, "unknown");
+
+    switch (what_info)
+    {
+        case BLUETOOTH_NAME:
+            g_waiting_response = 1;
+            comm_linux_send("cat /dados/bluetooth.name" NEW_LINE);
+            break;
+
+        case BLUETOOTH_ADDRESS:
+            g_waiting_response = 1;
+            comm_linux_send("hciconfig | grep 'BD Address' | cut -d' ' -f3" NEW_LINE);
+            break;
+    }
+}
