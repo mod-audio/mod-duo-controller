@@ -372,6 +372,12 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500
 
+//// Headphone configuration
+// defines the minimal volume variation (delta)
+#define HEADPHONE_MINIMAL_VARIATION     3
+// defines the frequency that headphone volume will be updated (in Hz, max: 1000Hz)
+#define HEADPHONE_UPDATE_FRENQUENCY     10
+
 //// Dynamic menory allocation
 // these macros should be used in replacement to default malloc and free functions of stdlib.h
 #include "FreeRTOS.h"

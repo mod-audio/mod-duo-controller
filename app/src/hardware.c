@@ -30,6 +30,11 @@
 #define TIMER0_PRIORITY     3
 #define TIMER1_PRIORITY     2
 
+// defines the headphone update period
+#define HEADPHONE_UPDATE_PERIOD     (1000 / HEADPHONE_UPDATE_FRENQUENCY)
+// defines how much values will be used to calculates the mean
+#define HEADPHONE_MEAN_DEPTH        5
+
 
 /*
 ************************************************************************************************************************
@@ -77,6 +82,7 @@ struct COOLER_T {
 ************************************************************************************************************************
 */
 
+#define ABS(x)                  ((x) > 0 ? (x) : -(x))
 #define UNBLOCK_ARM_RESET()     GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_INPUT)
 #define BLOCK_ARM_RESET()       GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_OUTPUT); \
                                 GPIO_ClearValue(ARM_RESET_PORT, (1 << ARM_RESET_PIN))
@@ -291,13 +297,37 @@ uint8_t hardware_get_true_bypass(void)
 
 void hardware_headphone(void)
 {
-    uint32_t adc_value;
+    static uint32_t adc_values[HEADPHONE_MEAN_DEPTH], adc_idx;
 
+    // stores the last adc samples
     if (ADC_ChannelGetStatus(LPC_ADC, HEADPHONE_ADC_CHANNEL, ADC_DATA_DONE))
     {
-        adc_value = ADC_ChannelGetData(LPC_ADC, HEADPHONE_ADC_CHANNEL);
-        adc_value = 63 - (adc_value >> 6);
-        tpa6130_set_volume(adc_value);
+        adc_values[adc_idx] = ADC_ChannelGetData(LPC_ADC, HEADPHONE_ADC_CHANNEL);
+        if (++adc_idx == HEADPHONE_MEAN_DEPTH) adc_idx = 0;
+    }
+
+    static uint32_t last_volume, last_counter;
+
+    // checks if need update the headphone volume
+    if ((g_counter - last_counter) >= HEADPHONE_UPDATE_PERIOD)
+    {
+        last_counter = g_counter;
+
+        uint32_t i, volume = 0;
+        for (i = 0; i < HEADPHONE_MEAN_DEPTH; i++)
+        {
+            volume += adc_values[i];
+        }
+
+        volume /= HEADPHONE_MEAN_DEPTH;
+        volume = 63 - (volume >> 6);
+
+        // checks the minimal volume variation
+        if (ABS(volume - last_volume) >= HEADPHONE_MINIMAL_VARIATION)
+        {
+            tpa6130_set_volume(volume);
+            last_volume = volume;
+        }
     }
 }
 
