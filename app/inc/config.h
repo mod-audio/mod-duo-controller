@@ -187,7 +187,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define TOOL_NAVEG          3
 
 // time in milliseconds to enter in tool mode (hold rotary encoder button)
-#define TOOL_MODE_TIME      2000
+#define TOOL_MODE_TIME      1900
 
 // setup of tools on displays
 #define TOOL_DISPLAY0       TOOL_SYSTEM
@@ -271,7 +271,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"Status:",                             MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL},                          \
     {"Name:",                               MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL},                          \
     {"Address:",                            MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL},                          \
-    {"Jack",                                MENU_SELECT,    JACK_ID,            ROOT_ID,        NULL},                          \
+    {"Audio Mode",                          MENU_SELECT,    JACK_ID,            ROOT_ID,        NULL},                          \
     {"< Back to SETTINGS",                  MENU_RETURN,    JACK_ID+1,          JACK_ID,        NULL},                          \
     {"Quality",                             MENU_NONE,      JACK_ID+2,          JACK_ID,        system_jack_quality_cb},        \
     {"Normal",                              MENU_NONE,      JACK_ID+3,          JACK_ID,        system_jack_normal_cb},         \
