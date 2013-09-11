@@ -71,6 +71,7 @@
 
 static xQueueHandle g_msg_queue, g_actuators_queue;
 static uint8_t g_msg_buffer[CDC_RX_BUFFER_SIZE];
+static uint8_t g_ui_communication_started;
 
 
 /*
@@ -388,6 +389,7 @@ static void setup_task(void *pvParameters)
 
     // navegation initialization
     naveg_init();
+    screen_boot_feedback(0);
 
     // protocol definitions
     protocol_add_command(PING_CMD, ping_cb);
@@ -418,6 +420,15 @@ static void setup_task(void *pvParameters)
     // CLI initialization
     cli_init();
 
+    while (cli_boot_stage() != LOGIN_STAGE);
+    screen_boot_feedback(1);
+
+    while (cli_boot_stage() != PROMPT_READY_STAGE);
+    screen_boot_feedback(2);
+
+    while (!g_ui_communication_started);
+    screen_boot_feedback(3);
+
     // deletes itself
     vTaskDelete(NULL);
 }
@@ -431,12 +442,10 @@ static void setup_task(void *pvParameters)
 
 static void ping_cb(proto_t *proto)
 {
-    static uint8_t ping_ok;
-
-    if (!ping_ok)
+    if (!g_ui_communication_started)
     {
         hardware_set_true_bypass(PROCESS);
-        ping_ok = 1;
+        g_ui_communication_started = 1;
     }
 
     hardware_reset(UNBLOCK);

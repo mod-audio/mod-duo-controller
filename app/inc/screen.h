@@ -73,6 +73,7 @@ void screen_tuner(float frequency, char *note, int8_t cents);
 void screen_tuner_input(uint8_t input);
 void screen_clipmeter(uint8_t display, uint8_t happened_now);
 void screen_xrun(uint8_t happened_now);
+void screen_boot_feedback(uint8_t boot_stage);
 
 
 /*

@@ -26,6 +26,7 @@
 
 enum {MODUSB_ENTRY, REGULAR_ENTRY, RESTORE_ENTRY, PENDRIVE_ENTRY, STOP_TIMEOUT = 0xFF};
 enum {BLUETOOTH_NAME, BLUETOOTH_ADDRESS};
+enum {GRUB_STAGE, KERNEL_STAGE, LOGIN_STAGE, PASSWORD_STAGE, WAIT_PROMPT_STAGE, PROMPT_READY_STAGE};
 
 
 /*
@@ -87,6 +88,8 @@ void cli_package_version(const char *package_name);
 void cli_bluetooth(uint8_t what_info);
 // requests information to check if usb controller has recognized by system
 void cli_check_controller(void);
+// retuns the boot stage
+uint8_t cli_boot_stage(void);
 
 
 /*

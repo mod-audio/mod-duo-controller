@@ -1213,10 +1213,6 @@ void naveg_init(void)
         g_controls_index[i].current = 0;
         g_controls_index[i].total = 0;
 
-        // initialize the control and footer screen
-        screen_control(i, NULL);
-        screen_footer(i, NULL, NULL);
-
         // initialize the foot controls pointers
         g_foots[i] = NULL;
 

@@ -47,9 +47,6 @@
 ************************************************************************************************************************
 */
 
-// defines the stages of CLI
-enum {GRUB_STAGE, BOOT_STAGE, LOGIN_STAGE, PASSWORD_STAGE, WAIT_PROMPT_STAGE, PROMPT_READY_STAGE};
-
 // grub entries
 static const char *g_grub_entries[] = {
     NEW_LINE,
@@ -184,7 +181,7 @@ void cli_process(void)
             }
             break;
 
-        case BOOT_STAGE:
+        case KERNEL_STAGE:
             break;
 
         case LOGIN_STAGE:
@@ -381,4 +378,9 @@ void cli_check_controller(void)
     // sends the command
     g_waiting_response = 1;
     comm_linux_send(buffer);
+}
+
+uint8_t cli_boot_stage(void)
+{
+    return g_stage;
 }

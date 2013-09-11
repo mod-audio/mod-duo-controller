@@ -11,6 +11,7 @@
 #include "glcd_widget.h"
 #include "naveg.h"
 #include "hardware.h"
+#include "boot_screens.h"
 
 #include <string.h>
 
@@ -27,6 +28,13 @@
 *           LOCAL CONSTANTS
 ************************************************************************************************************************
 */
+
+static const uint8_t *boot_screens[] = {
+    boot_screen_0,
+    boot_screen_1,
+    boot_screen_2,
+    boot_screen_3,
+};
 
 
 /*
@@ -609,4 +617,12 @@ void screen_xrun(uint8_t happened_now)
         glcd_set_pixel(XRUN_ICON_DISPLAY, 127, 63, GLCD_WHITE);
         check_timeout = 0;
     }
+}
+
+void screen_boot_feedback(uint8_t boot_stage)
+{
+    static uint8_t last_stage = 0xFF;
+
+    if (boot_stage == last_stage) return;
+    glcd_draw_image(boot_stage, 0, 0, boot_screens[boot_stage], GLCD_BLACK);
 }
