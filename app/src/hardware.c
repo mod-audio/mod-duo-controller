@@ -87,6 +87,11 @@ struct COOLER_T {
 #define BLOCK_ARM_RESET()       GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_OUTPUT); \
                                 GPIO_ClearValue(ARM_RESET_PORT, (1 << ARM_RESET_PIN))
 
+#define CPU_IS_ON()             (1 - ((FIO_ReadValue(CPU_STATUS_PORT) >> CPU_STATUS_PIN) & 1))
+#define CPU_PULSE_BUTTON()      GPIO_ClearValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));    \
+                                delay_ms(200);                                              \
+                                GPIO_SetValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
+
 
 /*
 ************************************************************************************************************************
@@ -349,6 +354,36 @@ void hardware_485_direction(uint8_t direction)
         GPIO_SetValue(RS485_DIR_PORT, (1 << RS485_DIR_PIN));
 
     delay_us(100);
+}
+
+void hardware_cpu_power(uint8_t power)
+{
+    switch (power)
+    {
+        case CPU_TURN_OFF:
+            if (CPU_IS_ON()) CPU_PULSE_BUTTON();
+            break;
+
+        case CPU_TURN_ON:
+            if (!CPU_IS_ON()) CPU_PULSE_BUTTON();
+            break;
+
+        case CPU_REBOOT:
+            if (CPU_IS_ON())
+            {
+                CPU_PULSE_BUTTON();
+                while (CPU_IS_ON());
+                delay_ms(100);
+                CPU_PULSE_BUTTON();
+            }
+            else CPU_PULSE_BUTTON();
+            break;
+    }
+}
+
+uint8_t hardware_cpu_status(void)
+{
+    return CPU_IS_ON();
 }
 
 void TIMER0_IRQHandler(void)

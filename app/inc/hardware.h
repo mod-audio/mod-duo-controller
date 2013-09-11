@@ -29,6 +29,8 @@
 enum {BYPASS, PROCESS};
 enum {BLOCK, UNBLOCK};
 enum {RECEPTION, TRANSMISSION};
+enum {CPU_TURN_OFF, CPU_TURN_ON, CPU_REBOOT};
+enum {CPU_OFF, CPU_ON};
 
 
 /*
@@ -85,6 +87,10 @@ void hardware_headphone(void);
 void hardware_reset(uint8_t unblock);
 // changes the 485 direction
 void hardware_485_direction(uint8_t direction);
+// turn on, turn off, reset the cpu
+void hardware_cpu_power(uint8_t power);
+// return the cpu status
+uint8_t hardware_cpu_status(void);
 
 
 /*
