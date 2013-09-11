@@ -9,6 +9,7 @@
 #include "config.h"
 #include "comm.h"
 #include "utils.h"
+#include "hardware.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
 
@@ -47,7 +48,7 @@
 */
 
 // defines the stages of CLI
-enum {GRUB_STAGE, BOOT_STAGE, LOGIN_STAGE, PASSWORD_STAGE, PROMPT_STAGE};
+enum {GRUB_STAGE, BOOT_STAGE, LOGIN_STAGE, PASSWORD_STAGE, WAIT_PROMPT_STAGE, PROMPT_READY_STAGE};
 
 // grub entries
 static const char *g_grub_entries[] = {
@@ -159,6 +160,9 @@ void cli_process(void)
 
     // TODO: need feedback on some stages
 
+    char *pline = g_line_buffer;
+    uint32_t resp_size = 0;
+
     switch (g_stage)
     {
         case GRUB_STAGE:
@@ -201,20 +205,37 @@ void cli_process(void)
                 comm_linux_send(ECHO_OFF_CMD);
                 comm_linux_send(PS1_SETUP_CMD);
                 clear_buffer();
-                g_stage = PROMPT_STAGE;
+                g_stage = WAIT_PROMPT_STAGE;
             }
             break;
 
-        case PROMPT_STAGE:
-            // reboot the cpu to finish the restore
-            if (g_grub_entry == RESTORE_ENTRY) cli_reboot_cpu();
+        case WAIT_PROMPT_STAGE:
+            pstr = strstr(g_line_buffer, PROMPT_TEXT);
+            if (pstr)
+            {
+                // if is restore reboot the cpu
+                if (g_grub_entry == RESTORE_ENTRY || g_grub_entry == PENDRIVE_ENTRY)
+                {
+                    hardware_reset(UNBLOCK);
+                    hardware_cpu_power(CPU_REBOOT);
+                    g_stage = GRUB_STAGE;
+                    clear_buffer();
+                    break;
+                }
+                else
+                {
+                    comm_linux_send(NEW_LINE);
+                    clear_buffer();
+                    g_stage = PROMPT_READY_STAGE;
+                }
 
-            // reset to regular grub entry
-            g_grub_entry = REGULAR_ENTRY;
+                // reset to regular grub entry
+                g_grub_entry = REGULAR_ENTRY;
+            }
+            break;
 
+        case PROMPT_READY_STAGE:
             // tries locate the prompt text
-            char *pline = g_line_buffer;
-            uint32_t resp_size = 0;
             do
             {
                 pstr = strstr(pline, PROMPT_TEXT);
@@ -264,7 +285,7 @@ void cli_grub_select(uint8_t entry)
         g_stage = LOGIN_STAGE;
 
         // if is restore entry jumps to prompt stage
-        if (entry == RESTORE_ENTRY) g_stage = PROMPT_STAGE;
+        if (entry == RESTORE_ENTRY || entry == PENDRIVE_ENTRY) g_stage = WAIT_PROMPT_STAGE;
     }
     else
     {
