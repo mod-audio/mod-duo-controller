@@ -436,10 +436,10 @@ static void ping_cb(proto_t *proto)
     if (!ping_ok)
     {
         hardware_set_true_bypass(PROCESS);
-        hardware_reset(UNBLOCK);
         ping_ok = 1;
     }
 
+    hardware_reset(UNBLOCK);
     protocol_response("resp 0", proto);
 }
 
