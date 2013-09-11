@@ -286,10 +286,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"USB:",                                MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL},                          \
     {"Services",                            MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb},            \
     {"< Back to Info",                      MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL},                          \
-    {"jack:",                               MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    NULL},                          \
-    {"mod-host:",                           MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    NULL},                          \
-    {"mod-ui:",                             MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    NULL},                          \
-    {"bluez:",                              MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    NULL},                          \
+    {"jack:",                               MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    system_restart_jack_cb},        \
+    {"mod-host:",                           MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    system_restart_host_cb},        \
+    {"mod-ui:",                             MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    system_restart_ui_cb},          \
+    {"bluez:",                              MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    system_restart_bluez_cb},       \
     {"Versions",                            MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb},            \
     {"< Back to Info",                      MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL},                          \
     {"jack:",                               MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL},                          \

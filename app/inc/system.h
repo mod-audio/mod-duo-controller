@@ -73,6 +73,10 @@ void system_jack_normal_cb(void *arg);
 void system_jack_performance_cb(void *arg);
 void system_cpu_cb(void *arg);
 void system_services_cb(void *arg);
+void system_restart_jack_cb(void *arg);
+void system_restart_host_cb(void *arg);
+void system_restart_ui_cb(void *arg);
+void system_restart_bluez_cb(void *arg);
 void system_versions_cb(void *arg);
 void system_restore_cb(void *arg);
 

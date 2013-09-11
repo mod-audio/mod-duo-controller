@@ -299,6 +299,30 @@ void system_services_cb(void *arg)
     }
 }
 
+void system_restart_jack_cb(void *arg)
+{
+    UNUSED_PARAM(arg);
+    cli_systemctl("restart " SYSTEMCTL_JACK);
+}
+
+void system_restart_host_cb(void *arg)
+{
+    UNUSED_PARAM(arg);
+    cli_systemctl("restart " SYSTEMCTL_MOD_HOST);
+}
+
+void system_restart_ui_cb(void *arg)
+{
+    UNUSED_PARAM(arg);
+    cli_systemctl("restart " SYSTEMCTL_MOD_UI);
+}
+
+void system_restart_bluez_cb(void *arg)
+{
+    UNUSED_PARAM(arg);
+    cli_systemctl("restart " SYSTEMCTL_MOD_BLUEZ);
+}
+
 void system_versions_cb(void *arg)
 {
     menu_item_t *item = arg;
