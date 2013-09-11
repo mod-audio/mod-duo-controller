@@ -124,12 +124,11 @@ control_t *data_parse_control(char **data)
 
 void data_free_control(control_t *control)
 {
-    if (control)
-    {
-        FREE(control->symbol);
-        FREE(control->label);
-        FREE(control->unit);
-    }
+    if (!control) return;
+
+    FREE(control->symbol);
+    FREE(control->label);
+    FREE(control->unit);
 
     uint8_t i;
     for (i = 0; i < control->scale_points_count; i++)

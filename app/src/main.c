@@ -23,6 +23,7 @@
 #include "naveg.h"
 #include "screen.h"
 #include "cli.h"
+#include "chain.h"
 
 #include "usb.h"
 #include "usbhw.h"
@@ -156,7 +157,11 @@ static void serial_cb(uint8_t port)
     uint32_t read_bytes;
 
     read_bytes = serial_read(port, (uint8_t*) buffer, sizeof(buffer));
-    cli_append_data(buffer, read_bytes);
+
+    if (port == CLI_SERIAL)
+        cli_append_data(buffer, read_bytes);
+    else if (port == CONTROL_CHAIN_SERIAL)
+        control_chain_append_data((uint8_t*) buffer, read_bytes);
 }
 
 // this callback is called from UART ISR in case of error
@@ -327,6 +332,10 @@ static void monitor_task(void *pvParameters)
 
         // process the command line
         cli_process();
+
+        // process the control chain data
+        control_chain_process();
+
         taskYIELD();
     }
 }
@@ -339,8 +348,12 @@ static void setup_task(void *pvParameters)
     glcd_init();
 
     // serial initialization and callbacks definitions
+    // serial 1 is used to commutication with linux console
     serial_init(SERIAL1, SERIAL1_BAUDRATE, SERIAL1_PRIORITY);
     serial_set_callback(SERIAL1, serial_cb);
+    // serial 2 is used to external devices communication
+    serial_init(SERIAL2, SERIAL2_BAUDRATE, SERIAL2_PRIORITY);
+    serial_set_callback(SERIAL2, serial_cb);
 
     // create the queues
     g_msg_queue = xQueueCreate(MSG_QUEUE_DEPTH, sizeof(uint32_t *));
@@ -460,12 +473,7 @@ static void gui_connection_cb(proto_t *proto)
 static void control_add_cb(proto_t *proto)
 {
     control_t *control = data_parse_control(proto->list);
-
-    if (control->hardware_type == QUADRA_HW)
-    {
-        naveg_add_control(control);
-    }
-    // TODO: implement the others hardwares type
+    naveg_add_control(control);
 
     protocol_response("resp 0", proto);
 }

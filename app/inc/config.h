@@ -7,9 +7,9 @@
 ////// SETTINGS RELATED TO HARDWARE
 
 //// Hardwares types (device identification)
-#define QUADRA_HW       0
-#define EXP_PEDAL_HW    1
-#define XY_TABLET_HW    2
+#define MOD_HARDWARE        0
+#define EXP_PEDAL_HW        1
+#define XY_TABLET_HW        2
 
 //// Actuators types
 #define NONE            0
@@ -22,11 +22,11 @@
 #define SLOTS_COUNT         4
 
 //// CPU pins
-// defines the port and of CPU power button
+// defines the port and pin of CPU power button
 #define CPU_BUTTON_PORT     1
 #define CPU_BUTTON_PIN      23
 
-// defines the port and of CPU power status
+// defines the port and pin of CPU power status
 #define CPU_STATUS_PORT     1
 #define CPU_STATUS_PIN      24
 
@@ -99,6 +99,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define HEADPHONE_ADC_CLOCK     1000
 // ADC headphone channel
 #define HEADPHONE_ADC_CHANNEL   1
+
+//// RS485 direction port and pin definition
+#define RS485_DIR_PORT          1
+#define RS485_DIR_PIN           12
 
 
 ////////////////////////////////////////////////////////////////
@@ -310,16 +314,12 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// Serial Configurations
 // serial baudrates
-#define SERIAL0_BAUDRATE        115200
 #define SERIAL1_BAUDRATE        115200
+#define SERIAL2_BAUDRATE        230400
 // If the serial ISR uses freeRTOS API, the priorities values must be
 // equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
-#define SERIAL0_PRIORITY        6
 #define SERIAL1_PRIORITY        6
-
-//// Communication definitions
-// defines the UART port used to communication between HMI and linux serial console
-#define LINUX_SERIAL            1
+#define SERIAL2_PRIORITY        6
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
@@ -353,6 +353,24 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // defines the previous pedalboard footer text
 #define PEDALBOARD_PREV_FOOTER_TEXT "-"
 
+//// Command line interface configurations
+#define CLI_SERIAL                  1
+// defines how much time wait for console response (in milliseconds)
+#define CLI_RESPONSE_TIMEOUT        500
+// pacman packages names
+#define PACMAN_MOD_JACK             "jack2-mod"
+#define PACMAN_MOD_HOST             "mod-host"
+#define PACMAN_MOD_UI               "mod-ui"
+#define PACMAN_MOD_CONTROLLER       "mod-controller"
+#define PACMAN_MOD_PYTHON           "mod-python"
+#define PACMAN_MOD_RESOURCES        "mod-resources"
+#define PACMAN_MOD_BLUEZ            "mod-bluez"
+// systemctl services names
+#define SYSTEMCTL_JACK              "jackd"
+#define SYSTEMCTL_MOD_HOST          "mod-host"
+#define SYSTEMCTL_MOD_UI            "mod-ui"
+#define SYSTEMCTL_MOD_BLUEZ         "mod-bluez"
+
 //// Jack buffer size configuration
 #define JACK_BUF_SIZE_QUALITY       512
 #define JACK_BUF_SIZE_NORMAL        256
@@ -368,28 +386,28 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // defines the timeout for wait the user response (in seconds)
 #define PENDRIVE_RESTORE_TIMEOUT    30
 
-//// Command line interface configurations
-// defines how much time wait for console response (in milliseconds)
-#define CLI_RESPONSE_TIMEOUT        500
-// pacman packages names
-#define PACMAN_MOD_JACK         "jack2-mod"
-#define PACMAN_MOD_HOST         "mod-host"
-#define PACMAN_MOD_UI           "mod-ui"
-#define PACMAN_MOD_CONTROLLER   "mod-controller"
-#define PACMAN_MOD_PYTHON       "mod-python"
-#define PACMAN_MOD_RESOURCES    "mod-resources"
-#define PACMAN_MOD_BLUEZ        "mod-bluez"
-// systemctl services names
-#define SYSTEMCTL_JACK          "jackd"
-#define SYSTEMCTL_MOD_HOST      "mod-host"
-#define SYSTEMCTL_MOD_UI        "mod-ui"
-#define SYSTEMCTL_MOD_BLUEZ     "mod-bluez"
+//// Control Chain definitions
+#define CONTROL_CHAIN_SERIAL                        2
+// defines the maximum external devices connection
+#define CONTROL_CHAIN_MAX_DEVICES                   16
+// defines the maximum of actuators per hardware devices
+#define CONTROL_CHAIN_MAX_ACTUATORS_PER_DEVICES     32
+// defines the external devices timeout (in milliseconds)
+#define CONTROL_CHAIN_TIMEOUT                       1000
+// defines the external devices request clock (in Hz, max: 1000Hz)
+#define CONTROL_CHAIN_CLOCK                         200
+// defines the control chain functions
+#define CONTROL_CHAIN_REQUEST_CONNECTION            1
+#define CONTROL_CHAIN_CONFIRM_CONNECTION            2
+#define CONTROL_CHAIN_REQUEST_DATA                  3
+#define CONTROL_CHAIN_DATA_RESPONSE                 4
 
 //// Headphone configuration
 // defines the minimal volume variation (delta)
 #define HEADPHONE_MINIMAL_VARIATION     3
 // defines the frequency that headphone volume will be updated (in Hz, max: 1000Hz)
 #define HEADPHONE_UPDATE_FRENQUENCY     10
+
 
 //// Dynamic menory allocation
 // these macros should be used in replacement to default malloc and free functions of stdlib.h

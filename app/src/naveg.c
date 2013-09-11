@@ -13,6 +13,7 @@
 #include "led.h"
 #include "hardware.h"
 #include "comm.h"
+#include "chain.h"
 
 #include <string.h>
 #include <math.h>
@@ -176,6 +177,9 @@ static void step_to_value(control_t *control)
             control->value = control->scale_points[control->step]->value;
             break;
     }
+
+    if (control->value > control->maximum) control->value = control->maximum;
+    if (control->value < control->minimum) control->value = control->minimum;
 }
 
 // copy an command to buffer
@@ -571,10 +575,6 @@ static void foot_control_rm(int8_t effect_instance, const char *symbol)
 
 static void control_set(uint8_t display, control_t *control)
 {
-    char buffer[128];
-    uint8_t i;
-
-    i = copy_command(buffer, CONTROL_SET_CMD);
     uint32_t delta, now;
 
     switch (control->properties)
@@ -638,6 +638,11 @@ static void control_set(uint8_t display, control_t *control)
             }
             break;
     }
+
+    char buffer[128];
+    uint8_t i;
+
+    i = copy_command(buffer, CONTROL_SET_CMD);
 
     // insert the instance on buffer
     i += int_to_str(control->effect_instance, &buffer[i], sizeof(buffer) - i, 0);
@@ -1242,18 +1247,22 @@ void naveg_init(void)
 
 void naveg_add_control(control_t *control)
 {
-    switch (control->actuator_type)
+    if (control->hardware_type == MOD_HARDWARE)
     {
-        case KNOB:
-            display_control_add(control);
-            break;
+        switch (control->actuator_type)
+        {
+            case KNOB:
+                display_control_add(control);
+                break;
 
-        case FOOT:
-            foot_control_add(control);
-            break;
-
-        case PEDAL:
-            break;
+            case FOOT:
+                foot_control_add(control);
+                break;
+        }
+    }
+    else
+    {
+        control_chain_add(control);
     }
 }
 
@@ -1261,6 +1270,7 @@ void naveg_remove_control(int8_t effect_instance, const char *symbol)
 {
     display_control_rm(effect_instance, symbol);
     foot_control_rm(effect_instance, symbol);
+    control_chain_remove(effect_instance, symbol);
 }
 
 void naveg_inc_control(uint8_t display)
@@ -1315,6 +1325,7 @@ void naveg_set_control(int8_t effect_instance, const char *symbol, float value)
         if (value > control->maximum) control->value = control->maximum;
         control_set(display, control);
 
+        // updates the step value
         control->step =
             (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
     }

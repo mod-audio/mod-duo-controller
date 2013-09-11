@@ -7,6 +7,8 @@
 
 #include "serial.h"
 #include "utils.h"
+#include "config.h"
+#include "hardware.h"
 
 #include "lpc177x_8x_uart.h"
 #include "lpc177x_8x_pinsel.h"
@@ -120,6 +122,10 @@ static void uart_transmit(uint8_t port)
     // Wait until THR empty
     while (UART_CheckBusy(uart) == SET);
 
+    // checks if is the control chain serial
+    if (port == CONTROL_CHAIN_SERIAL)
+        hardware_485_direction(TRANSMISSION);
+
     uint32_t count;
     uint8_t buffer[UART_TX_FIFO_SIZE];
 
@@ -130,6 +136,15 @@ static void uart_transmit(uint8_t port)
     if (!ringbuf_is_empty(g_tx_buffer[port]))
     {
         UART_IntConfig(uart, UART_INTCFG_THRE, ENABLE);
+    }
+    else
+    {
+        // checks if is the control chain serial
+        if (port == CONTROL_CHAIN_SERIAL)
+        {
+            while (UART_CheckBusy(uart) == SET);
+            hardware_485_direction(RECEPTION);
+        }
     }
 }
 
@@ -230,8 +245,8 @@ void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
             // Initialize UART2 pin connect
             // P0.10: U2_TXD
             // P0.11: U2_RXD
-            PINSEL_ConfigPin(0, 10, 2);
-            PINSEL_ConfigPin(0, 11, 2);
+            PINSEL_ConfigPin(0, 10, 1);
+            PINSEL_ConfigPin(0, 11, 1);
             uart = UART2;
             irq = UART2_IRQn;
             break;
@@ -240,8 +255,8 @@ void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
             // Initialize UART3 pin connect
             // P0.25: U3_TXD
             // P0.26: U3_RXD
-            PINSEL_ConfigPin(0, 25, 2);
-            PINSEL_ConfigPin(0, 26, 2);
+            PINSEL_ConfigPin(0, 25, 3);
+            PINSEL_ConfigPin(0, 26, 3);
             uart = UART3;
             irq = UART3_IRQn;
             break;
@@ -305,7 +320,7 @@ void serial_set_callback(uint8_t port, void (*receive_cb)(uint8_t _port))
     g_callback[port] = receive_cb;
 }
 
-uint32_t serial_send(uint8_t port, uint8_t *data, uint32_t data_size)
+uint32_t serial_send(uint8_t port, const uint8_t *data, uint32_t data_size)
 {
     LPC_UART_TypeDef *uart = GET_UART(port);
 

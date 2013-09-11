@@ -73,6 +73,10 @@ void comm_webgui_response_cb(void *data);
 // blocks the execution until the webgui response be received
 void comm_webgui_wait_response(void);
 
+//// control chain communication functions
+// sends binary data to external devices
+void comm_control_chain_send(const uint8_t *data, uint32_t data_size);
+
 
 /*
 ************************************************************************************************************************

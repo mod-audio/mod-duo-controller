@@ -28,6 +28,7 @@
 
 enum {BYPASS, PROCESS};
 enum {BLOCK, UNBLOCK};
+enum {RECEPTION, TRANSMISSION};
 
 
 /*
@@ -82,6 +83,8 @@ uint8_t hardware_get_true_bypass(void);
 void hardware_headphone(void);
 // unblock/block the arm microcontroller reset
 void hardware_reset(uint8_t unblock);
+// changes the 485 direction
+void hardware_485_direction(uint8_t direction);
 
 
 /*

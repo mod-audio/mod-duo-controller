@@ -263,7 +263,7 @@ void cli_grub_select(uint8_t entry)
         g_boot_aborted = 0;
         g_stage = LOGIN_STAGE;
 
-        // if is restore entry jumps go direct to prompt stage
+        // if is restore entry jumps to prompt stage
         if (entry == RESTORE_ENTRY) g_stage = PROMPT_STAGE;
     }
     else

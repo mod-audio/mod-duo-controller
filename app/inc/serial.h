@@ -67,7 +67,7 @@ enum {SERIAL0, SERIAL1, SERIAL2, SERIAL3};
 
 void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority);
 void serial_set_callback(uint8_t port, void (*receive_cb)(uint8_t _port));
-uint32_t serial_send(uint8_t port, uint8_t *data, uint32_t data_size);
+uint32_t serial_send(uint8_t port, const uint8_t *data, uint32_t data_size);
 uint32_t serial_read(uint8_t port, uint8_t *data, uint32_t data_size);
 
 // this function will be called automatically from UART interrupt in case of error

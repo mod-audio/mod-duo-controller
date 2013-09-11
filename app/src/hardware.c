@@ -149,6 +149,10 @@ void hardware_setup(void)
     GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
     hardware_set_true_bypass(BYPASS);
 
+    // RS485 direction
+    GPIO_SetDir(RS485_DIR_PORT, (1 << RS485_DIR_PIN), GPIO_DIRECTION_OUTPUT);
+    hardware_485_direction(RECEPTION);
+
     // SLOTs initialization
     uint8_t i;
     for (i = 0; i < SLOTS_COUNT; i++)
@@ -212,9 +216,9 @@ void hardware_setup(void)
     // Timer 1 configuration
     // this timer is for actuators clock and timestamp
 
-    // initialize timer 1, prescale count time of 100us
+    // initialize timer 1, prescale count time of 500us
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-    TIM_ConfigStruct.PrescaleValue    = 100;
+    TIM_ConfigStruct.PrescaleValue    = 500;
     // use channel 1, MR1
     TIM_MatchConfigStruct.MatchChannel = 1;
     // enable interrupt when MR1 matches the value in TC register
@@ -223,8 +227,8 @@ void hardware_setup(void)
     TIM_MatchConfigStruct.ResetOnMatch = TRUE;
     // stop on MR1 if MR1 matches it
     TIM_MatchConfigStruct.StopOnMatch  = FALSE;
-    // set Match value, count value of 10 (10 * 100us = 1000us --> 1 kHz)
-    TIM_MatchConfigStruct.MatchValue   = 10;
+    // set Match value, count value of 1
+    TIM_MatchConfigStruct.MatchValue   = 1;
     // set configuration for Tim_config and Tim_MatchConfig
     TIM_Init(LPC_TIM1, TIM_TIMER_MODE, &TIM_ConfigStruct);
     TIM_ConfigMatch(LPC_TIM1, &TIM_MatchConfigStruct);
@@ -335,6 +339,16 @@ void hardware_reset(uint8_t unblock)
 {
     if (unblock) UNBLOCK_ARM_RESET();
     else BLOCK_ARM_RESET();
+}
+
+void hardware_485_direction(uint8_t direction)
+{
+    if (direction == RECEPTION)
+        GPIO_ClearValue(RS485_DIR_PORT, (1 << RS485_DIR_PIN));
+    else
+        GPIO_SetValue(RS485_DIR_PORT, (1 << RS485_DIR_PIN));
+
+    delay_us(100);
 }
 
 void TIMER0_IRQHandler(void)
