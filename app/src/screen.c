@@ -550,6 +550,15 @@ void screen_tuner(float frequency, char *note, int8_t cents)
         widget_tuner(TUNER_DISPLAY, &g_tuner);
 }
 
+void screen_tuner_input(uint8_t input)
+{
+    g_tuner.input = input;
+
+    // checks if tuner is enable and update it
+    if (naveg_is_tool_mode(TUNER_DISPLAY))
+        widget_tuner(TUNER_DISPLAY, &g_tuner);
+}
+
 void screen_clipmeter(uint8_t display, uint8_t happened_now)
 {
     static uint8_t check_timeout[GLCD_COUNT];

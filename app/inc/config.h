@@ -153,6 +153,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define TUNER_ON_CMD            "tuner on"
 // tuner off
 #define TUNER_OFF_CMD           "tuner off"
+// tuner_input <input>
+#define TUNER_INPUT_CMD         "tuner_input %i"
 // xrun
 #define XRUN_CMD                "xrun"
 // hw_con <hw_type> <hw_id>

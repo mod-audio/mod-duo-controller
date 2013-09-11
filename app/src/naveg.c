@@ -1011,6 +1011,26 @@ static void menu_down(void)
     screen_system_menu(item);
 }
 
+static void tuner_enter(void)
+{
+    static uint8_t input = 1;
+
+    char buffer[128];
+    uint32_t i = copy_command(buffer, TUNER_INPUT_CMD);
+
+    // toggle the input
+    input = (input == 1 ? 2 : 1);
+
+    // inserts the input number
+    i += int_to_str(input, &buffer[i], sizeof(buffer) - i, 0);
+
+    // send the data to GUI
+    comm_webgui_send(buffer, i);
+
+    // updates the screen
+    screen_tuner_input(input);
+}
+
 static void create_menu_tree(node_t *parent, const menu_desc_t *desc)
 {
     uint8_t i;
@@ -1564,6 +1584,7 @@ void naveg_enter(uint8_t display)
 {
     if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_enter();
     if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_enter();
+    if (g_tool[TUNER_DISPLAY].state  == TOOL_ON && display == TUNER_DISPLAY) tuner_enter();
 }
 
 void naveg_up(uint8_t display)
