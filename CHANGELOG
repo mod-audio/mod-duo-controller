@@ -1,3 +1,12 @@
+0.12
+====
+  - NEW: extenal devices core + expression pedal
+  - NEW: CPU power control and power status
+  - NEW: select tuner input
+  - NEW: restart service when click in service name
+  - NEW: block pedalboards navigation when UI connect
+  - NEW: MOD initialization feedback
+
 0.11.7
 ======
   - FIX: headphone crackles
