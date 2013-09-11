@@ -85,6 +85,8 @@ void cli_systemctl(const char *parameters);
 void cli_package_version(const char *package_name);
 // requests bluetooth information
 void cli_bluetooth(uint8_t what_info);
+// requests information to check if usb controller has recognized by system
+void cli_check_controller(void);
 
 
 /*

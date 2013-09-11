@@ -280,8 +280,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"Performance",                         MENU_NONE,      JACK_ID+4,          JACK_ID,        system_jack_performance_cb},    \
     {"Info",                                MENU_LIST,      INFO_ID,            ROOT_ID,        NULL},                          \
     {"< Back to SETTINGS",                  MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL},                          \
-    {"CPU",                                 MENU_LIST,      CPU_ID,             INFO_ID,        NULL},                          \
+    {"CPU",                                 MENU_LIST,      CPU_ID,             INFO_ID,        system_cpu_cb},                 \
     {"< Back to Info",                      MENU_RETURN,    CPU_ID+1,           CPU_ID,         NULL},                          \
+    {"Power:",                              MENU_RETURN,    CPU_ID+2,           CPU_ID,         NULL},                          \
+    {"USB:",                                MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL},                          \
     {"Services",                            MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb},            \
     {"< Back to Info",                      MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL},                          \
     {"jack:",                               MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    NULL},                          \
@@ -409,6 +411,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define HEADPHONE_MINIMAL_VARIATION     3
 // defines the frequency that headphone volume will be updated (in Hz, max: 1000Hz)
 #define HEADPHONE_UPDATE_FRENQUENCY     10
+
+//// USB definitions
+#define USB_VID     0x9999
+#define USB_PID     0x0001
 
 
 //// Dynamic menory allocation

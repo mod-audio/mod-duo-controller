@@ -367,3 +367,18 @@ void cli_bluetooth(uint8_t what_info)
             break;
     }
 }
+
+void cli_check_controller(void)
+{
+   char buffer[64];
+
+    // copies the command
+    strcpy(buffer, "lsusb -d 9999:0001" NEW_LINE);  // FIXME: need get the VID and PID from config.h
+
+    // default response
+    strcpy(g_response, "not found");
+
+    // sends the command
+    g_waiting_response = 1;
+    comm_linux_send(buffer);
+}

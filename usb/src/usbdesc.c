@@ -4,6 +4,7 @@
 #include "cdc.h"
 #include "usbcfg.h"
 #include "usbdesc.h"
+#include "config.h"
 
 
 /* USB Standard Device Descriptor */
@@ -16,12 +17,12 @@ const uint8_t USB_DeviceDescriptor[] =
     0x00,                              /* bDeviceSubClass */
     0x00,                              /* bDeviceProtocol */
     USB_MAX_PACKET0,                   /* bMaxPacketSize0 */
-    WBVAL(0x1FC9),                     /* idVendor */
-    WBVAL(0x2002),                     /* idProduct */
+    WBVAL(USB_VID),                    /* idVendor */
+    WBVAL(USB_PID),                    /* idProduct */
     WBVAL(0x0100), /* 1.00 */          /* bcdDevice */
     0x01,                              /* iManufacturer */
     0x02,                              /* iProduct */
-    0x03,                              /* iSerialNumber */
+    0x00,                              /* iSerialNumber */
     0x01                               /* bNumConfigurations: one possible configuration*/
 };
 
@@ -124,61 +125,32 @@ const uint8_t USB_StringDescriptor[] =
     USB_STRING_DESCRIPTOR_TYPE,        /* bDescriptorType */
     WBVAL(0x0409), /* US English */    /* wLANGID */
     /* Index 0x01: Manufacturer */
-    (13 * 2 + 2),                      /* bLength (13 Char + Type + lenght) */
+    (9 * 2 + 2),                        /* bLength (9 Char + Type + lenght) */
     USB_STRING_DESCRIPTOR_TYPE,        /* bDescriptorType */
-    WBVAL('N'),
-    WBVAL('X'),
-    WBVAL('P'),
+    WBVAL('A'),
+    WBVAL('G'),
+    WBVAL('R'),
     WBVAL(' '),
-    WBVAL('S'),
-    WBVAL('E'),
-    WBVAL('M'),
+    WBVAL('A'),
+    WBVAL('U'),
+    WBVAL('D'),
     WBVAL('I'),
-    WBVAL('C'),
     WBVAL('O'),
-    WBVAL('N'),
-    WBVAL('D'),
-    WBVAL(' '),
     /* Index 0x02: Product */
-    (17 * 2 + 2),                      /* bLength ( 17 Char + Type + lenght) */
+    (14 * 2 + 2),                      /* bLength (14 Char + Type + lenght) */
     USB_STRING_DESCRIPTOR_TYPE,        /* bDescriptorType */
-    WBVAL('N'),
-    WBVAL('X'),
-    WBVAL('P'),
-    WBVAL(' '),
-    WBVAL('L'),
-    WBVAL('P'),
-    WBVAL('C'),
-    WBVAL('1'),
-    WBVAL('7'),
-    WBVAL('x'),
-    WBVAL('x'),
-    WBVAL(' '),
-    WBVAL('V'),
-    WBVAL('C'),
-    WBVAL('O'),
     WBVAL('M'),
-    WBVAL(' '),
-    /* Index 0x03: Serial Number */
-    (12 * 2 + 2),                      /* bLength (12 Char + Type + lenght) */
-    USB_STRING_DESCRIPTOR_TYPE,        /* bDescriptorType */
+    WBVAL('O'),
     WBVAL('D'),
-    WBVAL('E'),
-    WBVAL('M'),
-    WBVAL('O'),
-    WBVAL('0'),
-    WBVAL('0'),
-    WBVAL('0'),
-    WBVAL('0'),
-    WBVAL('0'),
-    WBVAL('0'),
-    WBVAL('0'),
-    WBVAL('0'),
-    /* Index 0x04: Interface 0, Alternate Setting 0 */
-    (4 * 2 + 2),                       /* bLength (4 Char + Type + lenght) */
-    USB_STRING_DESCRIPTOR_TYPE,        /* bDescriptorType */
-    WBVAL('V'),
+    WBVAL(' '),
     WBVAL('C'),
     WBVAL('O'),
-    WBVAL('M'),
+    WBVAL('N'),
+    WBVAL('T'),
+    WBVAL('R'),
+    WBVAL('O'),
+    WBVAL('L'),
+    WBVAL('L'),
+    WBVAL('E'),
+    WBVAL('R'),
 };

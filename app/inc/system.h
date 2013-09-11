@@ -71,6 +71,7 @@ void system_bluetooth_pair_cb(void *arg);
 void system_jack_quality_cb(void *arg);
 void system_jack_normal_cb(void *arg);
 void system_jack_performance_cb(void *arg);
+void system_cpu_cb(void *arg);
 void system_services_cb(void *arg);
 void system_versions_cb(void *arg);
 void system_restore_cb(void *arg);

@@ -249,6 +249,37 @@ void system_jack_performance_cb(void *arg)
     cli_jack_set_bufsize(JACK_BUF_SIZE_PERFORMANCE);
 }
 
+void system_cpu_cb(void *arg)
+{
+    menu_item_t *item = arg;
+
+    // updates the power status
+    const char *power;
+    if (hardware_cpu_status() == CPU_ON) power = "ON";
+    else power = "OFF";
+
+    char *pstr = strstr(item->data.list[1], ":");
+    if (pstr)
+    {
+        pstr++;
+        *pstr++ = ' ';
+        strcpy(pstr, power);
+    }
+
+    // updates the USB controller status
+    cli_check_controller();
+    const char *response = cli_get_response();
+    if (strcmp(response, "not found") != 0) response = "connected";
+
+    pstr = strstr(item->data.list[2], ":");
+    if (pstr)
+    {
+        pstr++;
+        *pstr++ = ' ';
+        strcpy(pstr, response);
+    }
+}
+
 void system_services_cb(void *arg)
 {
     menu_item_t *item = arg;
