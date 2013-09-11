@@ -467,6 +467,11 @@ static void led_cb(proto_t *proto)
 
 static void gui_connection_cb(proto_t *proto)
 {
+    if (strcmp(proto->list[0], GUI_CONNECTED_CMD) == 0)
+        naveg_ui_connection(UI_CONNECTED);
+    else
+        naveg_ui_connection(UI_DISCONNECTED);
+
     protocol_response("resp 0", proto);
 }
 

@@ -27,6 +27,7 @@
 
 #define ALL_EFFECTS     -1
 #define ALL_CONTROLS    ":all"
+enum {UI_DISCONNECTED, UI_CONNECTED};
 
 
 /*
@@ -65,6 +66,8 @@
 
 // initialize the navigation nodes and structs
 void naveg_init(void);
+// tells to navigation core the UI status
+void naveg_ui_connection(uint8_t status);
 // adds the control to end of the controls list
 void naveg_add_control(control_t *control);
 // removes the control from controls list

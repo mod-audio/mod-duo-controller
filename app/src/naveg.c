@@ -98,6 +98,7 @@ static node_t *g_menu, *g_current_menu;
 static menu_item_t *g_current_item;
 static uint8_t g_max_items_list;
 static bank_config_t g_bank_functions[BANK_FUNC_AMOUNT];
+static uint8_t g_ui_connected;
 
 
 /*
@@ -1265,6 +1266,21 @@ void naveg_init(void)
     g_current_item = g_menu->first_child->data;
 }
 
+void naveg_ui_connection(uint8_t status)
+{
+    if (status == UI_CONNECTED)
+    {
+        if (g_tool[NAVEG_DISPLAY].state == TOOL_ON)
+            naveg_toggle_tool(NAVEG_DISPLAY);
+
+        g_ui_connected = 1;
+    }
+    else
+    {
+        g_ui_connected = 0;
+    }
+}
+
 void naveg_add_control(control_t *control)
 {
     if (control->hardware_type == MOD_HARDWARE)
@@ -1429,6 +1445,9 @@ void naveg_foot_change(uint8_t foot)
 
 void naveg_toggle_tool(uint8_t display)
 {
+    // checks if is the navigation display and if the UI is conneceted
+    if (display == NAVEG_DISPLAY && g_ui_connected) return;
+
     // clears the display
     screen_clear(display);
 
