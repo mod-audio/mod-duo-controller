@@ -177,6 +177,11 @@ void system_check_boot(void)
             cli_grub_select(PENDRIVE_ENTRY);
         }
     }
+    else
+    {
+        // selects the grub regular entry
+        cli_grub_select(REGULAR_ENTRY);
+    }
 }
 
 void system_true_bypass_cb(void *arg)
