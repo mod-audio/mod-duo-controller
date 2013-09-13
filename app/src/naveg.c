@@ -344,6 +344,13 @@ static void display_control_rm(int8_t effect_instance, const char *symbol)
     {
         node = g_controls_list[display]->first_child;
 
+        // if there is no controls assigned, load the default screen
+        if (!node && g_tool[display].state == TOOL_OFF)
+        {
+            screen_control(display, NULL);
+            continue;
+        }
+
         while (node)
         {
             control = (control_t *) node->data;
@@ -553,7 +560,12 @@ static void foot_control_rm(int8_t effect_instance, const char *symbol)
 
     for (i = 0; i < FOOTSWITCHES_COUNT; i++)
     {
-        if (g_foots[i] == NULL) continue;
+        // if there is no controls assigned, load the default screen
+        if (!g_foots[i] && g_tool[i].state == TOOL_OFF)
+        {
+            screen_footer(i, NULL, NULL);
+            continue;
+        }
 
         // checks if effect_instance and symbol match
         if (all_effects || effect_instance == g_foots[i]->effect_instance)
@@ -568,7 +580,8 @@ static void foot_control_rm(int8_t effect_instance, const char *symbol)
                 g_foots[i] = NULL;
 
                 // update the footer
-                screen_footer(i, NULL, NULL);
+                if (g_tool[i].state == TOOL_OFF)
+                    screen_footer(i, NULL, NULL);
             }
         }
     }
@@ -1501,7 +1514,7 @@ void naveg_toggle_tool(uint8_t display)
         if (control)
             screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
 
-        // draws the footer
+        // calls foot_control_add to updates the footer
         if (g_foots[display])
             foot_control_add(g_foots[display]);
         else
@@ -1531,6 +1544,8 @@ void naveg_bank_config(bank_config_t *bank_conf)
 
     // checks the actuator type and actuator id
     if (bank_conf->actuator_type != FOOT || bank_conf->actuator_id >= FOOTSWITCHES_COUNT) return;
+
+    // TODO: need check hardware_type and hardware_id
 
     uint8_t i;
     for (i = 1; i < BANK_FUNC_AMOUNT; i++)
