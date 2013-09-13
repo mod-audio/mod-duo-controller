@@ -126,6 +126,7 @@ static void clear_buffer(void)
 void cli_init(void)
 {
     vSemaphoreCreateBinary(g_response_sem);
+    comm_linux_send(NEW_LINE);
 }
 
 void cli_append_data(const char *data, uint32_t data_size)
@@ -178,6 +179,25 @@ void cli_process(void)
                 }
 
                 clear_buffer();
+            }
+
+            // checks if kernel already booted
+            pstr = strstr(g_line_buffer, LOGIN_TEXT);
+            if (pstr)
+            {
+                clear_buffer();
+                g_stage = LOGIN_STAGE;
+                comm_linux_send(NEW_LINE);
+                comm_linux_send(NEW_LINE);
+            }
+
+            // checks if already logged
+            pstr = strstr(g_line_buffer, PROMPT_TEXT);
+            if (pstr)
+            {
+                clear_buffer();
+                g_stage = PROMPT_READY_STAGE;
+                comm_linux_send(NEW_LINE);
             }
             break;
 

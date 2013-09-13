@@ -420,10 +420,10 @@ static void setup_task(void *pvParameters)
     // CLI initialization
     cli_init();
 
-    while (cli_boot_stage() != LOGIN_STAGE);
+    while (cli_boot_stage() < LOGIN_STAGE);
     screen_boot_feedback(1);
 
-    while (cli_boot_stage() != PROMPT_READY_STAGE);
+    while (cli_boot_stage() < PROMPT_READY_STAGE);
     screen_boot_feedback(2);
 
     while (!g_ui_communication_started);
