@@ -231,22 +231,16 @@ void system_bluetooth_pair_cb(void *arg)
     cli_systemctl("restart " SYSTEMCTL_MOD_BLUEZ);
 }
 
-void system_jack_quality_cb(void *arg)
+void system_jack_latency_cb(void *arg)
 {
     UNUSED_PARAM(arg);
-    cli_jack_set_bufsize(JACK_BUF_SIZE_QUALITY);
+    cli_jack_set_bufsize(JACK_BUF_SIZE_LOW_LATENCY);
 }
 
-void system_jack_normal_cb(void *arg)
+void system_jack_processing_cb(void *arg)
 {
     UNUSED_PARAM(arg);
-    cli_jack_set_bufsize(JACK_BUF_SIZE_NORMAL);
-}
-
-void system_jack_performance_cb(void *arg)
-{
-    UNUSED_PARAM(arg);
-    cli_jack_set_bufsize(JACK_BUF_SIZE_PERFORMANCE);
+    cli_jack_set_bufsize(JACK_BUF_SIZE_PROCESSING);
 }
 
 void system_cpu_cb(void *arg)
