@@ -1,3 +1,7 @@
+0.12.1
+======
+  - FIX: checks if is already logged on CLI when startup
+
 0.12
 ====
   - NEW: extenal devices core + expression pedal
