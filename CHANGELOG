@@ -1,3 +1,7 @@
+0.12.3
+======
+  - FIX: check last value and foot properties of external devices
+
 0.12.2
 ======
   - FIX: cdc usb refactor (with workaround to cdc_send)
