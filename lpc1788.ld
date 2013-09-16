@@ -6,7 +6,7 @@ MEMORY
 	flash	:	ORIGIN = 0x00000000, LENGTH = 512k
 }
 
-_end_stack = 0x10007FF0;
+_end_stack = 0x1000FFF0;
 
 SECTIONS {
 	. = ORIGIN(flash);
