@@ -322,7 +322,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // If the serial ISR uses freeRTOS API, the priorities values must be
 // equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
 #define SERIAL1_PRIORITY        6
-#define SERIAL2_PRIORITY        6
+#define SERIAL2_PRIORITY        4
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
@@ -413,7 +413,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 //// USB definitions
 #define USB_VID     0x9999
 #define USB_PID     0x0001
-
 
 //// Dynamic menory allocation
 // these macros should be used in replacement to default malloc and free functions of stdlib.h

@@ -274,13 +274,18 @@ static void update_control_value(control_chain_t *chain, uint8_t *actuators_list
                             value = *pvalue;
                             pdata += sizeof(float);
 
-                            // rounds the step and converts to right value
-                            control->step = ((value * control->steps) + 0.5);
+                            // rounds the step and checks if need update
+                            int8_t step = ((value * control->steps) + 0.5);
+                            if (step == control->step) continue;
+
+                            // converts step to absolute value
+                            control->step = step;
                             step_to_value(control);
                         }
                         else if (actuator_type == FOOT)
                         {
-                            control->value = *pdata++;
+                            uint8_t value = *pdata++;
+                            if (value == 0) continue;
                         }
 
                         control_set(control);
@@ -382,6 +387,20 @@ static void send_request(device_t *device)
 
 static void control_set(control_t *control)
 {
+
+    switch (control->properties)
+    {
+        case CONTROL_PROP_TOGGLED:
+        case CONTROL_PROP_BYPASS:
+            if (control->value > 0) control->value = 0;
+            else control->value = 1;
+            break;
+
+        case CONTROL_PROP_TRIGGER:
+            control->value = 1;
+            break;
+    }
+
     char buffer[128];
     uint8_t i;
 
