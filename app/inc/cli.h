@@ -35,8 +35,8 @@ enum {GRUB_STAGE, KERNEL_STAGE, LOGIN_STAGE, PASSWORD_STAGE, WAIT_PROMPT_STAGE, 
 ************************************************************************************************************************
 */
 
-#define CLI_LINE_BUFFER_SIZE        1024
-#define CLI_RESPONSE_BUFFER_SIZE    512
+#define CLI_LINE_BUFFER_SIZE        512
+#define CLI_RESPONSE_BUFFER_SIZE    256
 
 
 /*
