@@ -61,6 +61,7 @@
 */
 
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
+#define TASK_NAME(name)     (const signed char * const) (name)
 
 
 /*
@@ -69,7 +70,7 @@
 ************************************************************************************************************************
 */
 
-static xQueueHandle g_msg_queue, g_actuators_queue;
+static xQueueHandle g_actuators_queue;
 static uint8_t g_msg_buffer[CDC_RX_BUFFER_SIZE];
 static uint8_t g_ui_communication_started;
 
@@ -83,7 +84,6 @@ static uint8_t g_ui_communication_started;
 // local functions
 static void serial_cb(uint8_t port);
 static void actuators_cb(void *actuator);
-static void usb_receive_cb(uint32_t msg_size);
 
 // tasks
 static void procotol_task(void *pvParameters);
@@ -191,24 +191,6 @@ static void actuators_cb(void *actuator)
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
-static void usb_receive_cb(uint32_t msg_size)
-{
-    static uint32_t idx, msg_sizes[MSG_QUEUE_DEPTH];
-
-    // stores the message size
-    msg_sizes[idx] = msg_size;
-
-    // queue the message size
-    portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(g_msg_queue, &msg_sizes[idx], &xHigherPriorityTaskWoken);
-
-    // goes to next msg_size position
-    if (++idx == MSG_QUEUE_DEPTH) idx = 0;
-
-    // forces switch to task after leave this callback
-    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
-}
-
 
 /*
 ************************************************************************************************************************
@@ -218,24 +200,18 @@ static void usb_receive_cb(uint32_t msg_size)
 
 static void procotol_task(void *pvParameters)
 {
-    uint32_t msg_size;
-
     UNUSED_PARAM(pvParameters);
 
     while (1)
     {
-        portBASE_TYPE xStatus;
+        uint32_t msg_size;
 
-        // takes the message from queue
-        xStatus = xQueueReceive(g_msg_queue, &msg_size, portMAX_DELAY);
+        // blocks until receive a new message
+        msg_size = CDC_GetMessage(g_msg_buffer, CDC_RX_BUFFER_SIZE);
 
-        // checks if message has successfully taken
-        if (xStatus == pdPASS)
+        // parses the message
+        if (msg_size > 0)
         {
-            // gets the message
-            CDC_GetMessage(g_msg_buffer, msg_size);
-
-            // parses the message
             msg_t msg;
             msg.sender_id = 0;
             msg.data = (char *) g_msg_buffer;
@@ -356,15 +332,17 @@ static void setup_task(void *pvParameters)
     serial_init(SERIAL2, SERIAL2_BAUDRATE, SERIAL2_PRIORITY);
     serial_set_callback(SERIAL2, serial_cb);
 
+    // cdc initialization
+    CDC_Init();
+
     // create the queues
-    g_msg_queue = xQueueCreate(MSG_QUEUE_DEPTH, sizeof(uint32_t *));
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create the tasks
-    xTaskCreate(procotol_task, NULL, 512, NULL, 3, NULL);
-    xTaskCreate(actuators_task, NULL, 256, NULL, 2, NULL);
-    xTaskCreate(displays_task, NULL, 128, NULL, 1, NULL);
-    xTaskCreate(monitor_task, NULL, 256, NULL, 1, NULL);
+    xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 3, NULL);
+    xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
+    xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
+    xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
 
     // checks the system boot
     system_check_boot();
@@ -407,10 +385,6 @@ static void setup_task(void *pvParameters)
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(XRUN_CMD, xrun_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
-
-    // cdc initialization
-    CDC_Init();
-    CDC_SetMessageCallback(usb_receive_cb);
 
     // usb initialization
     USB_Init(1);
@@ -577,21 +551,27 @@ void MemManage_Handler(void)
 
 void BusFault_Handler(void)
 {
-    led_set_color(hardware_leds(2), CYAN);
+    led_set_color(hardware_leds(1), CYAN);
     while (1);
 }
 
 void UsageFault_Handler(void)
 {
-    led_set_color(hardware_leds(3), CYAN);
+    led_set_color(hardware_leds(1), CYAN);
     while (1);
 }
 
 void vApplicationMallocFailedHook(void)
 {
-    led_set_color(hardware_leds(0), RED);
-    led_set_color(hardware_leds(1), RED);
-    led_set_color(hardware_leds(2), RED);
-    led_set_color(hardware_leds(3), RED);
+    led_set_color(hardware_leds(2), CYAN);
+    while (1);
+}
+
+void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed portCHAR *pcTaskName)
+{
+    UNUSED_PARAM(pxTask);
+    glcd_clear(0, GLCD_WHITE);
+    glcd_text(0, 0, 0, (const char *) pcTaskName, NULL, GLCD_BLACK);
+    glcd_update();
     while (1);
 }

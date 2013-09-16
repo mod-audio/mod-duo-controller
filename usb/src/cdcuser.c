@@ -8,21 +8,30 @@
 
 #include "utils.h"
 
+#include "FreeRTOS.h"
+#include "semphr.h"
+
+
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
 
 static ringbuff_t *g_rx_buffer, *g_tx_buffer;
-static void (*g_cdc_callback)(uint32_t msg_size);
+static xSemaphoreHandle g_msg_sem;
+static uint8_t g_cdc_initialized = 0;
 
-static uint8_t end_of_message(uint8_t *buffer, uint32_t buffer_size)
+static void check_end_of_message(uint8_t *buffer, uint32_t buffer_size)
 {
     uint32_t i;
 
     for (i = 0; i < buffer_size; i++)
     {
-        if (buffer[i] == 0) return 1;
+        if (buffer[i] == 0)
+        {
+            portBASE_TYPE xHigherPriorityTaskWoken;
+            xHigherPriorityTaskWoken = pdFALSE;
+            xSemaphoreGiveFromISR(g_msg_sem, &xHigherPriorityTaskWoken);
+            break;
+        }
     }
-
-    return 0;
 }
 
 
@@ -149,16 +158,20 @@ void CDC_Init(void)
 {
     g_rx_buffer = ringbuf_create(CDC_RX_BUFFER_SIZE);
     g_tx_buffer = ringbuf_create(CDC_TX_BUFFER_SIZE);
+
+    g_msg_sem = xSemaphoreCreateCounting(CDC_MAX_MESSAGE_COUNT, 0);
+    g_cdc_initialized = 1;
 }
 
-void CDC_SetMessageCallback(void (*callback)(uint32_t msg_size))
+uint32_t CDC_GetMessage(uint8_t *buffer, uint32_t buffer_size)
 {
-    g_cdc_callback = callback;
-}
+    if (!g_cdc_initialized) return 0;
 
-uint32_t CDC_GetMessage(uint8_t *msg_buffer, uint32_t msg_size)
-{
-    return ringbuff_read(g_rx_buffer, msg_buffer, msg_size);
+    xSemaphoreTake(g_msg_sem, portMAX_DELAY);
+
+    uint32_t msg_size;
+    msg_size = ringbuff_read_until(g_rx_buffer, buffer, buffer_size, 0);
+    return msg_size;
 }
 
 void CDC_Send(const uint8_t *data, uint32_t data_size)
@@ -178,6 +191,8 @@ void CDC_BulkOut(void)
     uint8_t buffer[USB_CDC_BUFSIZE];
     uint32_t bytes_read;
 
+    if (!g_cdc_initialized) return;
+
     bytes_read = USB_ReadEP(CDC_DEP_OUT, buffer);
 
     if (bytes_read > 0)
@@ -185,10 +200,7 @@ void CDC_BulkOut(void)
         ringbuff_write(g_rx_buffer, buffer, bytes_read);
     }
 
-    if (end_of_message(buffer, bytes_read))
-    {
-        (g_cdc_callback)(ringbuff_size(g_rx_buffer));
-    }
+    check_end_of_message(buffer, bytes_read);
 }
 
 void CDC_BulkIn(void)
@@ -196,10 +208,13 @@ void CDC_BulkIn(void)
     uint8_t buffer[USB_CDC_BUFSIZE];
     uint32_t bytes_to_write;
 
+    if (!g_cdc_initialized) return;
+
     bytes_to_write = ringbuff_read(g_tx_buffer, buffer, USB_CDC_BUFSIZE);
 
     if (bytes_to_write > 0)
     {
         USB_WriteEP(CDC_DEP_IN, buffer, bytes_to_write);
+        delay_ms(1);    // FIXME: this should not be necessary
     }
 }
