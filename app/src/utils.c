@@ -479,6 +479,26 @@ uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size)
     return bytes;
 }
 
+uint32_t ringbuff_read_until(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size, uint8_t token)
+{
+    uint32_t bytes = 0;
+    uint8_t *data = buffer;
+
+    while (buffer_size > 0 && !BUFFER_IS_EMPTY(rb))
+    {
+        *data = rb->buffer[rb->tail];
+        BUFFER_INC(rb, tail);
+
+        buffer_size--;
+        bytes++;
+
+        if (*data == token) break;
+        data++;
+    }
+
+    return bytes;
+}
+
 uint32_t ringbuff_size(ringbuff_t *rb)
 {
     return ((rb->head - rb->tail) % rb->size);
