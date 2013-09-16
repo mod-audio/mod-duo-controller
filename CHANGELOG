@@ -1,3 +1,9 @@
+0.12.2
+======
+  - FIX: cdc usb refactor (with workaround to cdc_send)
+  - FIX: load the default screen when there is no controls assigned to display
+  - NEW: text of Audio Mode menu
+
 0.12.1
 ======
   - FIX: checks if is already logged on CLI when startup
