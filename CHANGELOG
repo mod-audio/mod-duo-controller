@@ -1,3 +1,7 @@
+0.12.4
+======
+  - FIX: cdc send
+
 0.12.3
 ======
   - FIX: check last value and foot properties of external devices
