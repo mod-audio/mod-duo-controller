@@ -409,6 +409,9 @@ static void foot_control_add(control_t *control)
     // stores the foot
     g_foots[control->actuator_id] = control;
 
+    // default state of led blink (no blink)
+    led_blink(hardware_leds(control->actuator_id), 0, 0);
+
     switch (control->properties)
     {
         // toggled specification: http://lv2plug.in/ns/lv2core/#toggled
