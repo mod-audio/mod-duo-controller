@@ -254,23 +254,6 @@ static void display_control_add(control_t *control)
     uint8_t display;
     node_t *node;
 
-    // checks if control is already in controls list
-    node = search_control(control->effect_instance, control->symbol, &display);
-    if (node)
-    {
-        // if is in the list but in other actuator, removes it
-        if (display != control->actuator_id)
-        {
-            display_control_rm(control->effect_instance, control->symbol);
-        }
-        // if is in the list and in the same actuator, cancels the control addition
-        else
-        {
-            data_free_control(control);
-            return;
-        }
-    }
-
     display = control->actuator_id;
 
     // adds the control to controls list
@@ -421,18 +404,6 @@ static void foot_control_add(control_t *control)
     {
         data_free_control(control);
         return;
-    }
-
-    // checks in the foots list if the foot is already assigned
-    for (i = 0; i < FOOTSWITCHES_COUNT; i++)
-    {
-        if (control->effect_instance == g_foots[i]->effect_instance &&
-            control->actuator_id != g_foots[i]->actuator_id &&
-            strcmp(control->symbol, g_foots[i]->symbol) == 0)
-        {
-            foot_control_rm(g_foots[i]->effect_instance, g_foots[i]->symbol);
-            break;
-        }
     }
 
     // stores the foot
@@ -1292,6 +1263,11 @@ void naveg_ui_connection(uint8_t status)
 
 void naveg_add_control(control_t *control)
 {
+    if (!control) return;
+
+    // first tries remove the control
+    naveg_remove_control(control->effect_instance, control->symbol);
+
     if (control->hardware_type == MOD_HARDWARE)
     {
         switch (control->actuator_type)
