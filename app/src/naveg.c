@@ -621,6 +621,12 @@ static void control_set(uint8_t display, control_t *control)
                 {
                     // converts and update the tap tempo value
                     control->value = convert_from_ms(control->unit, delta);
+
+                    // checks the values bounds
+                    if (control->value > control->maximum) control->value = control->maximum;
+                    if (control->value < control->minimum) control->value = control->minimum;
+
+                    // updates the foot
                     foot_control_add(control);
                 }
             }
