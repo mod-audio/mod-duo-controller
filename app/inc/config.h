@@ -230,7 +230,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define TUNER_DISPLAY   TOOL_DISPLAY3
 #endif
 
-// banks/pedalboards navegation display definition (don't change)
+// banks/pedalboards navigation display definition (don't change)
 #if (TOOL_NAVEG == TOOL_DISPLAY0)
 #define NAVEG_DISPLAY   TOOL_DISPLAY0
 #elif (TOOL_NAVEG == TOOL_DISPLAY1)

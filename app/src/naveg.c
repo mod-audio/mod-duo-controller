@@ -98,7 +98,7 @@ static node_t *g_menu, *g_current_menu;
 static menu_item_t *g_current_item;
 static uint8_t g_max_items_list;
 static bank_config_t g_bank_functions[BANK_FUNC_AMOUNT];
-static uint8_t g_ui_connected;
+static uint8_t g_initialized, g_ui_connected;
 
 
 /*
@@ -1253,10 +1253,14 @@ void naveg_init(void)
     // sets the current menu
     g_current_menu = g_menu;
     g_current_item = g_menu->first_child->data;
+
+    g_initialized = 1;
 }
 
 void naveg_ui_connection(uint8_t status)
 {
+    if (!g_initialized) return;
+
     if (status == UI_CONNECTED)
     {
         if (g_tool[NAVEG_DISPLAY].state == TOOL_ON)
@@ -1272,6 +1276,7 @@ void naveg_ui_connection(uint8_t status)
 
 void naveg_add_control(control_t *control)
 {
+    if (!g_initialized) return;
     if (!control) return;
 
     // first tries remove the control
@@ -1298,6 +1303,8 @@ void naveg_add_control(control_t *control)
 
 void naveg_remove_control(int8_t effect_instance, const char *symbol)
 {
+    if (!g_initialized) return;
+
     display_control_rm(effect_instance, symbol);
     foot_control_rm(effect_instance, symbol);
     control_chain_remove(effect_instance, symbol);
@@ -1305,6 +1312,8 @@ void naveg_remove_control(int8_t effect_instance, const char *symbol)
 
 void naveg_inc_control(uint8_t display)
 {
+    if (!g_initialized) return;
+
     node_t *node = g_current_control[display];
     if (!node) return;
 
@@ -1323,6 +1332,8 @@ void naveg_inc_control(uint8_t display)
 
 void naveg_dec_control(uint8_t display)
 {
+    if (!g_initialized) return;
+
     node_t *node = g_current_control[display];
     if (!node) return;
 
@@ -1341,6 +1352,8 @@ void naveg_dec_control(uint8_t display)
 
 void naveg_set_control(int8_t effect_instance, const char *symbol, float value)
 {
+    if (!g_initialized) return;
+
     uint8_t display;
     node_t *node;
     control_t *control;
@@ -1363,6 +1376,8 @@ void naveg_set_control(int8_t effect_instance, const char *symbol, float value)
 
 float naveg_get_control(int8_t effect_instance, const char *symbol)
 {
+    if (!g_initialized) return 0.0;
+
     uint8_t display;
     node_t *node;
     control_t *control;
@@ -1380,6 +1395,8 @@ float naveg_get_control(int8_t effect_instance, const char *symbol)
 
 control_t *naveg_next_control(uint8_t display)
 {
+    if (!g_initialized) return NULL;
+
     // if is in tool mode return
     if (g_tool[display].state == TOOL_ON) return NULL;
 
@@ -1416,6 +1433,8 @@ control_t *naveg_next_control(uint8_t display)
 
 void naveg_foot_change(uint8_t foot)
 {
+    if (!g_initialized) return;
+
     // checks the foot id
     if (foot >= FOOTSWITCHES_COUNT) return;
 
@@ -1439,6 +1458,8 @@ void naveg_foot_change(uint8_t foot)
 
 void naveg_toggle_tool(uint8_t display)
 {
+    if (!g_initialized) return;
+
     // checks if is the navigation display and if the UI is conneceted
     if (display == NAVEG_DISPLAY && g_ui_connected) return;
 
@@ -1514,16 +1535,22 @@ uint8_t naveg_is_tool_mode(uint8_t display)
 
 void naveg_set_banks(bp_list_t *bp_list)
 {
+    if (!g_initialized) return;
+
     g_banks = bp_list;
 }
 
 bp_list_t *naveg_get_banks(void)
 {
+    if (!g_initialized) return NULL;
+
     return g_banks;
 }
 
 void naveg_bank_config(bank_config_t *bank_conf)
 {
+    if (!g_initialized) return;
+
     // checks the function number
     if (bank_conf->function >= BANK_FUNC_AMOUNT) return;
 
@@ -1587,16 +1614,22 @@ void naveg_bank_config(bank_config_t *bank_conf)
 
 void naveg_set_pedalboards(bp_list_t *bp_list)
 {
+    if (!g_initialized) return;
+
     g_pedalboards = bp_list;
 }
 
 bp_list_t *naveg_get_pedalboards(void)
 {
+    if (!g_initialized) return NULL;
+
     return g_pedalboards;
 }
 
 void naveg_enter(uint8_t display)
 {
+    if (!g_initialized) return;
+
     if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_enter();
     if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_enter();
     if (g_tool[TUNER_DISPLAY].state  == TOOL_ON && display == TUNER_DISPLAY) tuner_enter();
@@ -1604,18 +1637,24 @@ void naveg_enter(uint8_t display)
 
 void naveg_up(uint8_t display)
 {
+    if (!g_initialized) return;
+
     if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_up();
     if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_up();
 }
 
 void naveg_down(uint8_t display)
 {
+    if (!g_initialized) return;
+
     if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_down();
     if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_down();
 }
 
 void naveg_reset_menu(void)
 {
+    if (!g_initialized) return;
+
     g_current_menu = g_menu;
     g_current_item = g_menu->first_child->data;
     reset_menu_hover(g_menu);

@@ -348,6 +348,9 @@ static void setup_task(void *pvParameters)
     // checks the system boot
     system_check_boot();
 
+    // first boot screen feedback
+    screen_boot_feedback(0);
+
     // actuators callbacks
     actuator_set_event(hardware_actuators(ENCODER0), actuators_cb);
     actuator_set_event(hardware_actuators(ENCODER1), actuators_cb);
@@ -365,10 +368,6 @@ static void setup_task(void *pvParameters)
     actuator_enable_event(hardware_actuators(FOOTSWITCH1), EV_BUTTON_PRESSED);
     actuator_enable_event(hardware_actuators(FOOTSWITCH2), EV_BUTTON_PRESSED);
     actuator_enable_event(hardware_actuators(FOOTSWITCH3), EV_BUTTON_PRESSED);
-
-    // navegation initialization
-    naveg_init();
-    screen_boot_feedback(0);
 
     // protocol definitions
     protocol_add_command(PING_CMD, ping_cb);
@@ -403,6 +402,9 @@ static void setup_task(void *pvParameters)
 
     while (!g_ui_communication_started);
     screen_boot_feedback(3);
+
+    // init the navigation
+    naveg_init();
 
     // deletes itself
     vTaskDelete(NULL);
