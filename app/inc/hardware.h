@@ -26,7 +26,7 @@
 ************************************************************************************************************************
 */
 
-enum {BYPASS, PROCESS};
+enum {PROCESS, BYPASS};
 enum {BLOCK, UNBLOCK};
 enum {RECEPTION, TRANSMISSION};
 enum {CPU_TURN_OFF, CPU_TURN_ON, CPU_REBOOT};

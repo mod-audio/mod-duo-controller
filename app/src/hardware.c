@@ -297,10 +297,10 @@ uint32_t hardware_timestamp(void)
 
 void hardware_set_true_bypass(uint8_t value)
 {
-    if (value)
-        GPIO_SetValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
-    else
+    if (value == BYPASS)
         GPIO_ClearValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
+    else
+        GPIO_SetValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
 
     g_true_bypass = value;
 }
