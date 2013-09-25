@@ -11,6 +11,7 @@
 #include "led.h"
 #include "actuator.h"
 #include "tpa6130.h"
+#include "ntc.h"
 
 #include "LPC177x_8x.h"
 #include "lpc177x_8x_gpio.h"
@@ -126,6 +127,24 @@ static uint8_t g_true_bypass;
 ************************************************************************************************************************
 */
 
+static void cooler_duty_cycle(uint8_t duty_cycle)
+{
+    if (duty_cycle == 0)
+    {
+        GPIO_ClearValue(COOLER_PORT, (1 << COOLER_PIN));
+        g_cooler.state = 0;
+    }
+    else
+    {
+        if (duty_cycle >= COOLER_MAX_DC) duty_cycle = 0;
+        GPIO_SetValue(COOLER_PORT, (1 << COOLER_PIN));
+        g_cooler.state = 1;
+    }
+
+    g_cooler.duty_cycle = duty_cycle;
+    g_cooler.counter = duty_cycle;
+}
+
 
 /*
 ************************************************************************************************************************
@@ -148,7 +167,7 @@ void hardware_setup(void)
 
     // configures the cooler
     GPIO_SetDir(COOLER_PORT, (1 << COOLER_PIN), GPIO_DIRECTION_OUTPUT);
-    hardware_cooler(100);
+    cooler_duty_cycle(COOLER_MAX_DC);
 
     // true bypass
     GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
@@ -178,14 +197,19 @@ void hardware_setup(void)
         actuator_set_prop(hardware_actuators(ENCODER0 + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
     }
 
+    // ADC initialization
+    ADC_Init(LPC_ADC, ADC_CLOCK);
+    ADC_BurstCmd(LPC_ADC, ENABLE);
+    ADC_StartCmd(LPC_ADC, ADC_START_CONTINUOUS);
+
     // Headphone initialization (TPA and ADC)
     tpa6130_init();
-    // ADC configuration
     PINSEL_ConfigPin(HEADPHONE_ADC_PORT, HEADPHONE_ADC_PIN, HEADPHONE_ADC_PIN_CONF);
-    ADC_Init(LPC_ADC, HEADPHONE_ADC_CLOCK);
     ADC_IntConfig(LPC_ADC, HEADPHONE_ADC_CHANNEL, DISABLE);
     ADC_ChannelCmd(LPC_ADC, HEADPHONE_ADC_CHANNEL, ENABLE);
-    ADC_StartCmd(LPC_ADC, ADC_START_NOW);
+
+    // NTC initialization
+    ntc_init();
 
     ////////////////////////////////////////////////////////////////
     // Timer 0 configuration
@@ -243,24 +267,6 @@ void hardware_setup(void)
     NVIC_EnableIRQ(TIMER1_IRQn);
     // to start timer
     TIM_Cmd(LPC_TIM1, ENABLE);
-}
-
-void hardware_cooler(uint8_t duty_cycle)
-{
-    if (duty_cycle == 0)
-    {
-        GPIO_ClearValue(COOLER_PORT, (1 << COOLER_PIN));
-        g_cooler.state = 0;
-    }
-    else
-    {
-        if (duty_cycle >= 100) duty_cycle = 0;
-        GPIO_SetValue(COOLER_PORT, (1 << COOLER_PIN));
-        g_cooler.state = 1;
-    }
-
-    g_cooler.duty_cycle = duty_cycle;
-    g_cooler.counter = duty_cycle;
 }
 
 led_t *hardware_leds(uint8_t led_id)
@@ -384,6 +390,40 @@ void hardware_cpu_power(uint8_t power)
 uint8_t hardware_cpu_status(void)
 {
     return CPU_IS_ON();
+}
+
+float hardware_temperature(void)
+{
+    static int32_t startup_time;
+    float temp = ntc_read();
+
+    // gets the timestamp to startup time
+    if (startup_time == 0)
+    {
+        startup_time = g_counter;
+        return temp;
+    }
+
+    // checks if the startup time is already reached
+    if (((g_counter - startup_time) < COOLER_STARTUP_TIME) && startup_time > 0) return temp;
+
+    // this is to mark that startup time already happened
+    startup_time = -1;
+
+    // calculates the duty cycle to current temperature
+    float a, b, duty_cycle;
+
+    a = (float) (COOLER_MAX_DC - COOLER_MIN_DC) / (float) (TEMPERATURE_MAX - TEMPERATURE_MIN);
+    b = COOLER_MAX_DC - a*TEMPERATURE_MAX;
+
+    duty_cycle = a*temp + b;
+
+    if (duty_cycle > COOLER_MAX_DC) duty_cycle = COOLER_MAX_DC;
+    if (duty_cycle < COOLER_MIN_DC) duty_cycle = COOLER_MIN_DC;
+
+    cooler_duty_cycle(duty_cycle);
+
+    return temp;
 }
 
 void TIMER0_IRQHandler(void)

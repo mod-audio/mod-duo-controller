@@ -12,10 +12,10 @@
 #define XY_TABLET_HW        2
 
 //// Actuators types
-#define NONE            0
-#define FOOT            1
-#define KNOB            2
-#define PEDAL           3
+#define NONE                0
+#define FOOT                1
+#define KNOB                2
+#define PEDAL               3
 
 //// Slots count
 // One slot is a set of display, knob, footswitch and led
@@ -84,6 +84,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define TRUE_BYPASS_PORT        3
 #define TRUE_BYPASS_PIN         19
 
+//// ADC configuration
+// ADC Clock conversion (in Hz)
+#define ADC_CLOCK               100000
+
 //// Headphone configuration
 // headphone controller ports and pins definition
 #define HEADPHONE_SDA_PORT      0
@@ -95,10 +99,17 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define HEADPHONE_ADC_PIN       24
 // ADC pin configuration, defines the ADC function number
 #define HEADPHONE_ADC_PIN_CONF  1
-// ADC headphone clock convertion in Hz
-#define HEADPHONE_ADC_CLOCK     1000
 // ADC headphone channel
 #define HEADPHONE_ADC_CHANNEL   1
+
+//// NTC configuration
+// NTC port and pin
+#define NTC_ADC_PORT            0
+#define NTC_ADC_PIN             23
+// ADC pin configuration, defines the ADC function number
+#define NTC_ADC_PIN_CONF        1
+// ADC NTC channel
+#define NTC_ADC_CHANNEL         0
 
 //// RS485 direction port and pin definition
 #define RS485_DIR_PORT          1
@@ -413,6 +424,18 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 //// USB definitions
 #define USB_VID     0x9999
 #define USB_PID     0x0001
+
+//// Cooler and temperature configurations
+// minimum duty cycle (in percent)
+#define COOLER_MIN_DC           50
+// maximum duty cycle (in percent)
+#define COOLER_MAX_DC           100
+// defines how much time the cooler will stay in maximum duty cycle (in milliseconds)
+#define COOLER_STARTUP_TIME     5000
+// minimum temperature (in celsius)
+#define TEMPERATURE_MIN         50
+// maximum temperature (in celsius)
+#define TEMPERATURE_MAX         60
 
 //// Dynamic menory allocation
 // these macros should be used in replacement to default malloc and free functions of stdlib.h

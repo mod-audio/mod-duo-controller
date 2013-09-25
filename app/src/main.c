@@ -304,8 +304,9 @@ static void monitor_task(void *pvParameters)
         screen_clipmeter(0xFF, 0);
         screen_xrun(0);
 
-        // checks the headphone
+        // hardware verifications
         hardware_headphone();
+        hardware_temperature();
 
         // process the command line
         cli_process();
