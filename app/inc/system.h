@@ -68,6 +68,7 @@ void system_reset_pedalboard_cb(void *arg);
 void system_save_pedalboard_cb(void *arg);
 void system_bluetooth_cb(void *arg);
 void system_bluetooth_pair_cb(void *arg);
+void system_jack_cb(void *arg);
 void system_jack_latency_cb(void *arg);
 void system_jack_processing_cb(void *arg);
 void system_cpu_cb(void *arg);

@@ -284,7 +284,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"Status:",                             MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL},                          \
     {"Name:",                               MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL},                          \
     {"Address:",                            MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL},                          \
-    {"Audio Mode",                          MENU_SELECT,    JACK_ID,            ROOT_ID,        NULL},                          \
+    {"Audio Mode",                          MENU_SELECT,    JACK_ID,            ROOT_ID,        system_jack_cb},                \
     {"< Back to SETTINGS",                  MENU_RETURN,    JACK_ID+1,          JACK_ID,        NULL},                          \
     {"Priorize Low Latency",                MENU_NONE,      JACK_ID+2,          JACK_ID,        system_jack_latency_cb},        \
     {"Priorize Processing",                 MENU_NONE,      JACK_ID+3,          JACK_ID,        system_jack_processing_cb},     \
@@ -386,8 +386,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define SYSTEMCTL_MOD_BLUEZ         "mod-bluez"
 
 //// Jack buffer size configuration
-#define JACK_BUF_SIZE_LOW_LATENCY   128
-#define JACK_BUF_SIZE_PROCESSING    256
+#define JACK_BUF_SIZE_LOW_LATENCY   "128"
+#define JACK_BUF_SIZE_PROCESSING    "256"
 
 //// Pendrive restore definitions
 // defines the display where the popup will be showed

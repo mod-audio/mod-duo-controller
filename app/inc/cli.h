@@ -79,7 +79,9 @@ void cli_grub_select(uint8_t entry);
 // reboot the CPU
 void cli_reboot_cpu(void);
 // sets the jack buffer size
-void cli_jack_set_bufsize(uint16_t bufsize);
+void cli_jack_set_bufsize(const char* bufsize);
+// gets the jack buffer size
+void cli_jack_get_bufsize(void);
 // requests information from systemctl
 void cli_systemctl(const char *parameters);
 // requests the package version from pacman

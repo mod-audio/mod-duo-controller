@@ -147,6 +147,10 @@ void cli_append_data(const char *data, uint32_t data_size)
 const char* cli_get_response(void)
 {
     xSemaphoreTake(g_response_sem, (CLI_RESPONSE_TIMEOUT / portTICK_RATE_MS));
+
+    uint32_t len = strlen(g_response);
+    if (g_response[len-2] == '\r' || g_response[len-2] == '\n') g_response[len-2] = 0;
+    if (g_response[len-1] == '\r' || g_response[len-1] == '\n') g_response[len-1] = 0;
     return g_response;
 }
 
@@ -317,15 +321,24 @@ void cli_reboot_cpu(void)
     comm_linux_send(REBOOT_CMD);
 }
 
-void cli_jack_set_bufsize(uint16_t bufsize)
+void cli_jack_set_bufsize(const char *bufsize)
 {
-    char buffer[32], bufsize_str[8];
+    char buffer[32];
 
-    int_to_str(bufsize, bufsize_str, sizeof(bufsize_str), 0);
-    strcpy(buffer, JACK_BUSIZE_CMD);
-    strcat(buffer, bufsize_str);
+    strcpy(buffer, JACK_BUSIZE_CMD );
+    strcat(buffer, bufsize);
     strcat(buffer, NEW_LINE);
     comm_linux_send(buffer);
+}
+
+void cli_jack_get_bufsize(void)
+{
+    // default response
+    strcpy(g_response, "unknown");
+
+    // sends the command
+    g_waiting_response = 1;
+    comm_linux_send(JACK_BUSIZE_CMD "| cut -d' ' -f 4" NEW_LINE);
 }
 
 void cli_systemctl(const char *parameters)
