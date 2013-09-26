@@ -196,8 +196,7 @@ void cli_process(void)
             if (pstr)
             {
                 clear_buffer();
-                g_stage = PROMPT_READY_STAGE;
-                comm_linux_send(NEW_LINE);
+                g_stage = WAIT_PROMPT_STAGE;
             }
             break;
 
@@ -221,6 +220,7 @@ void cli_process(void)
                 comm_linux_send(MOD_PASSWORD);
                 comm_linux_send(ECHO_OFF_CMD);
                 comm_linux_send(PS1_SETUP_CMD);
+                cli_get_response();
                 clear_buffer();
                 g_stage = WAIT_PROMPT_STAGE;
             }
@@ -242,6 +242,7 @@ void cli_process(void)
                 else
                 {
                     comm_linux_send(NEW_LINE);
+                    cli_get_response();
                     clear_buffer();
                     g_stage = PROMPT_READY_STAGE;
                 }
