@@ -513,3 +513,38 @@ uint32_t ringbuf_is_empty(ringbuff_t *rb)
 {
     return BUFFER_IS_EMPTY(rb);
 }
+
+void select_item(char *item_str)
+{
+    if (item_str[0] == '>') return;
+
+    char aux[2];
+    uint32_t i = 0, j = 0, k = 0;
+    for (i = 0; i < (strlen(item_str) + 3); i++)
+    {
+        aux[j++] = item_str[i];
+
+        if (i == 0)
+            item_str[i] = '>';
+        else if (i == 1)
+            item_str[i] = ' ';
+        else
+        {
+            item_str[i] = aux[k++];
+            if (k > 2) k = 0;
+        }
+
+        if (j > 2) j = 0;
+    }
+}
+
+void deselect_item(char *item_str)
+{
+    if (item_str[0] != '>') return;
+
+    uint32_t i;
+    for (i = 0; i < (strlen(item_str) - 1); i++)
+    {
+        item_str[i] = item_str[i+2];
+    }
+}

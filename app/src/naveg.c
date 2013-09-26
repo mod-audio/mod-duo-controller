@@ -198,29 +198,6 @@ static uint8_t copy_command(char *buffer, const char *command)
     return i;
 }
 
-// puts '> ' at start of string
-static void select_item(char *item_str)
-{
-    char buffer[MAX_CHARS_MENU_NAME];
-
-    if (item_str[0] == '>') return;
-
-    strcpy(buffer, "> ");
-    strcat(buffer, item_str);
-    strcpy(item_str, buffer);
-}
-
-// removes '> ' from start of string
-static void deselect_item(char *item_str)
-{
-    char buffer[MAX_CHARS_MENU_NAME];
-
-    if (item_str[0] != '>') return;
-
-    strcpy(buffer, &item_str[2]);
-    strcpy(item_str, buffer);
-}
-
 // duplicate the bp_list object
 static bp_list_t* duplicate_bp_list(const bp_list_t *src)
 {

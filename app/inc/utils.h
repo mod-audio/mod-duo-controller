@@ -109,6 +109,11 @@ uint32_t ringbuf_is_full(ringbuff_t *rb);
 // ringbuff_is_empty: returns non zero is buffer is empty
 uint32_t ringbuf_is_empty(ringbuff_t *rb);
 
+// put "> " at begin of string
+void select_item(char *item_str);
+// remove "> " from begin of string
+void deselect_item(char *item_str);
+
 
 /*
 ************************************************************************************************************************
