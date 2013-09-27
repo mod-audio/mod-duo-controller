@@ -1,5 +1,11 @@
 0.12.5
 ======
+  - FIX: clock control chain
+  - FIX: just initialize the external devices serial after navigation initialization
+  - NEW: tempearture on system menu
+
+0.12.5
+======
   - FIX: remove control before assign
   - FIX: assign bypass after tap-tempo on same footswitch
   - FIX: check value bounds on tap-tempo
