@@ -329,9 +329,6 @@ static void setup_task(void *pvParameters)
     // serial 1 is used to commutication with linux console
     serial_init(SERIAL1, SERIAL1_BAUDRATE, SERIAL1_PRIORITY);
     serial_set_callback(SERIAL1, serial_cb);
-    // serial 2 is used to external devices communication
-    serial_init(SERIAL2, SERIAL2_BAUDRATE, SERIAL2_PRIORITY);
-    serial_set_callback(SERIAL2, serial_cb);
 
     // cdc initialization
     CDC_Init();
@@ -405,6 +402,10 @@ static void setup_task(void *pvParameters)
 
     // init the navigation
     naveg_init();
+
+    // serial 2 is used to external devices communication
+    serial_init(SERIAL2, SERIAL2_BAUDRATE, SERIAL2_PRIORITY);
+    serial_set_callback(SERIAL2, serial_cb);
 
     // deletes itself
     vTaskDelete(NULL);
