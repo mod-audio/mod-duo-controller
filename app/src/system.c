@@ -291,6 +291,19 @@ void system_cpu_cb(void *arg)
         *pstr++ = ' ';
         strcpy(pstr, response);
     }
+
+    // updates the temperature
+    pstr = strstr(item->data.list[3], ":");
+    if (pstr)
+    {
+        pstr++;
+        *pstr++ = ' ';
+
+        float temp = hardware_temperature();
+        pstr += float_to_str(temp, pstr, 5, 1);
+        *pstr++ = ' ';
+        *pstr++ = 'C';
+    }
 }
 
 void system_services_cb(void *arg)

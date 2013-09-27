@@ -294,6 +294,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"< Back to Info",                      MENU_RETURN,    CPU_ID+1,           CPU_ID,         NULL},                          \
     {"Power:",                              MENU_RETURN,    CPU_ID+2,           CPU_ID,         NULL},                          \
     {"USB:",                                MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL},                          \
+    {"Temperature:",                        MENU_RETURN,    CPU_ID+4,           CPU_ID,         NULL},                          \
     {"Services",                            MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb},            \
     {"< Back to Info",                      MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL},                          \
     {"jack:",                               MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    system_restart_jack_cb},        \
