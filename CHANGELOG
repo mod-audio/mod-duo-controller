@@ -1,3 +1,14 @@
+0.12.5
+======
+  - FIX: remove control before assign
+  - FIX: assign bypass after tap-tempo on same footswitch
+  - FIX: check value bounds on tap-tempo
+  - FIX: prevents that navigation functions be used before navigation initialization
+  - FIX: true bypass inversion
+  - FIX: first CLI request don't fail
+  - NEW: cooler speed control
+  - NEW: get current audio mode value when click on menu option
+
 0.12.4
 ======
   - FIX: cdc send
