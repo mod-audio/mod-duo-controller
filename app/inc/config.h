@@ -408,7 +408,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // defines the external devices timeout (in milliseconds)
 #define CONTROL_CHAIN_TIMEOUT                       1000
 // defines the external devices request clock (in Hz, max: 1000Hz)
-#define CONTROL_CHAIN_CLOCK                         200
+#define CONTROL_CHAIN_CLOCK                         100
 // defines the control chain functions
 #define CONTROL_CHAIN_REQUEST_CONNECTION            1
 #define CONTROL_CHAIN_CONFIRM_CONNECTION            2

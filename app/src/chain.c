@@ -571,7 +571,8 @@ void control_chain_process(void)
     control_chain_t *chain;
 
     // searches control chain messages in the buffer
-    for (i = 0; i < g_buffer_idx; i++)
+    i = 0;
+    while (i < g_buffer_idx)
     {
         if (g_buffer[i] == CONTROL_CHAIN_PROTOCOL_START)
         {
