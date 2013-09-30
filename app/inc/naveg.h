@@ -80,8 +80,8 @@ void naveg_dec_control(uint8_t display);
 void naveg_set_control(int8_t effect_instance, const char *symbol, float value);
 // gets the control value
 float naveg_get_control(int8_t effect_instance, const char *symbol);
-// goes to the next control of the controls list
-control_t *naveg_next_control(uint8_t display);
+// request the next control of the display
+void naveg_next_control(uint8_t display);
 // change the foot value
 void naveg_foot_change(uint8_t foot);
 // toggle between control and tool

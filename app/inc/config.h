@@ -138,6 +138,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_GET_CMD         "control_get %i %s"
 // control_set <effect_instance> <symbol> <value>
 #define CONTROL_SET_CMD         "control_set %i %s %f"
+// control_next <hardware_type> <hardware_id> <actuator_type> <actuator_id>
+#define CONTROL_NEXT_CMD        "control_next %i %i %i %i"
 // banks
 #define BANKS_CMD               "banks"
 // bank_config <hw_type> <hw_id> <actuator_type> <actuator_id> <function>

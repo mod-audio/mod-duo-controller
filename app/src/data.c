@@ -80,9 +80,10 @@ control_t *data_parse_control(char **data)
 {
     control_t *control = NULL;
     uint32_t len = strarr_length(data);
+    const uint32_t min_params = 16;
 
     // checks if all data was received
-    if (len >= 14)
+    if (len >= min_params)
     {
         control = (control_t *) MALLOC(sizeof(control_t));
         if (!control) goto error;
@@ -101,6 +102,8 @@ control_t *data_parse_control(char **data)
         control->hardware_id = atoi(data[11]);
         control->actuator_type = atoi(data[12]);
         control->actuator_id = atoi(data[13]);
+        control->controls_count = atoi(data[14]);
+        control->control_index = atoi(data[15]);
         control->scale_points_count = 0;
         control->scale_points = NULL;
 
@@ -110,9 +113,9 @@ control_t *data_parse_control(char **data)
 
     // checks if has scale points
     uint8_t i = 0;
-    if (len >= 15 && control->properties == CONTROL_PROP_ENUMERATION)
+    if (len >= (min_params+1) && control->properties == CONTROL_PROP_ENUMERATION)
     {
-        control->scale_points_count = atoi(data[14]);
+        control->scale_points_count = atoi(data[min_params]);
         if (control->scale_points_count == 0) return control;
 
         control->scale_points = (scale_point_t **) MALLOC(sizeof(scale_point_t*) * control->scale_points_count);
@@ -124,8 +127,8 @@ control_t *data_parse_control(char **data)
         for (i = 0; i < control->scale_points_count; i++)
         {
             control->scale_points[i] = (scale_point_t *) MALLOC(sizeof(scale_point_t));
-            control->scale_points[i]->label = str_duplicate(data[15 + (i*2)]);
-            control->scale_points[i]->value = atof(data[16 + (i*2)]);
+            control->scale_points[i]->label = str_duplicate(data[(min_params + 1) + (i*2)]);
+            control->scale_points[i]->value = atof(data[(min_params + 2) + (i*2)]);
 
             if (!control->scale_points[i] || !control->scale_points[i]->label) goto error;
         }

@@ -62,17 +62,12 @@ static const menu_popup_t g_menu_popups[] = {
 ************************************************************************************************************************
 */
 
-struct CONTROL_INDEX_T {
-    uint8_t current, total;
-} g_controls_index[SLOTS_COUNT];
-
 struct TAP_TEMPO_T {
     uint32_t time, max;
     uint8_t state;
 } g_tap_tempo[SLOTS_COUNT];
 
 struct TOOL_T {
-    node_t *node;
     uint8_t state;
 } g_tool[SLOTS_COUNT];
 
@@ -90,8 +85,7 @@ struct TOOL_T {
 ************************************************************************************************************************
 */
 
-static node_t *g_controls_list[SLOTS_COUNT], *g_current_control[SLOTS_COUNT];
-static control_t *g_foots[SLOTS_COUNT];
+static control_t *g_controls[SLOTS_COUNT], *g_foots[SLOTS_COUNT];
 static bp_list_t *g_banks, *g_pedalboards, *g_last_pedalboards;
 static uint8_t g_bp_state, g_current_bank, g_current_pedalboard;
 static node_t *g_menu, *g_current_menu;
@@ -131,25 +125,22 @@ static void bank_config_footer(void);
 ************************************************************************************************************************
 */
 
-// search for the control
-static node_t *search_control(int8_t effect_instance, const char *symbol, uint8_t *display)
+// search the control
+static control_t *search_control(int8_t effect_instance, const char *symbol, uint8_t *display)
 {
     uint8_t i;
-    node_t *node;
     control_t *control;
 
     for (i = 0; i < SLOTS_COUNT; i++)
     {
-        for (node = g_controls_list[i]->first_child; node; node = node->next)
+        control = g_controls[i];
+        if (control)
         {
-            control = (control_t *) node->data;
-            if (control->effect_instance == effect_instance)
+            if (control->effect_instance == effect_instance &&
+                strcmp(control->symbol, symbol) == 0)
             {
-                if (strcmp(control->symbol, symbol) == 0)
-                {
-                    (*display) = i;
-                    return node;
-                }
+                (*display) = i;
+                return control;
             }
         }
     }
@@ -255,18 +246,9 @@ error:
 static void display_control_add(control_t *control)
 {
     uint8_t display;
-    node_t *node;
 
     display = control->actuator_id;
-
-    // adds the control to controls list
-    node = node_child(g_controls_list[display], control);
-
-    // makes the node the current control
-    g_current_control[display] = node;
-
-    // connect the control with the tool
-    node->first_child = g_tool[display].node;
+    g_controls[display] = control;
 
     // calculates initial step
     switch (control->properties)
@@ -302,10 +284,6 @@ static void display_control_add(control_t *control)
             break;
     }
 
-    // update the controls index value
-    g_controls_index[display].total++;
-    g_controls_index[display].current = g_controls_index[display].total;
-
     // if tool is enabled don't draws the control
     if (g_tool[display].state == TOOL_ON) return;
 
@@ -313,76 +291,39 @@ static void display_control_add(control_t *control)
     screen_control(display, control);
 
     // update the controls index screen
-    screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
+    screen_controls_index(display, control->control_index, control->controls_count);
 }
 
 // control removed from display
 static void display_control_rm(int8_t effect_instance, const char *symbol)
 {
-    uint8_t display, all_effects, all_controls;
-    control_t *control;
-    node_t *node;
+    uint8_t display;
 
+    control_t *control = search_control(effect_instance, symbol, &display);
+    if (control)
+    {
+        data_free_control(control);
+        g_controls[display] = NULL;
+        screen_control(display, NULL);
+        return;
+    }
+
+    uint8_t all_effects, all_controls;
     all_effects = (effect_instance == ALL_EFFECTS) ? 1 : 0;
     all_controls = (strcmp(symbol, ALL_CONTROLS) == 0) ? 1 : 0;
 
     for (display = 0; display < SLOTS_COUNT; display++)
     {
-        node = g_controls_list[display]->first_child;
+        control = g_controls[display];
 
-        // if there is no controls assigned, load the default screen
-        if (!node && g_tool[display].state == TOOL_OFF)
+        if (all_effects || control->effect_instance == effect_instance)
         {
-            screen_control(display, NULL);
-            continue;
-        }
-
-        while (node)
-        {
-            control = (control_t *) node->data;
-            if (all_effects || control->effect_instance == effect_instance)
+            if (all_controls || strcmp(control->symbol, symbol) == 0)
             {
-                if (all_controls || strcmp(control->symbol, symbol) == 0)
-                {
-                    // update the controls index value
-                    g_controls_index[display].total--;
-
-                    // if node is the current control
-                    if (node == g_current_control[display])
-                    {
-                        // if is the last control
-                        if (g_controls_index[display].total == 0)
-                        {
-                            // no controls
-                            g_current_control[display] = NULL;
-                        }
-
-                        // load the next control
-                        naveg_next_control(display);
-                    }
-
-                    // update the controls index screen
-                    if (g_controls_index[display].current > g_controls_index[display].total)
-                    {
-                        g_controls_index[display].current = g_controls_index[display].total;
-                    }
-                    screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
-
-                    // free the memory
-                    data_free_control(control);
-                    node->first_child = NULL;
-                    node_destroy(node);
-
-                    if (!all_effects && !all_controls) return;
-
-                    // need set the node again, because it was destroyed
-                    node = g_controls_list[display]->first_child;
-                }
-                else
-                    node = node->next;
+                data_free_control(control);
+                g_controls[display] = NULL;
+                screen_control(display, NULL);
             }
-            else
-                node = node->next;
         }
     }
 }
@@ -915,7 +856,7 @@ static void menu_enter(void)
             menu_item_t *item_child = node->data;
             item->data.list[item->data.list_count++] = item_child->name;
 
-            // checks if is toogle type and insert the right value
+            // checks if is toggle type and insert the right value
             if (item_child->desc->type == MENU_ON_OFF)
             {
                 strcpy(item_child->name, item_child->desc->name);
@@ -1192,25 +1133,17 @@ void naveg_init(void)
 {
     uint32_t i;
 
-    // create the nodes
+    // initialize the global variables
     for (i = 0; i < SLOTS_COUNT; i++)
     {
-        // creates the controls list
-        g_controls_list[i] = node_create(NULL);
-
-        // initialize the tools
-        g_tool[i].state = TOOL_OFF;
-        g_tool[i].node = node_create(NULL);
-
-        // initialize the current control
-        g_current_control[i] = NULL;
-
-        // initialize the controls index
-        g_controls_index[i].current = 0;
-        g_controls_index[i].total = 0;
+        // initialize the display controls pointers
+        g_controls[i] = NULL;
 
         // initialize the foot controls pointers
         g_foots[i] = NULL;
+
+        // initialize the tools
+        g_tool[i].state = TOOL_OFF;
 
         // initialize the tap tempo
         g_tap_tempo[i].state = TT_INIT;
@@ -1231,7 +1164,7 @@ void naveg_init(void)
         g_bank_functions[i].actuator_id = 0xFF;
     }
 
-    // counts the maximum items amount in a list
+    // counts the maximum items amount in menu lists
     uint8_t count = 0;
     for (i = 0; g_menu_desc[i].name; i++)
     {
@@ -1317,19 +1250,20 @@ void naveg_inc_control(uint8_t display)
 {
     if (!g_initialized) return;
 
-    node_t *node = g_current_control[display];
-    if (!node) return;
-
     // if is in tool mode return
     if (g_tool[display].state == TOOL_ON) return;
 
-    control_t *control = node->data;
+    control_t *control = g_controls[display];
+    if (!control) return;
+
+    // increments the step
     control->step++;
     if (control->step >= control->steps) control->step = control->steps - 1;
 
     // converts the step to absolute value
     step_to_value(control);
 
+    // applies the control value
     control_set(display, control);
 }
 
@@ -1337,19 +1271,20 @@ void naveg_dec_control(uint8_t display)
 {
     if (!g_initialized) return;
 
-    node_t *node = g_current_control[display];
-    if (!node) return;
-
     // if is in tool mode return
     if (g_tool[display].state == TOOL_ON) return;
 
-    control_t *control = node->data;
+    control_t *control = g_controls[display];
+    if (!control) return;
+
+    // decrements the step
     control->step--;
     if (control->step < 0) control->step = 0;
 
     // converts the step to absolute value
     step_to_value(control);
 
+    // applies the control value
     control_set(display, control);
 }
 
@@ -1358,14 +1293,12 @@ void naveg_set_control(int8_t effect_instance, const char *symbol, float value)
     if (!g_initialized) return;
 
     uint8_t display;
-    node_t *node;
     control_t *control;
 
-    node = search_control(effect_instance, symbol, &display);
+    control = search_control(effect_instance, symbol, &display);
 
-    if (node)
+    if (control)
     {
-        control = (control_t *) node->data;
         control->value = value;
         if (value < control->minimum) control->value = control->minimum;
         if (value > control->maximum) control->value = control->maximum;
@@ -1382,56 +1315,42 @@ float naveg_get_control(int8_t effect_instance, const char *symbol)
     if (!g_initialized) return 0.0;
 
     uint8_t display;
-    node_t *node;
     control_t *control;
 
-    node = search_control(effect_instance, symbol, &display);
-
-    if (node)
-    {
-        control = (control_t *) node->data;
-        return control->value;
-    }
+    control = search_control(effect_instance, symbol, &display);
+    if (control) return control->value;
 
     return 0.0;
 }
 
-control_t *naveg_next_control(uint8_t display)
+void naveg_next_control(uint8_t display)
 {
-    if (!g_initialized) return NULL;
+    if (!g_initialized) return;
 
     // if is in tool mode return
-    if (g_tool[display].state == TOOL_ON) return NULL;
+    if (g_tool[display].state == TOOL_ON) return;
 
-    // if there is no controls
-    if (!g_current_control[display])
-    {
-        screen_control(display, NULL);
-        return NULL;
-    }
+    char buffer[128];
+    uint8_t i;
 
-    // get the next control
-    control_t *control;
-    if (g_current_control[display]->next)
-    {
-        control = (control_t *) g_current_control[display]->next->data;
-        g_current_control[display] = g_current_control[display]->next;
-    }
-    else
-    {
-        control = (control_t *) g_controls_list[display]->first_child->data;
-        g_current_control[display] = g_controls_list[display]->first_child;
-    }
+    i = copy_command(buffer, CONTROL_NEXT_CMD);
 
-    // update the control screen
-    screen_control(display, control);
+    // inserts the hardware type
+    i += int_to_str(MOD_HARDWARE, &buffer[i], 4, 0);
+    buffer[i++] = ' ';
 
-    // update the controls index
-    g_controls_index[display].current++;
-    if (g_controls_index[display].current > g_controls_index[display].total) g_controls_index[display].current = 1;
-    screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
+    // inserts the hardware id
+    i += int_to_str(MOD_HARDWARE, &buffer[i], 4, 0);
+    buffer[i++] = ' ';
 
-    return control;
+    // inserts the actuator type
+    i += int_to_str(KNOB, &buffer[i], 4, 0);
+    buffer[i++] = ' ';
+
+    // inserts the actuator id
+    i += int_to_str(display, &buffer[i], 4, 0);
+
+    comm_webgui_send(buffer, i);
 }
 
 void naveg_foot_change(uint8_t foot)
@@ -1512,16 +1431,14 @@ void naveg_toggle_tool(uint8_t display)
                 break;
         }
 
-        // checks if there is controls assigned
-        control_t *control = NULL;
-        if (g_current_control[display]) control = g_current_control[display]->data;
+        control_t *control = g_controls[display];
 
         // draws the control
         screen_control(display, control);
 
         // draws the controls index
         if (control)
-            screen_controls_index(display, g_controls_index[display].current, g_controls_index[display].total);
+            screen_controls_index(display, control->control_index, control->controls_count);
 
         // calls foot_control_add to updates the footer
         if (g_foots[display])
