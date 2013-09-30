@@ -201,20 +201,30 @@ static uint8_t copy_command(char *buffer, const char *command)
 // duplicate the bp_list object
 static bp_list_t* duplicate_bp_list(const bp_list_t *src)
 {
-    bp_list_t *dest;
-    dest = (bp_list_t *) MALLOC(sizeof(bp_list_t));
+    uint32_t i = 0;
+
+    bp_list_t *dest = (bp_list_t *) MALLOC(sizeof(bp_list_t));
+    if (!dest) goto error;
+
     dest->hover = src->hover;
     dest->selected = src->selected;
     dest->count = src->count;
     dest->names = (char **) MALLOC(sizeof(char *) * (src->count + 1));
     dest->uids = (char **) MALLOC(sizeof(char *) * (src->count + 1));
 
+    // checks memory allocation
+    if (!dest->names || !dest->uids) goto error;
+
     // copies all list elements
-    uint32_t i = 0;
     while (src->names[i])
     {
+        // duplicate the strings
         dest->names[i] = str_duplicate(src->names[i]);
         dest->uids[i] = str_duplicate(src->uids[i]);
+
+        // checks the memory allocation
+        if (!dest->names[i] || !dest->uids[i]) goto error;
+
         i++;
     }
 
@@ -223,6 +233,22 @@ static bp_list_t* duplicate_bp_list(const bp_list_t *src)
     dest->uids[i] = NULL;
 
     return dest;
+
+error:
+    if (dest)
+    {
+        do
+        {
+            if (dest->names) FREE(dest->names[i]);
+            if (dest->uids) FREE(dest->uids[i]);
+        } while (i--);
+
+        FREE(dest->names);
+        FREE(dest->uids);
+        FREE(dest);
+    }
+
+    return NULL;
 }
 
 // control assigned to display

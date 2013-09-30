@@ -209,8 +209,7 @@ void screen_control(uint8_t display, control_t *control)
     // list type control
     else if (control->properties == CONTROL_PROP_ENUMERATION)
     {
-        char **labels_list;
-        labels_list = MALLOC(control->scale_points_count * sizeof(char *));
+        static char *labels_list[128];
 
         uint8_t i;
         for (i = 0; i < control->scale_points_count; i++)
@@ -233,8 +232,6 @@ void screen_control(uint8_t display, control_t *control)
         list.line_bottom_margin = 0;
         list.text_left_margin = 1;
         widget_listbox2(display, &list);
-
-        FREE(labels_list);
     }
 }
 

@@ -93,7 +93,7 @@ node_t *node_child(node_t *parent, void *data)
     node_t *self = node_create(data);
 
     // has parent
-    if (parent)
+    if (parent && self)
     {
         // first child
         if (!parent->first_child) parent->first_child = self;

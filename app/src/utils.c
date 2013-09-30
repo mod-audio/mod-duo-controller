@@ -151,7 +151,7 @@ char** strarr_split(char *str)
 
     // allocates memory to list
     list = MALLOC((count + 1) * sizeof(char *));
-    if (list == NULL) return NULL;
+    if (!list) return NULL;
 
     // fill the list pointers
     pstr = str;
@@ -323,7 +323,8 @@ char *str_duplicate(const char *str)
     if (!str) return NULL;
 
     char *copy = MALLOC(strlen(str) + 1);
-    strcpy(copy, str);
+    if (copy) strcpy(copy, str);
+
     return copy;
 }
 
@@ -438,10 +439,22 @@ float convert_from_ms(const char *unit_to, float value)
 ringbuff_t *ringbuf_create(uint32_t buffer_size)
 {
     ringbuff_t *rb = (ringbuff_t *) MALLOC(sizeof(ringbuff_t));
-    rb->head = 0;
-    rb->tail = 0;
-    rb->size = buffer_size;
-    rb->buffer = (uint8_t *) MALLOC(buffer_size);
+
+    if (rb)
+    {
+        rb->head = 0;
+        rb->tail = 0;
+        rb->size = buffer_size;
+        rb->buffer = (uint8_t *) MALLOC(buffer_size);
+
+        // checks memory allocation
+        if (!rb->buffer)
+        {
+            FREE(rb);
+            rb = NULL;
+        }
+    }
+
     return rb;
 }
 

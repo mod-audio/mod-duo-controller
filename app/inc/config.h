@@ -440,6 +440,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// Dynamic menory allocation
 // these macros should be used in replacement to default malloc and free functions of stdlib.h
+// The FREE function is NULL safe
 #include "FreeRTOS.h"
 #define MALLOC(n)       pvPortMalloc(n)
 #define FREE(pv)        vPortFree(pv)

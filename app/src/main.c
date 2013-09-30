@@ -488,7 +488,9 @@ static void control_get_cb(proto_t *proto)
     value = naveg_get_control(atoi(proto->list[1]), proto->list[2]);
 
     char resp[32];
-    float_to_str(value, resp, sizeof(resp), 3);
+    strcpy(resp, "resp 0 ");
+
+    float_to_str(value, &resp[strlen(resp)], 8, 3);
     protocol_response(resp, proto);
 }
 

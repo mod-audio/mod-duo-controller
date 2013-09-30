@@ -72,7 +72,7 @@ typedef struct RINGBUFF_T {
 // splits the string in each whitespace occurrence and returns a array of strings NULL terminated
 char** strarr_split(char *str);
 // returns the string array length
-uint32_t strarr_length(char **str_array);
+uint32_t strarr_length(char** const str_array);
 // joins a string array in a single string
 char* strarr_join(char** const str_array);
 

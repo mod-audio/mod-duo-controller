@@ -181,7 +181,10 @@ void protocol_parse(msg_t *msg)
             if (proto.response)
             {
                 SEND_TO_SENDER(msg->sender_id, proto.response, proto.response_size);
-                FREE(proto.response);
+
+                // The free is not more necessary because response is not more allocated dynamically
+                // uncomment bellow line if this change in the future
+                // FREE(proto.response);
             }
         }
     }
@@ -210,9 +213,12 @@ void protocol_add_command(const char *command, void (*callback)(proto_t *proto))
 
 void protocol_response(const char *response, proto_t *proto)
 {
+    static char response_buffer[32];
+
     proto->response_size = strlen(response);
-    proto->response = MALLOC(proto->response_size + 1);
-    strcpy(proto->response, response);
+    proto->response = response_buffer;
+    strncpy(response_buffer, response, (sizeof(response_buffer) - 1));
+    response_buffer[(sizeof(response_buffer) - 1)] = 0;
 }
 
 
