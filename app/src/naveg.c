@@ -248,6 +248,11 @@ static void display_control_add(control_t *control)
     uint8_t display;
 
     display = control->actuator_id;
+
+    // checks if is already a control assigned in this display and remove it
+    if (g_controls[display]) data_free_control(g_controls[display]);
+
+    // assign the new control
     g_controls[display] = control;
 
     // calculates initial step
