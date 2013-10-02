@@ -1,3 +1,9 @@
+0.12.7
+======
+   - NEW: HMI don't store anymore the controls list, just the upper control
+   - FIX: checks the return of malloc functions
+   - NEW: freeRTOS reconfiguration (more dynamic memory)
+
 0.12.6
 ======
   - FIX: clock control chain
