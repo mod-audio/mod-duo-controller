@@ -189,27 +189,25 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
     uint32_t i = 0, j = 0;
 
     // initializes the pointers
-    for (i = 0; i < list_count; i++)
+    for (i = 0; i < (list_count + 1); i++)
     {
         bp_list->names[i] = NULL;
         bp_list->uids[i] = NULL;
     }
 
     // fills the bp_list struct
+    i = 0;
     while (list_data[i])
     {
         bp_list->names[j] = str_duplicate(list_data[i + 0]);
         bp_list->uids[j] = str_duplicate(list_data[i + 1]);
-        i += 2;
-        j++;
 
         // checks memory allocation
         if (!bp_list->names[j] || !bp_list->uids[j]) goto error;
-    }
 
-    // does the list null terminated
-    bp_list->names[j] = NULL;
-    bp_list->uids[j] = NULL;
+        i += 2;
+        j++;
+    }
 
     return bp_list;
 
@@ -265,7 +263,7 @@ bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
     uint32_t i = 0, j = 1;
 
     // initializes the pointers
-    for (i = 1; i < list_count; i++)
+    for (i = 0; i < (list_count + 1); i++)
     {
         bp_list->names[i] = NULL;
         bp_list->uids[i] = NULL;
@@ -276,20 +274,18 @@ bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
     bp_list->uids[0] = NULL;
 
     // fills the bp_list struct
+    i = 0;
     while (list_data[i])
     {
         bp_list->names[j] = str_duplicate(list_data[i + 0]);
         bp_list->uids[j] = str_duplicate(list_data[i + 1]);
-        i += 2;
-        j++;
 
         // checks memory allocation
         if (!bp_list->names[j] || !bp_list->uids[j]) goto error;
-    }
 
-    // does the list null terminated
-    bp_list->names[j] = NULL;
-    bp_list->uids[j] = NULL;
+        i += 2;
+        j++;
+    }
 
     return bp_list;
 

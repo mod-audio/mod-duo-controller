@@ -1,3 +1,7 @@
+0.13.1
+======
+   - FIX: pointers verification when parse banks and pedalboards (fix always NO BANKS)
+
 0.13
 ====
    - NEW: HMI don't store anymore the controls list, just the upper control
