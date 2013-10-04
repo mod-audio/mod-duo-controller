@@ -86,7 +86,7 @@ struct TOOL_T {
 */
 
 static control_t *g_controls[SLOTS_COUNT], *g_foots[SLOTS_COUNT];
-static bp_list_t *g_banks, *g_pedalboards, *g_last_pedalboards;
+static bp_list_t *g_banks, *g_naveg_pedalboards, *g_selected_pedalboards;
 static uint8_t g_bp_state, g_current_bank, g_current_pedalboard;
 static node_t *g_menu, *g_current_menu;
 static menu_item_t *g_current_item;
@@ -189,59 +189,6 @@ static uint8_t copy_command(char *buffer, const char *command)
     return i;
 }
 
-// duplicate the bp_list object
-static bp_list_t* duplicate_bp_list(const bp_list_t *src)
-{
-    uint32_t i = 0;
-
-    bp_list_t *dest = (bp_list_t *) MALLOC(sizeof(bp_list_t));
-    if (!dest) goto error;
-
-    dest->hover = src->hover;
-    dest->selected = src->selected;
-    dest->count = src->count;
-    dest->names = (char **) MALLOC(sizeof(char *) * (src->count + 1));
-    dest->uids = (char **) MALLOC(sizeof(char *) * (src->count + 1));
-
-    // checks memory allocation
-    if (!dest->names || !dest->uids) goto error;
-
-    // copies all list elements
-    while (src->names[i])
-    {
-        // duplicate the strings
-        dest->names[i] = str_duplicate(src->names[i]);
-        dest->uids[i] = str_duplicate(src->uids[i]);
-
-        // checks the memory allocation
-        if (!dest->names[i] || !dest->uids[i]) goto error;
-
-        i++;
-    }
-
-    // does the list null terminated
-    dest->names[i] = NULL;
-    dest->uids[i] = NULL;
-
-    return dest;
-
-error:
-    if (dest)
-    {
-        do
-        {
-            if (dest->names) FREE(dest->names[i]);
-            if (dest->uids) FREE(dest->uids[i]);
-        } while (i--);
-
-        FREE(dest->names);
-        FREE(dest->uids);
-        FREE(dest);
-    }
-
-    return NULL;
-}
-
 // control assigned to display
 static void display_control_add(control_t *control)
 {
@@ -309,7 +256,7 @@ static void display_control_rm(int8_t effect_instance, const char *symbol)
     {
         data_free_control(control);
         g_controls[display] = NULL;
-        screen_control(display, NULL);
+        if (g_tool[display].state == TOOL_OFF) screen_control(display, NULL);
         return;
     }
 
@@ -327,7 +274,8 @@ static void display_control_rm(int8_t effect_instance, const char *symbol)
             {
                 data_free_control(control);
                 g_controls[display] = NULL;
-                screen_control(display, NULL);
+
+                if (g_tool[display].state == TOOL_OFF) screen_control(display, NULL);
             }
         }
     }
@@ -538,7 +486,8 @@ static void control_set(uint8_t display, control_t *control)
 
                 // updates the value and the screen
                 control->value = control->scale_points[control->step]->value;
-                screen_footer(control->actuator_id, control->scale_points[control->step]->label, NULL);
+                if (g_tool[control->actuator_id].state == TOOL_OFF)
+                    screen_footer(control->actuator_id, control->scale_points[control->step]->label, NULL);
             }
             break;
 
@@ -633,15 +582,12 @@ static void parse_pedalboards_list(void *data)
     char **list = data;
     uint32_t count = strarr_length(list) - 2;
 
-    // free the last pedalboads list
-    if (g_pedalboards) data_free_pedalboards_list(g_pedalboards);
+    // free the navigation pedalboads list
+    if (g_naveg_pedalboards && (!g_selected_pedalboards || g_selected_pedalboards != g_naveg_pedalboards))
+        data_free_pedalboards_list(g_naveg_pedalboards);
 
     // parses the list
-    g_pedalboards = data_parse_pedalboards_list(&list[2], count);
-    naveg_set_pedalboards(g_pedalboards);
-
-    // checks if is the first list received
-    if (!g_last_pedalboards) g_last_pedalboards = duplicate_bp_list(g_pedalboards);
+    g_naveg_pedalboards = data_parse_pedalboards_list(&list[2], count);
 }
 
 static void request_pedalboards_list(const char *bank_uid)
@@ -704,27 +650,27 @@ static void bp_enter(void)
     if (g_bp_state == BANKS_LIST)
     {
         request_pedalboards_list(g_banks->uids[g_banks->hover]);
-        if (!g_pedalboards) return;
+        if (!g_naveg_pedalboards) return;
 
         // if reach here, received the pedalboards list
         g_bp_state = PEDALBOARD_LIST;
-        g_pedalboards->hover = 0;
-        bp_list = g_pedalboards;
+        g_naveg_pedalboards->hover = 0;
+        bp_list = g_naveg_pedalboards;
         title = g_banks->names[g_banks->hover];
 
         // sets the selected pedalboard out of range (initial state)
-        g_pedalboards->selected = g_pedalboards->count;
+        g_naveg_pedalboards->selected = g_naveg_pedalboards->count;
 
         // defines the selected pedalboard
         if (g_banks->selected == g_banks->hover)
         {
-            g_pedalboards->selected = g_current_pedalboard;
+            g_naveg_pedalboards->selected = g_current_pedalboard;
         }
     }
     else if (g_bp_state == PEDALBOARD_LIST)
     {
         // checks if is the first option (back to banks list)
-        if (g_pedalboards->hover == 0)
+        if (g_naveg_pedalboards->hover == 0)
         {
             g_bp_state = BANKS_LIST;
             bp_list = g_banks;
@@ -734,28 +680,28 @@ static void bp_enter(void)
         {
             // updates selected bank and pedalboard
             g_banks->selected = g_banks->hover;
-            g_pedalboards->selected = g_pedalboards->hover;
+            g_naveg_pedalboards->selected = g_naveg_pedalboards->hover;
 
             // request to GUI load the pedalboard
-            send_load_pedalboard(g_banks->selected, g_pedalboards->uids[g_pedalboards->selected]);
+            send_load_pedalboard(g_banks->selected, g_naveg_pedalboards->uids[g_naveg_pedalboards->selected]);
 
-            // does a copy of pedalboards list if the bank changed
+            // if select a pedalboard in other bank free the old pedalboards list
             if (g_current_bank != g_banks->selected)
             {
-                if (g_last_pedalboards) data_free_pedalboards_list(g_last_pedalboards);
-                g_last_pedalboards = duplicate_bp_list(g_pedalboards);
+                if (g_selected_pedalboards) data_free_pedalboards_list(g_selected_pedalboards);
+                g_selected_pedalboards = NULL;
             }
 
             // stores the current bank and pedalboard
             g_current_bank = g_banks->selected;
-            g_current_pedalboard = g_pedalboards->selected;
+            g_current_pedalboard = g_naveg_pedalboards->selected;
 
             // sets the variables to update the screen
             title = g_banks->names[g_banks->hover];
-            bp_list = g_pedalboards;
+            bp_list = g_naveg_pedalboards;
 
-            g_last_pedalboards->selected = g_current_pedalboard;
-            bank_config_footer();
+            // if has a valid pedalboards list update the screens
+            if (g_selected_pedalboards) bank_config_footer();
         }
     }
 
@@ -777,8 +723,8 @@ static void bp_up(void)
     }
     else if (g_bp_state == PEDALBOARD_LIST)
     {
-        if (g_pedalboards->hover > 0) g_pedalboards->hover--;
-        bp_list = g_pedalboards;
+        if (g_naveg_pedalboards->hover > 0) g_naveg_pedalboards->hover--;
+        bp_list = g_naveg_pedalboards;
         title = g_banks->names[g_banks->hover];
     }
 
@@ -800,8 +746,8 @@ static void bp_down(void)
     }
     else if (g_bp_state == PEDALBOARD_LIST)
     {
-        if (g_pedalboards->hover < (g_pedalboards->count - 1)) g_pedalboards->hover++;
-        bp_list = g_pedalboards;
+        if (g_naveg_pedalboards->hover < (g_naveg_pedalboards->count - 1)) g_naveg_pedalboards->hover++;
+        bp_list = g_naveg_pedalboards;
         title = g_banks->names[g_banks->hover];
     }
 
@@ -1040,26 +986,26 @@ static void bank_config_update(uint8_t bank_func_idx)
             break;
 
         case BANK_FUNC_PEDALBOARD_NEXT:
-            if (g_last_pedalboards)
+            if (g_selected_pedalboards)
             {
                 g_current_pedalboard++;
 
-                if (g_current_pedalboard == g_last_pedalboards->count)
+                if (g_current_pedalboard == g_selected_pedalboards->count)
                 {
                     // if previous pedalboard function is not being used, does circular selection
                     // the minimum value is 1 because the option 0 is 'back to banks list'
                     if (g_bank_functions[BANK_FUNC_PEDALBOARD_PREV].function == BANK_FUNC_NONE) g_current_pedalboard = 1;
                     // if previous pedalboard function is being used, stops on maximum value
-                    else g_current_pedalboard = g_last_pedalboards->count - 1;
+                    else g_current_pedalboard = g_selected_pedalboards->count - 1;
                 }
 
-                g_last_pedalboards->selected = g_current_pedalboard;
-                send_load_pedalboard(g_current_bank, g_last_pedalboards->uids[g_last_pedalboards->selected]);
+                g_selected_pedalboards->selected = g_current_pedalboard;
+                send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
 
         case BANK_FUNC_PEDALBOARD_PREV:
-            if (g_last_pedalboards)
+            if (g_selected_pedalboards)
             {
                 g_current_pedalboard--;
 
@@ -1067,37 +1013,36 @@ static void bank_config_update(uint8_t bank_func_idx)
                 {
                     // if next pedalboard function is not being used, does circular selection
                     if (g_bank_functions[BANK_FUNC_PEDALBOARD_NEXT].function == BANK_FUNC_NONE)
-                        g_current_pedalboard = g_last_pedalboards->count - 1;
+                        g_current_pedalboard = g_selected_pedalboards->count - 1;
                     // if next pedalboard function is being used, stops on minimum value
                     // the minimum value is 1 because the option 0 is 'back to banks list'
                     else g_current_pedalboard = 1;
                 }
 
-                g_last_pedalboards->selected = g_current_pedalboard;
-                send_load_pedalboard(g_current_bank, g_last_pedalboards->uids[g_last_pedalboards->selected]);
+                g_selected_pedalboards->selected = g_current_pedalboard;
+                send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
     }
 
-    // calls bank config to force the screen update
-    naveg_bank_config(&g_bank_functions[i]);
+    // updates the footers
+    bank_config_footer();
 
     // updates the navigation menu if the current pedalboards list
     // is the same assigned to foot pedalboards navigation (bank config)
-    if (g_tool[TOOL_NAVEG].state == TOOL_ON &&
-        g_bp_state == PEDALBOARD_LIST &&
-        g_current_bank == g_banks->hover)
+    if (g_selected_pedalboards && g_current_bank == g_banks->hover &&
+        g_tool[TOOL_NAVEG].state == TOOL_ON && g_bp_state == PEDALBOARD_LIST)
     {
-        g_pedalboards->selected = g_last_pedalboards->selected;
-        g_pedalboards->hover = g_last_pedalboards->selected;
-        screen_bp_list(g_banks->names[g_banks->hover], g_pedalboards);
+        g_naveg_pedalboards->selected = g_selected_pedalboards->selected;
+        g_naveg_pedalboards->hover = g_selected_pedalboards->selected;
+        screen_bp_list(g_banks->names[g_banks->hover], g_naveg_pedalboards);
     }
 }
 
 static void bank_config_footer(void)
 {
     uint8_t bypass;
-    char *pedalboard_name = g_last_pedalboards ? g_last_pedalboards->names[g_last_pedalboards->selected] : NULL;
+    char *pedalboard_name = g_selected_pedalboards ? g_selected_pedalboards->names[g_selected_pedalboards->selected] : NULL;
 
     // updates all footer screen with bank functions
     uint8_t i;
@@ -1109,19 +1054,25 @@ static void bank_config_footer(void)
         {
             case BANK_FUNC_TRUE_BYPASS:
                 bypass = hardware_get_true_bypass();
-                screen_footer(bank_conf->actuator_id, TRUE_BYPASS_FOOTER_TEXT,
-                             (bypass ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
                 led_set_color(hardware_leds(bank_conf->actuator_id), bypass ? BLACK : TRUE_BYPASS_COLOR);
+
+                if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;
+                screen_footer(bank_conf->actuator_id, TRUE_BYPASS_FOOTER_TEXT,
+                            (bypass ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
                 break;
 
             case BANK_FUNC_PEDALBOARD_NEXT:
-                screen_footer(bank_conf->actuator_id, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT);
                 led_set_color(hardware_leds(bank_conf->actuator_id), PEDALBOARD_NEXT_COLOR);
+
+                if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;
+                screen_footer(bank_conf->actuator_id, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT);
                 break;
 
             case BANK_FUNC_PEDALBOARD_PREV:
-                screen_footer(bank_conf->actuator_id, pedalboard_name, PEDALBOARD_PREV_FOOTER_TEXT);
                 led_set_color(hardware_leds(bank_conf->actuator_id), PEDALBOARD_PREV_COLOR);
+
+                if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;
+                screen_footer(bank_conf->actuator_id, pedalboard_name, PEDALBOARD_PREV_FOOTER_TEXT);
                 break;
         }
     }
@@ -1155,9 +1106,10 @@ void naveg_init(void)
     }
 
     g_banks = NULL;
-    g_pedalboards = NULL;
-    g_last_pedalboards = NULL;
+    g_naveg_pedalboards = NULL;
+    g_selected_pedalboards = NULL;
     g_current_pedalboard = 1;
+    g_bp_state = BANKS_LIST;
 
     // initializes the bank functions
     for (i = 0; i < BANK_FUNC_AMOUNT; i++)
@@ -1493,8 +1445,9 @@ void naveg_bank_config(bank_config_t *bank_conf)
             bank_conf->actuator_id != g_bank_functions[i].actuator_id)
         {
             // updates the screen and led
-            screen_footer(g_bank_functions[i].actuator_id, NULL, NULL);
             led_set_color(hardware_leds(g_bank_functions[i].actuator_id), BLACK);
+            if (g_tool[g_bank_functions[i].actuator_id].state == TOOL_OFF)
+                screen_footer(g_bank_functions[i].actuator_id, NULL, NULL);
 
             // removes the function
             g_bank_functions[i].function = BANK_FUNC_NONE;
@@ -1519,8 +1472,9 @@ void naveg_bank_config(bank_config_t *bank_conf)
             // if the new function is none, updates the screen and led
             if (bank_conf->function == BANK_FUNC_NONE)
             {
-                screen_footer(bank_conf->actuator_id, NULL, NULL);
                 led_set_color(hardware_leds(bank_conf->actuator_id), BLACK);
+                if (g_tool[bank_conf->actuator_id].state == TOOL_OFF)
+                    screen_footer(bank_conf->actuator_id, NULL, NULL);
 
                 // checks if has control assigned in this foot
                 // if yes, updates the footer screen
@@ -1534,6 +1488,13 @@ void naveg_bank_config(bank_config_t *bank_conf)
     if (bank_conf->function != BANK_FUNC_NONE)
         memcpy(&g_bank_functions[bank_conf->function], bank_conf, sizeof(bank_config_t));
 
+    // checks if has pedalboards navigation functions and set the pointer to pedalboards list
+    if (bank_conf->function == BANK_FUNC_PEDALBOARD_NEXT ||
+        bank_conf->function == BANK_FUNC_PEDALBOARD_PREV)
+    {
+        g_selected_pedalboards = g_naveg_pedalboards;
+    }
+
     bank_config_footer();
 }
 
@@ -1541,14 +1502,14 @@ void naveg_set_pedalboards(bp_list_t *bp_list)
 {
     if (!g_initialized) return;
 
-    g_pedalboards = bp_list;
+    g_naveg_pedalboards = bp_list;
 }
 
 bp_list_t *naveg_get_pedalboards(void)
 {
     if (!g_initialized) return NULL;
 
-    return g_pedalboards;
+    return g_naveg_pedalboards;
 }
 
 void naveg_enter(uint8_t display)
