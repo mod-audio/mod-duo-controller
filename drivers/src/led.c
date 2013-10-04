@@ -113,6 +113,8 @@ static color_t g_colors[MAX_LEDS];
 
 void led_init(led_t *led, const led_pins_t pins)
 {
+    if (!led) return;
+
     // store the pins
     led->pins.portR = pins.portR;
     led->pins.portG = pins.portG;
@@ -147,6 +149,8 @@ void led_init(led_t *led, const led_pins_t pins)
 
 void led_set_color(led_t *led, const color_t color)
 {
+    if (!led) return;
+
     led->color = color;
     leds_clock();
 }
@@ -154,6 +158,8 @@ void led_set_color(led_t *led, const color_t color)
 
 void led_blink(led_t *led, uint16_t time_on_ms, uint16_t time_off_ms)
 {
+    if (!led) return;
+
     BLINK_DISABLE(led);
 
     led->time_on = time_on_ms;
@@ -199,6 +205,7 @@ void leds_clock(void)
     for (i = 0; i < g_leds_count; i++)
     {
         led = g_leds[i];
+        if (!led) continue;
 
         // colors verification
         if (led->color.r > 0 && led->color.r >= g_colors[i].r && BLINK_CHECK(led)) R_ON(led);
