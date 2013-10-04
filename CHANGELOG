@@ -1,3 +1,8 @@
+0.13.2
+======
+   - FIX: bank config refactor
+   - FIX: check if led object is not NULL
+
 0.13.1
 ======
    - FIX: pointers verification when parse banks and pedalboards (fix always NO BANKS)
