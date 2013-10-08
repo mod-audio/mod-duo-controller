@@ -168,11 +168,14 @@ uint32_t CDC_GetMessage(uint8_t *buffer, uint32_t buffer_size)
 {
     if (!g_cdc_initialized) return 0;
 
-    xSemaphoreTake(g_msg_sem, portMAX_DELAY);
+    if (xSemaphoreTake(g_msg_sem, portMAX_DELAY) == pdTRUE)
+    {
+        uint32_t msg_size;
+        msg_size = ringbuff_read_until(g_rx_buffer, buffer, buffer_size, 0);
+        return msg_size;
+    }
 
-    uint32_t msg_size;
-    msg_size = ringbuff_read_until(g_rx_buffer, buffer, buffer_size, 0);
-    return msg_size;
+    return 0;
 }
 
 void CDC_Send(const uint8_t *data, uint32_t data_size)
