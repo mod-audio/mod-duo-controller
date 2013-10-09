@@ -1,3 +1,8 @@
+0.13.3
+======
+   - NEW: control chain has your own task
+   - NEW: clipmeter flag verification is not more recursive
+
 0.13.2
 ======
    - FIX: bank config refactor
