@@ -130,8 +130,9 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // ui_dis
 #define GUI_DISCONNECTED_CMD    "ui_dis"
 // control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min>
-//             <steps> <hw_type> <hw_id> <actuator_type> <actuator_id> [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
-#define CONTROL_ADD_CMD         "control_add %i %s %s %i %s %f %f %f %i %i %i %i %i ..."
+//             <steps> <hw_type> <hw_id> <actuator_type> <actuator_id> <controls_count> <control_index>
+//             [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
+#define CONTROL_ADD_CMD         "control_add %i %s %s %i %s %f %f %f %i %i %i %i %i %i %i ..."
 // control_rm <effect_instance> <symbol>
 #define CONTROL_REMOVE_CMD      "control_rm %i %s"
 // control_get <effect_instance> <symbol>
@@ -410,8 +411,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_CHAIN_MAX_ACTUATORS_PER_DEVICES     32
 // defines the external devices timeout (in milliseconds)
 #define CONTROL_CHAIN_TIMEOUT                       1000
-// defines the external devices request clock (in Hz, max: 1000Hz)
-#define CONTROL_CHAIN_CLOCK                         100
+// defines the external devices period requests (in ms)
+#define CONTROL_CHAIN_PERIOD                        5
 // defines the control chain functions
 #define CONTROL_CHAIN_REQUEST_CONNECTION            1
 #define CONTROL_CHAIN_CONFIRM_CONNECTION            2

@@ -27,8 +27,8 @@
 #define CONTROL_CHAIN_BUFFER_SIZE           32
 // this is the minimal quantity of data receive or send by message, in other words, data_size = 0
 #define CONTROL_CHAIN_MINIMAL_MSG_SIZE      9
-// converts frequency to period
-#define CONTROL_CHAIN_REQUEST_PERIOD        (1000 / CONTROL_CHAIN_CLOCK)
+// calculates the timeout count value
+#define CONTROL_CHAIN_TIMEOUT_COUNT         (CONTROL_CHAIN_TIMEOUT / CONTROL_CHAIN_PERIOD)
 
 
 /*
@@ -46,7 +46,7 @@
 
 typedef struct DEVICE_T {
     uint8_t hardware_type, hardware_id;
-    uint32_t timestamp;
+    uint32_t count;
 } device_t;
 
 
@@ -64,7 +64,7 @@ typedef struct DEVICE_T {
 */
 
 static control_t *g_control_chain[CONTROL_CHAIN_MAX_DEVICES];
-static uint8_t g_buffer[CONTROL_CHAIN_BUFFER_SIZE], g_buffer_idx, g_new_msg;
+static uint8_t g_buffer[CONTROL_CHAIN_BUFFER_SIZE], g_buffer_idx, g_new_msg, g_waiting_response;
 static device_t g_connected_devices[CONTROL_CHAIN_MAX_DEVICES];
 static uint8_t g_data[CONTROL_CHAIN_BUFFER_SIZE - CONTROL_CHAIN_MINIMAL_MSG_SIZE];
 
@@ -243,8 +243,8 @@ static void update_control_value(control_chain_t *chain, uint8_t *actuators_list
         if (g_connected_devices[i].hardware_type == chain->hw_type_origin &&
             g_connected_devices[i].hardware_id == chain->hw_id_origin )
         {
-            // resets the timestamp for that a new request happens
-            g_connected_devices[i].timestamp = 0;
+            // resets the counter for that a new request happens
+            g_connected_devices[i].count = 0;
             break;
         }
     }
@@ -321,7 +321,7 @@ static uint8_t connected_device_add(uint8_t hw_type, uint8_t hw_id)
         {
             g_connected_devices[i].hardware_type = hw_type;
             g_connected_devices[i].hardware_id = hw_id;
-            g_connected_devices[i].timestamp = 0;
+            g_connected_devices[i].count = 0;
 
             // composes the command
             char buffer[64];
@@ -356,7 +356,7 @@ static void connected_device_remove(device_t *device)
     // resets the device values
     device->hardware_type = 0;
     device->hardware_id = 0;
-    device->timestamp = 0;
+    device->count = 0;
 }
 
 static void send_request(device_t *device)
@@ -383,6 +383,12 @@ static void send_request(device_t *device)
 
     // sends the message
     comm_control_chain_send(data, CONTROL_CHAIN_MINIMAL_MSG_SIZE);
+}
+
+static void control_set_resp_cb(void *arg)
+{
+    arg = 0;
+    g_waiting_response = 0;
 }
 
 static void control_set(control_t *control)
@@ -418,6 +424,10 @@ static void control_set(control_t *control)
     // insert the value on buffer
     i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
 
+    // sets the response callback
+    g_waiting_response = 1;
+    comm_webgui_set_response_cb(control_set_resp_cb);
+
     // send the data to GUI
     comm_webgui_send(buffer, i);
 }
@@ -441,7 +451,7 @@ void control_chain_init(void)
         // initialiazes the list of connected devices
         g_connected_devices[i].hardware_type = 0;
         g_connected_devices[i].hardware_id = 0;
-        g_connected_devices[i].timestamp = 0;
+        g_connected_devices[i].count = 0;
     }
 
     g_buffer_idx = 0;
@@ -469,7 +479,7 @@ void control_chain_add(control_t *control)
         return;
     }
 
-    // searches a void position to add the control
+    // searches a empty position to add the control
     for (i = 0; i < CONTROL_CHAIN_MAX_DEVICES; i++)
     {
         if (!g_control_chain[i])
@@ -525,40 +535,35 @@ void control_chain_append_data(uint8_t *data, uint32_t data_size)
 
 void control_chain_process(void)
 {
-    static uint32_t now, before;
     static int32_t last_request = -1;
     uint32_t i;
 
-    // gets the timestamp and certifies that it never will be zero
-    now = hardware_timestamp() | 1;
-    if (before == 0) before = now;
-
-    // checks if need to do requests to devices
-    if ((now - before) >= CONTROL_CHAIN_REQUEST_PERIOD)
+    // search the next devices to do requests
+    if (!g_waiting_response)
     {
-        // search the next devices to do requests
         for (i = last_request + 1; i < CONTROL_CHAIN_MAX_DEVICES; i++)
         {
-            if (g_connected_devices[i].hardware_type != 0 &&
-                g_connected_devices[i].timestamp == 0)
+            if (g_connected_devices[i].hardware_type != 0)
             {
                 send_request(&g_connected_devices[i]);
-                g_connected_devices[i].timestamp = now;
                 last_request = i;
                 break;
             }
         }
-
-        if (i == CONTROL_CHAIN_MAX_DEVICES) last_request = -1;
-        before = now;
     }
+
+    if (i == CONTROL_CHAIN_MAX_DEVICES) last_request = -1;
 
     // checks the timeout of all connected devices
     for (i = 0; i < CONTROL_CHAIN_MAX_DEVICES; i++)
     {
-        if (g_connected_devices[i].timestamp > 0)
+        // checks if the device is connected
+        if (g_connected_devices[i].hardware_type != 0)
         {
-            if ((now - g_connected_devices[i].timestamp) >= CONTROL_CHAIN_TIMEOUT)
+            g_connected_devices[i].count++;
+
+            // checks the timeout counter
+            if (g_connected_devices[i].count >= CONTROL_CHAIN_TIMEOUT_COUNT)
             {
                 connected_device_remove(&g_connected_devices[i]);
             }

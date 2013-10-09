@@ -61,7 +61,7 @@
 */
 
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
-#define TASK_NAME(name)     (const signed char * const) (name)
+#define TASK_NAME(name)     ((const signed char * const) (name))
 
 
 /*
@@ -90,6 +90,7 @@ static void procotol_task(void *pvParameters);
 static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
 static void monitor_task(void *pvParameters);
+static void chain_task(void *pvParameters);
 static void setup_task(void *pvParameters);
 
 // protocol callbacks
@@ -311,10 +312,24 @@ static void monitor_task(void *pvParameters)
         // process the command line
         cli_process();
 
+        taskYIELD();
+    }
+}
+
+static void chain_task(void *pvParameters)
+{
+    UNUSED_PARAM(pvParameters);
+
+    portTickType xLastWakeTime;
+    xLastWakeTime = xTaskGetTickCount();
+
+    while (1)
+    {
         // process the control chain data
         control_chain_process();
 
-        taskYIELD();
+        vTaskDelayUntil(&xLastWakeTime, (CONTROL_CHAIN_PERIOD / portTICK_RATE_MS));
+        //vTaskDelay((CONTROL_CHAIN_PERIOD / portTICK_RATE_MS));
     }
 }
 
@@ -338,6 +353,7 @@ static void setup_task(void *pvParameters)
 
     // create the tasks
     xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 3, NULL);
+    xTaskCreate(chain_task, TASK_NAME("chain"), 256, NULL, 3, NULL);
     xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
     xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
@@ -577,7 +593,8 @@ void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed portCHAR *pcTaskN
 {
     UNUSED_PARAM(pxTask);
     glcd_clear(0, GLCD_WHITE);
-    glcd_text(0, 0, 0, (const char *) pcTaskName, NULL, GLCD_BLACK);
+    glcd_text(0, 0, 0, "stack overflow", NULL, GLCD_BLACK);
+    glcd_text(0, 0, 10, (const char *) pcTaskName, NULL, GLCD_BLACK);
     glcd_update();
     while (1);
 }
