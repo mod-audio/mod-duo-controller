@@ -79,7 +79,7 @@ static uint8_t destination_ok(control_chain_t *chain);
 static uint8_t checksum_ok(control_chain_t *chain, uint8_t *checksum_value);
 static void parse_data(control_chain_t *chain);
 static void update_control_value(control_chain_t *chain, uint8_t *actuators_list, uint8_t actuators_amount);
-static uint8_t connected_device_add(uint8_t hw_type, uint8_t hw_id);
+static void connected_device_add(uint8_t hw_type, uint8_t hw_id);
 static void connected_device_remove(device_t *device);
 static void send_request(device_t *device);
 static void control_set(control_t *control);
@@ -185,9 +185,8 @@ static void parse_data(control_chain_t *chain)
     switch (chain->function)
     {
         case CONTROL_CHAIN_REQUEST_CONNECTION:
-
-            // tries add the device on the list
-            if (!connected_device_add(chain->hw_type_origin, chain->hw_id_origin)) break;
+            // adds the device to connected device list
+            connected_device_add(chain->hw_type_origin, chain->hw_id_origin);
 
             // fills the message struct
             msg_to_send->start = CONTROL_CHAIN_PROTOCOL_START;
@@ -299,7 +298,7 @@ static void update_control_value(control_chain_t *chain, uint8_t *actuators_list
     }
 }
 
-static uint8_t connected_device_add(uint8_t hw_type, uint8_t hw_id)
+static void connected_device_add(uint8_t hw_type, uint8_t hw_id)
 {
     uint32_t i;
 
@@ -309,7 +308,7 @@ static uint8_t connected_device_add(uint8_t hw_type, uint8_t hw_id)
         if (g_connected_devices[i].hardware_type == hw_type &&
             g_connected_devices[i].hardware_id == hw_id)
         {
-            return 0;
+            return;
         }
     }
 
@@ -332,11 +331,8 @@ static uint8_t connected_device_add(uint8_t hw_type, uint8_t hw_id)
 
             // sends the command to GUI
             comm_webgui_send(buffer, i);
-            return 1;
         }
     }
-
-    return 0;
 }
 
 static void connected_device_remove(device_t *device)
@@ -598,6 +594,7 @@ void control_chain_process(void)
                 i += CONTROL_CHAIN_MINIMAL_MSG_SIZE + chain->data_size;
             }
         }
+        else i++;
     }
 
     // resets the variables

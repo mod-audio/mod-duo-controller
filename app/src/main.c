@@ -329,7 +329,6 @@ static void chain_task(void *pvParameters)
         control_chain_process();
 
         vTaskDelayUntil(&xLastWakeTime, (CONTROL_CHAIN_PERIOD / portTICK_RATE_MS));
-        //vTaskDelay((CONTROL_CHAIN_PERIOD / portTICK_RATE_MS));
     }
 }
 
