@@ -570,27 +570,38 @@ void screen_clipmeter(uint8_t display, uint8_t happened_now)
     static uint32_t last_time[GLCD_COUNT];
     uint32_t time_elapsed;
 
+    uint8_t start, end;
+
     if (display == 0xFF)
     {
-        uint8_t i;
-        for (i = 0; i < GLCD_COUNT; i++)
-            screen_clipmeter(i, 0);
-        return;
+        start = 0;
+        end = GLCD_COUNT;
+    }
+    else
+    {
+        start = display;
+        end = start + 1;
     }
 
-    if (happened_now)
+    uint8_t i;
+    for (i = start; i < end; i++)
     {
-        glcd_set_pixel(display, 126, 63, GLCD_BLACK);
-        last_time[display] = hardware_timestamp();
-        check_timeout[display] = 1;
-    }
+        display = i;
 
-    time_elapsed = hardware_timestamp() - last_time[display];
+        if (happened_now)
+        {
+            glcd_set_pixel(display, 126, 63, GLCD_BLACK);
+            last_time[display] = hardware_timestamp();
+            check_timeout[display] = 1;
+        }
 
-    if (check_timeout[display] && time_elapsed > CLIPMETER_TIMEOUT)
-    {
-        glcd_set_pixel(display, 126, 63, GLCD_WHITE);
-        check_timeout[display] = 0;
+        time_elapsed = hardware_timestamp() - last_time[display];
+
+        if (check_timeout[display] && time_elapsed > CLIPMETER_TIMEOUT)
+        {
+            glcd_set_pixel(display, 126, 63, GLCD_WHITE);
+            check_timeout[display] = 0;
+        }
     }
 }
 
