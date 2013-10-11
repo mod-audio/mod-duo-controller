@@ -1,3 +1,7 @@
+0.13.4
+======
+   - FIX: sends the connection confirmation same when the external device is already connected
+
 0.13.3
 ======
    - NEW: control chain has your own task
