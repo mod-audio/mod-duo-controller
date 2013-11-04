@@ -469,14 +469,16 @@ static void control_set(uint8_t display, control_t *control)
         case CONTROL_PROP_LOGARITHMIC:
 
             // update the screen
-            screen_control(display, control);
+            if (g_tool[control->actuator_id].state == TOOL_OFF)
+                screen_control(display, control);
             break;
 
         case CONTROL_PROP_ENUMERATION:
             if (control->actuator_type == KNOB)
             {
                 // update the screen
-                screen_control(display, control);
+                if (g_tool[control->actuator_id].state == TOOL_OFF)
+                    screen_control(display, control);
             }
             else if (control->actuator_type == FOOT)
             {
@@ -1316,9 +1318,6 @@ void naveg_foot_change(uint8_t foot)
 
     // checks the foot id
     if (foot >= FOOTSWITCHES_COUNT) return;
-
-    // if is in tool mode return
-    if (g_tool[foot].state == TOOL_ON) return;
 
     // checks if the foot is used like bank function
     uint8_t bank_func_idx = bank_config_check(foot);
