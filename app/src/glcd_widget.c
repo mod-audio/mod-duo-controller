@@ -323,7 +323,7 @@ void widget_listbox(uint8_t display, listbox_t *listbox)
 {
     uint8_t i, font_height, max_lines, y_line;
     uint8_t first_line, focus, center_focus, focus_height;
-    char aux[DISPLAY_WIDTH/5];
+    char aux[DISPLAY_WIDTH/2];
     const char *line_txt;
 
     glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
@@ -360,7 +360,7 @@ void widget_listbox(uint8_t display, listbox_t *listbox)
                 aux[j++] = ' ';
                 aux[j++] = '>';
                 aux[j++] = ' ';
-                while (*line_txt) aux[j++] = *line_txt++;
+                while (*line_txt && j < sizeof(aux)-1) aux[j++] = *line_txt++;
                 aux[j] = 0;
                 line_txt = aux;
             }
