@@ -148,24 +148,45 @@ static uint32_t g_blocked[DISPLAY_COUNT];
 static void switcher_init(void)
 {
     CONFIG_PIN_OUTPUT(SWITCHER_DIR_PORT, SWITCHER_DIR_PIN);
+
+#if DISPLAY_COUNT >= 1
     CONFIG_PIN_OUTPUT(SWITCHER_CH0_PORT, SWITCHER_CH0_PIN);
+#endif
+#if DISPLAY_COUNT >= 2
     CONFIG_PIN_OUTPUT(SWITCHER_CH1_PORT, SWITCHER_CH1_PIN);
+#endif
+#if DISPLAY_COUNT >= 3
     CONFIG_PIN_OUTPUT(SWITCHER_CH2_PORT, SWITCHER_CH2_PIN);
+#endif
+#if DISPLAY_COUNT >= 4
     CONFIG_PIN_OUTPUT(SWITCHER_CH3_PORT, SWITCHER_CH3_PIN);
+#endif
 
     // select output direction
     SET_PIN(SWITCHER_DIR_PORT, SWITCHER_DIR_PIN);
 
     // de-select all channels
+#if DISPLAY_COUNT >= 1
     SET_PIN(SWITCHER_CH0_PORT, SWITCHER_CH0_PIN);
+#endif
+#if DISPLAY_COUNT >= 2
     SET_PIN(SWITCHER_CH1_PORT, SWITCHER_CH1_PIN);
+#endif
+#if DISPLAY_COUNT >= 3
     SET_PIN(SWITCHER_CH2_PORT, SWITCHER_CH2_PIN);
+#endif
+#if DISPLAY_COUNT >= 4
     SET_PIN(SWITCHER_CH3_PORT, SWITCHER_CH3_PIN);
+#endif
 }
 
 static void switcher_channel(uint8_t channel)
 {
     static uint8_t last_channel;
+
+    // forces to default
+    if (last_channel >= DISPLAY_COUNT) last_channel = 0xFF;
+    if (channel >= DISPLAY_COUNT) channel = 0xFF;
 
     switch (last_channel)
     {
@@ -186,10 +207,18 @@ static void switcher_channel(uint8_t channel)
             break;
 
         default:
+        #if DISPLAY_COUNT >= 1
             SET_PIN(SWITCHER_CH0_PORT, SWITCHER_CH0_PIN);
+        #endif
+        #if DISPLAY_COUNT >= 2
             SET_PIN(SWITCHER_CH1_PORT, SWITCHER_CH1_PIN);
+        #endif
+        #if DISPLAY_COUNT >= 3
             SET_PIN(SWITCHER_CH2_PORT, SWITCHER_CH2_PIN);
+        #endif
+        #if DISPLAY_COUNT >= 4
             SET_PIN(SWITCHER_CH3_PORT, SWITCHER_CH3_PIN);
+        #endif
     }
 
     last_channel = channel;
@@ -213,13 +242,19 @@ static void switcher_channel(uint8_t channel)
             break;
 
         default:
+        #if DISPLAY_COUNT >= 1
             CLR_PIN(SWITCHER_CH0_PORT, SWITCHER_CH0_PIN);
+        #endif
+        #if DISPLAY_COUNT >= 2
             CLR_PIN(SWITCHER_CH1_PORT, SWITCHER_CH1_PIN);
+        #endif
+        #if DISPLAY_COUNT >= 3
             CLR_PIN(SWITCHER_CH2_PORT, SWITCHER_CH2_PIN);
+        #endif
+        #if DISPLAY_COUNT >= 4
             CLR_PIN(SWITCHER_CH3_PORT, SWITCHER_CH3_PIN);
+        #endif
     }
-
-
 }
 
 static void chip_select(uint8_t chip)
@@ -343,14 +378,25 @@ void glcd_init(void)
     CONFIG_PORT_OUTPUT(GLCD_DATABUS_PORT);
 
     // backlight pins configuration
+#if DISPLAY_COUNT >= 1
     CONFIG_PIN_OUTPUT(GLCD0_BACKLIGHT_PORT, GLCD0_BACKLIGHT_PIN);
-    CONFIG_PIN_OUTPUT(GLCD1_BACKLIGHT_PORT, GLCD1_BACKLIGHT_PIN);
-    CONFIG_PIN_OUTPUT(GLCD2_BACKLIGHT_PORT, GLCD2_BACKLIGHT_PIN);
-    CONFIG_PIN_OUTPUT(GLCD3_BACKLIGHT_PORT, GLCD3_BACKLIGHT_PIN);
     BACKLIGHT_TURN_ON(GLCD0_BACKLIGHT_PORT, GLCD0_BACKLIGHT_PIN);
+#endif
+
+#if DISPLAY_COUNT >= 2
+    CONFIG_PIN_OUTPUT(GLCD1_BACKLIGHT_PORT, GLCD1_BACKLIGHT_PIN);
     BACKLIGHT_TURN_ON(GLCD1_BACKLIGHT_PORT, GLCD1_BACKLIGHT_PIN);
+#endif
+
+#if DISPLAY_COUNT >= 3
+    CONFIG_PIN_OUTPUT(GLCD2_BACKLIGHT_PORT, GLCD2_BACKLIGHT_PIN);
     BACKLIGHT_TURN_ON(GLCD2_BACKLIGHT_PORT, GLCD2_BACKLIGHT_PIN);
+#endif
+
+#if DISPLAY_COUNT >= 4
+    CONFIG_PIN_OUTPUT(GLCD3_BACKLIGHT_PORT, GLCD3_BACKLIGHT_PIN);
     BACKLIGHT_TURN_ON(GLCD3_BACKLIGHT_PORT, GLCD3_BACKLIGHT_PIN);
+#endif
 
     // initial pins state
     ENABLE_LOW();
@@ -382,6 +428,8 @@ void glcd_init(void)
 
 void glcd_backlight(uint8_t display, uint8_t state)
 {
+    if (display >= DISPLAY_COUNT) return;
+
     if (state)
     {
         if (display == 0) BACKLIGHT_TURN_ON(GLCD0_BACKLIGHT_PORT, GLCD0_BACKLIGHT_PIN);

@@ -406,14 +406,20 @@ static void setup_task(void *pvParameters)
     // CLI initialization
     cli_init();
 
+#if SLOTS_COUNT >= 2
     while (cli_boot_stage() < LOGIN_STAGE);
     screen_boot_feedback(1);
+#endif
 
+#if SLOTS_COUNT >= 3
     while (cli_boot_stage() < PROMPT_READY_STAGE);
     screen_boot_feedback(2);
+#endif
 
+#if SLOTS_COUNT >= 4
     while (!g_ui_communication_started);
     screen_boot_feedback(3);
+#endif
 
     // init the navigation
     naveg_init();
