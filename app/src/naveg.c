@@ -1338,7 +1338,7 @@ void naveg_toggle_tool(uint8_t display)
 {
     if (!g_initialized) return;
 
-    // checks if is the navigation display and if the UI is conneceted
+    // checks if is the navigation display and if the UI is connected
     if (display == NAVEG_DISPLAY && g_ui_connected) return;
 
     // clears the display
@@ -1396,11 +1396,10 @@ void naveg_toggle_tool(uint8_t display)
         if (control)
             screen_controls_index(display, control->control_index, control->controls_count);
 
-        // calls foot_control_add to updates the footer
-        if (g_foots[display])
-            foot_control_add(g_foots[display]);
-        else
-            screen_footer(display, NULL, NULL);
+        // checks the function assigned to foot and update the footer
+        if (bank_config_check(display)) bank_config_footer();
+        else if (g_foots[display]) foot_control_add(g_foots[display]);
+        else screen_footer(display, NULL, NULL);
     }
 }
 
