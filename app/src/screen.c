@@ -351,7 +351,6 @@ void screen_tool(uint8_t display, uint8_t tool)
 
         case TOOL_NAVEG:
             bp_list = naveg_get_banks();
-            if (bp_list) bp_list->hover = bp_list->selected;
             screen_bp_list("BANKS", bp_list);
             break;
     }

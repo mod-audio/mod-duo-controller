@@ -558,12 +558,18 @@ static void parse_banks_list(void *data)
 {
     char **list = data;
     uint32_t count = strarr_length(list) - 2;
+    uint8_t selected = 0xFF;
 
     // free the current banks list
-    if (g_banks) data_free_banks_list(g_banks);
+    if (g_banks)
+    {
+        selected = g_banks->selected;
+        data_free_banks_list(g_banks);
+    }
 
     // parses the list
     g_banks = data_parse_banks_list(&list[2], count);
+    g_banks->selected = selected;
     naveg_set_banks(g_banks);
 }
 
@@ -1183,6 +1189,13 @@ void naveg_ui_connection(uint8_t status)
     else
     {
         g_ui_connected = 0;
+
+        // reset the banks and pedalboards state after return from ui connection
+        if (g_banks) data_free_banks_list(g_banks);
+        if (g_naveg_pedalboards) data_free_pedalboards_list(g_naveg_pedalboards);
+        g_banks = NULL;
+        g_naveg_pedalboards = NULL;
+        g_selected_pedalboards = NULL;
     }
 }
 
