@@ -99,10 +99,10 @@ void screen_control(uint8_t display, control_t *control)
     {
         glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 51, GLCD_WHITE);
 
-        char text[16];
-        strcpy(text, "ROTARY #");
-        text[8] = display + '1';
-        text[9] = 0;
+        char text[sizeof(SCREEN_ROTARY_DEFAULT_NAME) + 2];
+        strcpy(text, SCREEN_ROTARY_DEFAULT_NAME);
+        text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)-1] = display + '1';
+        text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)] = 0;
 
         textbox_t title;
         title.color = GLCD_BLACK;
@@ -277,10 +277,10 @@ void screen_footer(uint8_t display, const char *name, const char *value)
 
     if (name == NULL && value == NULL)
     {
-        char text[8];
-        strcpy(text, "FOOT #");
-        text[6] = display + '1';
-        text[7] = 0;
+        char text[sizeof(SCREEN_FOOT_DEFAULT_NAME) + 2];
+        strcpy(text, SCREEN_FOOT_DEFAULT_NAME);
+        text[sizeof(SCREEN_FOOT_DEFAULT_NAME)-1] = display + '1';
+        text[sizeof(SCREEN_FOOT_DEFAULT_NAME)] = 0;
 
         textbox_t title;
         title.color = GLCD_BLACK;

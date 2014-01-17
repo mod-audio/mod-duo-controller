@@ -255,6 +255,12 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define SYSTEM_DISPLAY   TOOL_DISPLAY3
 #endif
 
+//// Screen definitions
+// defines the default rotary text
+#define SCREEN_ROTARY_DEFAULT_NAME      "KNOB #"
+// defines the default foot text
+#define SCREEN_FOOT_DEFAULT_NAME        "FOOT #"
+
 //// System menu configuration
 // includes the system menu callbacks
 #include "system.h"
