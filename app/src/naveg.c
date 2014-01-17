@@ -978,7 +978,9 @@ static uint8_t bank_config_check(uint8_t foot)
 
 static void bank_config_update(uint8_t bank_func_idx)
 {
-    uint8_t i = bank_func_idx;
+    uint8_t i = bank_func_idx, current_pedalboard;
+
+    current_pedalboard = g_current_pedalboard;
 
     switch (g_bank_functions[i].function)
     {
@@ -1002,7 +1004,9 @@ static void bank_config_update(uint8_t bank_func_idx)
                 }
 
                 g_selected_pedalboards->selected = g_current_pedalboard;
-                send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+
+                if (current_pedalboard != g_current_pedalboard)
+                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
 
@@ -1022,7 +1026,9 @@ static void bank_config_update(uint8_t bank_func_idx)
                 }
 
                 g_selected_pedalboards->selected = g_current_pedalboard;
-                send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+
+                if (current_pedalboard != g_current_pedalboard)
+                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
     }
@@ -1052,6 +1058,8 @@ static void bank_config_footer(void)
     {
         bank_config_t *bank_conf;
         bank_conf = &g_bank_functions[i];
+        color_t color;
+
         switch (bank_conf->function)
         {
             case BANK_FUNC_TRUE_BYPASS:
@@ -1064,14 +1072,20 @@ static void bank_config_footer(void)
                 break;
 
             case BANK_FUNC_PEDALBOARD_NEXT:
-                led_set_color(hardware_leds(bank_conf->actuator_id), PEDALBOARD_NEXT_COLOR);
+                if (g_current_pedalboard == (g_selected_pedalboards->count - 1)) color = BLACK;
+                else color = PEDALBOARD_NEXT_COLOR;
+
+                led_set_color(hardware_leds(bank_conf->actuator_id), color);
 
                 if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;
                 screen_footer(bank_conf->actuator_id, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT);
                 break;
 
             case BANK_FUNC_PEDALBOARD_PREV:
-                led_set_color(hardware_leds(bank_conf->actuator_id), PEDALBOARD_PREV_COLOR);
+                if (g_current_pedalboard == 1) color = BLACK;
+                else color = PEDALBOARD_PREV_COLOR;
+
+                led_set_color(hardware_leds(bank_conf->actuator_id), color);
 
                 if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;
                 screen_footer(bank_conf->actuator_id, pedalboard_name, PEDALBOARD_PREV_FOOTER_TEXT);
@@ -1148,6 +1162,9 @@ void naveg_init(void)
     // sets the current menu
     g_current_menu = g_menu;
     g_current_item = g_menu->first_child->data;
+
+    // forces the request of pedalboards list
+    request_pedalboards_list("-1");
 
     g_initialized = 1;
 }
