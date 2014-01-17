@@ -480,6 +480,10 @@ void control_chain_add(control_t *control)
     {
         if (!g_control_chain[i])
         {
+            // checks the type and sets the appropriated steps
+            if (control->properties == CONTROL_PROP_INTEGER)
+                control->steps = (control->maximum - control->minimum) + 1;
+
             g_control_chain[i] = control;
             break;
         }
