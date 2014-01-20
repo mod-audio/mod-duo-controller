@@ -406,18 +406,18 @@ static void setup_task(void *pvParameters)
     // CLI initialization
     cli_init();
 
-#if SLOTS_COUNT >= 2
     while (cli_boot_stage() < LOGIN_STAGE);
+#if SLOTS_COUNT >= 2
     screen_boot_feedback(1);
 #endif
 
-#if SLOTS_COUNT >= 3
     while (cli_boot_stage() < PROMPT_READY_STAGE);
+#if SLOTS_COUNT >= 3
     screen_boot_feedback(2);
 #endif
 
-#if SLOTS_COUNT >= 4
     while (!g_ui_communication_started);
+#if SLOTS_COUNT >= 4
     screen_boot_feedback(3);
 #endif
 
@@ -567,30 +567,35 @@ static void resp_cb(proto_t *proto)
 void HardFault_Handler(void)
 {
     led_set_color(hardware_leds(0), CYAN);
+    hardware_reset(UNBLOCK);
     while (1);
 }
 
 void MemManage_Handler(void)
 {
     led_set_color(hardware_leds(1), CYAN);
+    hardware_reset(UNBLOCK);
     while (1);
 }
 
 void BusFault_Handler(void)
 {
     led_set_color(hardware_leds(1), CYAN);
+    hardware_reset(UNBLOCK);
     while (1);
 }
 
 void UsageFault_Handler(void)
 {
     led_set_color(hardware_leds(1), CYAN);
+    hardware_reset(UNBLOCK);
     while (1);
 }
 
 void vApplicationMallocFailedHook(void)
 {
     led_set_color(hardware_leds(2), CYAN);
+    hardware_reset(UNBLOCK);
     while (1);
 }
 
