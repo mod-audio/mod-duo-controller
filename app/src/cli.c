@@ -254,6 +254,11 @@ void cli_process(void)
                 // reset to regular grub entry
                 g_grub_entry = REGULAR_ENTRY;
             }
+            else
+            {
+                // sends new line to keep the command line clean
+                comm_linux_send(NEW_LINE);
+            }
             break;
 
         case PROMPT_READY_STAGE:
