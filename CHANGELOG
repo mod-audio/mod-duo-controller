@@ -1,3 +1,12 @@
+0.13.8
+======
+   - FIX: segfault on pedalboards navigation using the foots after came back from tool mode
+   - FIX: banks/pedalboards navigation selection marks
+   - FIX: integer control type working on expression pedal
+   - NEW: rotary text changed to knob
+   - NEW: created command initial_state that initializes banks/pedalboards navigation
+   - FIX: boot stages doesn't stop after forced reset
+
 0.13.7
 ======
 
