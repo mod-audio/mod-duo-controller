@@ -102,6 +102,7 @@ static void control_add_cb(proto_t *proto);
 static void control_rm_cb(proto_t *proto);
 static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
+static void initial_state_cb(proto_t *proto);
 static void bank_config_cb(proto_t *proto);
 static void clipmeter_cb(proto_t *proto);
 static void peakmeter_cb(proto_t *proto);
@@ -391,6 +392,7 @@ static void setup_task(void *pvParameters)
     protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
     protocol_add_command(CONTROL_SET_CMD, control_set_cb);
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
+    protocol_add_command(INITIAL_STATE_CMD, initial_state_cb);
     protocol_add_command(BANK_CONFIG_CMD, bank_config_cb);
     protocol_add_command(CLIPMETER_CMD, clipmeter_cb);
     protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
@@ -513,6 +515,12 @@ static void control_get_cb(proto_t *proto)
 
     float_to_str(value, &resp[strlen(resp)], 8, 3);
     protocol_response(resp, proto);
+}
+
+static void initial_state_cb(proto_t *proto)
+{
+    naveg_initial_state(proto->list[1], proto->list[2], &(proto->list[3]));
+    protocol_response("resp 0", proto);
 }
 
 static void bank_config_cb(proto_t *proto)

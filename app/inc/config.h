@@ -141,6 +141,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define CONTROL_SET_CMD         "control_set %i %s %f"
 // control_next <hardware_type> <hardware_id> <actuator_type> <actuator_id>
 #define CONTROL_NEXT_CMD        "control_next %i %i %i %i"
+// initial_state <current_bank_uid> <current_pedalboard_uid> [current_pedalboards_list]
+#define INITIAL_STATE_CMD       "initial_state %s %s ..."
 // banks
 #define BANKS_CMD               "banks"
 // bank_config <hw_type> <hw_id> <actuator_type> <actuator_id> <function>

@@ -66,6 +66,8 @@ enum {UI_DISCONNECTED, UI_CONNECTED};
 
 // initialize the navigation nodes and structs
 void naveg_init(void);
+// sets the initial state of banks/pedalboards navigation
+void naveg_initial_state(char *bank_uid, char *pedalboard_uid, char **pedalboards_list);
 // tells to navigation core the UI status
 void naveg_ui_connection(uint8_t status);
 // adds the control to end of the controls list

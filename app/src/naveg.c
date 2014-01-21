@@ -15,6 +15,7 @@
 #include "comm.h"
 #include "chain.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 
@@ -558,18 +559,13 @@ static void parse_banks_list(void *data)
 {
     char **list = data;
     uint32_t count = strarr_length(list) - 2;
-    uint8_t selected = 0xFF;
 
     // free the current banks list
-    if (g_banks)
-    {
-        selected = g_banks->selected;
-        data_free_banks_list(g_banks);
-    }
+    if (g_banks) data_free_banks_list(g_banks);
 
     // parses the list
     g_banks = data_parse_banks_list(&list[2], count);
-    g_banks->selected = selected;
+    if (g_banks) g_banks->selected = g_current_bank;
     naveg_set_banks(g_banks);
 }
 
@@ -1169,10 +1165,61 @@ void naveg_init(void)
     g_current_menu = g_menu;
     g_current_item = g_menu->first_child->data;
 
-    // forces the request of pedalboards list
-    request_pedalboards_list("-1");
-
     g_initialized = 1;
+}
+
+void naveg_initial_state(char *bank_uid, char *pedalboard_uid, char **pedalboards_list)
+{
+    if (!pedalboards_list)
+    {
+        if (g_banks)
+        {
+            g_banks->selected = 0;
+            g_banks->hover = 0;
+            g_current_bank = 0;
+        }
+
+        if (g_naveg_pedalboards)
+        {
+            g_naveg_pedalboards->selected = 0;
+            g_naveg_pedalboards->hover = 0;
+            g_current_pedalboard = 0;
+        }
+
+        return;
+    }
+
+    // sets the bank index
+    uint8_t bank_id = atoi(bank_uid);
+    g_current_bank = bank_id;
+    if (g_banks)
+    {
+        g_banks->selected = bank_id;
+        g_banks->hover = bank_id;
+    }
+
+    // checks and free the navigation pedalboads list
+    if (g_naveg_pedalboards) data_free_pedalboards_list(g_naveg_pedalboards);
+    if (g_selected_pedalboards) data_free_pedalboards_list(g_selected_pedalboards);
+
+    // parses the list
+    g_selected_pedalboards = NULL;
+    g_naveg_pedalboards = data_parse_pedalboards_list(pedalboards_list, strarr_length(pedalboards_list));
+
+    if (!g_naveg_pedalboards) return;
+
+    // locates the selected pedalboard index
+    uint8_t i;
+    for (i = 0; i < g_naveg_pedalboards->count; i++)
+    {
+        if (strcmp(g_naveg_pedalboards->uids[i], pedalboard_uid) == 0)
+        {
+            g_naveg_pedalboards->selected = i;
+            g_naveg_pedalboards->hover = i;
+            g_current_pedalboard = i;
+            break;
+        }
+    }
 }
 
 void naveg_ui_connection(uint8_t status)
