@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-#define CDC_RX_BUFFER_SIZE      1024
+#define CDC_RX_BUFFER_SIZE      3062
 #define CDC_TX_BUFFER_SIZE      256
 
 /* CDC maximum message count */

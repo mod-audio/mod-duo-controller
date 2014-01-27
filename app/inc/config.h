@@ -125,6 +125,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define SAY_CMD                 "say %s ..."
 // led <led_id> <red> <green> <blue>
 #define LED_CMD                 "led %i %i %i %i ..."
+// glcd_text <glcd_id> <x_pos> <y_pos> <text>
+#define GLCD_TEXT_CMD           "glcd_text %i %i %i %s"
+// glcd_draw <glcd_id> <x_pos> <y_pos> <data>
+#define GLCD_DRAW_CMD           "glcd_draw %i %i %i %s"
 // ui_con
 #define GUI_CONNECTED_CMD       "ui_con"
 // ui_dis

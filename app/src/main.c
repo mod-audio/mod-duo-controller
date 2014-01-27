@@ -97,6 +97,8 @@ static void setup_task(void *pvParameters);
 static void ping_cb(proto_t *proto);
 static void say_cb(proto_t *proto);
 static void led_cb(proto_t *proto);
+static void glcd_text_cb(proto_t *proto);
+static void glcd_draw_cb(proto_t *proto);
 static void gui_connection_cb(proto_t *proto);
 static void control_add_cb(proto_t *proto);
 static void control_rm_cb(proto_t *proto);
@@ -386,6 +388,8 @@ static void setup_task(void *pvParameters)
     protocol_add_command(PING_CMD, ping_cb);
     protocol_add_command(SAY_CMD, say_cb);
     protocol_add_command(LED_CMD, led_cb);
+    protocol_add_command(GLCD_TEXT_CMD, glcd_text_cb);
+    protocol_add_command(GLCD_DRAW_CMD, glcd_draw_cb);
     protocol_add_command(GUI_CONNECTED_CMD, gui_connection_cb);
     protocol_add_command(GUI_DISCONNECTED_CMD, gui_connection_cb);
     protocol_add_command(CONTROL_ADD_CMD, control_add_cb);
@@ -471,6 +475,34 @@ static void led_cb(proto_t *proto)
     {
         led_blink(led, atoi(proto->list[5]), atoi(proto->list[6]));
     }
+
+    protocol_response("resp 0", proto);
+}
+
+static void glcd_text_cb(proto_t *proto)
+{
+    uint8_t glcd_id, x, y;
+    glcd_id = atoi(proto->list[1]);
+    x = atoi(proto->list[2]);
+    y = atoi(proto->list[3]);
+
+    if (glcd_id >= GLCD_COUNT) return;
+
+    glcd_text(glcd_id, x, y, proto->list[4], NULL, GLCD_BLACK);
+    protocol_response("resp 0", proto);
+}
+
+static void glcd_draw_cb(proto_t *proto)
+{
+    uint8_t glcd_id, x, y;
+    glcd_id = atoi(proto->list[1]);
+    x = atoi(proto->list[2]);
+    y = atoi(proto->list[3]);
+
+    if (glcd_id >= GLCD_COUNT) return;
+
+    str_to_hex(proto->list[4], g_msg_buffer, sizeof(g_msg_buffer));
+    glcd_draw_image(glcd_id, x, y, g_msg_buffer, GLCD_BLACK);
 
     protocol_response("resp 0", proto);
 }

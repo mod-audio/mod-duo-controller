@@ -561,3 +561,28 @@ void deselect_item(char *item_str)
         item_str[i] = item_str[i+2];
     }
 }
+
+uint16_t str_to_hex(const char *str, uint8_t *array, uint16_t array_size)
+{
+    if (!str || !array) return 0;
+
+    uint8_t i, num[2];
+    uint16_t count = 0;
+    const char *pstr = str;
+
+    while (*pstr)
+    {
+        for (i = 0; i < 2 && *pstr; i++, pstr++)
+        {
+            num[i] = *pstr | 0x20;
+
+            if (num[i] >= '0' && num[i] <= '9') num[i] = (num[i] - '0');
+            else if (num[i] >= 'a' && num[i] <= 'f') num[i] = (num[i] + 10 - 'a');
+        }
+
+        array[count++] = (num[0] << 4) + num[1];
+        if (count >= array_size) break;
+    }
+
+    return count;
+}
