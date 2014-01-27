@@ -388,8 +388,15 @@ void system_restore_cb(void *arg)
             naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
 
             // selects the grub restore entry and reboot
+            hardware_reset(BLOCK);
             cli_grub_select(RESTORE_ENTRY);
             cli_reboot_cpu();
+
+            // refresh the screens for the restore process
+            naveg_toggle_tool(SYSTEM_DISPLAY);
+            uint8_t i;
+            for (i = 1; i < SLOTS_COUNT; i++)
+                screen_boot_feedback(i);
         }
     }
 }
