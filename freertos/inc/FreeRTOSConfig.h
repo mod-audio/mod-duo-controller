@@ -94,7 +94,7 @@
 #define configTICK_RATE_HZ                  ( ( portTickType ) 1000 )
 #define configMINIMAL_STACK_SIZE            ( ( unsigned short ) 80 )
 #define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 35 * 1024 ) )
-#define configMAX_TASK_NAME_LEN             ( 12 )
+#define configMAX_TASK_NAME_LEN             ( 8 )
 #define configUSE_16_BIT_TICKS              0
 #define configIDLE_SHOULD_YIELD             0
 #define configUSE_CO_ROUTINES               0
@@ -110,7 +110,7 @@
 /* Hook function related definitions. */
 #define configUSE_IDLE_HOOK                 0
 #define configUSE_TICK_HOOK                 0
-#define configCHECK_FOR_STACK_OVERFLOW      1
+#define configCHECK_FOR_STACK_OVERFLOW      0
 #define configUSE_MALLOC_FAILED_HOOK        1
 
 /* Run time and task stats gathering related definitions. */
@@ -122,7 +122,7 @@
 #define configMAX_CO_ROUTINE_PRIORITIES     1
 
 /* Software timer related definitions. */
-#define configUSE_TIMERS                    1
+#define configUSE_TIMERS                    0
 #define configTIMER_TASK_PRIORITY           3
 #define configTIMER_QUEUE_LENGTH            10
 #define configTIMER_TASK_STACK_DEPTH        configMINIMAL_STACK_SIZE
@@ -135,7 +135,7 @@
 #define INCLUDE_vTaskSuspend                    0
 #define INCLUDE_vTaskDelayUntil                 1
 #define INCLUDE_vTaskDelay                      1
-#define INCLUDE_uxTaskGetStackHighWaterMark     1
+#define INCLUDE_uxTaskGetStackHighWaterMark     0
 #define INCLUDE_xTaskGetSchedulerState          0
 #define INCLUDE_xTaskGetCurrentTaskHandle       0
 #define INCLUDE_xTaskGetIdleTaskHandle          0
