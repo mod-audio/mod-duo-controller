@@ -54,7 +54,45 @@
 
 //// GLCDs configurations
 // Amount of displays
-#define GLCD_COUNT          SLOTS_COUNT
+#define GLCD_COUNT              SLOTS_COUNT
+
+// Display ports and pins definitions
+#define GLCD_DATABUS_PORT       1
+#define GLCD_DI_PORT            1
+#define GLCD_DI_PIN             17
+#define GLCD_EN_PORT            1
+#define GLCD_EN_PIN             16
+#define GLCD_RW_PORT            1
+#define GLCD_RW_PIN             20
+#define GLCD_CS1_PORT           1
+#define GLCD_CS1_PIN            18
+#define GLCD_CS2_PORT           1
+#define GLCD_CS2_PIN            19
+#define GLCD_RST_PORT           1
+#define GLCD_RST_PIN            15
+
+// Display backlight ports and pins
+#define GLCD0_BACKLIGHT_PORT    2
+#define GLCD0_BACKLIGHT_PIN     7
+#define GLCD1_BACKLIGHT_PORT    2
+#define GLCD1_BACKLIGHT_PIN     4
+#define GLCD2_BACKLIGHT_PORT    2
+#define GLCD2_BACKLIGHT_PIN     6
+#define GLCD3_BACKLIGHT_PORT    2
+#define GLCD3_BACKLIGHT_PIN     5
+
+// Switcher ports and pins definitions
+// The switcher is used to select the display
+#define SWITCHER_DIR_PORT       1
+#define SWITCHER_DIR_PIN        21
+#define SWITCHER_CH0_PORT       1
+#define SWITCHER_CH0_PIN        11
+#define SWITCHER_CH1_PORT       1
+#define SWITCHER_CH1_PIN        8
+#define SWITCHER_CH2_PORT       1
+#define SWITCHER_CH2_PIN        10
+#define SWITCHER_CH3_PORT       1
+#define SWITCHER_CH3_PIN        9
 
 //// Actuators configuration
 // Actuators IDs
@@ -329,8 +367,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
-    {PEDALBOARD_ID+2, "Are you sure that you want reset the pedalboard values to last saved state?"},       \
-    {PEDALBOARD_ID+3, "Are you sure that you want save the current pedalboard values like default?"},       \
+    {PEDALBOARD_ID+2, "Are you sure that you want to reset the pedalboard values to last saved state?"},    \
+    {PEDALBOARD_ID+3, "Are you sure that you want to save the current pedalboard values as default?"},      \
     {FACTORY_ID, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
 
 

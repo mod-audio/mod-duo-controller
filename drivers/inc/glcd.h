@@ -74,44 +74,53 @@
 #define READ_PORT(port)                 FIO_ByteReadValue((port), (0))
 
 // display ports and pins definitions
-#define GLCD_DATABUS_PORT       1
-#define GLCD_DI_PORT            1
-#define GLCD_DI_PIN             17
-#define GLCD_EN_PORT            1
-#define GLCD_EN_PIN             16
-#define GLCD_RW_PORT            1
-#define GLCD_RW_PIN             20
-#define GLCD_CS1_PORT           1
-#define GLCD_CS1_PIN            18
-#define GLCD_CS2_PORT           1
-#define GLCD_CS2_PIN            19
-#define GLCD_RST_PORT           1
-#define GLCD_RST_PIN            15
+// These configurations was moved to config.h
+#if 0
+#define GLCD_DATABUS_PORT
+#define GLCD_DI_PORT
+#define GLCD_DI_PIN
+#define GLCD_EN_PORT
+#define GLCD_EN_PIN
+#define GLCD_RW_PORT
+#define GLCD_RW_PIN
+#define GLCD_CS1_PORT
+#define GLCD_CS1_PIN
+#define GLCD_CS2_PORT
+#define GLCD_CS2_PIN
+#define GLCD_RST_PORT
+#define GLCD_RST_PIN
+#endif
+
+// display backlight ports and pins
+// These configurations was moved to config.h
+#if 0
+#define GLCD0_BACKLIGHT_PORT
+#define GLCD0_BACKLIGHT_PIN
+#define GLCD1_BACKLIGHT_PORT
+#define GLCD1_BACKLIGHT_PIN
+#define GLCD2_BACKLIGHT_PORT
+#define GLCD2_BACKLIGHT_PIN
+#define GLCD3_BACKLIGHT_PORT
+#define GLCD3_BACKLIGHT_PIN
+#endif
+
+// switcher ports and pins definitions
+// These configurations was moved to config.h
+#if 0
+#define SWITCHER_DIR_PORT
+#define SWITCHER_DIR_PIN
+#define SWITCHER_CH0_PORT
+#define SWITCHER_CH0_PIN
+#define SWITCHER_CH1_PORT
+#define SWITCHER_CH1_PIN
+#define SWITCHER_CH2_PORT
+#define SWITCHER_CH2_PIN
+#define SWITCHER_CH3_PORT
+#define SWITCHER_CH3_PIN
+#endif
 
 // display backlight turn on definition
 #define GLCD_BACKLIGHT_TURN_ON_WITH_ONE
-
-// display backlight ports and pins
-#define GLCD0_BACKLIGHT_PORT    2
-#define GLCD0_BACKLIGHT_PIN     7
-#define GLCD1_BACKLIGHT_PORT    2
-#define GLCD1_BACKLIGHT_PIN     4
-#define GLCD2_BACKLIGHT_PORT    2
-#define GLCD2_BACKLIGHT_PIN     6
-#define GLCD3_BACKLIGHT_PORT    2
-#define GLCD3_BACKLIGHT_PIN     5
-
-// switcher ports and pins definitions
-#define SWITCHER_DIR_PORT       1
-#define SWITCHER_DIR_PIN        21
-#define SWITCHER_CH0_PORT       1
-#define SWITCHER_CH0_PIN        11
-#define SWITCHER_CH1_PORT       1
-#define SWITCHER_CH1_PIN        8
-#define SWITCHER_CH2_PORT       1
-#define SWITCHER_CH2_PIN        10
-#define SWITCHER_CH3_PORT       1
-#define SWITCHER_CH3_PIN        9
 
 
 /*
