@@ -199,8 +199,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PEDALBOARD_SAVE_CMD     "pedalboard_save"
 // clipmeter <clipmeter_id>
 #define CLIPMETER_CMD           "clipmeter %i"
-// peakmeter <peakmeter_number> <peakmeter_value>
-#define PEAKMETER_CMD           "peakmeter %i %f"
+// peakmeter <peakmeter_number> <peakmeter_value> <peakmeter_peak>
+#define PEAKMETER_CMD           "peakmeter %i %f %f"
 // peakmeter on
 #define PEAKMETER_ON_CMD        "peakmeter on"
 // peakmeter off

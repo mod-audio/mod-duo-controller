@@ -569,7 +569,7 @@ static void bank_config_cb(proto_t *proto)
 
 static void peakmeter_cb(proto_t *proto)
 {
-    screen_peakmeter(atoi(proto->list[1]), atof(proto->list[2]));
+    screen_peakmeter(atoi(proto->list[1]), atof(proto->list[2]), atof(proto->list[3]));
     protocol_response("resp 0", proto);
 }
 

@@ -138,36 +138,6 @@ static uint8_t get_text_width(const char *text, const uint8_t *font)
     return text_width;
 }
 
-static void draw_peakmeter_bar(uint8_t display, uint8_t pkm, float value)
-{
-    uint8_t height, y_black, y_chess, h_black, h_chess;
-    const uint8_t h_black_max = 20, h_chess_max = 22;
-    const uint8_t x_bar[] = {4, 30, 57, 83};
-    const float h_max = 42.0, max_dB = 0.0, min_dB = -30.0;
-
-    // calculates the bar height
-    if (value > max_dB) value = max_dB;
-    if (value < min_dB) value = min_dB;
-    value = ABS(min_dB) - ABS(value);
-    height = (uint8_t) ROUND((h_max * value) / 30.0);
-
-    // draws the black area
-    if (height > h_chess_max)
-    {
-        h_black = height - h_chess_max;
-        y_black = 13 + (h_black_max - h_black);
-        glcd_rect_fill(display, x_bar[pkm], y_black, 16, h_black, GLCD_BLACK);
-    }
-
-    // draws the chess area
-    if (height > 0)
-    {
-        h_chess = (height > h_chess_max ? h_chess_max : height);
-        y_chess = 33 + (h_chess_max - h_chess);
-        glcd_rect_fill(display, x_bar[pkm], y_chess, 16, h_chess, GLCD_CHESS);
-    }
-}
-
 
 /*
 ************************************************************************************************************************
@@ -290,7 +260,10 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
         // checks the width limit
         if (text_width >= textbox->width)
         {
-            buffer[i-1] = 0;
+            // inserts the 'end of string'
+            if (textbox->mode == TEXT_SINGLE_LINE) buffer[i] = 0;
+            else buffer[i-1] = 0;
+
             glcd_text(display, textbox->x, textbox->y + text_height, buffer, textbox->font, textbox->color);
             text_height += textbox->font[FONT_HEIGHT] + 1;
             text_width = 0;
@@ -537,70 +510,49 @@ void widget_graph(uint8_t display, graph_t *graph)
 }
 
 
-void widget_peakmeter(uint8_t display, peakmeter_t *pkm)
+// FIXME: this widget is hardcoded
+void widget_peakmeter(uint8_t display, uint8_t pkm_id, peakmeter_t *pkm)
 {
-    // draws the title
-    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
-    textbox_t title;
-    title.color = GLCD_WHITE;
-    title.mode = TEXT_SINGLE_LINE;
-    title.align = ALIGN_LEFT_TOP;
-    title.top_margin = 1;
-    title.bottom_margin = 0;
-    title.left_margin = 2;
-    title.right_margin = 0;
-    title.height = 0;
-    title.width = 0;
-    title.font = alterebro15;
-    title.text = "Peak Meter";
-    widget_textbox(display, &title);
-    glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
+    uint8_t height, y_black, y_chess, y_peak, h_black, h_chess;
+    const uint8_t h_black_max = 20, h_chess_max = 22;
+    const uint8_t x_bar[] = {4, 30, 57, 83};
+    const float h_max = 42.0, max_dB = 0.0, min_dB = -30.0;
 
-    // draws the bars contours
-    glcd_rect(display,  2, 11, 20, 45, GLCD_BLACK);
-    glcd_rect(display, 28, 11, 20, 45, GLCD_BLACK);
-    glcd_rect(display, 55, 11, 20, 45, GLCD_BLACK);
-    glcd_rect(display, 81, 11, 20, 45, GLCD_BLACK);
+    // calculates the bar height
+    float value = pkm->value;
+    if (value > max_dB) value = max_dB;
+    if (value < min_dB) value = min_dB;
+    value = ABS(min_dB) - ABS(value);
+    height = (uint8_t) ROUND((h_max * value) / (max_dB - min_dB));
 
-    // draws the scale
-    textbox_t scale;
-    scale.color = GLCD_BLACK;
-    scale.mode = TEXT_SINGLE_LINE;
-    scale.align = ALIGN_RIGHT_NONE;
-    scale.top_margin = 0;
-    scale.bottom_margin = 0;
-    scale.left_margin = 0;
-    scale.right_margin = 2;
-    scale.font = alterebro15;
-    scale.height = 0;
-    scale.width = 0;
-    scale.y = 11;
-    scale.text = "0dB";
-    widget_textbox(display, &scale);
-    scale.y = 30;
-    scale.text = "-15dB";
-    widget_textbox(display, &scale);
-    scale.y = 49;
-    scale.text = "-30dB";
-    widget_textbox(display, &scale);
+    // clean the peakmeter bar
+    if (pkm_id == 0) glcd_rect_fill(display, 4, 13, 16, 42, GLCD_WHITE);
+    else if (pkm_id == 1) glcd_rect_fill(display, 30, 13, 16, 42, GLCD_WHITE);
+    else if (pkm_id == 2) glcd_rect_fill(display, 57, 13, 16, 42, GLCD_WHITE);
+    else if (pkm_id == 3) glcd_rect_fill(display, 83, 13, 16, 42, GLCD_WHITE);
 
-    // draws the subtitles
-    glcd_text(display,  6, 57,  "IN1", alterebro15, GLCD_BLACK);
-    glcd_text(display, 32, 57,  "IN2", alterebro15, GLCD_BLACK);
-    glcd_text(display, 56, 57, "OUT1", alterebro15, GLCD_BLACK);
-    glcd_text(display, 81, 57, "OUT2", alterebro15, GLCD_BLACK);
+    // draws the black area
+    if (height > h_chess_max)
+    {
+        h_black = height - h_chess_max;
+        y_black = 13 + (h_black_max - h_black);
+        glcd_rect_fill(display, x_bar[pkm_id], y_black, 16, h_black, GLCD_BLACK);
+    }
 
-    // clean the peakmeters bars
-    glcd_rect_fill(display,   4, 13, 16, 42, GLCD_WHITE);
-    glcd_rect_fill(display,  30, 13, 16, 42, GLCD_WHITE);
-    glcd_rect_fill(display,  57, 13, 16, 42, GLCD_WHITE);
-    glcd_rect_fill(display,  83, 13, 16, 42, GLCD_WHITE);
+    // draws the chess area
+    if (height > 0)
+    {
+        h_chess = (height > h_chess_max ? h_chess_max : height);
+        y_chess = 33 + (h_chess_max - h_chess);
+        glcd_rect_fill(display, x_bar[pkm_id], y_chess, 16, h_chess, GLCD_CHESS);
+    }
 
-    // draws the peakmeters bars
-    draw_peakmeter_bar(display, 0, pkm->value1);
-    draw_peakmeter_bar(display, 1, pkm->value2);
-    draw_peakmeter_bar(display, 2, pkm->value3);
-    draw_peakmeter_bar(display, 3, pkm->value4);
+    // draws the peak
+    if (pkm->peak > pkm->value)
+    {
+        y_peak = 13.0 + ABS(ROUND((h_max * pkm->peak) / (max_dB - min_dB)));
+        glcd_hline(display, x_bar[pkm_id], y_peak, 16, GLCD_BLACK);
+    }
 }
 
 

@@ -80,8 +80,7 @@ typedef struct GRAPH_T {
 } graph_t;
 
 typedef struct PEAKMETER_T {
-    float peak1, peak2, peak3, peak4;
-    float value1, value2, value3, value4;
+    float value, peak;
 } peakmeter_t;
 
 typedef struct TUNER_T {
@@ -124,7 +123,7 @@ void widget_textbox(uint8_t display, textbox_t *textbox);
 void widget_listbox(uint8_t display, listbox_t *listbox);
 void widget_listbox2(uint8_t display, listbox_t *listbox);
 void widget_graph(uint8_t display, graph_t *graph);
-void widget_peakmeter(uint8_t display, peakmeter_t *pkm);
+void widget_peakmeter(uint8_t display, uint8_t pkm_id, peakmeter_t *pkm);
 void widget_tuner(uint8_t display, tuner_t *tuner);
 void widget_popup(uint8_t display, popup_t *popup);
 
