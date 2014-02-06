@@ -1,3 +1,10 @@
+0.13.9
+======
+   - FIX: clean up the screens before start the system restore
+   - NEW: commands glcd_text and glcd_draw
+   - NEW: glcd ports and pins configurations moved to config.h
+   - NEW: peakmeter peak included on protocol and peakmeter widget
+
 0.13.8
 ======
    - FIX: segfault on pedalboards navigation using the foots after came back from tool mode
