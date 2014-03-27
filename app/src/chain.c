@@ -330,7 +330,9 @@ static void connected_device_add(uint8_t hw_type, uint8_t hw_id)
             i += int_to_str(hw_id, &buffer[i], 8, 0);
 
             // sends the command to GUI
+            comm_webgui_set_response_cb(NULL);
             comm_webgui_send(buffer, i);
+            comm_webgui_wait_response();
         }
     }
 }
@@ -347,7 +349,9 @@ static void connected_device_remove(device_t *device)
     i += int_to_str(device->hardware_id, &buffer[i], 8, 0);
 
     // sends the command to GUI
+    comm_webgui_set_response_cb(NULL);
     comm_webgui_send(buffer, i);
+    comm_webgui_wait_response();
 
     // resets the device values
     device->hardware_type = 0;

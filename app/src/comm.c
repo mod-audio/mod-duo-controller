@@ -101,8 +101,9 @@ void comm_webgui_response_cb(void *data)
     {
         g_webgui_response_cb(data);
         g_webgui_response_cb = NULL;
-        g_webgui_blocked = 0;
     }
+
+    g_webgui_blocked = 0;
 }
 
 void comm_webgui_wait_response(void)
