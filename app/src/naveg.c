@@ -417,7 +417,7 @@ static void foot_control_add(control_t *control)
             if (g_tool[control->actuator_id].state == TOOL_ON) break;
 
             // updates the footer
-            screen_footer(control->actuator_id, control->scale_points[i]->label, NULL);
+            screen_footer(control->actuator_id, control->label, control->scale_points[i]->label);
             break;
     }
 }
@@ -490,7 +490,7 @@ static void control_set(uint8_t display, control_t *control)
                 // updates the value and the screen
                 control->value = control->scale_points[control->step]->value;
                 if (g_tool[control->actuator_id].state == TOOL_OFF)
-                    screen_footer(control->actuator_id, control->scale_points[control->step]->label, NULL);
+                    screen_footer(control->actuator_id, control->label, control->scale_points[control->step]->label);
             }
             break;
 

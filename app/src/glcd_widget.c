@@ -579,7 +579,7 @@ void widget_tuner(uint8_t display, tuner_t *tuner)
     glcd_rect_fill(display, 0, 51, DISPLAY_WIDTH, 12, GLCD_WHITE);
 
     // draws the frequency subtitle
-    char freq_str[16], input_str[8];
+    char freq_str[16], input_str[16];
     uint8_t i = float_to_str(tuner->frequency, freq_str, sizeof(freq_str), 2);
     freq_str[i++] = 'H';
     freq_str[i++] = 'z';
@@ -600,10 +600,15 @@ void widget_tuner(uint8_t display, tuner_t *tuner)
     widget_textbox(display, &freq);
 
     // draws the input subtitle
-    input_str[0] = 'I';
-    input_str[1] = 'N';
-    input_str[2] = '0' + tuner->input;
-    input_str[3] = 0;
+    i = 0;
+    input_str[i++] = 'I';
+    input_str[i++] = 'N';
+    input_str[i++] = 'P';
+    input_str[i++] = 'U';
+    input_str[i++] = 'T';
+    input_str[i++] = ' ';
+    input_str[i++] = '0' + tuner->input;
+    input_str[i++] = 0;
     input.color = GLCD_BLACK;
     input.mode = TEXT_SINGLE_LINE;
     input.align = ALIGN_RIGHT_NONE;

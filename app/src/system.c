@@ -231,60 +231,16 @@ void system_bluetooth_pair_cb(void *arg)
     cli_systemctl("restart " SYSTEMCTL_MOD_BLUEZ);
 }
 
-void system_jack_cb(void *arg)
-{
-    menu_item_t *item = arg;
-
-    cli_jack_get_bufsize();
-    const char *response = cli_get_response();
-
-    if (strcmp(response, JACK_BUF_SIZE_LOW_LATENCY) == 0)
-    {
-        select_item(item->data.list[1]);
-        deselect_item(item->data.list[2]);
-    }
-    else if (strcmp(response, JACK_BUF_SIZE_PROCESSING) == 0)
-    {
-        deselect_item(item->data.list[1]);
-        select_item(item->data.list[2]);
-    }
-}
-
-void system_jack_latency_cb(void *arg)
-{
-    UNUSED_PARAM(arg);
-    cli_jack_set_bufsize(JACK_BUF_SIZE_LOW_LATENCY);
-}
-
-void system_jack_processing_cb(void *arg)
-{
-    UNUSED_PARAM(arg);
-    cli_jack_set_bufsize(JACK_BUF_SIZE_PROCESSING);
-}
-
 void system_cpu_cb(void *arg)
 {
     menu_item_t *item = arg;
-
-    // updates the power status
-    const char *power;
-    if (hardware_cpu_status() == CPU_ON) power = "ON";
-    else power = "OFF";
-
-    char *pstr = strstr(item->data.list[1], ":");
-    if (pstr)
-    {
-        pstr++;
-        *pstr++ = ' ';
-        strcpy(pstr, power);
-    }
 
     // updates the USB controller status
     cli_check_controller();
     const char *response = cli_get_response();
     if (strcmp(response, "not found") != 0) response = "connected";
 
-    pstr = strstr(item->data.list[2], ":");
+    char *pstr = strstr(item->data.list[1], ":");
     if (pstr)
     {
         pstr++;
@@ -293,7 +249,7 @@ void system_cpu_cb(void *arg)
     }
 
     // updates the temperature
-    pstr = strstr(item->data.list[3], ":");
+    pstr = strstr(item->data.list[2], ":");
     if (pstr)
     {
         pstr++;
@@ -312,7 +268,6 @@ void system_services_cb(void *arg)
     const char *services[] = {"is-active " SYSTEMCTL_JACK,
                               "is-active " SYSTEMCTL_MOD_HOST,
                               "is-active " SYSTEMCTL_MOD_UI,
-                              "is-active " SYSTEMCTL_MOD_BLUEZ,
                               NULL};
 
     uint8_t i = 0;
@@ -341,12 +296,6 @@ void system_restart_ui_cb(void *arg)
 {
     UNUSED_PARAM(arg);
     cli_systemctl("restart " SYSTEMCTL_MOD_UI);
-}
-
-void system_restart_bluez_cb(void *arg)
-{
-    UNUSED_PARAM(arg);
-    cli_systemctl("restart " SYSTEMCTL_MOD_BLUEZ);
 }
 
 void system_versions_cb(void *arg)

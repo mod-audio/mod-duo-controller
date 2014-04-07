@@ -309,17 +309,16 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // includes the system menu callbacks
 #include "system.h"
 // defines the menu id's
-#define ROOT_ID             ( 0 * 20)
-#define TRUE_BYPASS_ID      ( 1 * 20)
-#define PEDALBOARD_ID       ( 2 * 20)
-#define EXP_PEDAL_ID        ( 3 * 20)
-#define BLUETOOTH_ID        ( 4 * 20)
-#define JACK_ID             ( 5 * 20)
-#define INFO_ID             ( 6 * 20)
-#define CPU_ID              ( 7 * 20)
-#define SERVICES_ID         ( 8 * 20)
-#define VERSIONS_ID         ( 9 * 20)
-#define FACTORY_ID          (10 * 20)
+#define ROOT_ID             (0 * 20)
+#define TRUE_BYPASS_ID      (1 * 20)
+#define PEDALBOARD_ID       (2 * 20)
+#define EXP_PEDAL_ID        (3 * 20)
+#define BLUETOOTH_ID        (4 * 20)
+#define INFO_ID             (5 * 20)
+#define CPU_ID              (6 * 20)
+#define SERVICES_ID         (7 * 20)
+#define VERSIONS_ID         (8 * 20)
+#define FACTORY_ID          (9 * 20)
 
 // menu definition format: {name, type, id, parent_id, action_callback}
 #define SYSTEM_MENU     \
@@ -337,23 +336,17 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
     {"Status:",                             MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL},                          \
     {"Name:",                               MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL},                          \
     {"Address:",                            MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL},                          \
-    {"Audio Mode",                          MENU_SELECT,    JACK_ID,            ROOT_ID,        system_jack_cb},                \
-    {"< Back to SETTINGS",                  MENU_RETURN,    JACK_ID+1,          JACK_ID,        NULL},                          \
-    {"Priorize Low Latency",                MENU_NONE,      JACK_ID+2,          JACK_ID,        system_jack_latency_cb},        \
-    {"Priorize Processing",                 MENU_NONE,      JACK_ID+3,          JACK_ID,        system_jack_processing_cb},     \
     {"Info",                                MENU_LIST,      INFO_ID,            ROOT_ID,        NULL},                          \
     {"< Back to SETTINGS",                  MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL},                          \
     {"CPU",                                 MENU_LIST,      CPU_ID,             INFO_ID,        system_cpu_cb},                 \
     {"< Back to Info",                      MENU_RETURN,    CPU_ID+1,           CPU_ID,         NULL},                          \
-    {"Power:",                              MENU_RETURN,    CPU_ID+2,           CPU_ID,         NULL},                          \
-    {"USB:",                                MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL},                          \
-    {"Temperature:",                        MENU_RETURN,    CPU_ID+4,           CPU_ID,         NULL},                          \
+    {"USB:",                                MENU_RETURN,    CPU_ID+2,           CPU_ID,         NULL},                          \
+    {"Temperature:",                        MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL},                          \
     {"Services",                            MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb},            \
     {"< Back to Info",                      MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL},                          \
     {"jack:",                               MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    system_restart_jack_cb},        \
     {"mod-host:",                           MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    system_restart_host_cb},        \
     {"mod-ui:",                             MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    system_restart_ui_cb},          \
-    {"bluez:",                              MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    system_restart_bluez_cb},       \
     {"Versions",                            MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb},            \
     {"< Back to Info",                      MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL},                          \
     {"jack:",                               MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL},                          \
@@ -410,8 +403,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// Bypass
 // defines the bypass footer text
-#define BYPASS_ON_FOOTER_TEXT       "BYP"
-#define BYPASS_OFF_FOOTER_TEXT      "PROC"
+#define BYPASS_ON_FOOTER_TEXT       "OFF"
+#define BYPASS_OFF_FOOTER_TEXT      "ON"
 
 //// Bank configuration functions
 // defines the true bypass footer text
