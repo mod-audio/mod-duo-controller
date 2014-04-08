@@ -366,7 +366,7 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     footer.top_margin = 0;
     footer.bottom_margin = 0;
     footer.left_margin = 0;
-    footer.width = (value == NULL ? 124 : 90);
+    footer.width = (value == NULL ? 124 : 56);
     footer.right_margin = 0;
     footer.text = name;
     footer.y = 52;
@@ -374,7 +374,7 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     widget_textbox(display, &footer);
 
     // draws the value field
-    footer.width = 0;
+    footer.width = 64;
     footer.right_margin = 4;
     footer.text = value;
     footer.align = ALIGN_RIGHT_NONE;
