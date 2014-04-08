@@ -161,6 +161,8 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
     }
 
     if (textbox->width == 0) textbox->width = text_width;
+    else if (text_width > textbox->width) text_width = textbox->width;
+
     if (textbox->height == 0) textbox->height = text_height;
 
     switch (textbox->align)
@@ -243,9 +245,6 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
     text_height = 0;
     index = FONT_FIXED_WIDTH;
 
-    // width correction to get the last character in single line mode
-    if (textbox->mode == TEXT_SINGLE_LINE) textbox->width += 2;
-
     while (*ptext)
     {
         // gets the index of the current character
@@ -260,8 +259,8 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
         // checks the width limit
         if (text_width >= textbox->width)
         {
-            // inserts the 'end of string'
-            if (textbox->mode == TEXT_SINGLE_LINE) buffer[i] = 0;
+            // check whether is single line
+            if (textbox->mode == TEXT_SINGLE_LINE) break;
             else buffer[i-1] = 0;
 
             glcd_text(display, textbox->x, textbox->y + text_height, buffer, textbox->font, textbox->color);
@@ -269,24 +268,21 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
             text_width = 0;
             i = 0;
 
-            // break if is single line text
-            if (textbox->mode == TEXT_SINGLE_LINE)
-            {
-                text_height = 0;
-                text_width = 0;
-                break;
-            }
-
             // checks the height limit
             if (text_height > textbox->height) break;
         }
         else ptext++;
     }
 
-    // draws the last line
+    // draws the line
     if (text_width > 0)
     {
         buffer[i] = 0;
+
+        // checks the text width again
+        text_width = get_text_width(buffer, textbox->font);
+        if (text_width > textbox->width) buffer[i-1] = 0;
+
         glcd_text(display, textbox->x, textbox->y + text_height, buffer, textbox->font, textbox->color);
     }
 }
