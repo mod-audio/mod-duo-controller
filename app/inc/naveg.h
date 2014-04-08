@@ -108,6 +108,8 @@ void naveg_up(uint8_t display);
 void naveg_down(uint8_t display);
 // resets to root menu
 void naveg_reset_menu(void);
+// update the navigation screen if necessary
+void naveg_update(void);
 
 
 /*

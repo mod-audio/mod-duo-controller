@@ -326,10 +326,20 @@ static void chain_task(void *pvParameters)
     portTickType xLastWakeTime;
     xLastWakeTime = xTaskGetTickCount();
 
+    static uint32_t update_count = 0;
+
     while (1)
     {
         // process the control chain data
         control_chain_process();
+
+        // FIXME: here isn't the right place to put this (temporary solution)
+        // checks if need update the navigation screen
+        if (update_count++ >= (NAVEG_UPDATE_TIME / CONTROL_CHAIN_PERIOD))
+        {
+            update_count = 0;
+            naveg_update();
+        }
 
         vTaskDelayUntil(&xLastWakeTime, (CONTROL_CHAIN_PERIOD / portTICK_RATE_MS));
     }

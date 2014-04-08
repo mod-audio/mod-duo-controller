@@ -75,6 +75,7 @@ typedef struct MENU_DESC_T {
     menu_types_t type;
     int16_t id, parent_id;
     void (*action_cb) (void *data);
+    uint8_t need_update;
 } menu_desc_t;
 
 typedef struct MENU_DATA_T {

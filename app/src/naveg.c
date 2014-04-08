@@ -48,7 +48,7 @@ static const uint8_t g_tools_display[] = {
 
 static const menu_desc_t g_menu_desc[] = {
     SYSTEM_MENU
-    {NULL, 0, -1, -1, NULL}
+    {NULL, 0, -1, -1, NULL, 0}
 };
 
 static const menu_popup_t g_menu_popups[] = {
@@ -94,6 +94,8 @@ static menu_item_t *g_current_item;
 static uint8_t g_max_items_list;
 static bank_config_t g_bank_functions[BANK_FUNC_AMOUNT];
 static uint8_t g_initialized, g_ui_connected;
+static void (*g_update_cb)(void *data);
+static void *g_update_data;
 
 
 /*
@@ -888,6 +890,14 @@ static void menu_enter(void)
     }
 
     screen_system_menu(item);
+
+    g_update_cb = NULL;
+    g_update_data = NULL;
+    if (item->desc->need_update)
+    {
+        g_update_cb = item->desc->action_cb;
+        g_update_data = item;
+    }
 }
 
 static void menu_up(void)
@@ -1157,13 +1167,17 @@ void naveg_init(void)
     g_max_items_list++;
 
     // creates the menu tree (recursively)
-    const menu_desc_t root_desc = {"root", MENU_LIST, -1, -1, NULL};
+    const menu_desc_t root_desc = {"root", MENU_LIST, -1, -1, NULL, 0};
     g_menu = node_create(NULL);
     create_menu_tree(g_menu, &root_desc);
 
     // sets the current menu
     g_current_menu = g_menu;
     g_current_item = g_menu->first_child->data;
+
+    // initialize the update variables
+    g_update_cb = NULL;
+    g_update_data = NULL;
 
     g_initialized = 1;
 }
@@ -1455,6 +1469,11 @@ void naveg_toggle_tool(uint8_t display)
         // action to do when the tool is disabled
         switch (display)
         {
+            case SYSTEM_DISPLAY:
+                g_update_cb = NULL;
+                g_update_data = NULL;
+                break;
+
             case PEAKMETER_DISPLAY:
                 comm_webgui_send(PEAKMETER_OFF_CMD, strlen(PEAKMETER_OFF_CMD));
                 break;
@@ -1619,4 +1638,9 @@ void naveg_reset_menu(void)
     g_current_menu = g_menu;
     g_current_item = g_menu->first_child->data;
     reset_menu_hover(g_menu);
+}
+
+void naveg_update(void)
+{
+    if (g_update_cb) (*g_update_cb)(g_update_data);
 }

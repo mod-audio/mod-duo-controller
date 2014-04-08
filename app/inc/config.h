@@ -246,8 +246,11 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define TOOL_PEAKMETER      2
 #define TOOL_NAVEG          3
 
+// navigation update time, this is only useful in tool mode
+#define NAVEG_UPDATE_TIME   1500
+
 // time in milliseconds to enter in tool mode (hold rotary encoder button)
-#define TOOL_MODE_TIME      1900
+#define TOOL_MODE_TIME      1500
 
 // setup of tools on displays
 #define TOOL_DISPLAY0       TOOL_SYSTEM
@@ -320,43 +323,44 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define VERSIONS_ID         (8 * 20)
 #define FACTORY_ID          (9 * 20)
 
-// menu definition format: {name, type, id, parent_id, action_callback}
+// menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
-    {"SETTINGS",                            MENU_LIST,      ROOT_ID,            -1,             NULL},                          \
-    {"True Bypass                 ",        MENU_BYP_PROC,  TRUE_BYPASS_ID,     ROOT_ID,        system_true_bypass_cb},         \
-    {"Pedalboard",                          MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL},                          \
-    {"< Back to SETTINGS",                  MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL},                          \
-    {"Reset State",                         MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  system_reset_pedalboard_cb},    \
-    {"Save State",                          MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  system_save_pedalboard_cb},     \
-    {"Expression Pedal",                    MENU_LIST,      EXP_PEDAL_ID,       PEDALBOARD_ID,  NULL},                          \
-    {"< Back to Pedalboard",                MENU_RETURN,    EXP_PEDAL_ID+1,     EXP_PEDAL_ID,   NULL},                          \
-    {"Bluetooth",                           MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        system_bluetooth_cb},           \
-    {"< Back to SETTINGS",                  MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL},                          \
-    {"Pair",                                MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   system_bluetooth_pair_cb},      \
-    {"Status:",                             MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL},                          \
-    {"Name:",                               MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL},                          \
-    {"Address:",                            MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL},                          \
-    {"Info",                                MENU_LIST,      INFO_ID,            ROOT_ID,        NULL},                          \
-    {"< Back to SETTINGS",                  MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL},                          \
-    {"CPU",                                 MENU_LIST,      CPU_ID,             INFO_ID,        system_cpu_cb},                 \
-    {"< Back to Info",                      MENU_RETURN,    CPU_ID+1,           CPU_ID,         NULL},                          \
-    {"USB:",                                MENU_RETURN,    CPU_ID+2,           CPU_ID,         NULL},                          \
-    {"Temperature:",                        MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL},                          \
-    {"Services",                            MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb},            \
-    {"< Back to Info",                      MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL},                          \
-    {"jack:",                               MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    system_restart_jack_cb},        \
-    {"mod-host:",                           MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    system_restart_host_cb},        \
-    {"mod-ui:",                             MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    system_restart_ui_cb},          \
-    {"Versions",                            MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb},            \
-    {"< Back to Info",                      MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL},                          \
-    {"jack:",                               MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL},                          \
-    {"mod-host:",                           MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL},                          \
-    {"mod-ui:",                             MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL},                          \
-    {"mod-controller:",                     MENU_NONE,      VERSIONS_ID+6,      VERSIONS_ID,    NULL},                          \
-    {"mod-python:",                         MENU_NONE,      VERSIONS_ID+7,      VERSIONS_ID,    NULL},                          \
-    {"mod-resources:",                      MENU_NONE,      VERSIONS_ID+8,      VERSIONS_ID,    NULL},                          \
-    {"bluez:",                              MENU_NONE,      VERSIONS_ID+9,      VERSIONS_ID,    NULL},                          \
-    {"Factory Restore",                     MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb},             \
+    {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                      , 0},  \
+    {"True Bypass                 ",    MENU_BYP_PROC,  TRUE_BYPASS_ID,     ROOT_ID,        system_true_bypass_cb     , 0},  \
+    {"Pedalboard",                      MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                      , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                      , 0},  \
+    {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  system_reset_pedalboard_cb, 0},  \
+    {"Save State",                      MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  system_save_pedalboard_cb , 0},  \
+    {"Expression Pedal",                MENU_LIST,      EXP_PEDAL_ID,       PEDALBOARD_ID,  NULL                      , 0},  \
+    {"< Back to Pedalboard",            MENU_RETURN,    EXP_PEDAL_ID+1,     EXP_PEDAL_ID,   NULL                      , 0},  \
+    {"Bluetooth",                       MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        system_bluetooth_cb       , 1},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                      , 0},  \
+    {"Pair",                            MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   system_bluetooth_pair_cb  , 0},  \
+    {"Status:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                      , 0},  \
+    {"Name:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                      , 0},  \
+    {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                      , 0},  \
+    {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                      , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                      , 0},  \
+    {"CPU",                             MENU_LIST,      CPU_ID,             INFO_ID,        system_cpu_cb             , 0},  \
+    {"< Back to Info",                  MENU_RETURN,    CPU_ID+1,           CPU_ID,         NULL                      , 0},  \
+    {"Controller USB:",                 MENU_RETURN,    CPU_ID+2,           CPU_ID,         NULL                      , 0},  \
+    {"Temperature:",                    MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL                      , 0},  \
+    {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb        , 1},  \
+    {"< Back to Info",                  MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL                      , 0},  \
+    {"jack:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    system_restart_jack_cb    , 0},  \
+    {"mod-host:",                       MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    system_restart_host_cb    , 0},  \
+    {"mod-ui:",                         MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    system_restart_ui_cb      , 0},  \
+    {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb        , 0},  \
+    {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                      , 0},  \
+    {"jack:",                           MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                      , 0},  \
+    {"mod-host:",                       MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                      , 0},  \
+    {"mod-ui:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                      , 0},  \
+    {"mod-controller:",                 MENU_NONE,      VERSIONS_ID+6,      VERSIONS_ID,    NULL                      , 0},  \
+    {"mod-python:",                     MENU_NONE,      VERSIONS_ID+7,      VERSIONS_ID,    NULL                      , 0},  \
+    {"mod-resources:",                  MENU_NONE,      VERSIONS_ID+8,      VERSIONS_ID,    NULL                      , 0},  \
+    {"bluez:",                          MENU_NONE,      VERSIONS_ID+9,      VERSIONS_ID,    NULL                      , 0},  \
+    {"controller-commit:",              MENU_NONE,      VERSIONS_ID+10,     VERSIONS_ID,    NULL                      , 0},  \
+    {"Factory Restore",                 MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb         , 0},  \
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \

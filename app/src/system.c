@@ -318,6 +318,14 @@ void system_versions_cb(void *arg)
         screen_system_menu(item);
         i++;
     }
+
+    char *pstr = strstr(item->data.list[i+1], ":");
+    if (pstr)
+    {
+        pstr++;
+        *pstr++ = ' ';
+        strcpy(pstr, CONTROLLER_HASH_COMMIT);
+    }
 }
 
 void system_restore_cb(void *arg)
