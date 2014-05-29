@@ -13,12 +13,7 @@
 #include "tpa6130.h"
 #include "ntc.h"
 
-#include "LPC177x_8x.h"
-#include "lpc177x_8x_gpio.h"
-#include "lpc177x_8x_pinsel.h"
-#include "lpc177x_8x_timer.h"
-#include "lpc177x_8x_clkpwr.h"
-#include "lpc177x_8x_adc.h"
+#include "device.h"
 
 
 /*
@@ -204,7 +199,7 @@ void hardware_setup(void)
 
     // Headphone initialization (TPA and ADC)
     tpa6130_init();
-    PINSEL_ConfigPin(HEADPHONE_ADC_PORT, HEADPHONE_ADC_PIN, HEADPHONE_ADC_PIN_CONF);
+    PINSEL_SetPinFunc(HEADPHONE_ADC_PORT, HEADPHONE_ADC_PIN, HEADPHONE_ADC_PIN_CONF);
     ADC_IntConfig(LPC_ADC, HEADPHONE_ADC_CHANNEL, DISABLE);
     ADC_ChannelCmd(LPC_ADC, HEADPHONE_ADC_CHANNEL, ENABLE);
 

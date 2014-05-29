@@ -16,7 +16,6 @@
 */
 
 #include <stdint.h>
-#include "lpc177x_8x_gpio.h"
 #include "config.h"
 #include "utils.h"
 
@@ -63,18 +62,20 @@
 #define DELAY_us(time)          delay_us(time)
 
 // I/O macros configuration
-#define CONFIG_PIN_INPUT(port, pin)     GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_INPUT)
-#define CONFIG_PIN_OUTPUT(port, pin)    GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_OUTPUT)
-#define CONFIG_PORT_INPUT(port)         FIO_ByteSetDir((port), 0, 0xFF, GPIO_DIRECTION_INPUT)
-#define CONFIG_PORT_OUTPUT(port)        FIO_ByteSetDir((port), 0, 0xFF, GPIO_DIRECTION_OUTPUT)
-#define SET_PIN(port, pin)              GPIO_SetValue((port), (1 << (pin)))
-#define CLR_PIN(port, pin)              GPIO_ClearValue((port), (1 << (pin)))
-#define WRITE_PORT(port, value)         FIO_ByteSetValue((port), 0, (uint8_t)(value)); \
-                                        FIO_ByteClearValue((port), 0, (uint8_t)(~value))
-#define READ_PORT(port)                 FIO_ByteReadValue((port), (0))
+// These configurations have been moved to config.h
+#if 0
+#define CONFIG_PIN_INPUT(port, pin)
+#define CONFIG_PIN_OUTPUT(port, pin)
+#define CONFIG_PORT_INPUT(port)
+#define CONFIG_PORT_OUTPUT(port)
+#define SET_PIN(port, pin)
+#define CLR_PIN(port, pin)
+#define WRITE_PORT(port, value)
+#define READ_PORT(port)
+#endif
 
 // display ports and pins definitions
-// These configurations was moved to config.h
+// These configurations have been moved to config.h
 #if 0
 #define GLCD_DATABUS_PORT
 #define GLCD_DI_PORT
@@ -92,7 +93,7 @@
 #endif
 
 // display backlight ports and pins
-// These configurations was moved to config.h
+// These configurations have been moved to config.h
 #if 0
 #define GLCD0_BACKLIGHT_PORT
 #define GLCD0_BACKLIGHT_PIN
@@ -105,7 +106,7 @@
 #endif
 
 // switcher ports and pins definitions
-// These configurations was moved to config.h
+// These configurations have been moved to config.h
 #if 0
 #define SWITCHER_DIR_PORT
 #define SWITCHER_DIR_PIN

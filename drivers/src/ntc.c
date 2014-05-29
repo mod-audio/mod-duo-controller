@@ -6,8 +6,7 @@
 */
 
 #include "ntc.h"
-#include "lpc177x_8x_adc.h"
-#include "lpc177x_8x_pinsel.h"
+#include "device.h"
 
 
 /*
@@ -129,7 +128,7 @@ static uint16_t bisect(uint16_t target, const uint16_t *list, uint16_t list_size
 void ntc_init(void)
 {
     // configurates the adc pin
-    PINSEL_ConfigPin(NTC_ADC_PORT, NTC_ADC_PIN, NTC_ADC_PIN_CONF);
+    PINSEL_SetPinFunc(NTC_ADC_PORT, NTC_ADC_PIN, NTC_ADC_PIN_CONF);
 
     // disables the interrupt
     ADC_IntConfig(LPC_ADC, NTC_ADC_CHANNEL, DISABLE);

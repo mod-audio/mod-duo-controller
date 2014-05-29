@@ -15,7 +15,8 @@
 ************************************************************************************************************************
 */
 
-#include "lpc177x_8x_gpio.h"
+#include "config.h"
+
 
 /*
 ************************************************************************************************************************
@@ -47,11 +48,14 @@ enum {UNMUTE, MUTE};
 #define TPA6130_OUTPUT_IMPEDANCE_DEFAULT    0x00
 
 // I/O macros configuration
-#define CONFIG_PIN_OUTPUT(port, pin)    GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_OUTPUT)
-#define CONFIG_PIN_INPUT(port, pin)     GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_INPUT)
-#define SET_PIN(port, pin)              GPIO_SetValue((port), (1 << (pin)))
-#define CLR_PIN(port, pin)              GPIO_ClearValue((port), (1 << (pin)))
-#define READ_PIN(port, pin)             ((FIO_ReadValue(port) >> (pin)) & 1)
+// These configurations have been moved to config.h
+#if 0
+#define CONFIG_PIN_OUTPUT(port, pin)
+#define CONFIG_PIN_INPUT(port, pin)
+#define SET_PIN(port, pin)
+#define CLR_PIN(port, pin)
+#define READ_PIN(port, pin)
+#endif
 
 
 /*

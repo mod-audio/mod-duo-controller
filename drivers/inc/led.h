@@ -16,7 +16,6 @@
 */
 
 #include <stdint.h>
-#include "lpc177x_8x_gpio.h"
 #include "config.h"
 
 
@@ -52,9 +51,12 @@
 #define LED_TURN_ON_WITH_ZERO
 
 // I/O macros configuration
-#define CONFIG_PIN_OUTPUT(port, pin)    GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_OUTPUT)
-#define SET_PIN(port, pin)              GPIO_SetValue((port), (1 << (pin)))
-#define CLR_PIN(port, pin)              GPIO_ClearValue((port), (1 << (pin)))
+// These configurations have been moved to config.h
+#if 0
+#define CONFIG_PIN_OUTPUT(port, pin)
+#define SET_PIN(port, pin)
+#define CLR_PIN(port, pin)
+#endif
 
 
 /*

@@ -75,7 +75,7 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#include "system_LPC177x_8x.h"
+#include "device.h"
 
 
 /*-----------------------------------------------------------

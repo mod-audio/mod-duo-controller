@@ -10,8 +10,7 @@
 #include "config.h"
 #include "hardware.h"
 
-#include "lpc177x_8x_uart.h"
-#include "lpc177x_8x_pinsel.h"
+#include "device.h"
 
 
 /*
@@ -225,8 +224,8 @@ void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
             // Initialize UART0 pin connect
             // P0.2: U0_TXD
             // P0.3: U0_RXD
-            PINSEL_ConfigPin(0, 2, 1);
-            PINSEL_ConfigPin(0, 3, 1);
+            PINSEL_SetPinFunc(0, 2, 1);
+            PINSEL_SetPinFunc(0, 3, 1);
             uart = UART0;
             irq = UART0_IRQn;
             break;
@@ -235,8 +234,8 @@ void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
             // Initialize UART1 pin connect
             // P0.15: U1_TXD
             // P0.16: U1_RXD
-            PINSEL_ConfigPin(0, 15, 1);
-            PINSEL_ConfigPin(0, 16, 1);
+            PINSEL_SetPinFunc(0, 15, 1);
+            PINSEL_SetPinFunc(0, 16, 1);
             uart = UART1;
             irq = UART1_IRQn;
             break;
@@ -245,8 +244,8 @@ void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
             // Initialize UART2 pin connect
             // P0.10: U2_TXD
             // P0.11: U2_RXD
-            PINSEL_ConfigPin(0, 10, 1);
-            PINSEL_ConfigPin(0, 11, 1);
+            PINSEL_SetPinFunc(0, 10, 1);
+            PINSEL_SetPinFunc(0, 11, 1);
             uart = UART2;
             irq = UART2_IRQn;
             break;
@@ -255,8 +254,8 @@ void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
             // Initialize UART3 pin connect
             // P0.25: U3_TXD
             // P0.26: U3_RXD
-            PINSEL_ConfigPin(0, 25, 3);
-            PINSEL_ConfigPin(0, 26, 3);
+            PINSEL_SetPinFunc(0, 25, 3);
+            PINSEL_SetPinFunc(0, 26, 3);
             uart = UART3;
             irq = UART3_IRQn;
             break;

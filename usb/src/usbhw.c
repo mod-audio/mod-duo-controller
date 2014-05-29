@@ -1,5 +1,5 @@
 
-#include "LPC177x_8x.h"
+#include "device.h"
 
 #include "usb.h"
 #include "usbcfg.h"
@@ -58,9 +58,9 @@ uint32_t EPAdr(uint32_t EPNum)
 
 void WrCmd(uint32_t cmd)
 {
-    LPC_USB->DevIntClr = CCEMTY_INT;
-    LPC_USB->CmdCode = cmd;
-    while ((LPC_USB->DevIntSt & CCEMTY_INT) == 0);
+    LPC_USB->USBDevIntClr = CCEMTY_INT;
+    LPC_USB->USBCmdCode = cmd;
+    while ((LPC_USB->USBDevIntSt & CCEMTY_INT) == 0);
 }
 
 
@@ -73,12 +73,12 @@ void WrCmd(uint32_t cmd)
 
 void WrCmdDat(uint32_t cmd, uint32_t val)
 {
-    LPC_USB->DevIntClr = CCEMTY_INT;
-    LPC_USB->CmdCode = cmd;
-    while ((LPC_USB->DevIntSt & CCEMTY_INT) == 0);
-    LPC_USB->DevIntClr = CCEMTY_INT;
-    LPC_USB->CmdCode = val;
-    while ((LPC_USB->DevIntSt & CCEMTY_INT) == 0);
+    LPC_USB->USBDevIntClr = CCEMTY_INT;
+    LPC_USB->USBCmdCode = cmd;
+    while ((LPC_USB->USBDevIntSt & CCEMTY_INT) == 0);
+    LPC_USB->USBDevIntClr = CCEMTY_INT;
+    LPC_USB->USBCmdCode = val;
+    while ((LPC_USB->USBDevIntSt & CCEMTY_INT) == 0);
 }
 
 
@@ -91,12 +91,12 @@ void WrCmdDat(uint32_t cmd, uint32_t val)
 
 void WrCmdEP(uint32_t EPNum, uint32_t cmd)
 {
-    LPC_USB->DevIntClr = CCEMTY_INT;
-    LPC_USB->CmdCode = CMD_SEL_EP(EPAdr(EPNum));
-    while ((LPC_USB->DevIntSt & CCEMTY_INT) == 0);
-    LPC_USB->DevIntClr = CCEMTY_INT;
-    LPC_USB->CmdCode = cmd;
-    while ((LPC_USB->DevIntSt & CCEMTY_INT) == 0);
+    LPC_USB->USBDevIntClr = CCEMTY_INT;
+    LPC_USB->USBCmdCode = CMD_SEL_EP(EPAdr(EPNum));
+    while ((LPC_USB->USBDevIntSt & CCEMTY_INT) == 0);
+    LPC_USB->USBDevIntClr = CCEMTY_INT;
+    LPC_USB->USBCmdCode = cmd;
+    while ((LPC_USB->USBDevIntSt & CCEMTY_INT) == 0);
 }
 
 
@@ -108,10 +108,10 @@ void WrCmdEP(uint32_t EPNum, uint32_t cmd)
 
 uint32_t RdCmdDat(uint32_t cmd)
 {
-    LPC_USB->DevIntClr = CCEMTY_INT | CDFULL_INT;
-    LPC_USB->CmdCode = cmd;
-    while ((LPC_USB->DevIntSt & CDFULL_INT) == 0);
-    return (LPC_USB->CmdData);
+    LPC_USB->USBDevIntClr = CCEMTY_INT | CDFULL_INT;
+    LPC_USB->USBCmdCode = cmd;
+    while ((LPC_USB->USBDevIntSt & CDFULL_INT) == 0);
+    return (LPC_USB->USBCmdData);
 }
 
 
@@ -123,6 +123,7 @@ uint32_t RdCmdDat(uint32_t cmd)
 
 void USB_Init(uint8_t corenum)
 {
+#ifdef LPC_IOCON
     if (corenum == 0)
     {
         LPC_IOCON->P0_29 &= ~0x07;      /* P0.29 D1+, P0.30 D1- */
@@ -154,8 +155,42 @@ void USB_Init(uint8_t corenum)
         while ((LPC_USB->USBClkSt & 0x1A) != 0x1A);
 
         /* Port Select register when USB device is configured. */
-        LPC_USB->StCtrl = 0x3;
+        LPC_USB->OTGStCtrl = 0x3;
     }
+#endif
+
+#ifdef LPC_PINCON
+    (void) corenum;
+    
+    /*  CodeRed - comment out original code
+    // configure P0.23 for Vbus sense
+    PINSEL1 = (PINSEL1 & ~(3 << 14)) | (1 << 14);   // P0.23
+    // configure P0.31 for CONNECT
+    PINSEL1 = (PINSEL1 & ~(3 << 30)) | (2 << 30);   // P0.31
+    */
+    
+    // P2.9 -> USB_CONNECT
+    LPC_PINCON->PINSEL4 &= ~0x000C0000;
+    LPC_PINCON->PINSEL4 |= 0x00040000;
+
+    // P1.18 -> USB_UP_LED
+    // P1.30 -> VBUS
+    LPC_PINCON->PINSEL3 &= ~0x30000030;
+    LPC_PINCON->PINSEL3 |= 0x20000010;
+
+    // P0.29 -> USB_D+
+    // P0.30 -> USB_D-
+    LPC_PINCON->PINSEL1 &= ~0x3C000000;
+    LPC_PINCON->PINSEL1 |= 0x14000000;  
+    
+    // enable PUSB
+    LPC_SC->PCONP |= (1 << 31);
+
+    // AWB added USB clock enable
+    // These are actually the USBClkCtrl and USBClkSt registers
+    LPC_USB->USBClkCtrl = 0x12;     /* Dev, OTG, AHB clock enable */
+    while ((LPC_USB->USBClkSt & 0x12) != 0x12);
+#endif
 
     NVIC_SetPriority(USB_IRQn, (USB_PRIORITY << 3));
     NVIC_EnableIRQ(USB_IRQn);   /* enable USB interrupt */
@@ -185,28 +220,28 @@ void USB_Connect(uint32_t con)
 
 void USB_Reset(void)
 {
-    LPC_USB->EpInd = 0;
-    LPC_USB->MaxPSize = USB_MAX_PACKET0;
-    LPC_USB->EpInd = 1;
-    LPC_USB->MaxPSize = USB_MAX_PACKET0;
-    while ((LPC_USB->DevIntSt & EP_RLZED_INT) == 0);
-    LPC_USB->EpIntClr  = 0xFFFFFFFF;
-    LPC_USB->EpIntEn   = 0xFFFFFFFF ^ USB_DMA_EP;
-    LPC_USB->DevIntClr = 0xFFFFFFFF;
-    LPC_USB->DevIntEn  = DEV_STAT_INT    | EP_SLOW_INT    |
+    LPC_USB->USBEpInd = 0;
+    LPC_USB->USBMaxPSize = USB_MAX_PACKET0;
+    LPC_USB->USBEpInd = 1;
+    LPC_USB->USBMaxPSize = USB_MAX_PACKET0;
+    while ((LPC_USB->USBDevIntSt & EP_RLZED_INT) == 0);
+    LPC_USB->USBEpIntClr  = 0xFFFFFFFF;
+    LPC_USB->USBEpIntEn   = 0xFFFFFFFF ^ USB_DMA_EP;
+    LPC_USB->USBDevIntClr = 0xFFFFFFFF;
+    LPC_USB->USBDevIntEn  = DEV_STAT_INT    | EP_SLOW_INT    |
                          (USB_SOF_EVENT   ? FRAME_INT : 0) |
                          (USB_ERROR_EVENT ? ERR_INT   : 0);
 
 #if USB_DMA
     uint32_t n;
-    LPC_USB->UDCAH   = USB_RAM_ADR;
-    LPC_USB->DMARClr = 0xFFFFFFFF;
-    LPC_USB->EpDMADis  = 0xFFFFFFFF;
-    LPC_USB->EpDMAEn   = USB_DMA_EP;
-    LPC_USB->EoTIntClr = 0xFFFFFFFF;
-    LPC_USB->NDDRIntClr = 0xFFFFFFFF;
-    LPC_USB->SysErrIntClr = 0xFFFFFFFF;
-    LPC_USB->DMAIntEn  = 0x00000007;
+    LPC_USB->USBUDCAH   = USB_RAM_ADR;
+    LPC_USB->USBDMARClr = 0xFFFFFFFF;
+    LPC_USB->USBEpDMADis  = 0xFFFFFFFF;
+    LPC_USB->USBEpDMAEn   = USB_DMA_EP;
+    LPC_USB->USBEoTIntClr = 0xFFFFFFFF;
+    LPC_USB->USBNDDRIntClr = 0xFFFFFFFF;
+    LPC_USB->USBSysErrIntClr = 0xFFFFFFFF;
+    LPC_USB->USBDMAIntEn  = 0x00000007;
     DDMemMap[0] = 0x00000000;
     DDMemMap[1] = 0x00000000;
     for (n = 0; n < USB_EP_NUM; n++)
@@ -292,9 +327,9 @@ void USB_SetAddress(uint32_t adr)
 void USB_Configure(uint32_t cfg)
 {
     WrCmdDat(CMD_CFG_DEV, DAT_WR_BYTE(cfg ? CONF_DVICE : 0));
-    LPC_USB->ReEp = 0x00000003;
-    while ((LPC_USB->DevIntSt & EP_RLZED_INT) == 0);
-    LPC_USB->DevIntClr = EP_RLZED_INT;
+    LPC_USB->USBReEp = 0x00000003;
+    while ((LPC_USB->USBDevIntSt & EP_RLZED_INT) == 0);
+    LPC_USB->USBDevIntClr = EP_RLZED_INT;
 }
 
 
@@ -308,11 +343,11 @@ void USB_ConfigEP(USB_ENDPOINT_DESCRIPTOR* pEPD)
 {
     uint32_t num;
     num = EPAdr(pEPD->bEndpointAddress);
-    LPC_USB->ReEp |= (1 << num);
-    LPC_USB->EpInd = num;
-    LPC_USB->MaxPSize = pEPD->wMaxPacketSize;
-    while ((LPC_USB->DevIntSt & EP_RLZED_INT) == 0);
-    LPC_USB->DevIntClr = EP_RLZED_INT;
+    LPC_USB->USBReEp |= (1 << num);
+    LPC_USB->USBEpInd = num;
+    LPC_USB->USBMaxPSize = pEPD->wMaxPacketSize;
+    while ((LPC_USB->USBDevIntSt & EP_RLZED_INT) == 0);
+    LPC_USB->USBDevIntClr = EP_RLZED_INT;
 }
 
 
@@ -426,21 +461,21 @@ uint32_t USB_ReadEP(uint32_t EPNum, uint8_t* pData)
 {
     uint32_t cnt, n;
 
-    LPC_USB->Ctrl = ((EPNum & 0x0F) << 2) | CTRL_RD_EN;
+    LPC_USB->USBCtrl = ((EPNum & 0x0F) << 2) | CTRL_RD_EN;
 
     do
     {
-        cnt = LPC_USB->RxPLen;
+        cnt = LPC_USB->USBRxPLen;
     }
     while ((cnt & PKT_RDY) == 0);
     cnt &= PKT_LNGTH_MASK;
 
     for (n = 0; n < (cnt + 3) / 4; n++)
     {
-        *((__packed uint32_t*)pData) = LPC_USB->RxData;
+        *((__packed uint32_t*)pData) = LPC_USB->USBRxData;
         pData += 4;
     }
-    LPC_USB->Ctrl = 0;
+    LPC_USB->USBCtrl = 0;
 
     if (((EP_MSK_ISO >> EPNum) & 1) == 0)     /* Non-Isochronous Endpoint */
     {
@@ -465,16 +500,16 @@ uint32_t USB_WriteEP(uint32_t EPNum, const uint8_t* pData, uint32_t cnt)
 {
     uint32_t n;
 
-    LPC_USB->Ctrl = ((EPNum & 0x0F) << 2) | CTRL_WR_EN;
-    LPC_USB->TxPLen = cnt;
+    LPC_USB->USBCtrl = ((EPNum & 0x0F) << 2) | CTRL_WR_EN;
+    LPC_USB->USBTxPLen = cnt;
 
     for (n = 0; n < (cnt + 3) / 4; n++)
     {
-        LPC_USB->TxData = *((__packed uint32_t*)pData);
+        LPC_USB->USBTxData = *((__packed uint32_t*)pData);
         pData += 4;
     }
 
-    LPC_USB->Ctrl = 0;
+    LPC_USB->USBCtrl = 0;
     WrCmdEP(EPNum, CMD_VALID_BUF);
 
     return (cnt);
@@ -557,7 +592,7 @@ uint32_t USB_DMA_Setup(uint32_t EPNum, USB_DMA_DESCRIPTOR* pDD)
 
 void USB_DMA_Enable(uint32_t EPNum)
 {
-    LPC_USB->EpDMAEn = 1 << EPAdr(EPNum);
+    LPC_USB->USBEpDMAEn = 1 << EPAdr(EPNum);
 }
 
 
@@ -571,7 +606,7 @@ void USB_DMA_Enable(uint32_t EPNum)
 
 void USB_DMA_Disable(uint32_t EPNum)
 {
-    LPC_USB->EpDMADis = 1 << EPAdr(EPNum);
+    LPC_USB->USBEpDMADis = 1 << EPAdr(EPNum);
 }
 
 
@@ -681,12 +716,12 @@ void USB_IRQHandler(void)
 {
     uint32_t disr, val, n, m;
     uint32_t episr, episrCur;
-    disr = LPC_USB->DevIntSt;       /* Device Interrupt Status */
+    disr = LPC_USB->USBDevIntSt;       /* Device Interrupt Status */
 
     /* Device Status Interrupt (Reset, Connect change, Suspend/Resume) */
     if (disr & DEV_STAT_INT)
     {
-        LPC_USB->DevIntClr = DEV_STAT_INT;
+        LPC_USB->USBDevIntClr = DEV_STAT_INT;
         WrCmd(CMD_GET_DEV_STAT);
         val = RdCmdDat(DAT_GET_DEV_STAT);       /* Device Status */
         if (val & DEV_RST)                      /* Reset */
@@ -741,7 +776,7 @@ void USB_IRQHandler(void)
     if (disr & EP_SLOW_INT)
     {
         episrCur = 0;
-        episr    = LPC_USB->EpIntSt;
+        episr    = LPC_USB->USBEpIntSt;
         for (n = 0; n < USB_EP_NUM; n++)        /* Check All Endpoints */
         {
             if (episr == episrCur) break;         /* break if all EP interrupts handled */
@@ -749,9 +784,9 @@ void USB_IRQHandler(void)
             {
                 episrCur |= (1 << n);
                 m = n >> 1;
-                LPC_USB->EpIntClr = (1 << n);
-                while ((LPC_USB->DevIntSt & CDFULL_INT) == 0);
-                val = LPC_USB->CmdData;
+                LPC_USB->USBEpIntClr = (1 << n);
+                while ((LPC_USB->USBDevIntSt & CDFULL_INT) == 0);
+                val = LPC_USB->USBCmdData;
 
                 if ((n & 1) == 0)                   /* OUT Endpoint */
                 {
@@ -780,12 +815,12 @@ void USB_IRQHandler(void)
                 }
             }
         }
-        LPC_USB->DevIntClr = EP_SLOW_INT;
+        LPC_USB->USBDevIntClr = EP_SLOW_INT;
     }
 #if USB_DMA
-    if (LPC_USB->DMAIntSt & 0x00000001)            /* End of Transfer Interrupt */
+    if (LPC_USB->USBDMAIntSt & 0x00000001)            /* End of Transfer Interrupt */
     {
-        val = LPC_USB->EoTIntSt;
+        val = LPC_USB->USBEoTIntSt;
         for (n = 2; n < USB_EP_NUM; n++)        /* Check All Endpoints */
         {
             if (val & (1 << n))
@@ -807,11 +842,11 @@ void USB_IRQHandler(void)
                 }
             }
         }
-        LPC_USB->EoTIntClr = val;
+        LPC_USB->USBEoTIntClr = val;
     }
-    if (LPC_USB->DMAIntSt & 0x00000002)            /* New DD Request Interrupt */
+    if (LPC_USB->USBDMAIntSt & 0x00000002)            /* New DD Request Interrupt */
     {
-        val = LPC_USB->NDDRIntSt;
+        val = LPC_USB->USBNDDRIntSt;
         for (n = 2; n < USB_EP_NUM; n++)        /* Check All Endpoints */
         {
             if (val & (1 << n))
@@ -833,11 +868,11 @@ void USB_IRQHandler(void)
                 }
             }
         }
-        LPC_USB->NDDRIntClr = val;
+        LPC_USB->USBNDDRIntClr = val;
     }
-    if (LPC_USB->DMAIntSt & 0x00000004)            /* System Error Interrupt */
+    if (LPC_USB->USBDMAIntSt & 0x00000004)            /* System Error Interrupt */
     {
-        val = LPC_USB->SysErrIntSt;
+        val = LPC_USB->USBSysErrIntSt;
         for (n = 2; n < USB_EP_NUM; n++)        /* Check All Endpoints */
         {
             if (val & (1 << n))
@@ -859,7 +894,7 @@ void USB_IRQHandler(void)
                 }
             }
         }
-        LPC_USB->SysErrIntClr = val;
+        LPC_USB->USBSysErrIntClr = val;
     }
 #endif /* USB_DMA */
 isr_end:

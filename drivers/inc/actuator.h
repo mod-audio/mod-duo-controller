@@ -9,8 +9,8 @@
 *********************************************************************************************************
 */
 
-#include "stdint.h"
-#include "lpc177x_8x_gpio.h"
+#include <stdint.h>
+#include "config.h"
 
 
 /*
@@ -55,8 +55,11 @@ typedef enum {
 #define ENCODER_ACTIVATED           0
 
 // Setup your external I/O's functions
-#define READ_PIN(port,pin)              ((FIO_ReadValue(port) >> (pin)) & 1)
-#define CONFIG_PIN_INPUT(port, pin)     GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_INPUT)
+// These configurations have been moved to config.h
+#if 0
+#define READ_PIN(port, pin)
+#define CONFIG_PIN_INPUT(port, pin)
+#endif
 
 // Clock peririod definition (in miliseconds)
 #define CLOCK_PERIOD                1

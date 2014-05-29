@@ -7,17 +7,19 @@ TOOLCHAIN_PREFIX = arm-cortexm3-bare-
 
 # cpu configuration
 THUMB = -mthumb
-MCU   = cortex-m3
+MCU = cortex-m3
+DEVICE_SERIE = LPC177x_8x
 
 # project directories
+DEVICE_INC	= ./nxp-lpc
+CMSIS_INC	= ./nxp-lpc/CMSISv2p00_$(DEVICE_SERIE)/inc
+CMSIS_SRC	= ./nxp-lpc/CMSISv2p00_$(DEVICE_SERIE)/src
+CDL_INC 	= ./nxp-lpc/$(DEVICE_SERIE)Lib/inc
+CDL_SRC 	= ./nxp-lpc/$(DEVICE_SERIE)Lib/src
 APP_INC 	= ./app/inc
 APP_SRC 	= ./app/src
-CMSIS_INC 	= ./cmsis/inc
-CMSIS_SRC	= ./cmsis/src
 RTOS_SRC	= ./freertos/src
 RTOS_INC	= ./freertos/inc
-PDL_INC 	= ./pdl/inc
-PDL_SRC 	= ./pdl/src
 DRIVERS_INC	= ./drivers/inc
 DRIVERS_SRC	= ./drivers/src
 USB_INC 	= ./usb/inc
@@ -25,12 +27,8 @@ USB_SRC 	= ./usb/src
 OUT_DIR		= ./out
 TESTS_SRC	= ./tests
 
-# Used PDL drivers
-PDL = lpc177x_8x_gpio.c lpc177x_8x_pinsel.c lpc177x_8x_clkpwr.c lpc177x_8x_uart.c lpc177x_8x_timer.c lpc177x_8x_adc.c
-
-# C source files
-SRC = $(wildcard $(APP_SRC)/*.c) $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) \
-	  $(addprefix $(PDL_SRC)/,$(PDL)) $(wildcard $(DRIVERS_SRC)/*.c) $(wildcard $(USB_SRC)/*.c)
+SRC = $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(CDL_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) \
+	  $(wildcard $(DRIVERS_SRC)/*.c) $(wildcard $(APP_SRC)/*.c) $(wildcard $(USB_SRC)/*.c)
 
 # Build tests?
 ifdef TESTS
@@ -41,7 +39,7 @@ endif
 OBJ = $(SRC:.c=.o)
 
 # include directories
-INC = $(APP_INC) $(CMSIS_INC) $(RTOS_INC) $(PDL_INC) $(DRIVERS_INC) $(USB_INC) $(TESTS_SRC)
+INC = $(DEVICE_INC) $(CMSIS_INC) $(CDL_INC) $(RTOS_INC) $(DRIVERS_INC) $(APP_INC) $(USB_INC) $(TESTS_SRC) 
 
 # build again when changes this files
 BUILD_ON_CHANGE = Makefile $(APP_INC)/config.h
@@ -59,13 +57,17 @@ CFLAGS += -DCONTROLLER_HASH_COMMIT=`git log -1 --pretty=format:\"%h\"`
 LDFLAGS = -Wl,-Map=$(OUT_DIR)/$(PRJNAME).map,--cref
 LDFLAGS += -L. $(patsubst %,-L%,$(LIBDIR))
 LDFLAGS += -lc -lgcc -lm
-LDFLAGS += -T./lpc1788.ld
+LDFLAGS += -T./link/LPC.ld
 
 # Define programs and commands.
 CC      = $(TOOLCHAIN_PREFIX)gcc
 OBJCOPY = $(TOOLCHAIN_PREFIX)objcopy
 OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
+
+# Colors definitions
+GREEN 	= '\e[0;32m'
+NOCOLOR	= '\e[0m'
 
 all: createdirs build
 
@@ -84,27 +86,33 @@ createdirs:
 
 # Create final output file in ihex format from ELF output file (.hex).
 %.hex: %.elf
-	$(OBJCOPY) -O ihex $< $@
+	@echo -e ${GREEN}Creating HEX${NOCOLOR}
+	@$(OBJCOPY) -O ihex $< $@
 
 # Create final output file in raw binary format from ELF output file (.bin)
 %.bin: %.elf
-	$(OBJCOPY) -O binary $< $@
+	@echo -e ${GREEN}Creating BIN${NOCOLOR}
+	@$(OBJCOPY) -O binary $< $@
 
 # Create extended listing file/disassambly from ELF output file.
 # using objdump (testing: option -C)
 %.lss: %.elf
-	$(OBJDUMP) -h -S -C -r $< > $@
+	@echo -e ${GREEN}Creating listing file/disassambly${NOCOLOR}
+	@$(OBJDUMP) -h -S -C -r $< > $@
 
-# Create a symbol table from ELF output file.
+# Create a symbols table from ELF output file.
 %.sym: %.elf
-	$(NM) -n $< > $@
+	@echo -e ${GREEN}Creating symbols table${NOCOLOR}
+	@$(NM) -n $< > $@
 
 # Link: create ELF output file from object files.
 %.elf: $(OBJ) $(BUILD_ON_CHANGE)
-	$(CC) $(THUMB) $(CFLAGS) $(OBJ) --output $@ -nostartfiles $(LDFLAGS)
+	@echo -e ${GREEN}Linking objects: generating ELF${NOCOLOR}
+	@$(CC) $(THUMB) $(CFLAGS) $(OBJ) --output $@ -nostartfiles $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(THUMB) $(CFLAGS) -c $< -o $@
+	@echo -e ${GREEN}Building $<${NOCOLOR}
+	@$(CC) $(THUMB) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJ) $(OUT_DIR)

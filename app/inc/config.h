@@ -2,9 +2,23 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <stdint.h>
+#include "device.h"
 
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO HARDWARE
+
+//// GPIO macros
+#define CONFIG_PIN_INPUT(port, pin)     GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_INPUT)
+#define CONFIG_PIN_OUTPUT(port, pin)    GPIO_SetDir((port), (1 << (pin)), GPIO_DIRECTION_OUTPUT)
+#define SET_PIN(port, pin)              GPIO_SetValue((port), (1 << (pin)))
+#define CLR_PIN(port, pin)              GPIO_ClearValue((port), (1 << (pin)))
+#define READ_PIN(port, pin)             ((FIO_ReadValue(port) >> (pin)) & 1)
+#define CONFIG_PORT_INPUT(port)         FIO_ByteSetDir((port), 0, 0xFF, GPIO_DIRECTION_INPUT)
+#define CONFIG_PORT_OUTPUT(port)        FIO_ByteSetDir((port), 0, 0xFF, GPIO_DIRECTION_OUTPUT)
+#define WRITE_PORT(port, value)         FIO_ByteSetValue((port), 0, (uint8_t)(value)); \
+                                        FIO_ByteClearValue((port), 0, (uint8_t)(~value))
+#define READ_PORT(port)                 FIO_ByteReadValue((port), (0))
 
 //// Hardwares types (device identification)
 #define MOD_HARDWARE        0
@@ -240,11 +254,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define BANK_FUNC_AMOUNT            4
 
 //// Tools configuration
-// tools identification (don't change)
-#define TOOL_SYSTEM         0
-#define TOOL_TUNER          1
-#define TOOL_PEAKMETER      2
-#define TOOL_NAVEG          3
 
 // navigation update time, this is only useful in tool mode
 #define NAVEG_UPDATE_TIME   1500
@@ -252,55 +261,17 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // time in milliseconds to enter in tool mode (hold rotary encoder button)
 #define TOOL_MODE_TIME      1500
 
+// tools identification
+#define TOOL_SYSTEM     0
+#define TOOL_TUNER      1
+#define TOOL_PEAKMETER  2
+#define TOOL_NAVEG      3
+
 // setup of tools on displays
-#define TOOL_DISPLAY0       TOOL_SYSTEM
-#define TOOL_DISPLAY1       TOOL_TUNER
-#define TOOL_DISPLAY2       TOOL_PEAKMETER
-#define TOOL_DISPLAY3       TOOL_NAVEG
-
-// peakmeter tool display definition (don't change)
-#if (TOOL_PEAKMETER == TOOL_DISPLAY0)
-#define PEAKMETER_DISPLAY   TOOL_DISPLAY0
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY1)
-#define PEAKMETER_DISPLAY   TOOL_DISPLAY1
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY2)
-#define PEAKMETER_DISPLAY   TOOL_DISPLAY2
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY3)
-#define PEAKMETER_DISPLAY   TOOL_DISPLAY3
-#endif
-
-// tuner tool display definition (don't change)
-#if (TOOL_TUNER == TOOL_DISPLAY0)
-#define TUNER_DISPLAY   TOOL_DISPLAY0
-#elif (TOOL_TUNER == TOOL_DISPLAY1)
-#define TUNER_DISPLAY   TOOL_DISPLAY1
-#elif (TOOL_TUNER == TOOL_DISPLAY2)
-#define TUNER_DISPLAY   TOOL_DISPLAY2
-#elif (TOOL_TUNER == TOOL_DISPLAY3)
-#define TUNER_DISPLAY   TOOL_DISPLAY3
-#endif
-
-// banks/pedalboards navigation display definition (don't change)
-#if (TOOL_NAVEG == TOOL_DISPLAY0)
-#define NAVEG_DISPLAY   TOOL_DISPLAY0
-#elif (TOOL_NAVEG == TOOL_DISPLAY1)
-#define NAVEG_DISPLAY   TOOL_DISPLAY1
-#elif (TOOL_NAVEG == TOOL_DISPLAY2)
-#define NAVEG_DISPLAY   TOOL_DISPLAY2
-#elif (TOOL_NAVEG == TOOL_DISPLAY3)
-#define NAVEG_DISPLAY   TOOL_DISPLAY3
-#endif
-
-// system menu display definition (don't change)
-#if (TOOL_SYSTEM == TOOL_DISPLAY0)
-#define SYSTEM_DISPLAY   TOOL_DISPLAY0
-#elif (TOOL_SYSTEM == TOOL_DISPLAY1)
-#define SYSTEM_DISPLAY   TOOL_DISPLAY1
-#elif (TOOL_SYSTEM == TOOL_DISPLAY2)
-#define SYSTEM_DISPLAY   TOOL_DISPLAY2
-#elif (TOOL_SYSTEM == TOOL_DISPLAY3)
-#define SYSTEM_DISPLAY   TOOL_DISPLAY3
-#endif
+#define TOOL_DISPLAY0   TOOL_SYSTEM
+#define TOOL_DISPLAY1   TOOL_TUNER
+#define TOOL_DISPLAY2   TOOL_PEAKMETER
+#define TOOL_DISPLAY3   TOOL_NAVEG
 
 //// Screen definitions
 // defines the default rotary text
@@ -494,5 +465,53 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #include "FreeRTOS.h"
 #define MALLOC(n)       pvPortMalloc(n)
 #define FREE(pv)        vPortFree(pv)
+
+
+////////////////////////////////////////////////////////////////
+////// AUTO DEFINEs - DON'T CHANGE
+
+// system menu display definition
+#if (TOOL_SYSTEM == TOOL_DISPLAY0)
+#define SYSTEM_DISPLAY   0
+#elif (TOOL_SYSTEM == TOOL_DISPLAY1)
+#define SYSTEM_DISPLAY   1
+#elif (TOOL_SYSTEM == TOOL_DISPLAY2)
+#define SYSTEM_DISPLAY   2
+#elif (TOOL_SYSTEM == TOOL_DISPLAY3)
+#define SYSTEM_DISPLAY   3
+#endif
+
+// peakmeter tool display definition
+#if (TOOL_PEAKMETER == TOOL_DISPLAY0)
+#define PEAKMETER_DISPLAY   0
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY1)
+#define PEAKMETER_DISPLAY   1
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY2)
+#define PEAKMETER_DISPLAY   2
+#elif (TOOL_PEAKMETER == TOOL_DISPLAY3)
+#define PEAKMETER_DISPLAY   3
+#endif
+
+// tuner tool display definition
+#if (TOOL_TUNER == TOOL_DISPLAY0)
+#define TUNER_DISPLAY   0
+#elif (TOOL_TUNER == TOOL_DISPLAY1)
+#define TUNER_DISPLAY   1
+#elif (TOOL_TUNER == TOOL_DISPLAY2)
+#define TUNER_DISPLAY   2
+#elif (TOOL_TUNER == TOOL_DISPLAY3)
+#define TUNER_DISPLAY   3
+#endif
+
+// banks/pedalboards navigation display definition
+#if (TOOL_NAVEG == TOOL_DISPLAY0)
+#define NAVEG_DISPLAY   0
+#elif (TOOL_NAVEG == TOOL_DISPLAY1)
+#define NAVEG_DISPLAY   1
+#elif (TOOL_NAVEG == TOOL_DISPLAY2)
+#define NAVEG_DISPLAY   2
+#elif (TOOL_NAVEG == TOOL_DISPLAY3)
+#define NAVEG_DISPLAY   3
+#endif
 
 #endif
