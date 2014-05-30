@@ -149,6 +149,8 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
 {
     uint8_t text_width, text_height;
 
+    if (textbox->text == NULL) return;
+
     if (textbox->mode == TEXT_SINGLE_LINE)
     {
         text_width = get_text_width(textbox->text, textbox->font);
