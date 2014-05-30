@@ -25,15 +25,9 @@ DRIVERS_SRC	= ./drivers/src
 USB_INC 	= ./usb/inc
 USB_SRC 	= ./usb/src
 OUT_DIR		= ./out
-TESTS_SRC	= ./tests
 
 SRC = $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(CDL_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) \
 	  $(wildcard $(DRIVERS_SRC)/*.c) $(wildcard $(APP_SRC)/*.c) $(wildcard $(USB_SRC)/*.c)
-
-# Build tests?
-ifdef TESTS
-SRC += $(wildcard $(TESTS_SRC)/*.c)
-endif
 
 # Object files
 OBJ = $(SRC:.c=.o)
