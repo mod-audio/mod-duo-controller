@@ -190,21 +190,29 @@ static void switcher_channel(uint8_t channel)
 
     switch (last_channel)
     {
+        #if DISPLAY_COUNT >= 1
         case 0:
             SET_PIN(SWITCHER_CH0_PORT, SWITCHER_CH0_PIN);
             break;
+        #endif
 
+        #if DISPLAY_COUNT >= 2
         case 1:
             SET_PIN(SWITCHER_CH1_PORT, SWITCHER_CH1_PIN);
             break;
+        #endif
 
+        #if DISPLAY_COUNT >= 3
         case 2:
             SET_PIN(SWITCHER_CH2_PORT, SWITCHER_CH2_PIN);
             break;
+        #endif
 
+        #if DISPLAY_COUNT >= 4
         case 3:
             SET_PIN(SWITCHER_CH3_PORT, SWITCHER_CH3_PIN);
             break;
+        #endif
 
         default:
         #if DISPLAY_COUNT >= 1
@@ -225,21 +233,29 @@ static void switcher_channel(uint8_t channel)
 
     switch (channel)
     {
+        #if DISPLAY_COUNT >= 1
         case 0:
             CLR_PIN(SWITCHER_CH0_PORT, SWITCHER_CH0_PIN);
             break;
+        #endif
 
+        #if DISPLAY_COUNT >= 2
         case 1:
             CLR_PIN(SWITCHER_CH1_PORT, SWITCHER_CH1_PIN);
             break;
+        #endif
 
+        #if DISPLAY_COUNT >= 3
         case 2:
             CLR_PIN(SWITCHER_CH2_PORT, SWITCHER_CH2_PIN);
             break;
+        #endif
 
+        #if DISPLAY_COUNT >= 4
         case 3:
             CLR_PIN(SWITCHER_CH3_PORT, SWITCHER_CH3_PIN);
             break;
+        #endif
 
         default:
         #if DISPLAY_COUNT >= 1
@@ -432,17 +448,33 @@ void glcd_backlight(uint8_t display, uint8_t state)
 
     if (state)
     {
+    #if DISPLAY_COUNT >= 1
         if (display == 0) BACKLIGHT_TURN_ON(GLCD0_BACKLIGHT_PORT, GLCD0_BACKLIGHT_PIN);
+    #endif
+    #if DISPLAY_COUNT >= 2
         else if (display == 1) BACKLIGHT_TURN_ON(GLCD1_BACKLIGHT_PORT, GLCD1_BACKLIGHT_PIN);
+    #endif
+    #if DISPLAY_COUNT >= 3
         else if (display == 2) BACKLIGHT_TURN_ON(GLCD2_BACKLIGHT_PORT, GLCD2_BACKLIGHT_PIN);
+    #endif
+    #if DISPLAY_COUNT >= 4
         else if (display == 3) BACKLIGHT_TURN_ON(GLCD3_BACKLIGHT_PORT, GLCD3_BACKLIGHT_PIN);
+    #endif
     }
     else
     {
+    #if DISPLAY_COUNT >= 1
         if (display == 0) BACKLIGHT_TURN_OFF(GLCD0_BACKLIGHT_PORT, GLCD0_BACKLIGHT_PIN);
+    #endif
+    #if DISPLAY_COUNT >= 2
         else if (display == 1) BACKLIGHT_TURN_OFF(GLCD1_BACKLIGHT_PORT, GLCD1_BACKLIGHT_PIN);
+    #endif
+    #if DISPLAY_COUNT >= 3
         else if (display == 2) BACKLIGHT_TURN_OFF(GLCD2_BACKLIGHT_PORT, GLCD2_BACKLIGHT_PIN);
+    #endif
+    #if DISPLAY_COUNT >= 4
         else if (display == 3) BACKLIGHT_TURN_OFF(GLCD3_BACKLIGHT_PORT, GLCD3_BACKLIGHT_PIN);
+    #endif
     }
 }
 

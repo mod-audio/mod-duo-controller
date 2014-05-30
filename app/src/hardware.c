@@ -39,24 +39,48 @@
 */
 
 static const led_pins_t LEDS_PINS[] = {
+#ifdef LED0_PINS
     LED0_PINS,
+#endif
+#ifdef LED1_PINS
     LED1_PINS,
+#endif    
+#ifdef LED2_PINS    
     LED2_PINS,
+#endif    
+#ifdef LED3_PINS    
     LED3_PINS
+#endif    
 };
 
 static const uint8_t *ENCODER_PINS[] = {
+#ifdef ENCODER0_PINS
     (const uint8_t []) ENCODER0_PINS,
+#endif    
+#ifdef ENCODER1_PINS
     (const uint8_t []) ENCODER1_PINS,
+#endif    
+#ifdef ENCODER2_PINS
     (const uint8_t []) ENCODER2_PINS,
+#endif    
+#ifdef ENCODER3_PINS
     (const uint8_t []) ENCODER3_PINS
+#endif    
 };
 
 static const uint8_t *FOOTSWITCH_PINS[] = {
+#ifdef FOOTSWITCH0_PINS
     (const uint8_t []) FOOTSWITCH0_PINS,
+#endif    
+#ifdef FOOTSWITCH1_PINS
     (const uint8_t []) FOOTSWITCH1_PINS,
+#endif    
+#ifdef FOOTSWITCH2_PINS
     (const uint8_t []) FOOTSWITCH2_PINS,
+#endif    
+#ifdef FOOTSWITCH3_PINS
     (const uint8_t []) FOOTSWITCH3_PINS
+#endif    
 };
 
 
