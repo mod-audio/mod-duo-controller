@@ -1,3 +1,7 @@
+0.13.13
+=======
+   - FIX: doesn't remove parameter of screen 1 after turn off the turner (only with pedalboard: C DS1 Echo)
+
 0.13.12
 =======
    - FIX: sometimes an horizontal blank rect cut the graph
