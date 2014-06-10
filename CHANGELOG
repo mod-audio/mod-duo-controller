@@ -1,3 +1,7 @@
+0.13.12
+=======
+   - FIX: sometimes an horizontal blank rect cut the graph
+
 0.13.11
 =======
    - NEW: HMI user usability improved
