@@ -494,7 +494,7 @@ void control_chain_add(control_t *control)
     }
 }
 
-void control_chain_remove(int8_t effect_instance, const char *symbol)
+void control_chain_remove(int32_t effect_instance, const char *symbol)
 {
     control_t *control;
     uint32_t i;

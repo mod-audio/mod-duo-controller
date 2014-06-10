@@ -105,10 +105,10 @@ static void *g_update_data;
 */
 
 static void display_control_add(control_t *control);
-static void display_control_rm(int8_t effect_instance, const char *symbol);
+static void display_control_rm(int32_t effect_instance, const char *symbol);
 
 static void foot_control_add(control_t *control);
-static void foot_control_rm(int8_t effect_instance, const char *symbol);
+static void foot_control_rm(int32_t effect_instance, const char *symbol);
 
 static uint8_t bank_config_check(uint8_t foot);
 static void bank_config_update(uint8_t bank_func_idx);
@@ -129,7 +129,7 @@ static void bank_config_footer(void);
 */
 
 // search the control
-static control_t *search_control(int8_t effect_instance, const char *symbol, uint8_t *display)
+static control_t *search_control(int32_t effect_instance, const char *symbol, uint8_t *display)
 {
     uint8_t i;
     control_t *control;
@@ -250,7 +250,7 @@ static void display_control_add(control_t *control)
 }
 
 // control removed from display
-static void display_control_rm(int8_t effect_instance, const char *symbol)
+static void display_control_rm(int32_t effect_instance, const char *symbol)
 {
     uint8_t display;
 
@@ -425,7 +425,7 @@ static void foot_control_add(control_t *control)
 }
 
 // control removed from foot
-static void foot_control_rm(int8_t effect_instance, const char *symbol)
+static void foot_control_rm(int32_t effect_instance, const char *symbol)
 {
     uint8_t i, all_effects, all_controls;
 
@@ -1287,7 +1287,7 @@ void naveg_add_control(control_t *control)
     }
 }
 
-void naveg_remove_control(int8_t effect_instance, const char *symbol)
+void naveg_remove_control(int32_t effect_instance, const char *symbol)
 {
     if (!g_initialized) return;
 
@@ -1338,7 +1338,7 @@ void naveg_dec_control(uint8_t display)
     control_set(display, control);
 }
 
-void naveg_set_control(int8_t effect_instance, const char *symbol, float value)
+void naveg_set_control(int32_t effect_instance, const char *symbol, float value)
 {
     if (!g_initialized) return;
 
@@ -1360,7 +1360,7 @@ void naveg_set_control(int8_t effect_instance, const char *symbol, float value)
     }
 }
 
-float naveg_get_control(int8_t effect_instance, const char *symbol)
+float naveg_get_control(int32_t effect_instance, const char *symbol)
 {
     if (!g_initialized) return 0.0;
 

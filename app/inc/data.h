@@ -50,7 +50,7 @@ typedef struct CONTROL_T {
     uint8_t hardware_type, hardware_id;
     uint8_t actuator_type, actuator_id;
     char *label, *symbol, *unit;
-    int8_t effect_instance;
+    int32_t effect_instance;
     uint8_t properties;
     float value, minimum, maximum;
     int8_t step, steps;
