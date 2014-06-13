@@ -13,7 +13,6 @@
 #include "led.h"
 #include "hardware.h"
 #include "comm.h"
-#include "chain.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -1281,10 +1280,6 @@ void naveg_add_control(control_t *control)
                 break;
         }
     }
-    else
-    {
-        control_chain_add(control);
-    }
 }
 
 void naveg_remove_control(int8_t effect_instance, const char *symbol)
@@ -1293,7 +1288,6 @@ void naveg_remove_control(int8_t effect_instance, const char *symbol)
 
     display_control_rm(effect_instance, symbol);
     foot_control_rm(effect_instance, symbol);
-    control_chain_remove(effect_instance, symbol);
 }
 
 void naveg_inc_control(uint8_t display)

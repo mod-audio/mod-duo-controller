@@ -235,6 +235,8 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define HW_DISCONNECTED_CMD     "hw_dis %i %i"
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
+// chain <binary_data>
+#define CHAIN_CMD               "chain ..."
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -351,7 +353,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 //// Serial Configurations
 // serial baudrates
 #define SERIAL1_BAUDRATE        115200
-#define SERIAL2_BAUDRATE        230400
+#define SERIAL2_BAUDRATE        500000
 // If the serial ISR uses freeRTOS API, the priorities values must be
 // equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
 #define SERIAL1_PRIORITY        6

@@ -111,6 +111,7 @@ static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
 static void xrun_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
+static void chain_cb(proto_t *proto);
 
 
 /*
@@ -158,15 +159,15 @@ int main(void)
 // this callback is called from a ISR
 static void serial_cb(uint8_t port)
 {
-    char buffer[SERIAL_RX_BUFFER_SIZE];
+    uint8_t buffer[SERIAL_RX_BUFFER_SIZE];
     uint32_t read_bytes;
 
-    read_bytes = serial_read(port, (uint8_t*) buffer, sizeof(buffer));
+    read_bytes = serial_read(port, buffer, sizeof(buffer));
 
     if (port == CLI_SERIAL)
-        cli_append_data(buffer, read_bytes);
-    else if (port == CONTROL_CHAIN_SERIAL)
-        control_chain_append_data((uint8_t*) buffer, read_bytes);
+        cli_append_data((const char *)buffer, read_bytes);
+    else if (port == CONTROL_CHAIN_SERIAL && g_ui_communication_started)
+        chain_dev2ui_push(buffer, read_bytes);
 }
 
 // this callback is called from UART ISR in case of error
@@ -315,6 +316,9 @@ static void monitor_task(void *pvParameters)
         // process the command line
         cli_process();
 
+        // TODO: timer for navigation update
+        //naveg_update();
+
         taskYIELD();
     }
 }
@@ -323,25 +327,16 @@ static void chain_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
-    portTickType xLastWakeTime;
-    xLastWakeTime = xTaskGetTickCount();
-
-    static uint32_t update_count = 0;
-
     while (1)
     {
-        // process the control chain data
-        control_chain_process();
+        // As soon as a message is received from control chain the message will be
+        // directed to UI. The below function implements a binary semaphore internally.
+        uint32_t read = chain_dev2ui_pop(g_msg_buffer, CDC_RX_BUFFER_SIZE);
 
-        // FIXME: here isn't the right place to put this (temporary solution)
-        // checks if need update the navigation screen
-        if (update_count++ >= (NAVEG_UPDATE_TIME / CONTROL_CHAIN_PERIOD))
-        {
-            update_count = 0;
-            naveg_update();
-        }
+        // sends the message to UI. Ignores the last byte (read - 1) to prevent send the \0 twice.
+        if (read) comm_webgui_send((const char*)g_msg_buffer, read-1);
 
-        vTaskDelayUntil(&xLastWakeTime, (CONTROL_CHAIN_PERIOD / portTICK_RATE_MS));
+        taskYIELD();
     }
 }
 
@@ -360,12 +355,15 @@ static void setup_task(void *pvParameters)
     // cdc initialization
     CDC_Init();
 
+    // initialize the control chain
+    chain_init();
+
     // create the queues
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create the tasks
     xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 3, NULL);
-    xTaskCreate(chain_task, TASK_NAME("chain"), 256, NULL, 3, NULL);
+    xTaskCreate(chain_task, TASK_NAME("chain"), 256, NULL, 4, NULL);
     xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
     xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
@@ -413,6 +411,7 @@ static void setup_task(void *pvParameters)
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(XRUN_CMD, xrun_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
+    protocol_add_command(CHAIN_CMD, chain_cb);
 
     // usb initialization
     USB_Init(1);
@@ -605,6 +604,13 @@ static void resp_cb(proto_t *proto)
 {
     comm_webgui_response_cb(proto->list);
 }
+
+static void chain_cb(proto_t *proto)
+{
+    chain_ui2dev(proto->list[1]);
+    protocol_response("resp 0", proto);
+}
+
 
 /*
 ************************************************************************************************************************
