@@ -430,6 +430,7 @@ static void control_set(control_t *control)
 
     // send the data to GUI
     comm_webgui_send(buffer, i);
+    comm_webgui_wait_response();
 }
 
 

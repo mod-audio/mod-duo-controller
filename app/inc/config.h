@@ -457,7 +457,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // defines the maximum of actuators per hardware devices
 #define CONTROL_CHAIN_MAX_ACTUATORS_PER_DEVICES     32
 // defines the external devices timeout (in milliseconds)
-#define CONTROL_CHAIN_TIMEOUT                       1000
+#define CONTROL_CHAIN_TIMEOUT                       2000
 // defines the external devices period requests (in ms)
 #define CONTROL_CHAIN_PERIOD                        5
 // defines the control chain functions
