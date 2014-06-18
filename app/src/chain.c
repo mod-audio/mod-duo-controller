@@ -172,6 +172,7 @@ static uint8_t chain_fake_fsm(uint8_t byte)
             tmp <<= 8;
             data_size |= tmp;
             state++;
+            if (data_size == 0) state++;
             break;
 
         case DATA:
