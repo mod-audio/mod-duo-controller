@@ -6,10 +6,6 @@
 */
 
 #include "serial.h"
-#include "utils.h"
-#include "config.h"
-#include "hardware.h"
-
 #include "device.h"
 
 
@@ -19,13 +15,10 @@
 ************************************************************************************************************************
 */
 
-#define UART_COUNT      4
 #define UART0           ((LPC_UART_TypeDef *)LPC_UART0)
 #define UART1           ((LPC_UART_TypeDef *)LPC_UART1)
 #define UART2           ((LPC_UART_TypeDef *)LPC_UART2)
 #define UART3           ((LPC_UART_TypeDef *)LPC_UART3)
-
-#define FIFO_TRIGGER    8
 
 
 /*
@@ -53,6 +46,14 @@
                              (port) == 2 ? UART2 : \
                              (port) == 3 ? UART3 : 0)
 
+#ifdef OUTPUT_ENABLE_ACTIVE_IN_HIGH
+#define WRITE_MODE(s)   if (s->has_oe) {SET_PIN(s->oe_port, s->oe_pin); delay_us(OUTPUT_ENABLE_DELAY);}
+#define READ_MODE(s)    if (s->has_oe) CLR_PIN(s->oe_port, s->oe_pin);
+#elif  OUTPUT_ENABLE_ACTIVE_IN_LOW
+#define WRITE_MODE(s)   if (s->has_oe) {CLR_PIN(s->oe_port, s->oe_pin); delay_us(OUTPUT_ENABLE_DELAY);}
+#define READ_MODE(s)    if (s->has_oe) SET_PIN(s->oe_port, s->oe_pin);
+#endif
+
 
 /*
 ************************************************************************************************************************
@@ -60,8 +61,7 @@
 ************************************************************************************************************************
 */
 
-static void (*g_callback[UART_COUNT])(uint8_t port);
-static ringbuff_t *g_rx_buffer[UART_COUNT], *g_tx_buffer[UART_COUNT];
+static serial_t *g_serial_instances[SERIAL_MAX_INSTANCES];
 
 
 /*
@@ -84,9 +84,9 @@ static ringbuff_t *g_rx_buffer[UART_COUNT], *g_tx_buffer[UART_COUNT];
 ************************************************************************************************************************
 */
 
-static void uart_receive(uint8_t port)
+static void uart_receive(serial_t *serial)
 {
-    LPC_UART_TypeDef *uart = GET_UART(port);
+    LPC_UART_TypeDef *uart = GET_UART(serial->uart_id);
 
     uint32_t count, written;
     uint8_t buffer[FIFO_TRIGGER];
@@ -96,23 +96,23 @@ static void uart_receive(uint8_t port)
     count = UART_Receive(uart, buffer, FIFO_TRIGGER-1, NONE_BLOCKING);
 
     // writes the data to ring buffer
-    written = ringbuff_write(g_rx_buffer[port], buffer, count);
+    written = ringbuff_write(serial->rx_buffer, buffer, count);
 
     // checks if all data fits on ring buffer
     if (written != count)
     {
         // invokes the callback because the buffer is full
-        g_callback[port](port);
+        if (serial->rx_callback) serial->rx_callback(serial);
 
         // writes the data left
         count = count - written;
-        written = ringbuff_write(g_rx_buffer[port], &buffer[written], count);
+        written = ringbuff_write(serial->rx_buffer, &buffer[written], count);
     }
 }
 
-static void uart_transmit(uint8_t port)
+static void uart_transmit(serial_t *serial)
 {
-    LPC_UART_TypeDef *uart = GET_UART(port);
+    LPC_UART_TypeDef *uart = GET_UART(serial->uart_id);
 
     // Disable THRE interrupt
     UART_IntConfig(uart, UART_INTCFG_THRE, DISABLE);
@@ -121,37 +121,34 @@ static void uart_transmit(uint8_t port)
     // Wait until THR empty
     while (UART_CheckBusy(uart) == SET);
 
-    // checks if is the control chain serial
-    if (port == CONTROL_CHAIN_SERIAL)
-        hardware_485_direction(TRANSMISSION);
+    // checks output enable pin
+    WRITE_MODE(serial);
 
     uint32_t count;
     uint8_t buffer[UART_TX_FIFO_SIZE];
 
-    count = ringbuff_read(g_tx_buffer[port], buffer, UART_TX_FIFO_SIZE);
+    count = ringbuff_read(serial->tx_buffer, buffer, UART_TX_FIFO_SIZE);
     if (count > 0) UART_Send(uart, buffer, count, NONE_BLOCKING);
 
     // Enable THRE interrupt if buffer is not empty
-    if (!ringbuf_is_empty(g_tx_buffer[port]))
+    if (!ringbuf_is_empty(serial->tx_buffer))
     {
         UART_IntConfig(uart, UART_INTCFG_THRE, ENABLE);
     }
     else
     {
-        // checks if is the control chain serial
-        if (port == CONTROL_CHAIN_SERIAL)
-        {
-            while (UART_CheckBusy(uart) == SET);
-            hardware_485_direction(RECEPTION);
-        }
+        while (UART_CheckBusy(uart) == SET);
+        READ_MODE(serial);
     }
 }
 
-static void uart_handler(uint8_t port)
+static void uart_handler(serial_t *serial)
 {
     uint32_t intsrc, tmp, status;
 
-    LPC_UART_TypeDef *uart = GET_UART(port);
+    if (!serial) return;
+
+    LPC_UART_TypeDef *uart = GET_UART(serial->uart_id);
 
     // Determine the interrupt source
     intsrc = UART_GetIntId(uart);
@@ -176,7 +173,7 @@ static void uart_handler(uint8_t port)
                 UART_Receive(uart, buffer, UART_TX_FIFO_SIZE, NONE_BLOCKING);
             }
 
-            serial_error(port, status);
+            serial_error(serial->uart_id, status);
             return;
         }
     }
@@ -184,19 +181,19 @@ static void uart_handler(uint8_t port)
     // Receive Data Available or Character time-out
     if ((tmp == UART_IIR_INTID_RDA) || (tmp == UART_IIR_INTID_CTI))
     {
-        uart_receive(port);
+        uart_receive(serial);
 
         // Character time-out
         if (tmp == UART_IIR_INTID_CTI)
         {
-            g_callback[port](port);
+            if (serial->rx_callback) serial->rx_callback(serial);
         }
     }
 
     // Transmit Holding Empty
     if (tmp == UART_IIR_INTID_THRE)
     {
-        uart_transmit(port);
+        uart_transmit(serial);
     }
 }
 
@@ -207,59 +204,41 @@ static void uart_handler(uint8_t port)
 ************************************************************************************************************************
 */
 
-void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
+void serial_init(serial_t *serial)
 {
-    // UART Configuration structure variable
-    UART_CFG_Type UARTConfigStruct;
-
-    // UART FIFO configuration Struct variable
-    UART_FIFO_CFG_Type UARTFIFOConfigStruct;
-
     LPC_UART_TypeDef *uart;
     IRQn_Type irq;
 
-    switch (port)
+    // pins setup
+    PINSEL_SetPinFunc(serial->rx_port, serial->rx_pin, serial->rx_function);
+    PINSEL_SetPinFunc(serial->tx_port, serial->tx_pin, serial->tx_function);
+
+    switch (serial->uart_id)
     {
         case 0:
-            // Initialize UART0 pin connect
-            // P0.2: U0_TXD
-            // P0.3: U0_RXD
-            PINSEL_SetPinFunc(0, 2, 1);
-            PINSEL_SetPinFunc(0, 3, 1);
             uart = UART0;
             irq = UART0_IRQn;
             break;
 
         case 1:
-            // Initialize UART1 pin connect
-            // P0.15: U1_TXD
-            // P0.16: U1_RXD
-            PINSEL_SetPinFunc(0, 15, 1);
-            PINSEL_SetPinFunc(0, 16, 1);
             uart = UART1;
             irq = UART1_IRQn;
             break;
 
         case 2:
-            // Initialize UART2 pin connect
-            // P0.10: U2_TXD
-            // P0.11: U2_RXD
-            PINSEL_SetPinFunc(0, 10, 1);
-            PINSEL_SetPinFunc(0, 11, 1);
             uart = UART2;
             irq = UART2_IRQn;
             break;
 
         case 3:
-            // Initialize UART3 pin connect
-            // P0.25: U3_TXD
-            // P0.26: U3_RXD
-            PINSEL_SetPinFunc(0, 25, 3);
-            PINSEL_SetPinFunc(0, 26, 3);
             uart = UART3;
             irq = UART3_IRQn;
             break;
     }
+
+
+    // UART Configuration structure variable
+    UART_CFG_Type UARTConfigStruct;
 
     // Initialize UART Configuration parameter structure to default state:
     // Baudrate = 9600bps
@@ -267,7 +246,10 @@ void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
     // 1 Stop bit
     // None parity
     UART_ConfigStructInit(&UARTConfigStruct);
-    UARTConfigStruct.Baud_rate = baudrate;
+    UARTConfigStruct.Baud_rate = serial->baud_rate;
+
+    // UART FIFO configuration Struct variable
+    UART_FIFO_CFG_Type UARTFIFOConfigStruct;
 
     // Initialize UART peripheral with given to corresponding parameter
     UART_Init(uart, &UARTConfigStruct);
@@ -304,24 +286,30 @@ void serial_init(uint8_t port, uint32_t baudrate, uint8_t priority)
     UART_IntConfig(uart, UART_INTCFG_RLS, ENABLE);
 
     // set priority
-    NVIC_SetPriority(irq, (priority << 3));
+    NVIC_SetPriority(irq, (serial->priority << 3));
 
     // Enable Interrupt for UART channel
     NVIC_EnableIRQ(irq);
 
     // creates the ring buffers
-    g_rx_buffer[port] = ringbuf_create(SERIAL_RX_BUFFER_SIZE+1);
-    g_tx_buffer[port] = ringbuf_create(SERIAL_TX_BUFFER_SIZE+1);
+    serial->rx_buffer = ringbuf_create(serial->rx_buffer_size + 1);
+    serial->tx_buffer = ringbuf_create(serial->tx_buffer_size + 1);
+
+    // initializes the receive callback pointing to null
+    serial->rx_callback = 0;
+
+    // checks if output enable is used
+    if (serial->has_oe) CONFIG_PIN_OUTPUT(serial->oe_port, serial->oe_pin);
+    READ_MODE(serial);
+
+    // stores a pointer to serial object
+    g_serial_instances[serial->uart_id] = serial;
 }
 
-void serial_set_callback(uint8_t port, void (*receive_cb)(uint8_t _port))
+uint32_t serial_send(uint8_t uart_id, const uint8_t *data, uint32_t data_size)
 {
-    g_callback[port] = receive_cb;
-}
-
-uint32_t serial_send(uint8_t port, const uint8_t *data, uint32_t data_size)
-{
-    LPC_UART_TypeDef *uart = GET_UART(port);
+    LPC_UART_TypeDef *uart = GET_UART(uart_id);
+    serial_t *serial = g_serial_instances[uart_id];
 
     // Temporarily lock out UART transmit interrupts during this
     // read so the UART transmit interrupt won't cause problems
@@ -329,18 +317,18 @@ uint32_t serial_send(uint8_t port, const uint8_t *data, uint32_t data_size)
     UART_IntConfig(uart, UART_INTCFG_THRE, DISABLE);
 
     uint32_t written, to_write, index;
-    written = ringbuff_write(g_tx_buffer[port], data, data_size);
+    written = ringbuff_write(serial->tx_buffer, data, data_size);
     to_write = data_size - written;
     index = written;
 
-    uart_transmit(port);
+    uart_transmit(serial);
 
     // waits until all data be sent
     while (to_write > 0)
     {
-        if (!ringbuf_is_full(g_tx_buffer[port]))
+        if (!ringbuf_is_full(serial->tx_buffer))
         {
-            written = ringbuff_write(g_tx_buffer[port], &data[index], to_write);
+            written = ringbuff_write(serial->tx_buffer, &data[index], to_write);
             to_write -= written;
             index += written;
         }
@@ -349,9 +337,10 @@ uint32_t serial_send(uint8_t port, const uint8_t *data, uint32_t data_size)
     return data_size;
 }
 
-uint32_t serial_read(uint8_t port, uint8_t *data, uint32_t data_size)
+uint32_t serial_read(uint8_t uart_id, uint8_t *data, uint32_t data_size)
 {
-    LPC_UART_TypeDef *uart = GET_UART(port);
+    LPC_UART_TypeDef *uart = GET_UART(uart_id);
+    serial_t *serial = g_serial_instances[uart_id];
 
     // Temporarily lock out UART receive interrupts during this
     // read so the UART receive interrupt won't cause problems
@@ -359,7 +348,7 @@ uint32_t serial_read(uint8_t port, uint8_t *data, uint32_t data_size)
     UART_IntConfig(uart, UART_INTCFG_RBR, DISABLE);
 
     uint32_t count;
-    count = ringbuff_read(g_rx_buffer[port], data, data_size);
+    count = ringbuff_read(serial->rx_buffer, data, data_size);
 
     // Re-enable UART interrupts
     UART_IntConfig(uart, UART_INTCFG_RBR, ENABLE);
@@ -367,22 +356,27 @@ uint32_t serial_read(uint8_t port, uint8_t *data, uint32_t data_size)
     return count;
 }
 
+void serial_set_callback(uint8_t uart_id, void (*receive_cb)(serial_t *serial))
+{
+    g_serial_instances[uart_id]->rx_callback = receive_cb;
+}
+
 void UART0_IRQHandler(void)
 {
-    uart_handler(0);
+    uart_handler(g_serial_instances[0]);
 }
 
 void UART1_IRQHandler(void)
 {
-    uart_handler(1);
+    uart_handler(g_serial_instances[1]);
 }
 
 void UART2_IRQHandler(void)
 {
-    uart_handler(2);
+    uart_handler(g_serial_instances[2]);
 }
 
 void UART3_IRQHandler(void)
 {
-    uart_handler(3);
+    uart_handler(g_serial_instances[3]);
 }

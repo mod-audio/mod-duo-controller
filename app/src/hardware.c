@@ -8,6 +8,7 @@
 #include "hardware.h"
 #include "config.h"
 #include "utils.h"
+#include "serial.h"
 #include "led.h"
 #include "actuator.h"
 #include "tpa6130.h"
@@ -119,6 +120,7 @@ struct COOLER_T {
 ************************************************************************************************************************
 */
 
+static serial_t g_serial[SERIAL_COUNT];
 static led_t g_leds[LEDS_COUNT];
 static encoder_t g_encoders[ENCODERS_COUNT];
 static button_t g_footswitches[FOOTSWITCHES_COUNT];
@@ -191,10 +193,6 @@ void hardware_setup(void)
     // true bypass
     GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
     hardware_set_true_bypass(BYPASS);
-
-    // RS485 direction
-    GPIO_SetDir(RS485_DIR_PORT, (1 << RS485_DIR_PIN), GPIO_DIRECTION_OUTPUT);
-    hardware_485_direction(RECEPTION);
 
     // SLOTs initialization
     uint8_t i;
@@ -286,6 +284,89 @@ void hardware_setup(void)
     NVIC_EnableIRQ(TIMER1_IRQn);
     // to start timer
     TIM_Cmd(LPC_TIM1, ENABLE);
+
+    ////////////////////////////////////////////////////////////////
+    // Serial initialization
+
+    #ifdef SERIAL0
+    g_serial[0].uart_id = 0;
+    g_serial[0].baud_rate = SERIAL0_BAUD_RATE;
+    g_serial[0].priority = SERIAL0_PRIORITY;
+    g_serial[0].rx_port = SERIAL0_RX_PORT;
+    g_serial[0].rx_pin = SERIAL0_RX_PIN;
+    g_serial[0].rx_function = SERIAL0_RX_FUNC;
+    g_serial[0].rx_buffer_size = SERIAL0_RX_BUFF_SIZE;
+    g_serial[0].tx_port = SERIAL0_TX_PORT;
+    g_serial[0].tx_pin = SERIAL0_TX_PIN;
+    g_serial[0].tx_function = SERIAL0_TX_FUNC;
+    g_serial[0].tx_buffer_size = SERIAL0_TX_BUFF_SIZE;
+    g_serial[0].has_oe = SERIAL0_HAS_OE;
+    #if SERIAL0_HAS_OE
+    g_serial[0].oe_port = SERIAL0_OE_PORT;
+    g_serial[0].oe_pin = SERIAL0_OE_PIN;
+    #endif
+    serial_init(&g_serial[0]);
+    #endif
+
+    #ifdef SERIAL1
+    g_serial[1].uart_id = 1;
+    g_serial[1].baud_rate = SERIAL1_BAUD_RATE;
+    g_serial[1].priority = SERIAL1_PRIORITY;
+    g_serial[1].rx_port = SERIAL1_RX_PORT;
+    g_serial[1].rx_pin = SERIAL1_RX_PIN;
+    g_serial[1].rx_function = SERIAL1_RX_FUNC;
+    g_serial[1].rx_buffer_size = SERIAL1_RX_BUFF_SIZE;
+    g_serial[1].tx_port = SERIAL1_TX_PORT;
+    g_serial[1].tx_pin = SERIAL1_TX_PIN;
+    g_serial[1].tx_function = SERIAL1_TX_FUNC;
+    g_serial[1].tx_buffer_size = SERIAL1_TX_BUFF_SIZE;
+    g_serial[1].has_oe = SERIAL1_HAS_OE;
+    #if SERIAL1_HAS_OE
+    g_serial[1].oe_port = SERIAL1_OE_PORT;
+    g_serial[1].oe_pin = SERIAL1_OE_PIN;
+    #endif
+    serial_init(&g_serial[1]);
+    #endif
+
+    #ifdef SERIAL2
+    g_serial[2].uart_id = 2;
+    g_serial[2].baud_rate = SERIAL2_BAUD_RATE;
+    g_serial[2].priority = SERIAL2_PRIORITY;
+    g_serial[2].rx_port = SERIAL2_RX_PORT;
+    g_serial[2].rx_pin = SERIAL2_RX_PIN;
+    g_serial[2].rx_function = SERIAL2_RX_FUNC;
+    g_serial[2].rx_buffer_size = SERIAL2_RX_BUFF_SIZE;
+    g_serial[2].tx_port = SERIAL2_TX_PORT;
+    g_serial[2].tx_pin = SERIAL2_TX_PIN;
+    g_serial[2].tx_function = SERIAL2_TX_FUNC;
+    g_serial[2].tx_buffer_size = SERIAL2_TX_BUFF_SIZE;
+    g_serial[2].has_oe = SERIAL2_HAS_OE;
+    #if SERIAL2_HAS_OE
+    g_serial[2].oe_port = SERIAL2_OE_PORT;
+    g_serial[2].oe_pin = SERIAL2_OE_PIN;
+    #endif
+    serial_init(&g_serial[2]);
+    #endif
+
+    #ifdef SERIAL3
+    g_serial[3].uart_id = 3;
+    g_serial[3].baud_rate = SERIAL3_BAUD_RATE;
+    g_serial[3].priority = SERIAL3_PRIORITY;
+    g_serial[3].rx_port = SERIAL3_RX_PORT;
+    g_serial[3].rx_pin = SERIAL3_RX_PIN;
+    g_serial[3].rx_function = SERIAL3_RX_FUNC;
+    g_serial[3].rx_buffer_size = SERIAL3_RX_BUFF_SIZE;
+    g_serial[3].tx_port = SERIAL3_TX_PORT;
+    g_serial[3].tx_pin = SERIAL3_TX_PIN;
+    g_serial[3].tx_function = SERIAL3_TX_FUNC;
+    g_serial[3].tx_buffer_size = SERIAL3_TX_BUFF_SIZE;
+    g_serial[3].has_oe = SERIAL3_HAS_OE;
+    #if SERIAL3_HAS_OE
+    g_serial[3].oe_port = SERIAL3_OE_PORT;
+    g_serial[3].oe_pin = SERIAL3_OE_PIN;
+    #endif
+    serial_init(&g_serial[3]);
+    #endif
 }
 
 led_t *hardware_leds(uint8_t led_id)
@@ -369,16 +450,6 @@ void hardware_reset(uint8_t unblock)
 {
     if (unblock) UNBLOCK_ARM_RESET();
     else BLOCK_ARM_RESET();
-}
-
-void hardware_485_direction(uint8_t direction)
-{
-    if (direction == RECEPTION)
-        GPIO_ClearValue(RS485_DIR_PORT, (1 << RS485_DIR_PIN));
-    else
-        GPIO_SetValue(RS485_DIR_PORT, (1 << RS485_DIR_PIN));
-
-    delay_us(100);
 }
 
 void hardware_cpu_power(uint8_t power)
