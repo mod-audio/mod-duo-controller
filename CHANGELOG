@@ -1,7 +1,11 @@
+0.13.15
+=======
+   - NEW: knob hold time to access the secondary function decreased
+
 0.13.14
 =======
-- FIX: HMI won't freeze after save a pedalboard in the same moment that expression pedal is being used
-- FIX: HMI won't freeze after install a new effect when a parameter is assigned to expression pedal
+  - FIX: HMI won't freeze after save a pedalboard in the same moment that expression pedal is being used
+  - FIX: HMI won't freeze after install a new effect when a parameter is assigned to expression pedal
 
 0.13.13
 =======
