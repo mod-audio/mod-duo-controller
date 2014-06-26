@@ -250,7 +250,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define NAVEG_UPDATE_TIME   1500
 
 // time in milliseconds to enter in tool mode (hold rotary encoder button)
-#define TOOL_MODE_TIME      1500
+#define TOOL_MODE_TIME      500
 
 // setup of tools on displays
 #define TOOL_DISPLAY0       TOOL_SYSTEM
