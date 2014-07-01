@@ -168,7 +168,7 @@ static void serial_cb(serial_t *serial)
     if (uart_id == CLI_SERIAL)
         cli_append_data((const char*)buffer, read_bytes);
     else if (uart_id == CONTROL_CHAIN_SERIAL && g_ui_communication_started)
-        chain_dev2ui_push(buffer, read_bytes);
+        chain_dev2ui_push(buffer, read_bytes, serial->eof);
 }
 
 // this callback is called from UART ISR in case of error
