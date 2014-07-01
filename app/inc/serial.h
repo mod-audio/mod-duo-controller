@@ -55,7 +55,7 @@
 typedef struct SERIAL_T {
     uint8_t uart_id;
     uint32_t baud_rate;
-    uint8_t priority;
+    uint8_t priority, eof;
     uint8_t rx_port, rx_pin, rx_function;
     uint8_t tx_port, tx_pin, tx_function;
     uint32_t rx_buffer_size;

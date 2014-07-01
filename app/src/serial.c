@@ -181,11 +181,13 @@ static void uart_handler(serial_t *serial)
     // Receive Data Available or Character time-out
     if ((tmp == UART_IIR_INTID_RDA) || (tmp == UART_IIR_INTID_CTI))
     {
+        serial->eof = 0;
         uart_receive(serial);
 
         // Character time-out
         if (tmp == UART_IIR_INTID_CTI)
         {
+            serial->eof = 1;
             if (serial->rx_callback) serial->rx_callback(serial);
         }
     }
@@ -295,8 +297,9 @@ void serial_init(serial_t *serial)
     serial->rx_buffer = ringbuf_create(serial->rx_buffer_size + 1);
     serial->tx_buffer = ringbuf_create(serial->tx_buffer_size + 1);
 
-    // initializes the receive callback pointing to null
+    // initializes the struct vars
     serial->rx_callback = 0;
+    serial->eof = 0;
 
     // checks if output enable is used
     if (serial->has_oe) CONFIG_PIN_OUTPUT(serial->oe_port, serial->oe_pin);
