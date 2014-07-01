@@ -264,7 +264,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
 // chain <binary_data>
-#define CHAIN_CMD               "chain ..."
+#define CHAIN_CMD               "chain %s"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0

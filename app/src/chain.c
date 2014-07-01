@@ -89,17 +89,20 @@ static uint8_t copy_command(char *buffer, const char *command)
 
 static void encode(uint8_t byte)
 {
+    uint8_t aux[2];
+
+    aux[0] = CONTROL_CHAIN_ESCAPE_BYTE;
+
     if (byte == CONTROL_CHAIN_ESCAPE_BYTE)
     {
-        ringbuff_write(g_proxy_rb, &byte, 1);
-        ringbuff_write(g_proxy_rb, &byte, 1);
+        aux[1] = CONTROL_CHAIN_ESCAPE_BYTE;
+        ringbuff_write(g_proxy_rb, aux, 2);
     }
-    else if (byte == CONTROL_CHAIN_END_BYTE)
+    else if (byte == CONTROL_CHAIN_END_BYTE ||
+             byte == CONTROL_CHAIN_QUOTATION)
     {
-        byte = CONTROL_CHAIN_ESCAPE_BYTE;
-        ringbuff_write(g_proxy_rb, &byte, 1);
-        byte = ~CONTROL_CHAIN_END_BYTE;
-        ringbuff_write(g_proxy_rb, &byte, 1);
+        aux[1] = ~byte;
+        ringbuff_write(g_proxy_rb, aux, 2);
     }
     else
     {
@@ -119,6 +122,8 @@ static uint8_t decode(uint8_t byte, uint8_t *decoded)
             (*decoded) = CONTROL_CHAIN_ESCAPE_BYTE;
         else if (byte == (uint8_t)(~CONTROL_CHAIN_END_BYTE))
             (*decoded) = CONTROL_CHAIN_END_BYTE;
+        else if (byte == (uint8_t)(~CONTROL_CHAIN_QUOTATION))
+            (*decoded) = CONTROL_CHAIN_QUOTATION;
 
         escape = 0;
     }
@@ -156,6 +161,8 @@ void chain_dev2ui_push(const uint8_t* data_chunk, uint32_t data_size, uint8_t eo
         if (data_chunk[i] == CONTROL_CHAIN_SYNC_BYTE)
         {
             ringbuff_write(g_proxy_rb, (uint8_t*)CHAIN_CMD, copy_command(0, CHAIN_CMD));
+            uint8_t aux = CONTROL_CHAIN_QUOTATION;
+            ringbuff_write(g_proxy_rb, &aux, 1);
         }
 
         // encode the byte and write to buffer
@@ -165,8 +172,8 @@ void chain_dev2ui_push(const uint8_t* data_chunk, uint32_t data_size, uint8_t eo
     // check whether is end of frame
     if (eof)
     {
-        uint8_t aux = CONTROL_CHAIN_END_BYTE;
-        ringbuff_write(g_proxy_rb, &aux, 1);
+        const uint8_t aux[2] = {CONTROL_CHAIN_QUOTATION, CONTROL_CHAIN_END_BYTE};
+        ringbuff_write(g_proxy_rb, aux, 2);
         xSemaphoreGive(g_cc_msg_sem);
     }
 }

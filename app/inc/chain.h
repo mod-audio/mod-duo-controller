@@ -35,6 +35,7 @@
 // Those special bytes are used in the communication between HMI and UI
 #define CONTROL_CHAIN_ESCAPE_BYTE   0x5C
 #define CONTROL_CHAIN_END_BYTE      0x00
+#define CONTROL_CHAIN_QUOTATION     0x22
 
 #define CONTROL_CHAIN_SYNC_BYTE     0xAA
 #define CONTROL_CHAIN_HOST_ID       0x00
