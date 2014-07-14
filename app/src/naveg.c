@@ -218,6 +218,7 @@ static void display_control_add(control_t *control)
             break;
 
         case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
             control->step = 0;
             uint8_t i;
             for (i = 0; i < control->scale_points_count; i++)

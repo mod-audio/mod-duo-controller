@@ -240,13 +240,14 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
-#define CONTROL_PROP_LOGARITHMIC    1
-#define CONTROL_PROP_ENUMERATION    2
-#define CONTROL_PROP_TOGGLED        3
-#define CONTROL_PROP_TRIGGER        4
-#define CONTROL_PROP_TAP_TEMPO      5
-#define CONTROL_PROP_BYPASS         6
-#define CONTROL_PROP_INTEGER        7
+#define CONTROL_PROP_BYPASS         1
+#define CONTROL_PROP_TAP_TEMPO      2
+#define CONTROL_PROP_ENUMERATION    4
+#define CONTROL_PROP_SCALE_POINTS   8
+#define CONTROL_PROP_TRIGGER        16
+#define CONTROL_PROP_TOGGLED        32
+#define CONTROL_PROP_LOGARITHMIC    64
+#define CONTROL_PROP_INTEGER        128
 
 //// Banks functions definition
 #define BANK_FUNC_NONE              0
