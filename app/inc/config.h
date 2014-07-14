@@ -20,6 +20,38 @@
                                         FIO_ByteClearValue((port), 0, (uint8_t)(~value))
 #define READ_PORT(port)                 FIO_ByteReadValue((port), (0))
 
+//// Serial definitions
+// If the UART ISR (or callbacks) uses freeRTOS API, the priorities values must be
+// equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
+// SERIAL1
+#define SERIAL1
+#define SERIAL1_BAUD_RATE       115200
+#define SERIAL1_PRIORITY        6
+#define SERIAL1_RX_PORT         0
+#define SERIAL1_RX_PIN          15
+#define SERIAL1_RX_FUNC         1
+#define SERIAL1_RX_BUFF_SIZE    32
+#define SERIAL1_TX_PORT         0
+#define SERIAL1_TX_PIN          16
+#define SERIAL1_TX_FUNC         1
+#define SERIAL1_TX_BUFF_SIZE    32
+#define SERIAL1_HAS_OE          0
+// SERIAL2
+#define SERIAL2
+#define SERIAL2_BAUD_RATE       500000
+#define SERIAL2_PRIORITY        4
+#define SERIAL2_RX_PORT         0
+#define SERIAL2_RX_PIN          10
+#define SERIAL2_RX_FUNC         1
+#define SERIAL2_RX_BUFF_SIZE    32
+#define SERIAL2_TX_PORT         0
+#define SERIAL2_TX_PIN          11
+#define SERIAL2_TX_FUNC         1
+#define SERIAL2_TX_BUFF_SIZE    32
+#define SERIAL2_HAS_OE          1
+#define SERIAL2_OE_PORT         1
+#define SERIAL2_OE_PIN          12
+
 //// Hardwares types (device identification)
 #define MOD_HARDWARE        0
 #define EXP_PEDAL_HW        1
@@ -163,10 +195,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // ADC NTC channel
 #define NTC_ADC_CHANNEL         0
 
-//// RS485 direction port and pin definition
-#define RS485_DIR_PORT          1
-#define RS485_DIR_PIN           12
-
 
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
@@ -236,7 +264,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
 // chain <binary_data>
-#define CHAIN_CMD               "chain ..."
+#define CHAIN_CMD               "chain %s"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -257,7 +285,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define BANK_FUNC_AMOUNT            4
 
 //// Tools configuration
-
 // navigation update time, this is only useful in tool mode
 #define NAVEG_UPDATE_TIME   1500
 
@@ -350,15 +377,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define XRUN_TIMEOUT            1000
 // clipmeter timeout (in milliseconds)
 #define CLIPMETER_TIMEOUT       100
-
-//// Serial Configurations
-// serial baudrates
-#define SERIAL1_BAUDRATE        115200
-#define SERIAL2_BAUDRATE        500000
-// If the serial ISR uses freeRTOS API, the priorities values must be
-// equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
-#define SERIAL1_PRIORITY        6
-#define SERIAL2_PRIORITY        4
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
@@ -471,7 +489,10 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 
 ////////////////////////////////////////////////////////////////
-////// AUTO DEFINEs - DON'T CHANGE
+////// DON'T CHANGE THIS DEFINES
+
+// serial count definition
+#define SERIAL_COUNT    4
 
 // system menu display definition
 #if (TOOL_SYSTEM == TOOL_DISPLAY0)

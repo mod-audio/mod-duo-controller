@@ -19,8 +19,6 @@
 ************************************************************************************************************************
 */
 
-enum {SYNC, DESTINATION, ORIGIN, FUNCTION, DATA_SIZE_LSB, DATA_SIZE_MSB, DATA, MSG_OK, CHECK, UNKNOWN = 0xFF};
-
 
 /*
 ************************************************************************************************************************
@@ -91,17 +89,20 @@ static uint8_t copy_command(char *buffer, const char *command)
 
 static void encode(uint8_t byte)
 {
+    uint8_t aux[2];
+
+    aux[0] = CONTROL_CHAIN_ESCAPE_BYTE;
+
     if (byte == CONTROL_CHAIN_ESCAPE_BYTE)
     {
-        ringbuff_write(g_proxy_rb, &byte, 1);
-        ringbuff_write(g_proxy_rb, &byte, 1);
+        aux[1] = CONTROL_CHAIN_ESCAPE_BYTE;
+        ringbuff_write(g_proxy_rb, aux, 2);
     }
-    else if (byte == CONTROL_CHAIN_END_BYTE)
+    else if (byte == CONTROL_CHAIN_END_BYTE ||
+             byte == CONTROL_CHAIN_QUOTATION)
     {
-        byte = CONTROL_CHAIN_ESCAPE_BYTE;
-        ringbuff_write(g_proxy_rb, &byte, 1);
-        byte = ~CONTROL_CHAIN_END_BYTE;
-        ringbuff_write(g_proxy_rb, &byte, 1);
+        aux[1] = ~byte;
+        ringbuff_write(g_proxy_rb, aux, 2);
     }
     else
     {
@@ -121,6 +122,8 @@ static uint8_t decode(uint8_t byte, uint8_t *decoded)
             (*decoded) = CONTROL_CHAIN_ESCAPE_BYTE;
         else if (byte == (uint8_t)(~CONTROL_CHAIN_END_BYTE))
             (*decoded) = CONTROL_CHAIN_END_BYTE;
+        else if (byte == (uint8_t)(~CONTROL_CHAIN_QUOTATION))
+            (*decoded) = CONTROL_CHAIN_QUOTATION;
 
         escape = 0;
     }
@@ -131,61 +134,6 @@ static uint8_t decode(uint8_t byte, uint8_t *decoded)
     }
 
     return 1;
-}
-
-static uint8_t chain_fake_fsm(uint8_t byte)
-{
-    static uint8_t state = UNKNOWN;
-    static uint16_t data_size, data_received;
-    uint16_t tmp;
-
-    if (byte == CONTROL_CHAIN_SYNC_BYTE) state = SYNC;
-
-    uint8_t _state = state;
-    switch (state)
-    {
-        case SYNC:
-            data_size = 0;
-            data_received = 0;
-            state++;
-            break;
-
-        case DESTINATION:
-            state++;
-            break;
-
-        case ORIGIN:
-            state++;
-            break;
-
-        case FUNCTION:
-            state++;
-            break;
-
-        case DATA_SIZE_LSB:
-            data_size = byte;
-            state++;
-            break;
-
-        case DATA_SIZE_MSB:
-            tmp = byte;
-            tmp <<= 8;
-            data_size |= tmp;
-            state++;
-            if (data_size == 0) state++;
-            break;
-
-        case DATA:
-            data_received++;
-            if (data_received == data_size) state = CHECK;
-            break;
-
-        case CHECK:
-            state = UNKNOWN;
-            return MSG_OK;
-    }
-
-    return _state;
 }
 
 
@@ -201,7 +149,7 @@ void chain_init(void)
     g_proxy_rb = ringbuf_create(CONTROL_CHAIN_BUFFER_SIZE);
 }
 
-void chain_dev2ui_push(const uint8_t* data_chunk, uint32_t data_size)
+void chain_dev2ui_push(const uint8_t* data_chunk, uint32_t data_size, uint8_t eof)
 {
     uint32_t i;
 
@@ -209,25 +157,24 @@ void chain_dev2ui_push(const uint8_t* data_chunk, uint32_t data_size)
 
     for (i = 0; i < data_size; i++)
     {
-        uint8_t state = chain_fake_fsm(data_chunk[i]);
-
-        // check whether is sync state
-        if (state == SYNC)
+        // check whether is sync byte
+        if (data_chunk[i] == CONTROL_CHAIN_SYNC_BYTE)
         {
             ringbuff_write(g_proxy_rb, (uint8_t*)CHAIN_CMD, copy_command(0, CHAIN_CMD));
-        }
-
-        // encode the byte if is in a valid state
-        if (state != UNKNOWN)
-            encode(data_chunk[i]);
-
-        // check whether received a message
-        if (state == MSG_OK)
-        {
-            uint8_t aux = CONTROL_CHAIN_END_BYTE;
+            uint8_t aux = CONTROL_CHAIN_QUOTATION;
             ringbuff_write(g_proxy_rb, &aux, 1);
-            xSemaphoreGive(g_cc_msg_sem);
         }
+
+        // encode the byte and write to buffer
+        encode(data_chunk[i]);
+    }
+
+    // check whether is end of frame
+    if (eof)
+    {
+        const uint8_t aux[2] = {CONTROL_CHAIN_QUOTATION, CONTROL_CHAIN_END_BYTE};
+        ringbuff_write(g_proxy_rb, aux, 2);
+        xSemaphoreGive(g_cc_msg_sem);
     }
 }
 

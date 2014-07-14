@@ -82,7 +82,7 @@ static uint8_t g_ui_communication_started;
 */
 
 // local functions
-static void serial_cb(uint8_t port);
+static void serial_cb(serial_t *serial);
 static void actuators_cb(void *actuator);
 
 // tasks
@@ -157,23 +157,24 @@ int main(void)
 */
 
 // this callback is called from a ISR
-static void serial_cb(uint8_t port)
+static void serial_cb(serial_t *serial)
 {
-    uint8_t buffer[SERIAL_RX_BUFFER_SIZE];
     uint32_t read_bytes;
+    uint8_t uart_id, buffer[SERIAL1_RX_BUFF_SIZE];
 
-    read_bytes = serial_read(port, buffer, sizeof(buffer));
+    uart_id = serial->uart_id;
+    read_bytes = serial_read(uart_id, buffer, sizeof(buffer));
 
-    if (port == CLI_SERIAL)
-        cli_append_data((const char *)buffer, read_bytes);
-    else if (port == CONTROL_CHAIN_SERIAL && g_ui_communication_started)
-        chain_dev2ui_push(buffer, read_bytes);
+    if (uart_id == CLI_SERIAL)
+        cli_append_data((const char*)buffer, read_bytes);
+    else if (uart_id == CONTROL_CHAIN_SERIAL && g_ui_communication_started)
+        chain_dev2ui_push(buffer, read_bytes, serial->eof);
 }
 
 // this callback is called from UART ISR in case of error
-void serial_error(uint8_t port, uint32_t error)
+void serial_error(uint8_t uart_id, uint32_t error)
 {
-    UNUSED_PARAM(port);
+    UNUSED_PARAM(uart_id);
     UNUSED_PARAM(error);
 }
 
@@ -344,13 +345,12 @@ static void setup_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
+    // set serial callbacks
+    serial_set_callback(CLI_SERIAL, serial_cb);
+    serial_set_callback(CONTROL_CHAIN_SERIAL, serial_cb);
+
     // displays initialization
     glcd_init();
-
-    // serial initialization and callbacks definitions
-    // serial 1 is used to commutication with linux console
-    serial_init(SERIAL1, SERIAL1_BAUDRATE, SERIAL1_PRIORITY);
-    serial_set_callback(SERIAL1, serial_cb);
 
     // cdc initialization
     CDC_Init();
@@ -438,10 +438,6 @@ static void setup_task(void *pvParameters)
 
     // init the navigation
     naveg_init();
-
-    // serial 2 is used to external devices communication
-    serial_init(SERIAL2, SERIAL2_BAUDRATE, SERIAL2_PRIORITY);
-    serial_set_callback(SERIAL2, serial_cb);
 
     // deletes itself
     vTaskDelete(NULL);
