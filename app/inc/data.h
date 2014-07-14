@@ -51,12 +51,13 @@ typedef struct CONTROL_T {
     uint8_t actuator_type, actuator_id;
     char *label, *symbol, *unit;
     int8_t effect_instance;
-    uint8_t properties;
+    uint8_t properties_mask;
     float value, minimum, maximum;
     int8_t step, steps;
     uint8_t controls_count, control_index;
     uint8_t scale_points_count;
     scale_point_t **scale_points;
+    uint8_t properties;
 } control_t;
 
 typedef struct BP_LIST_T {

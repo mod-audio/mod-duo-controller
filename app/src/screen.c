@@ -265,7 +265,7 @@ void screen_control(uint8_t display, control_t *control)
     }
 
     // list type control
-    else if (control->properties == CONTROL_PROP_ENUMERATION)
+    else if (control->properties == CONTROL_PROP_ENUMERATION || control->properties == CONTROL_PROP_SCALE_POINTS)
     {
         static char *labels_list[128];
 

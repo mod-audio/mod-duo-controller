@@ -168,6 +168,7 @@ static void step_to_value(control_t *control)
             break;
 
         case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
             control->value = control->scale_points[control->step]->value;
             break;
     }
@@ -400,6 +401,7 @@ static void foot_control_add(control_t *control)
             break;
 
         case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
             // updates the led
             led_set_color(hardware_leds(control->actuator_id), ENUMERATED_COLOR);
 
@@ -477,6 +479,7 @@ static void control_set(uint8_t display, control_t *control)
             break;
 
         case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
             if (control->actuator_type == KNOB)
             {
                 // update the screen
