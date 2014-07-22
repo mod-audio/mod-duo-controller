@@ -104,6 +104,8 @@ uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size);
 uint32_t ringbuff_read_until(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size, uint8_t token);
 // ringbuff_size: returns the amount of unread bytes
 uint32_t ringbuff_size(ringbuff_t *rb);
+// ringbuff_free_space: returns the amount of free bytes
+uint32_t ringbuff_free_space(ringbuff_t *rb);
 // ringbuff_is_full: returns non zero is buffer is full
 uint32_t ringbuf_is_full(ringbuff_t *rb);
 // ringbuff_is_empty: returns non zero is buffer is empty

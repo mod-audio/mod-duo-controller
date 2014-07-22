@@ -16,7 +16,7 @@
 
 static ringbuff_t *g_rx_buffer, *g_tx_buffer;
 static xSemaphoreHandle g_msg_sem;
-static uint8_t g_cdc_initialized = 0, g_send_ok;
+static uint8_t g_cdc_initialized = 0;
 
 static void check_end_of_message(uint8_t *buffer, uint32_t buffer_size)
 {
@@ -161,7 +161,6 @@ void CDC_Init(void)
 
     g_msg_sem = xSemaphoreCreateCounting(CDC_MAX_MESSAGE_COUNT, 0);
     g_cdc_initialized = 1;
-    g_send_ok = 1;
 }
 
 uint32_t CDC_GetMessage(uint8_t *buffer, uint32_t buffer_size)
@@ -180,15 +179,17 @@ uint32_t CDC_GetMessage(uint8_t *buffer, uint32_t buffer_size)
 
 void CDC_Send(const uint8_t *data, uint32_t data_size)
 {
-    // block until all bytes be sent
-    while (!g_send_ok);
-    g_send_ok = 0;
+    // check if there is free space to store the buffer
+    while (ringbuff_free_space(g_tx_buffer) < data_size);
+
+    uint8_t send = 0;
+    if (ringbuff_size(g_tx_buffer) == 0) send = 1;
 
     // puts the data into ring buffer
     ringbuff_write(g_tx_buffer, data, data_size);
 
     // forces send
-    CDC_BulkIn();
+    if (send) CDC_BulkIn();
 }
 
 void CDC_BulkOut(void)
@@ -219,6 +220,4 @@ void CDC_BulkIn(void)
 
     if (bytes_to_write > 0)
         USB_WriteEP(CDC_DEP_IN, buffer, bytes_to_write);
-    else
-        g_send_ok = 1;
 }
