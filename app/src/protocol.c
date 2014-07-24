@@ -215,10 +215,14 @@ void protocol_response(const char *response, proto_t *proto)
 {
     static char response_buffer[32];
 
-    proto->response_size = strlen(response);
     proto->response = response_buffer;
-    strncpy(response_buffer, response, (sizeof(response_buffer) - 1));
-    response_buffer[(sizeof(response_buffer) - 1)] = 0;
+
+    proto->response_size = strlen(response);
+    if (proto->response_size >= sizeof(response_buffer))
+        proto->response_size = sizeof(response_buffer) - 1;
+
+    strncpy(response_buffer, response, sizeof(response_buffer));
+    response_buffer[proto->response_size] = 0;
 }
 
 

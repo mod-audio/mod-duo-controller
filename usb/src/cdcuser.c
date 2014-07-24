@@ -216,7 +216,7 @@ void CDC_BulkIn(void)
 
     if (!g_cdc_initialized) return;
 
-    bytes_to_write = ringbuff_read(g_tx_buffer, buffer, USB_CDC_BUFSIZE);
+    bytes_to_write = ringbuff_read_until(g_tx_buffer, buffer, USB_CDC_BUFSIZE, 0);
 
     if (bytes_to_write > 0)
         USB_WriteEP(CDC_DEP_IN, buffer, bytes_to_write);

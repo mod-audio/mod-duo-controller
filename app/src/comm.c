@@ -85,9 +85,7 @@ void comm_linux_send(const char *msg)
 
 void comm_webgui_send(const char *data, uint32_t data_size)
 {
-    static const uint8_t end_msg = 0;
-    CDC_Send((uint8_t*)data, data_size);
-    CDC_Send(&end_msg, sizeof(end_msg));
+    CDC_Send((uint8_t*)data, data_size+1);
 }
 
 void comm_webgui_set_response_cb(void (*resp_cb)(void *data))

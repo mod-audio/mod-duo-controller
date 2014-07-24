@@ -552,6 +552,7 @@ static void control_set(uint8_t display, control_t *control)
 
     // insert the value on buffer
     i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
+    buffer[i] = 0;
 
     // send the data to GUI
     comm_webgui_send(buffer, i);
@@ -610,6 +611,7 @@ static void request_pedalboards_list(const char *bank_uid)
         buffer[i++] = *p;
         p++;
     }
+    buffer[i] = 0;
 
     // sets the response callback
     comm_webgui_set_response_cb(parse_pedalboards_list);
@@ -641,6 +643,7 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
         buffer[i++] = *p;
         p++;
     }
+    buffer[i] = 0;
 
     // send the data to GUI
     comm_webgui_send(buffer, i);
@@ -926,6 +929,7 @@ static void tuner_enter(void)
 
     // inserts the input number
     i += int_to_str(input, &buffer[i], sizeof(buffer) - i, 0);
+    buffer[i] = 0;
 
     // send the data to GUI
     comm_webgui_send(buffer, i);
@@ -1399,6 +1403,7 @@ void naveg_next_control(uint8_t display)
 
     // inserts the actuator id
     i += int_to_str(display, &buffer[i], 4, 0);
+    buffer[i] = 0;
 
     comm_webgui_send(buffer, i);
 }
