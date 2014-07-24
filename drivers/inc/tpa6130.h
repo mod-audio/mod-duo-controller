@@ -39,6 +39,14 @@ enum {UNMUTE, MUTE};
 #define TPA6130_SCL_PORT        HEADPHONE_SCL_PORT
 #define TPA6130_SCL_PIN         HEADPHONE_SCL_PIN
 
+// default ports and pins
+#ifndef HEADPHONE
+#define HEADPHONE_SDA_PORT      0
+#define HEADPHONE_SDA_PIN       0
+#define HEADPHONE_SCL_PORT      0
+#define HEADPHONE_SCL_PIN       1
+#endif
+
 // TPA6130 device address
 #define TPA6130_DEVICE_ADDRESS  0xC0
 

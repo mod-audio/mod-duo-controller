@@ -68,6 +68,8 @@
 #define SLOTS_COUNT         4
 
 //// CPU pins
+#define CPU_CONTROL
+
 // defines the port and pin of CPU power button
 #define CPU_BUTTON_PORT     1
 #define CPU_BUTTON_PIN      23
@@ -77,6 +79,7 @@
 #define CPU_STATUS_PIN      24
 
 //// Cooler pins
+#define COOLER
 #define COOLER_PORT         1
 #define COOLER_PIN          22
 
@@ -84,6 +87,7 @@
 // this pin is used to block/unblock the ARM reset
 // to block the pin must be set to 0
 // to unblock the pin must be configured to input
+#define ARM_RESET
 #define ARM_RESET_PORT      2
 #define ARM_RESET_PIN       24
 
@@ -165,6 +169,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define ENCODER3_PINS       {0, 7, 2, 27, 2, 2}
 
 //// True bypass configuration
+#define TRUE_BYPASS
 #define TRUE_BYPASS_PORT        3
 #define TRUE_BYPASS_PIN         19
 
@@ -174,6 +179,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// Headphone configuration
 // headphone controller ports and pins definition
+#define HEADPHONE
 #define HEADPHONE_SDA_PORT      0
 #define HEADPHONE_SDA_PIN       9
 #define HEADPHONE_SCL_PORT      4
@@ -188,6 +194,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// NTC configuration
 // NTC port and pin
+#define NTC
 #define NTC_ADC_PORT            0
 #define NTC_ADC_PIN             23
 // ADC pin configuration, defines the ADC function number
@@ -424,10 +431,6 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define SYSTEMCTL_MOD_HOST          "mod-host"
 #define SYSTEMCTL_MOD_UI            "mod-ui"
 #define SYSTEMCTL_MOD_BLUEZ         "mod-bluez"
-
-//// Jack buffer size configuration
-#define JACK_BUF_SIZE_LOW_LATENCY   "128"
-#define JACK_BUF_SIZE_PROCESSING    "256"
 
 //// Pendrive restore definitions
 // defines the display where the popup will be showed
