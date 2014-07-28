@@ -101,7 +101,7 @@ static void update_status(char *item_to_update)
 void system_check_boot(void)
 {
     uint8_t i;
-    button_t *foots[4];
+    button_t *foots[FOOTSWITCHES_COUNT];
     encoder_t *encoder;
 
     // gets the footswitches objects
@@ -113,18 +113,17 @@ void system_check_boot(void)
     // gets the encoder objects
     encoder = hardware_actuators(ENCODER0 + PENDRIVE_RESTORE_DISPLAY);
 
-    uint8_t status1, status2, button_status = 0;
+    uint8_t status1, button_status = 0;
     popup_t popup;
 
     // delay to wait read the actuators
     delay_ms(10);
 
     // gets the footswitches status
-    status1 = BUTTON_PRESSED(actuator_get_status(foots[0]) & actuator_get_status(foots[2]));
-    status2 = BUTTON_PRESSED(actuator_get_status(foots[1]) | actuator_get_status(foots[3]));
+    status1 = BUTTON_PRESSED(actuator_get_status(foots[0]) & actuator_get_status(foots[1]));
 
     // checks if footswitches combination is ok
-    if (status1 && !status2)
+    if (status1)
     {
         // stop grub timeout
         cli_grub_select(STOP_TIMEOUT);
@@ -167,11 +166,10 @@ void system_check_boot(void)
     if (button_status && popup.button_selected == 0)
     {
         // gets the footswitches status
-        status1 = BUTTON_PRESSED(actuator_get_status(foots[0]) | actuator_get_status(foots[2]));
-        status2 = BUTTON_PRESSED(actuator_get_status(foots[1]) & actuator_get_status(foots[3]));
+        status1 = BUTTON_PRESSED(actuator_get_status(foots[0]) | actuator_get_status(foots[1]));
 
         // checks if footswitches combination is ok
-        if (!status1 && status2)
+        if (!status1)
         {
             // selects the grub pendrive entry
             cli_grub_select(PENDRIVE_ENTRY);
@@ -331,7 +329,7 @@ void system_versions_cb(void *arg)
 void system_restore_cb(void *arg)
 {
     menu_item_t *item = arg;
-    button_t *foot = (button_t *) hardware_actuators(FOOTSWITCH3);
+    button_t *foot = (button_t *) hardware_actuators(FACTORY_RESTORE_FOOTSWITCH);
 
     // checks if is the YES button
     if (item->data.hover == 0)

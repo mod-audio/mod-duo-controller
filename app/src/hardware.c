@@ -194,7 +194,6 @@ static void cooler_pwm(void)
     }
 }
 #else
-static void cooler_duty_cycle(uint8_t duty_cycle) {(void)(duty_cycle);}
 static void cooler_pwm(void) {}
 #endif
 
@@ -541,8 +540,10 @@ uint8_t hardware_cpu_status(void)
 
 float hardware_temperature(void)
 {
-    static int32_t startup_time;
     float temp = ntc_read();
+
+#ifdef COOLER
+    static int32_t startup_time;
 
     // gets the timestamp to startup time
     if (startup_time == 0)
@@ -569,6 +570,7 @@ float hardware_temperature(void)
     if (duty_cycle < COOLER_MIN_DC) duty_cycle = COOLER_MIN_DC;
 
     cooler_duty_cycle(duty_cycle);
+#endif
 
     return temp;
 }

@@ -2,7 +2,7 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
-#if 1
+#ifdef LPC177x_8x
 #include "LPC177x_8x.h"
 #include "lpc177x_8x_adc.h"
 #include "lpc177x_8x_bod.h"
@@ -32,7 +32,9 @@
 #include "lpc177x_8x_timer.h"
 #include "lpc177x_8x_uart.h"
 #include "lpc177x_8x_wwdt.h"
-#else
+#endif
+
+#ifdef LPC17xx
 #include "LPC17xx.h"
 #include "lpc17xx_adc.h"
 #include "lpc17xx_can.h"

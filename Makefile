@@ -8,14 +8,23 @@ TOOLCHAIN_PREFIX = arm-cortexm3-bare-
 # cpu configuration
 THUMB = -mthumb
 MCU = cortex-m3
-DEVICE_SERIE = LPC177x_8x
+
+# build configuration
+ifeq ($(mod),duo)
+CPU = LPC1759
+CPU_SERIE = LPC17xx
+else
+mod = quadra
+CPU = LPC1788
+CPU_SERIE = LPC177x_8x
+endif
 
 # project directories
 DEVICE_INC	= ./nxp-lpc
-CMSIS_INC	= ./nxp-lpc/CMSISv2p00_$(DEVICE_SERIE)/inc
-CMSIS_SRC	= ./nxp-lpc/CMSISv2p00_$(DEVICE_SERIE)/src
-CDL_INC 	= ./nxp-lpc/$(DEVICE_SERIE)Lib/inc
-CDL_SRC 	= ./nxp-lpc/$(DEVICE_SERIE)Lib/src
+CMSIS_INC	= ./nxp-lpc/CMSISv2p00_$(CPU_SERIE)/inc
+CMSIS_SRC	= ./nxp-lpc/CMSISv2p00_$(CPU_SERIE)/src
+CDL_INC 	= ./nxp-lpc/$(CPU_SERIE)Lib/inc
+CDL_SRC 	= ./nxp-lpc/$(CPU_SERIE)Lib/src
 APP_INC 	= ./app/inc
 APP_SRC 	= ./app/src
 RTOS_SRC	= ./freertos/src
@@ -45,6 +54,7 @@ CFLAGS += -Wall -Wextra -Werror -Wpointer-arith -Wredundant-decls
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUT_DIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 CFLAGS += -MMD -MP -MF $(OUT_DIR)/dep/$(@F).d
 CFLAGS += -I. $(patsubst %,-I%,$(INC))
+CFLAGS += -D$(CPU_SERIE)
 CFLAGS += -DCONTROLLER_HASH_COMMIT=`git log -1 --pretty=format:\"%h\"`
 
 # Linker flags
@@ -58,12 +68,13 @@ CC      = $(TOOLCHAIN_PREFIX)gcc
 OBJCOPY = $(TOOLCHAIN_PREFIX)objcopy
 OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
+SIZE    = $(TOOLCHAIN_PREFIX)size
 
 # Colors definitions
 GREEN 	= '\e[0;32m'
 NOCOLOR	= '\e[0m'
 
-all: createdirs build
+all: prebuild build
 
 build: elf lss sym hex bin
 
@@ -74,9 +85,11 @@ sym: $(OUT_DIR)/$(PRJNAME).sym
 hex: $(OUT_DIR)/$(PRJNAME).hex
 bin: $(OUT_DIR)/$(PRJNAME).bin
 
-createdirs:
+prebuild:
 	@mkdir -p $(OUT_DIR)
 	@mkdir -p $(OUT_DIR)/dep
+	@ln -fs ./$(CPU).ld ./link/LPCmem.ld
+	@ln -fs ./config-$(mod).h ./app/inc/config.h
 
 # Create final output file in ihex format from ELF output file (.hex).
 %.hex: %.elf
@@ -110,3 +123,6 @@ createdirs:
 
 clean:
 	rm -rf $(OBJ) $(OUT_DIR)
+
+size:
+	@$(SIZE) out/mod-controller.elf

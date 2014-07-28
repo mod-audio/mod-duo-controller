@@ -159,7 +159,7 @@ int main(void)
 static void serial_cb(serial_t *serial)
 {
     uint32_t read_bytes;
-    uint8_t uart_id, buffer[SERIAL1_RX_BUFF_SIZE];
+    uint8_t uart_id, buffer[SERIAL_MAX_RX_BUFF_SIZE];
 
     uart_id = serial->uart_id;
     read_bytes = serial_read(uart_id, buffer, sizeof(buffer));
@@ -377,22 +377,14 @@ static void setup_task(void *pvParameters)
     screen_boot_feedback(0);
 
     // actuators callbacks
-    actuator_set_event(hardware_actuators(ENCODER0), actuators_cb);
-    actuator_set_event(hardware_actuators(ENCODER1), actuators_cb);
-    actuator_set_event(hardware_actuators(ENCODER2), actuators_cb);
-    actuator_set_event(hardware_actuators(ENCODER3), actuators_cb);
-    actuator_enable_event(hardware_actuators(ENCODER0), EV_ALL_ENCODER_EVENTS);
-    actuator_enable_event(hardware_actuators(ENCODER1), EV_ALL_ENCODER_EVENTS);
-    actuator_enable_event(hardware_actuators(ENCODER2), EV_ALL_ENCODER_EVENTS);
-    actuator_enable_event(hardware_actuators(ENCODER3), EV_ALL_ENCODER_EVENTS);
-    actuator_set_event(hardware_actuators(FOOTSWITCH0), actuators_cb);
-    actuator_set_event(hardware_actuators(FOOTSWITCH1), actuators_cb);
-    actuator_set_event(hardware_actuators(FOOTSWITCH2), actuators_cb);
-    actuator_set_event(hardware_actuators(FOOTSWITCH3), actuators_cb);
-    actuator_enable_event(hardware_actuators(FOOTSWITCH0), EV_BUTTON_PRESSED);
-    actuator_enable_event(hardware_actuators(FOOTSWITCH1), EV_BUTTON_PRESSED);
-    actuator_enable_event(hardware_actuators(FOOTSWITCH2), EV_BUTTON_PRESSED);
-    actuator_enable_event(hardware_actuators(FOOTSWITCH3), EV_BUTTON_PRESSED);
+    uint8_t i;
+    for (i = 0; i < SLOTS_COUNT; i++)
+    {
+        actuator_set_event(hardware_actuators(ENCODER0 + i), actuators_cb);
+        actuator_enable_event(hardware_actuators(ENCODER0 + i), EV_ALL_ENCODER_EVENTS);
+        actuator_set_event(hardware_actuators(FOOTSWITCH0 + i), actuators_cb);
+        actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_BUTTON_PRESSED);
+    }
 
     // protocol definitions
     protocol_add_command(PING_CMD, ping_cb);

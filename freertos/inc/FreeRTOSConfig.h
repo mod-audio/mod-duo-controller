@@ -76,6 +76,7 @@
 #define FREERTOS_CONFIG_H
 
 #include "device.h"
+#include "config.h"
 
 
 /*-----------------------------------------------------------
@@ -93,7 +94,7 @@
 #define configCPU_CLOCK_HZ                  ( ( unsigned long ) SystemCoreClock )
 #define configTICK_RATE_HZ                  ( ( portTickType ) 1000 )
 #define configMINIMAL_STACK_SIZE            ( ( unsigned short ) 80 )
-#define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 35 * 1024 ) )
+#define configTOTAL_HEAP_SIZE               ( ( size_t ) RTOS_HEAP_SIZE )
 #define configMAX_TASK_NAME_LEN             ( 8 )
 #define configUSE_16_BIT_TICKS              0
 #define configIDLE_SHOULD_YIELD             0

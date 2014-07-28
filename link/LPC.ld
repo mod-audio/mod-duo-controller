@@ -1,5 +1,5 @@
 
-INCLUDE "./link/LPC1788.ld"
+INCLUDE "./link/LPCmem.ld"
 
 ENTRY(ResetISR)
 
