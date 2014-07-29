@@ -23,12 +23,8 @@
 #include "naveg.h"
 #include "screen.h"
 #include "cli.h"
+#include "comm.h"
 #include "chain.h"
-
-#include "usb.h"
-#include "usbhw.h"
-#include "usbcore.h"
-#include "cdcuser.h"
 
 
 /*
@@ -71,7 +67,7 @@
 */
 
 static xQueueHandle g_actuators_queue;
-static uint8_t g_msg_buffer[CDC_RX_BUFFER_SIZE];
+static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
 static uint8_t g_ui_communication_started;
 
 
@@ -212,7 +208,8 @@ static void procotol_task(void *pvParameters)
         uint32_t msg_size;
 
         // blocks until receive a new message
-        msg_size = CDC_GetMessage(g_msg_buffer, CDC_RX_BUFFER_SIZE);
+        ringbuff_t *rb = comm_webgui_read();
+        msg_size = ringbuff_read_until(rb, g_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE, 0);
 
         // parses the message
         if (msg_size > 0)
@@ -357,8 +354,8 @@ static void setup_task(void *pvParameters)
     // displays initialization
     glcd_init();
 
-    // cdc initialization
-    CDC_Init();
+    // initialize the communication resources
+    comm_init();
 
     // create the queues
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
@@ -405,11 +402,6 @@ static void setup_task(void *pvParameters)
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(XRUN_CMD, xrun_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
-
-    // usb initialization
-    USB_Init(1);
-    USB_Connect(USB_CONNECT);
-    while (!USB_Configuration);
 
     // CLI initialization
     cli_init();

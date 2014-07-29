@@ -36,18 +36,33 @@
 #define SERIAL0_TX_FUNC         1
 #define SERIAL0_TX_BUFF_SIZE    32
 #define SERIAL0_HAS_OE          0
+// SERIAL1
+#define SERIAL1
+#define SERIAL1_BAUD_RATE       230400
+#define SERIAL1_PRIORITY        4
+#define SERIAL1_RX_PORT         0
+#define SERIAL1_RX_PIN          16
+#define SERIAL1_RX_FUNC         1
+#define SERIAL1_RX_BUFF_SIZE    32
+#define SERIAL1_TX_PORT         0
+#define SERIAL1_TX_PIN          15
+#define SERIAL1_TX_FUNC         1
+#define SERIAL1_TX_BUFF_SIZE    32
+#define SERIAL1_HAS_OE          1
+#define SERIAL1_OE_PORT         0
+#define SERIAL1_OE_PIN          22
 // SERIAL2
 #define SERIAL2
 #define SERIAL2_BAUD_RATE       1500000
 #define SERIAL2_PRIORITY        6
-#define SERIAL2_RX_PORT         0
-#define SERIAL2_RX_PIN          16
-#define SERIAL2_RX_FUNC         1
+#define SERIAL2_RX_PORT         2
+#define SERIAL2_RX_PIN          9
+#define SERIAL2_RX_FUNC         2
 #define SERIAL2_RX_BUFF_SIZE    32
-#define SERIAL2_TX_PORT         0
-#define SERIAL2_TX_PIN          15
-#define SERIAL2_TX_FUNC         1
-#define SERIAL2_TX_BUFF_SIZE    32
+#define SERIAL2_TX_PORT         2
+#define SERIAL2_TX_PIN          8
+#define SERIAL2_TX_FUNC         2
+#define SERIAL2_TX_BUFF_SIZE    512
 #define SERIAL2_HAS_OE          0
 
 //// Hardwares types (device identification)
@@ -153,6 +168,17 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
+
+//// webgui configuration
+// define the interface
+#define WEBGUI_COMM                 SERIAL
+#define WEBGUI_SERIAL               2
+#define WEBGUI_SERIAL_RX_BUFF_SIZE  SERIAL2_RX_BUFF_SIZE
+
+// define how many bytes will be allocated to rx/tx buffers
+#define WEBGUI_COMM_RX_BUFF_SIZE    4096
+#define WEBGUI_COMM_TX_BUFF_SIZE    SERIAL2_TX_BUFF_SIZE
+
 //// Protocol commands configuration
 // ping
 #define PING_CMD                "ping"
@@ -408,7 +434,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 //// Dynamic menory allocation
 // defines the heap size (in bytes)
-#define RTOS_HEAP_SIZE      ( 24 * 1024 )
+#define RTOS_HEAP_SIZE  (8 * 1024)
 // these macros should be used in replacement to default malloc and free functions of stdlib.h
 // The FREE function is NULL safe
 #include "FreeRTOS.h"

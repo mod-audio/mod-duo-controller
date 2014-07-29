@@ -4,12 +4,6 @@
 
 #include <stdint.h>
 
-#define CDC_RX_BUFFER_SIZE      3062
-#define CDC_TX_BUFFER_SIZE      256
-
-/* CDC maximum message count */
-#define CDC_MAX_MESSAGE_COUNT   5
-
 /* CDC Data In/Out Endpoint Address */
 #define CDC_DEP_IN       0x82
 #define CDC_DEP_OUT      0x02
@@ -18,9 +12,9 @@
 #define CDC_CEP_IN       0x81
 
 /* CDC User Functions */
-void CDC_Init(void);
-uint32_t CDC_GetMessage(uint8_t *buffer, uint32_t buffer_size);
+void CDC_Init(uint32_t tx_buffer_size);
 void CDC_Send(const uint8_t *data, uint32_t data_size);
+void CDC_SetRxCallback(void (*rx_cb)(uint8_t *buffer, uint32_t size));
 
 /* CDC Requests Callback Functions */
 extern uint32_t CDC_SendEncapsulatedCommand(void);

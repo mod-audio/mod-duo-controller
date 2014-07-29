@@ -205,6 +205,15 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
+
+//// webgui configuration
+// define the interface
+#define WEBGUI_COMM                 USB_CDC
+
+// define how many bytes will be allocated to rx/tx buffers
+#define WEBGUI_COMM_RX_BUFF_SIZE    4096
+#define WEBGUI_COMM_TX_BUFF_SIZE    512
+
 //// Protocol commands configuration
 // ping
 #define PING_CMD                "ping"
@@ -484,7 +493,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// Dynamic menory allocation
 // defines the heap size (in bytes)
-#define RTOS_HEAP_SIZE      ( 35 * 1024 )
+#define RTOS_HEAP_SIZE  (35 * 1024)
 // these macros should be used in replacement to default malloc and free functions of stdlib.h
 // The FREE function is NULL safe
 #include "FreeRTOS.h"

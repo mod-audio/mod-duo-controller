@@ -16,6 +16,7 @@
 */
 
 #include <stdint.h>
+#include "utils.h"
 
 
 /*
@@ -59,6 +60,9 @@
 ************************************************************************************************************************
 */
 
+// initialize the communication
+void comm_init(void);
+
 //// linux console communication functions
 // sends a message to linux console
 void comm_linux_send(const char *msg);
@@ -66,6 +70,8 @@ void comm_linux_send(const char *msg);
 //// webgui communication functions
 // sends a message to webgui
 void comm_webgui_send(const char *data, uint32_t data_size);
+// read a message from webgui
+ringbuff_t* comm_webgui_read(void);
 // sets a function callback to webgui response
 void comm_webgui_set_response_cb(void (*resp_cb)(void *data));
 // invokes the response function callback
