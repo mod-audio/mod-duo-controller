@@ -102,19 +102,19 @@
 #define GLCD_COUNT              SLOTS_COUNT
 
 // Display ports and pins definitions
-#define GLCD_DATABUS_PORT       1
+#define GLCD_DATABUS_PORT       2
 #define GLCD_DI_PORT            1
-#define GLCD_DI_PIN             17
-#define GLCD_EN_PORT            1
-#define GLCD_EN_PIN             16
+#define GLCD_DI_PIN             28
+#define GLCD_EN_PORT            0
+#define GLCD_EN_PIN             0
 #define GLCD_RW_PORT            1
-#define GLCD_RW_PIN             20
-#define GLCD_CS1_PORT           1
-#define GLCD_CS1_PIN            18
-#define GLCD_CS2_PORT           1
-#define GLCD_CS2_PIN            19
-#define GLCD_RST_PORT           1
-#define GLCD_RST_PIN            15
+#define GLCD_RW_PIN             29
+#define GLCD_CS1_PORT           0
+#define GLCD_CS1_PIN            10
+#define GLCD_CS2_PORT           0
+#define GLCD_CS2_PIN            11
+#define GLCD_RST_PORT           0
+#define GLCD_RST_PIN            1
 
 // Display backlight ports and pins
 #define GLCD0_BACKLIGHT_PORT    1
@@ -434,7 +434,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 //// Dynamic menory allocation
 // defines the heap size (in bytes)
-#define RTOS_HEAP_SIZE  (8 * 1024)
+#define RTOS_HEAP_SIZE  (32 * 1024)
 // these macros should be used in replacement to default malloc and free functions of stdlib.h
 // The FREE function is NULL safe
 #include "FreeRTOS.h"

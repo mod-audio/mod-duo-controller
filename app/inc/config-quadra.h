@@ -493,7 +493,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 //// Dynamic menory allocation
 // defines the heap size (in bytes)
-#define RTOS_HEAP_SIZE  (35 * 1024)
+#define RTOS_HEAP_SIZE  (32 * 1024)
 // these macros should be used in replacement to default malloc and free functions of stdlib.h
 // The FREE function is NULL safe
 #include "FreeRTOS.h"
