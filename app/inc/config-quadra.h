@@ -424,6 +424,9 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PEDALBOARD_PREV_FOOTER_TEXT "-"
 
 //// Command line interface configurations
+// defines the flag to indicate that cli have to control the grub
+#define CLI_GRUB
+// defines the cli serial
 #define CLI_SERIAL                  1
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500

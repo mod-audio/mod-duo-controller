@@ -383,6 +383,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define PEDALBOARD_PREV_FOOTER_TEXT "-"
 
 //// Command line interface configurations
+// defines the cli serial
 #define CLI_SERIAL                  0
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500

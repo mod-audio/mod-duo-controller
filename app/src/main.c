@@ -406,18 +406,16 @@ static void setup_task(void *pvParameters)
     // CLI initialization
     cli_init();
 
+    // the grub is only for mod quadra
+    // this will be deprecated in the future
+#ifdef CLI_GRUB
     while (cli_boot_stage() < LOGIN_STAGE);
-#if SLOTS_COUNT >= 2
     screen_boot_feedback(1);
-#endif
 
     while (cli_boot_stage() < PROMPT_READY_STAGE);
-#if SLOTS_COUNT >= 3
     screen_boot_feedback(2);
-#endif
 
     while (!g_ui_communication_started);
-#if SLOTS_COUNT >= 4
     screen_boot_feedback(3);
 #endif
 
@@ -603,28 +601,22 @@ void HardFault_Handler(void)
 
 void MemManage_Handler(void)
 {
-    led_set_color(hardware_leds(1), CYAN);
-    hardware_reset(UNBLOCK);
-    while (1);
+    HardFault_Handler();
 }
 
 void BusFault_Handler(void)
 {
-    led_set_color(hardware_leds(1), CYAN);
-    hardware_reset(UNBLOCK);
-    while (1);
+    HardFault_Handler();
 }
 
 void UsageFault_Handler(void)
 {
-    led_set_color(hardware_leds(1), CYAN);
-    hardware_reset(UNBLOCK);
-    while (1);
+    HardFault_Handler();
 }
 
 void vApplicationMallocFailedHook(void)
 {
-    led_set_color(hardware_leds(2), CYAN);
+    led_set_color(hardware_leds(1), CYAN);
     hardware_reset(UNBLOCK);
     while (1);
 }
