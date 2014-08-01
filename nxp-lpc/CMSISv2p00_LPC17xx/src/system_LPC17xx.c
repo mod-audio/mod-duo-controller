@@ -2,16 +2,16 @@
  * @file     system_LPC17xx.c
  * @brief    CMSIS Cortex-M3 Device Peripheral Access Layer Source File
  *           for the NXP LPC17xx Device Series
- * @version  V1.03
- * @date     07. October 2009
+ * @version  V1.08
+ * @date     12. May 2010
  *
  * @note
  * Copyright (C) 2009 ARM Limited. All rights reserved.
  *
  * @par
- * ARM Limited (ARM) is supplying this software for use with Cortex-M
- * processor based microcontrollers.  This file can be freely distributed
- * within development tools that are supporting such ARM based processors.
+ * ARM Limited (ARM) is supplying this software for use with Cortex-M 
+ * processor based microcontrollers.  This file can be freely distributed 
+ * within development tools that are supporting such ARM based processors. 
  *
  * @par
  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
@@ -86,7 +86,7 @@
 //
 //   <h> CPU Clock Configuration Register (CCLKCFG)
 //     <o7.0..7>  CCLKSEL: Divide Value for CPU Clock from PLL0
-//                     <3-256><#-1>
+//                     <1-256><#-1>
 //   </h>
 //
 //   <h> USB Clock Configuration Register (USBCLKCFG)
@@ -296,10 +296,10 @@
 #define SCS_Val               0x00000020
 #define CLKSRCSEL_Val         0x00000001
 #define PLL0_SETUP            1
-#define PLL0CFG_Val           0x00050063
-#define PLL1_SETUP            1
+#define PLL0CFG_Val           0x0000000E
+#define PLL1_SETUP            0
 #define PLL1CFG_Val           0x00000023
-#define CCLKCFG_Val           0x00000003
+#define CCLKCFG_Val           0x00000002
 #define USBCLKCFG_Val         0x00000000
 #define PCLKSEL0_Val          0x00000000
 #define PCLKSEL1_Val          0x00000000
@@ -321,7 +321,7 @@
 // </e>
 */
 #define FLASH_SETUP           1
-#define FLASHCFG_Val          0x0000303A
+#define FLASHCFG_Val          0x00004000
 
 /*
 //-------- <<< end of configuration section >>> ------------------------------
@@ -350,8 +350,14 @@
    #error "PLL1CFG: Invalid values of reserved bits!"
 #endif
 
-#if (CHECK_RANGE(CCLKCFG_Val, 2, 255))
-   #error "CCLKCFG: CCLKSEL field does not contain value in range from 2 to 255!"
+#if (PLL0_SETUP)            /* if PLL0 is used */
+  #if (CCLKCFG_Val < 2)     /* CCLKSEL must be greater then 1 */
+    #error "CCLKCFG: CCLKSEL must be greater then 1 if PLL0 is used!"
+  #endif
+#endif
+
+#if (CHECK_RANGE((CCLKCFG_Val), 2, 255))
+   #error "CCLKCFG: Value out of range!"
 #endif
 
 #if (CHECK_RSVD((USBCLKCFG_Val), ~0x0000000F))
@@ -375,7 +381,7 @@
 #endif
 
 /* Flash Accelerator Configuration -------------------------------------------*/
-#if (CHECK_RSVD((FLASHCFG_Val), ~0x0000F07F))
+#if (CHECK_RSVD((FLASHCFG_Val), ~0x0000F000))
    #error "FLASHCFG: Invalid values of reserved bits!"
 #endif
 
@@ -387,7 +393,7 @@
 /*----------------------------------------------------------------------------
   Define clocks
  *----------------------------------------------------------------------------*/
-#define XTAL        (12000000UL)        /* Oscillator frequency               */
+#define XTAL        (10000000UL)        /* Oscillator frequency               */
 #define OSC_CLK     (      XTAL)        /* Main oscillator frequency          */
 #define RTC_CLK     (   32768UL)        /* RTC oscillator frequency           */
 #define IRC_OSC     ( 4000000UL)        /* Internal RC oscillator frequency   */
@@ -500,7 +506,7 @@ void SystemInit (void)
 {
 #if (CLOCK_SETUP)                       /* Clock Setup                        */
   LPC_SC->SCS       = SCS_Val;
-  if (LPC_SC->SCS & (1 << 5)) {             /* If Main Oscillator is enabled  */
+  if (SCS_Val & (1 << 5)) {             /* If Main Oscillator is enabled      */
     while ((LPC_SC->SCS & (1<<6)) == 0);/* Wait for Oscillator to be ready    */
   }
 
@@ -511,9 +517,9 @@ void SystemInit (void)
   LPC_SC->PCLKSEL0  = PCLKSEL0_Val;     /* Peripheral Clock Selection         */
   LPC_SC->PCLKSEL1  = PCLKSEL1_Val;
 
-#if (PLL0_SETUP)
   LPC_SC->CLKSRCSEL = CLKSRCSEL_Val;    /* Select Clock Source for PLL0       */
 
+#if (PLL0_SETUP)
   LPC_SC->PLL0CFG   = PLL0CFG_Val;      /* configure PLL0                     */
   LPC_SC->PLL0FEED  = 0xAA;
   LPC_SC->PLL0FEED  = 0x55;
@@ -546,20 +552,14 @@ void SystemInit (void)
 #else
   LPC_SC->USBCLKCFG = USBCLKCFG_Val;    /* Setup USB Clock Divider            */
 #endif
+
   LPC_SC->PCONP     = PCONP_Val;        /* Power Control for Peripherals      */
 
   LPC_SC->CLKOUTCFG = CLKOUTCFG_Val;    /* Clock Output Configuration         */
 #endif
 
 #if (FLASH_SETUP == 1)                  /* Flash Accelerator Setup            */
-  LPC_SC->FLASHCFG  = FLASHCFG_Val;
-#endif
-
-//  Set Vector table offset value
-#if (__RAM_MODE__==1)
-  SCB->VTOR  = 0x10000000 & 0x3FFFFF80;
-#else
-  SCB->VTOR  = 0x00000000 & 0x3FFFFF80;
+  LPC_SC->FLASHCFG  = (LPC_SC->FLASHCFG & ~0x0000F000) | FLASHCFG_Val;
 #endif
 }
 
