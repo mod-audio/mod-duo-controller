@@ -73,15 +73,15 @@ void naveg_ui_connection(uint8_t status);
 // adds the control to end of the controls list
 void naveg_add_control(control_t *control);
 // removes the control from controls list
-void naveg_remove_control(int8_t effect_instance, const char *symbol);
+void naveg_remove_control(int32_t effect_instance, const char *symbol);
 // increment the control value
 void naveg_inc_control(uint8_t display);
 // decrement the control value
 void naveg_dec_control(uint8_t display);
 // sets the control value
-void naveg_set_control(int8_t effect_instance, const char *symbol, float value);
+void naveg_set_control(int32_t effect_instance, const char *symbol, float value);
 // gets the control value
-float naveg_get_control(int8_t effect_instance, const char *symbol);
+float naveg_get_control(int32_t effect_instance, const char *symbol);
 // request the next control of the display
 void naveg_next_control(uint8_t display);
 // change the foot value

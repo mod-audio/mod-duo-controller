@@ -257,6 +257,7 @@ void system_cpu_cb(void *arg)
         pstr += float_to_str(temp, pstr, 5, 1);
         *pstr++ = ' ';
         *pstr++ = 'C';
+        *pstr++ = 0;
     }
 }
 

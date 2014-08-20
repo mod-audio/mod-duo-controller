@@ -64,7 +64,7 @@
 */
 
 void control_chain_add(control_t *control);
-void control_chain_remove(int8_t effect_instance, const char *symbol);
+void control_chain_remove(int32_t effect_instance, const char *symbol);
 void control_chain_append_data(uint8_t *data, uint32_t data_size);
 void control_chain_process(void);
 
