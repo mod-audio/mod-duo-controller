@@ -443,20 +443,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define PENDRIVE_RESTORE_TIMEOUT    30
 
 //// Control Chain definitions
-#define CONTROL_CHAIN_SERIAL                        2
-// defines the maximum external devices connection
-#define CONTROL_CHAIN_MAX_DEVICES                   16
-// defines the maximum of actuators per hardware devices
-#define CONTROL_CHAIN_MAX_ACTUATORS_PER_DEVICES     32
-// defines the external devices timeout (in milliseconds)
-#define CONTROL_CHAIN_TIMEOUT                       1000
-// defines the external devices period requests (in ms)
-#define CONTROL_CHAIN_PERIOD                        5
-// defines the control chain functions
-#define CONTROL_CHAIN_REQUEST_CONNECTION            1
-#define CONTROL_CHAIN_CONFIRM_CONNECTION            2
-#define CONTROL_CHAIN_REQUEST_DATA                  3
-#define CONTROL_CHAIN_DATA_RESPONSE                 4
+#define CONTROL_CHAIN_SERIAL        2
 
 //// Headphone configuration
 // defines the minimal volume variation (delta)
