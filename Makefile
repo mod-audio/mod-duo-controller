@@ -40,9 +40,10 @@ SRC = $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(CDL_SRC)/*.c) $(wildcard $(RTOS_
 
 # Object files
 OBJ = $(SRC:.c=.o)
+ALL_OBJ = `find -name "*.o"`
 
 # include directories
-INC = $(DEVICE_INC) $(CMSIS_INC) $(CDL_INC) $(RTOS_INC) $(DRIVERS_INC) $(APP_INC) $(USB_INC) $(TESTS_SRC) 
+INC = $(DEVICE_INC) $(CMSIS_INC) $(CDL_INC) $(RTOS_INC) $(DRIVERS_INC) $(APP_INC) $(USB_INC)
 
 # build again when changes this files
 BUILD_ON_CHANGE = Makefile $(APP_INC)/config.h
@@ -122,7 +123,7 @@ prebuild:
 	@$(CC) $(THUMB) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(OBJ) $(OUT_DIR)
+	rm -rf $(ALL_OBJ) $(OUT_DIR)
 
 size:
 	@$(SIZE) out/mod-controller.elf
