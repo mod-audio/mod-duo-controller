@@ -38,7 +38,7 @@
 #define SERIAL1_HAS_OE          0
 // SERIAL2
 #define SERIAL2
-#define SERIAL2_BAUD_RATE       230400
+#define SERIAL2_BAUD_RATE       500000
 #define SERIAL2_PRIORITY        4
 #define SERIAL2_RX_PORT         0
 #define SERIAL2_RX_PIN          10
@@ -279,16 +279,19 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define HW_DISCONNECTED_CMD     "hw_dis %i %i"
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
+// chain <binary_data>
+#define CHAIN_CMD               "chain %s"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
-#define CONTROL_PROP_LOGARITHMIC    1
-#define CONTROL_PROP_ENUMERATION    2
-#define CONTROL_PROP_TOGGLED        3
-#define CONTROL_PROP_TRIGGER        4
-#define CONTROL_PROP_TAP_TEMPO      5
-#define CONTROL_PROP_BYPASS         6
-#define CONTROL_PROP_INTEGER        7
+#define CONTROL_PROP_BYPASS         1
+#define CONTROL_PROP_TAP_TEMPO      2
+#define CONTROL_PROP_ENUMERATION    4
+#define CONTROL_PROP_SCALE_POINTS   8
+#define CONTROL_PROP_TRIGGER        16
+#define CONTROL_PROP_TOGGLED        32
+#define CONTROL_PROP_LOGARITHMIC    64
+#define CONTROL_PROP_INTEGER        128
 
 //// Banks functions definition
 #define BANK_FUNC_NONE              0
@@ -457,20 +460,7 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 #define FACTORY_RESTORE_FOOTSWITCH  FOOTSWITCH3
 
 //// Control Chain definitions
-#define CONTROL_CHAIN_SERIAL                        2
-// defines the maximum external devices connection
-#define CONTROL_CHAIN_MAX_DEVICES                   16
-// defines the maximum of actuators per hardware devices
-#define CONTROL_CHAIN_MAX_ACTUATORS_PER_DEVICES     32
-// defines the external devices timeout (in milliseconds)
-#define CONTROL_CHAIN_TIMEOUT                       2000
-// defines the external devices period requests (in ms)
-#define CONTROL_CHAIN_PERIOD                        5
-// defines the control chain functions
-#define CONTROL_CHAIN_REQUEST_CONNECTION            1
-#define CONTROL_CHAIN_CONFIRM_CONNECTION            2
-#define CONTROL_CHAIN_REQUEST_DATA                  3
-#define CONTROL_CHAIN_DATA_RESPONSE                 4
+#define CONTROL_CHAIN_SERIAL        2
 
 //// Headphone configuration
 // defines the minimal volume variation (delta)

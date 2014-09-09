@@ -106,7 +106,7 @@ static void parse_quote(char *str)
                 pquote++;
             }
         }
-        pstr++;
+        else pstr++;
     }
 }
 

@@ -92,7 +92,7 @@ control_t *data_parse_control(char **data)
         control->effect_instance = atoi(data[1]);
         control->symbol = str_duplicate(data[2]);
         control->label = str_duplicate(data[3]);
-        control->properties = atoi(data[4]);
+        control->properties_mask = atoi(data[4]);
         control->unit = str_duplicate(data[5]);
         control->value = atof(data[6]);
         control->maximum = atof(data[7]);
@@ -111,9 +111,28 @@ control_t *data_parse_control(char **data)
         if (!control->symbol || !control->label || !control->unit) goto error;
     }
 
+    control->properties = 0;
+    if (CONTROL_PROP_ENUMERATION & control->properties_mask)
+        control->properties = CONTROL_PROP_ENUMERATION;
+    else if (CONTROL_PROP_SCALE_POINTS & control->properties_mask)
+        control->properties = CONTROL_PROP_SCALE_POINTS;
+    else if (CONTROL_PROP_TAP_TEMPO & control->properties_mask)
+        control->properties = CONTROL_PROP_TAP_TEMPO;
+    else if (CONTROL_PROP_BYPASS & control->properties_mask)
+        control->properties = CONTROL_PROP_BYPASS;
+    else if (CONTROL_PROP_TRIGGER & control->properties_mask)
+        control->properties = CONTROL_PROP_TRIGGER;
+    else if (CONTROL_PROP_TOGGLED & control->properties_mask)
+        control->properties = CONTROL_PROP_TOGGLED;
+    else if (CONTROL_PROP_LOGARITHMIC & control->properties_mask)
+        control->properties = CONTROL_PROP_LOGARITHMIC;
+    else if (CONTROL_PROP_INTEGER & control->properties_mask)
+        control->properties = CONTROL_PROP_INTEGER;
+
     // checks if has scale points
     uint8_t i = 0;
-    if (len >= (min_params+1) && control->properties == CONTROL_PROP_ENUMERATION)
+    if (len >= (min_params+1) && (control->properties == CONTROL_PROP_ENUMERATION ||
+        control->properties == CONTROL_PROP_SCALE_POINTS))
     {
         control->scale_points_count = atoi(data[min_params]);
         if (control->scale_points_count == 0) return control;

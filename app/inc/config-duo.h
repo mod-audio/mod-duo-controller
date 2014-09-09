@@ -26,7 +26,7 @@
 // SERIAL0
 #define SERIAL0
 #define SERIAL0_BAUD_RATE       115200
-#define SERIAL0_PRIORITY        4
+#define SERIAL0_PRIORITY        5
 #define SERIAL0_RX_PORT         0
 #define SERIAL0_RX_PIN          3
 #define SERIAL0_RX_FUNC         1
@@ -38,7 +38,7 @@
 #define SERIAL0_HAS_OE          0
 // SERIAL1
 #define SERIAL1
-#define SERIAL1_BAUD_RATE       230400
+#define SERIAL1_BAUD_RATE       500000
 #define SERIAL1_PRIORITY        4
 #define SERIAL1_RX_PORT         0
 #define SERIAL1_RX_PIN          16
@@ -54,7 +54,7 @@
 // SERIAL2
 #define SERIAL2
 #define SERIAL2_BAUD_RATE       1500000
-#define SERIAL2_PRIORITY        6
+#define SERIAL2_PRIORITY        1
 #define SERIAL2_RX_PORT         2
 #define SERIAL2_RX_PIN          9
 #define SERIAL2_RX_FUNC         2
@@ -244,16 +244,19 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define HW_DISCONNECTED_CMD     "hw_dis %i %i"
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
+// chain <binary_data>
+#define CHAIN_CMD               "chain %s"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
-#define CONTROL_PROP_LOGARITHMIC    1
-#define CONTROL_PROP_ENUMERATION    2
-#define CONTROL_PROP_TOGGLED        3
-#define CONTROL_PROP_TRIGGER        4
-#define CONTROL_PROP_TAP_TEMPO      5
-#define CONTROL_PROP_BYPASS         6
-#define CONTROL_PROP_INTEGER        7
+#define CONTROL_PROP_BYPASS         1
+#define CONTROL_PROP_TAP_TEMPO      2
+#define CONTROL_PROP_ENUMERATION    4
+#define CONTROL_PROP_SCALE_POINTS   8
+#define CONTROL_PROP_TRIGGER        16
+#define CONTROL_PROP_TOGGLED        32
+#define CONTROL_PROP_LOGARITHMIC    64
+#define CONTROL_PROP_INTEGER        128
 
 //// Banks functions definition
 #define BANK_FUNC_NONE              0
@@ -267,7 +270,13 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define NAVEG_UPDATE_TIME   1500
 
 // time in milliseconds to enter in tool mode (hold rotary encoder button)
-#define TOOL_MODE_TIME      1500
+#define TOOL_MODE_TIME      500
+
+// tools identification
+#define TOOL_SYSTEM     0
+#define TOOL_TUNER      1
+#define TOOL_PEAKMETER  2
+#define TOOL_NAVEG      3
 
 // setup of tools on displays
 #define TOOL_DISPLAY0   TOOL_SYSTEM
@@ -414,20 +423,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define FACTORY_RESTORE_FOOTSWITCH  FOOTSWITCH1
 
 //// Control Chain definitions
-#define CONTROL_CHAIN_SERIAL                        1
-// defines the maximum external devices connection
-#define CONTROL_CHAIN_MAX_DEVICES                   16
-// defines the maximum of actuators per hardware devices
-#define CONTROL_CHAIN_MAX_ACTUATORS_PER_DEVICES     32
-// defines the external devices timeout (in milliseconds)
-#define CONTROL_CHAIN_TIMEOUT                       1000
-// defines the external devices period requests (in ms)
-#define CONTROL_CHAIN_PERIOD                        5
-// defines the control chain functions
-#define CONTROL_CHAIN_REQUEST_CONNECTION            1
-#define CONTROL_CHAIN_CONFIRM_CONNECTION            2
-#define CONTROL_CHAIN_REQUEST_DATA                  3
-#define CONTROL_CHAIN_DATA_RESPONSE                 4
+#define CONTROL_CHAIN_SERIAL        1
 
 //// USB definitions
 #define USB_VID     0x9999
@@ -482,12 +478,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 #define SERIAL_MAX_TX_BUFF_SIZE     MAX(MAX(SERIAL0_TX_BUFF_SIZE, SERIAL1_TX_BUFF_SIZE), \
                                         MAX(SERIAL2_TX_BUFF_SIZE, SERIAL3_TX_BUFF_SIZE))
-
-// tools identification
-#define TOOL_SYSTEM     0
-#define TOOL_TUNER      1
-#define TOOL_PEAKMETER  2
-#define TOOL_NAVEG      3
 
 // system menu display definition
 #if (TOOL_SYSTEM == TOOL_DISPLAY0)

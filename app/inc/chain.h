@@ -32,8 +32,15 @@
 ************************************************************************************************************************
 */
 
-#define CONTROL_CHAIN_PROTOCOL_START    0x02
-#define CONTROL_CHAIN_PROTOCOL_END      0x03
+// Those special bytes are used in the communication between HMI and UI
+#define CONTROL_CHAIN_ESCAPE_BYTE   0x5C
+#define CONTROL_CHAIN_END_BYTE      0x00
+#define CONTROL_CHAIN_QUOTATION     0x22
+
+#define CONTROL_CHAIN_SYNC_BYTE     0xAA
+#define CONTROL_CHAIN_HOST_ID       0x00
+
+#define CONTROL_CHAIN_BUFFER_SIZE   512
 
 
 /*
@@ -63,10 +70,10 @@
 ************************************************************************************************************************
 */
 
-void control_chain_add(control_t *control);
-void control_chain_remove(int32_t effect_instance, const char *symbol);
-void control_chain_append_data(uint8_t *data, uint32_t data_size);
-void control_chain_process(void);
+void chain_init(void);
+void chain_dev2ui_push(const uint8_t* data_chunk, uint32_t data_size, uint8_t eof);
+uint32_t chain_dev2ui_pop(uint8_t *buffer, uint32_t buffer_size);
+void chain_ui2dev(const char *buffer);
 
 
 /*

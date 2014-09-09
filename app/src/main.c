@@ -107,6 +107,7 @@ static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
 static void xrun_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
+static void chain_cb(proto_t *proto);
 
 
 /*
@@ -163,7 +164,7 @@ static void serial_cb(serial_t *serial)
     if (uart_id == CLI_SERIAL)
         cli_append_data((const char*)buffer, read_bytes);
     else if (uart_id == CONTROL_CHAIN_SERIAL && g_ui_communication_started)
-        control_chain_append_data(buffer, read_bytes);
+        chain_dev2ui_push(buffer, read_bytes, serial->eof);
 }
 
 // this callback is called from UART ISR in case of error
@@ -313,6 +314,9 @@ static void monitor_task(void *pvParameters)
         // process the command line
         cli_process();
 
+        // TODO: timer for navigation update
+        //naveg_update();
+
         taskYIELD();
     }
 }
@@ -321,25 +325,16 @@ static void chain_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
-    portTickType xLastWakeTime;
-    xLastWakeTime = xTaskGetTickCount();
-
-    static uint32_t update_count = 0;
-
     while (1)
     {
-        // process the control chain data
-        control_chain_process();
+        // As soon as a message is received from control chain the message will be
+        // directed to UI. The below function implements a binary semaphore internally.
+        uint32_t read = chain_dev2ui_pop(g_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE);
 
-        // FIXME: here isn't the right place to put this (temporary solution)
-        // checks if need update the navigation screen
-        if (update_count++ >= (NAVEG_UPDATE_TIME / CONTROL_CHAIN_PERIOD))
-        {
-            update_count = 0;
-            naveg_update();
-        }
+        // sends the message to UI. Ignores the last byte (read - 1) to prevent send the \0 twice.
+        if (read) comm_webgui_send((const char*)g_msg_buffer, read-1);
 
-        vTaskDelayUntil(&xLastWakeTime, (CONTROL_CHAIN_PERIOD / portTICK_RATE_MS));
+        taskYIELD();
     }
 }
 
@@ -357,12 +352,15 @@ static void setup_task(void *pvParameters)
     // initialize the communication resources
     comm_init();
 
+    // initialize the control chain
+    chain_init();
+
     // create the queues
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create the tasks
     xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 3, NULL);
-    xTaskCreate(chain_task, TASK_NAME("chain"), 256, NULL, 3, NULL);
+    xTaskCreate(chain_task, TASK_NAME("chain"), 256, NULL, 4, NULL);
     xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
     xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
@@ -402,6 +400,7 @@ static void setup_task(void *pvParameters)
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(XRUN_CMD, xrun_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
+    protocol_add_command(CHAIN_CMD, chain_cb);
 
     // CLI initialization
     cli_init();
@@ -583,6 +582,13 @@ static void resp_cb(proto_t *proto)
 {
     comm_webgui_response_cb(proto->list);
 }
+
+static void chain_cb(proto_t *proto)
+{
+    chain_ui2dev(proto->list[1]);
+    protocol_response("resp 0", proto);
+}
+
 
 /*
 ************************************************************************************************************************

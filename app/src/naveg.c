@@ -13,7 +13,6 @@
 #include "led.h"
 #include "hardware.h"
 #include "comm.h"
-#include "chain.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -169,6 +168,7 @@ static void step_to_value(control_t *control)
             break;
 
         case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
             control->value = control->scale_points[control->step]->value;
             break;
     }
@@ -219,6 +219,7 @@ static void display_control_add(control_t *control)
             break;
 
         case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
             control->step = 0;
             uint8_t i;
             for (i = 0; i < control->scale_points_count; i++)
@@ -400,6 +401,7 @@ static void foot_control_add(control_t *control)
             break;
 
         case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
             // updates the led
             led_set_color(hardware_leds(control->actuator_id), ENUMERATED_COLOR);
 
@@ -477,6 +479,7 @@ static void control_set(uint8_t display, control_t *control)
             break;
 
         case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
             if (control->actuator_type == KNOB)
             {
                 // update the screen
@@ -1285,10 +1288,6 @@ void naveg_add_control(control_t *control)
                 break;
         }
     }
-    else
-    {
-        control_chain_add(control);
-    }
 }
 
 void naveg_remove_control(int32_t effect_instance, const char *symbol)
@@ -1297,7 +1296,6 @@ void naveg_remove_control(int32_t effect_instance, const char *symbol)
 
     display_control_rm(effect_instance, symbol);
     foot_control_rm(effect_instance, symbol);
-    control_chain_remove(effect_instance, symbol);
 }
 
 void naveg_inc_control(uint8_t display)

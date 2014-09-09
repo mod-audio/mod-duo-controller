@@ -51,6 +51,7 @@ typedef struct CONTROL_T {
     uint8_t actuator_type, actuator_id;
     char *label, *symbol, *unit;
     int32_t effect_instance;
+    uint8_t properties_mask;
     uint8_t properties;
     float value, minimum, maximum;
     int8_t step, steps;
