@@ -65,6 +65,17 @@
 #define SERIAL2_TX_BUFF_SIZE    512
 #define SERIAL2_HAS_OE          0
 
+//// Hardware peripheral definitions
+// Clock power control
+#define HW_CLK_PWR_CONTROL      CLKPWR_PCONP_PCTIM0 | CLKPWR_PCONP_PCTIM1 |     \
+                                CLKPWR_PCONP_PCUART0 | CLKPWR_PCONP_PCUART0 |   \
+                                CLKPWR_PCONP_PCSPI |                            \
+                                CLKPWR_PCONP_PCADC |                             \
+                                CLKPWR_PCONP_PCGPIO |                           \
+                                CLKPWR_PCONP_PCTIM2 | CLKPWR_PCONP_PCTIM3 |     \
+                                CLKPWR_PCONP_PCUART2 | CLKPWR_PCONP_PCUART3 |   \
+                                CLKPWR_PCONP_PCUSB
+
 //// Hardwares types (device identification)
 #define MOD_HARDWARE        0
 #define EXP_PEDAL_HW        1

@@ -209,6 +209,9 @@ void hardware_setup(void)
     // set system tick for 1ms interrupt
     SystemCoreClockUpdate();
 
+    // configure the peripherals power
+    CLKPWR_ConfigPPWR(HW_CLK_PWR_CONTROL, ENABLE);
+
     // ARM reset
     #ifdef ARM_RESET
     BLOCK_ARM_RESET();

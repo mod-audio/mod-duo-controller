@@ -52,6 +52,16 @@
 #define SERIAL2_OE_PORT         1
 #define SERIAL2_OE_PIN          12
 
+//// Hardware peripheral definitions
+// clock power control
+#define HW_CLK_PWR_CONTROL      CLKPWR_PCONP_PCTIM0 | CLKPWR_PCONP_PCTIM1 |     \
+                                CLKPWR_PCONP_PCUART0 | CLKPWR_PCONP_PCUART0 |   \
+                                CLKPWR_PCONP_PCADC  |                           \
+                                CLKPWR_PCONP_PCGPIO |                           \
+                                CLKPWR_PCONP_PCTIM2 | CLKPWR_PCONP_PCTIM3 |     \
+                                CLKPWR_PCONP_PCUART2 | CLKPWR_PCONP_PCUART3 |   \
+                                CLKPWR_PCONP_PCUSB
+
 //// Hardwares types (device identification)
 #define MOD_HARDWARE        0
 #define EXP_PEDAL_HW        1
