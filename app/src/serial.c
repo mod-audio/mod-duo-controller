@@ -99,14 +99,13 @@ static void uart_receive(serial_t *serial)
     written = ringbuff_write(serial->rx_buffer, buffer, count);
 
     // checks if all data fits on ring buffer
-    if (written != count)
+    while (written < count)
     {
         // invokes the callback because the buffer is full
         if (serial->rx_callback) serial->rx_callback(serial);
 
         // writes the data left
-        count = count - written;
-        written = ringbuff_write(serial->rx_buffer, &buffer[written], count);
+        written += ringbuff_write(serial->rx_buffer, &buffer[written], (count - written));
     }
 }
 
@@ -121,8 +120,12 @@ static void uart_transmit(serial_t *serial)
     // Wait until THR empty
     while (UART_CheckBusy(uart) == SET);
 
-    // checks output enable pin
-    WRITE_MODE(serial);
+    // if is start of frame checks whether OE is necessary
+    if (serial->sof)
+    {
+        WRITE_MODE(serial);
+        serial->sof = 0;
+    }
 
     uint32_t count;
     uint8_t buffer[UART_TX_FIFO_SIZE];
@@ -139,6 +142,7 @@ static void uart_transmit(serial_t *serial)
     {
         while (UART_CheckBusy(uart) == SET);
         READ_MODE(serial);
+        serial->sof = 1;
     }
 }
 
@@ -299,6 +303,7 @@ void serial_init(serial_t *serial)
 
     // initializes the struct vars
     serial->rx_callback = 0;
+    serial->sof = 1;
     serial->eof = 0;
 
     // checks if output enable is used
