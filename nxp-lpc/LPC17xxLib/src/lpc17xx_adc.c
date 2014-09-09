@@ -67,7 +67,7 @@ void ADC_Init(LPC_ADC_TypeDef *ADCx, uint32_t rate)
 	CHECK_PARAM(PARAM_ADC_RATE(rate));
 
 	// Turn on power and clock
-	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCAD, ENABLE);
+	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCADC, ENABLE);
 
 	ADCx->ADCR = 0;
 
@@ -101,7 +101,7 @@ void ADC_DeInit(LPC_ADC_TypeDef *ADCx)
 	// Clear PDN bit
 	ADCx->ADCR &= ~ADC_CR_PDN;
 	// Turn on power and clock
-	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCAD, DISABLE);
+	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCADC, DISABLE);
 }
 
 

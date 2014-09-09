@@ -139,7 +139,7 @@ extern "C"
 /** The SSP1 interface power/clock control bit */
 #define	 CLKPWR_PCONP_PCSSP1	((uint32_t)(1<<10))
 /** A/D converter 0 (ADC0) power/clock control bit */
-#define	 CLKPWR_PCONP_PCAD  	((uint32_t)(1<<12))
+#define	 CLKPWR_PCONP_PCADC  	((uint32_t)(1<<12))
 /** CAN Controller 1 power/clock control bit */
 #define	 CLKPWR_PCONP_PCAN1  	((uint32_t)(1<<13))
 /** CAN Controller 2 power/clock control bit */
