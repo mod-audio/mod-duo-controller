@@ -188,6 +188,7 @@ void SPI_SendData(LPC_SPI_TypeDef* SPIx, uint16_t Data)
 	CHECK_PARAM(PARAM_SPIx(SPIx));
 
 	SPIx->SPDR = Data & SPI_SPDR_BITMASK;
+	while ((SPIx->SPSR & SPI_SPSR_SPIF) == 0);
 }
 
 
