@@ -62,16 +62,10 @@
                                 CLKPWR_PCONP_PCUART2 | CLKPWR_PCONP_PCUART3 |   \
                                 CLKPWR_PCONP_PCUSB
 
-//// Hardwares types (device identification)
-#define MOD_HARDWARE        0
-#define EXP_PEDAL_HW        1
-#define XY_TABLET_HW        2
-
 //// Actuators types
 #define NONE                0
 #define FOOT                1
 #define KNOB                2
-#define PEDAL               3
 
 //// Slots count
 // One slot is a set of display, knob, footswitch and led

@@ -1275,18 +1275,15 @@ void naveg_add_control(control_t *control)
     // first tries remove the control
     naveg_remove_control(control->effect_instance, control->symbol);
 
-    if (control->hardware_type == MOD_HARDWARE)
+    switch (control->actuator_type)
     {
-        switch (control->actuator_type)
-        {
-            case KNOB:
-                display_control_add(control);
-                break;
+        case KNOB:
+            display_control_add(control);
+            break;
 
-            case FOOT:
-                foot_control_add(control);
-                break;
-        }
+        case FOOT:
+            foot_control_add(control);
+            break;
     }
 }
 
@@ -1387,12 +1384,14 @@ void naveg_next_control(uint8_t display)
 
     i = copy_command(buffer, CONTROL_NEXT_CMD);
 
+    // FIXME: hardware type and hardware id must be deprecated
+
     // inserts the hardware type
-    i += int_to_str(MOD_HARDWARE, &buffer[i], 4, 0);
+    i += int_to_str(0, &buffer[i], 4, 0);
     buffer[i++] = ' ';
 
     // inserts the hardware id
-    i += int_to_str(MOD_HARDWARE, &buffer[i], 4, 0);
+    i += int_to_str(0, &buffer[i], 4, 0);
     buffer[i++] = ' ';
 
     // inserts the actuator type
