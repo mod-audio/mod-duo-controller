@@ -9,7 +9,6 @@
 #include "config.h"
 #include "utils.h"
 #include "serial.h"
-#include "led.h"
 #include "actuator.h"
 #include "tpa6130.h"
 #include "ntc.h"
@@ -123,6 +122,7 @@ struct COOLER_T {
 ************************************************************************************************************************
 */
 
+static glcd_t g_glcd[GLCD_COUNT] = {GLCD0_CONFIG GLCD1_CONFIG GLCD2_CONFIG GLCD3_CONFIG};
 static serial_t g_serial[SERIAL_COUNT];
 static led_t g_leds[LEDS_COUNT];
 static encoder_t g_encoders[ENCODERS_COUNT];
@@ -242,6 +242,9 @@ void hardware_setup(void)
     {
         // LEDs initialization
         led_init(&g_leds[i], LEDS_PINS[i]);
+
+        // GLCD initialization
+        glcd_init(&g_glcd[i]);
 
         // actuators creation
         actuator_create(ROTARY_ENCODER, i, hardware_actuators(ENCODER0 + i));
@@ -413,9 +416,15 @@ void hardware_setup(void)
     #endif
 }
 
+glcd_t *hardware_glcds(uint8_t glcd_id)
+{
+    if (glcd_id >= GLCD_COUNT) return NULL;
+    return &g_glcd[glcd_id];
+}
+
 led_t *hardware_leds(uint8_t led_id)
 {
-    if (led_id > LEDS_COUNT) return NULL;
+    if (led_id >= LEDS_COUNT) return NULL;
     return &g_leds[led_id];
 }
 

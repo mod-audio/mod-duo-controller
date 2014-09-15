@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 
+#include "glcd.h"
 #include "led.h"
 
 
@@ -69,6 +70,8 @@ enum {CPU_OFF, CPU_ON};
 
 // does the hardware setup
 void hardware_setup(void);
+// returns the glcd object relative to glcd id
+glcd_t *hardware_glcds(uint8_t glcd_id);
 // returns the led object relative to led id
 led_t *hardware_leds(uint8_t led_id);
 // returns the actuator object relative to actuator id

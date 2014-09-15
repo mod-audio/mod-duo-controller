@@ -230,9 +230,13 @@ static void displays_task(void *pvParameters)
 
     while (1)
     {
-        // update the glcd
         taskENTER_CRITICAL();
-        glcd_update();
+
+        // update the GLCDs
+        uint8_t i;
+        for (i = 0; i < GLCD_COUNT; i++)
+            glcd_update(hardware_glcds(i));
+
         taskEXIT_CRITICAL();
         taskYIELD();
     }
@@ -345,9 +349,6 @@ static void setup_task(void *pvParameters)
     // set serial callbacks
     serial_set_callback(CLI_SERIAL, serial_cb);
     serial_set_callback(CONTROL_CHAIN_SERIAL, serial_cb);
-
-    // displays initialization
-    glcd_init();
 
     // initialize the communication resources
     comm_init();
@@ -475,7 +476,7 @@ static void glcd_text_cb(proto_t *proto)
 
     if (glcd_id >= GLCD_COUNT) return;
 
-    glcd_text(glcd_id, x, y, proto->list[4], NULL, GLCD_BLACK);
+    glcd_text(hardware_glcds(glcd_id), x, y, proto->list[4], NULL, GLCD_BLACK);
     protocol_response("resp 0", proto);
 }
 
@@ -489,7 +490,7 @@ static void glcd_draw_cb(proto_t *proto)
     if (glcd_id >= GLCD_COUNT) return;
 
     str_to_hex(proto->list[4], g_msg_buffer, sizeof(g_msg_buffer));
-    glcd_draw_image(glcd_id, x, y, g_msg_buffer, GLCD_BLACK);
+    glcd_draw_image(hardware_glcds(glcd_id), x, y, g_msg_buffer, GLCD_BLACK);
 
     protocol_response("resp 0", proto);
 }
@@ -630,9 +631,10 @@ void vApplicationMallocFailedHook(void)
 void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed portCHAR *pcTaskName)
 {
     UNUSED_PARAM(pxTask);
-    glcd_clear(0, GLCD_WHITE);
-    glcd_text(0, 0, 0, "stack overflow", NULL, GLCD_BLACK);
-    glcd_text(0, 0, 10, (const char *) pcTaskName, NULL, GLCD_BLACK);
-    glcd_update();
+    glcd_t *glcd0 =  hardware_glcds(0);
+    glcd_clear(glcd0, GLCD_WHITE);
+    glcd_text(glcd0, 0, 0, "stack overflow", NULL, GLCD_BLACK);
+    glcd_text(glcd0, 0, 10, (const char *) pcTaskName, NULL, GLCD_BLACK);
+    glcd_update(glcd0);
     while (1);
 }

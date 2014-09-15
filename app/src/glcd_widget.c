@@ -145,7 +145,7 @@ static uint8_t get_text_width(const char *text, const uint8_t *font)
 ************************************************************************************************************************
 */
 
-void widget_textbox(uint8_t display, textbox_t *textbox)
+void widget_textbox(glcd_t *display, textbox_t *textbox)
 {
     uint8_t text_width, text_height;
 
@@ -290,7 +290,7 @@ void widget_textbox(uint8_t display, textbox_t *textbox)
 }
 
 
-void widget_listbox(uint8_t display, listbox_t *listbox)
+void widget_listbox(glcd_t *display, listbox_t *listbox)
 {
     uint8_t i, font_height, max_lines, y_line;
     uint8_t first_line, focus, center_focus, focus_height;
@@ -349,7 +349,7 @@ void widget_listbox(uint8_t display, listbox_t *listbox)
 }
 
 
-void widget_listbox2(uint8_t display, listbox_t *listbox) //FIXME: function hardcoded
+void widget_listbox2(glcd_t *display, listbox_t *listbox) //FIXME: function hardcoded
 {
     glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
 
@@ -368,7 +368,7 @@ void widget_listbox2(uint8_t display, listbox_t *listbox) //FIXME: function hard
 }
 
 
-void widget_graph(uint8_t display, graph_t *graph)
+void widget_graph(glcd_t *display, graph_t *graph)
 {
     const uint8_t *graph_table = NULL;
     uint8_t i, n = 0;
@@ -509,7 +509,7 @@ void widget_graph(uint8_t display, graph_t *graph)
 
 
 // FIXME: this widget is hardcoded
-void widget_peakmeter(uint8_t display, uint8_t pkm_id, peakmeter_t *pkm)
+void widget_peakmeter(glcd_t *display, uint8_t pkm_id, peakmeter_t *pkm)
 {
     uint8_t height, y_black, y_chess, y_peak, h_black, h_chess;
     const uint8_t h_black_max = 20, h_chess_max = 22;
@@ -554,7 +554,7 @@ void widget_peakmeter(uint8_t display, uint8_t pkm_id, peakmeter_t *pkm)
 }
 
 
-void widget_tuner(uint8_t display, tuner_t *tuner)
+void widget_tuner(glcd_t *display, tuner_t *tuner)
 {
     // draws the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
@@ -685,7 +685,7 @@ void widget_tuner(uint8_t display, tuner_t *tuner)
 }
 
 
-void widget_popup(uint8_t display, popup_t *popup)
+void widget_popup(glcd_t *display, popup_t *popup)
 {
     // clears the popup area
     glcd_rect_fill(display, popup->x, popup->y, popup->width, popup->height, GLCD_WHITE);

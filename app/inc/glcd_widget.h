@@ -119,13 +119,13 @@ typedef struct POPUP_T {
 ************************************************************************************************************************
 */
 
-void widget_textbox(uint8_t display, textbox_t *textbox);
-void widget_listbox(uint8_t display, listbox_t *listbox);
-void widget_listbox2(uint8_t display, listbox_t *listbox);
-void widget_graph(uint8_t display, graph_t *graph);
-void widget_peakmeter(uint8_t display, uint8_t pkm_id, peakmeter_t *pkm);
-void widget_tuner(uint8_t display, tuner_t *tuner);
-void widget_popup(uint8_t display, popup_t *popup);
+void widget_textbox(glcd_t *display, textbox_t *textbox);
+void widget_listbox(glcd_t *display, listbox_t *listbox);
+void widget_listbox2(glcd_t *display, listbox_t *listbox);
+void widget_graph(glcd_t *display, graph_t *graph);
+void widget_peakmeter(glcd_t *display, uint8_t pkm_id, peakmeter_t *pkm);
+void widget_tuner(glcd_t *display, tuner_t *tuner);
+void widget_popup(glcd_t *display, popup_t *popup);
 
 
 /*

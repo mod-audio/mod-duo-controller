@@ -85,7 +85,7 @@ static tuner_t g_tuner = {0, NULL, 0, 1};
 
 static void peakmeter_design(void)
 {
-    const uint8_t display = PEAKMETER_DISPLAY;
+    glcd_t *display = hardware_glcds(PEAKMETER_DISPLAY);
 
     // draws the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
@@ -146,20 +146,22 @@ static void peakmeter_design(void)
 ************************************************************************************************************************
 */
 
-void screen_clear(uint8_t display)
+void screen_clear(uint8_t display_id)
 {
-    glcd_clear(display, GLCD_WHITE);
+    glcd_clear(hardware_glcds(display_id), GLCD_WHITE);
 }
 
-void screen_control(uint8_t display, control_t *control)
+void screen_control(uint8_t display_id, control_t *control)
 {
+    glcd_t *display = hardware_glcds(display_id);
+
     if (!control)
     {
         glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 51, GLCD_WHITE);
 
         char text[sizeof(SCREEN_ROTARY_DEFAULT_NAME) + 2];
         strcpy(text, SCREEN_ROTARY_DEFAULT_NAME);
-        text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)-1] = display + '1';
+        text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)-1] = display_id + '1';
         text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)] = 0;
 
         textbox_t title;
@@ -294,13 +296,15 @@ void screen_control(uint8_t display, control_t *control)
     }
 }
 
-void screen_controls_index(uint8_t display, uint8_t current, uint8_t max)
+void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max)
 {
     char str_current[4], str_max[4];
     int_to_str(current, str_current, sizeof(str_current), 2);
     int_to_str(max, str_max, sizeof(str_max), 2);
 
     if (max == 0) return;
+
+    glcd_t *display = hardware_glcds(display_id);
 
     // vertical line index separator
     glcd_vline(display, 114, 0, 16, GLCD_BLACK_WHITE);
@@ -326,8 +330,10 @@ void screen_controls_index(uint8_t display, uint8_t current, uint8_t max)
     widget_textbox(display, &index);
 }
 
-void screen_footer(uint8_t display, const char *name, const char *value)
+void screen_footer(uint8_t display_id, const char *name, const char *value)
 {
+    glcd_t *display = hardware_glcds(display_id);
+
     // horizontal footer line
     glcd_hline(display, 0, 51, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
 
@@ -338,7 +344,7 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     {
         char text[sizeof(SCREEN_FOOT_DEFAULT_NAME) + 2];
         strcpy(text, SCREEN_FOOT_DEFAULT_NAME);
-        text[sizeof(SCREEN_FOOT_DEFAULT_NAME)-1] = display + '1';
+        text[sizeof(SCREEN_FOOT_DEFAULT_NAME)-1] = display_id + '1';
         text[sizeof(SCREEN_FOOT_DEFAULT_NAME)] = 0;
 
         textbox_t title;
@@ -382,10 +388,12 @@ void screen_footer(uint8_t display, const char *name, const char *value)
     widget_textbox(display, &footer);
 }
 
-void screen_tool(uint8_t display, uint8_t tool)
+void screen_tool(uint8_t display_id, uint8_t tool)
 {
     bp_list_t *bp_list;
     uint8_t i;
+
+    glcd_t *display = hardware_glcds(display_id);
 
     switch (tool)
     {
@@ -419,8 +427,10 @@ void screen_bp_list(const char *title, bp_list_t *list)
     listbox_t list_box;
     textbox_t title_box, empty;
 
+    glcd_t *display = hardware_glcds(NAVEG_DISPLAY);
+
     // clears the title
-    glcd_rect_fill(NAVEG_DISPLAY, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
+    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
 
     // draws the title
     title_box.color = GLCD_BLACK;
@@ -434,10 +444,10 @@ void screen_bp_list(const char *title, bp_list_t *list)
     title_box.width = 0;
     title_box.text = title;
     title_box.align = ALIGN_LEFT_TOP;
-    widget_textbox(NAVEG_DISPLAY, &title_box);
+    widget_textbox(display, &title_box);
 
     // title line separator
-    glcd_hline(NAVEG_DISPLAY, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
+    glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
 
     // draws the list
     if (list)
@@ -457,7 +467,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
         list_box.line_top_margin = 1;
         list_box.line_bottom_margin = 0;
         list_box.text_left_margin = 2;
-        widget_listbox(NAVEG_DISPLAY, &list_box);
+        widget_listbox(display, &list_box);
     }
     else
     {
@@ -472,7 +482,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
         empty.width = 0;
         empty.text = "NO BANKS";
         empty.align = ALIGN_CENTER_MIDDLE;
-        widget_textbox(NAVEG_DISPLAY, &empty);
+        widget_textbox(display, &empty);
     }
 }
 
@@ -480,8 +490,10 @@ void screen_system_menu(menu_item_t *item)
 {
     static menu_item_t *last_item;
 
+    glcd_t *display = hardware_glcds(NAVEG_DISPLAY);
+
     // clears the title
-    glcd_rect_fill(SYSTEM_DISPLAY, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
+    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
 
     // draws the title
     textbox_t title_box;
@@ -497,11 +509,11 @@ void screen_system_menu(menu_item_t *item)
     title_box.align = ALIGN_LEFT_TOP;
     title_box.text = item->name;
     if (item->desc->type == MENU_NONE || MENU_ITEM_IS_TOGGLE_TYPE(item)) title_box.text = last_item->name;
-    widget_textbox(SYSTEM_DISPLAY, &title_box);
+    widget_textbox(display, &title_box);
 
     // title line separator
-    glcd_hline(SYSTEM_DISPLAY, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
-    glcd_hline(SYSTEM_DISPLAY, 0, 10, DISPLAY_WIDTH, GLCD_WHITE);
+    glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
+    glcd_hline(display, 0, 10, DISPLAY_WIDTH, GLCD_WHITE);
 
     // menu list
     listbox_t list;
@@ -532,7 +544,7 @@ void screen_system_menu(menu_item_t *item)
             list.selected = item->data.selected;
             list.count = item->data.list_count;
             list.list = item->data.list;
-            widget_listbox(SYSTEM_DISPLAY, &list);
+            widget_listbox(display, &list);
             last_item = item;
             break;
 
@@ -542,7 +554,7 @@ void screen_system_menu(menu_item_t *item)
             popup.title = item->desc->name;
             popup.content = item->data.popup_content;
             popup.button_selected = item->data.hover;
-            widget_popup(SYSTEM_DISPLAY, &popup);
+            widget_popup(display, &popup);
             break;
 
         case MENU_NONE:
@@ -551,7 +563,7 @@ void screen_system_menu(menu_item_t *item)
             list.selected = last_item->data.selected;
             list.count = last_item->data.list_count;
             list.list = last_item->data.list;
-            widget_listbox(SYSTEM_DISPLAY, &list);
+            widget_listbox(display, &list);
             break;
 
         case MENU_ON_OFF:
@@ -570,7 +582,7 @@ void screen_system_menu(menu_item_t *item)
             list.selected = last_item->data.selected;
             list.count = last_item->data.list_count;
             list.list = last_item->data.list;
-            widget_listbox(SYSTEM_DISPLAY, &list);
+            widget_listbox(display, &list);
             break;
     }
 }
@@ -582,7 +594,7 @@ void screen_peakmeter(uint8_t pkm_id, float value, float peak)
 
     // checks if peakmeter is enable and update it
     if (naveg_is_tool_mode(PEAKMETER_DISPLAY))
-        widget_peakmeter(PEAKMETER_DISPLAY, pkm_id, &g_peakmeter[pkm_id]);
+        widget_peakmeter(hardware_glcds(PEAKMETER_DISPLAY), pkm_id, &g_peakmeter[pkm_id]);
 }
 
 void screen_tuner(float frequency, char *note, int8_t cents)
@@ -593,7 +605,7 @@ void screen_tuner(float frequency, char *note, int8_t cents)
 
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(TUNER_DISPLAY))
-        widget_tuner(TUNER_DISPLAY, &g_tuner);
+        widget_tuner(hardware_glcds(TUNER_DISPLAY), &g_tuner);
 }
 
 void screen_tuner_input(uint8_t input)
@@ -602,10 +614,10 @@ void screen_tuner_input(uint8_t input)
 
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(TUNER_DISPLAY))
-        widget_tuner(TUNER_DISPLAY, &g_tuner);
+        widget_tuner(hardware_glcds(TUNER_DISPLAY), &g_tuner);
 }
 
-void screen_clipmeter(uint8_t display, uint8_t happened_now)
+void screen_clipmeter(uint8_t display_id, uint8_t happened_now)
 {
     static uint8_t check_timeout[GLCD_COUNT];
     static uint32_t last_time[GLCD_COUNT];
@@ -613,35 +625,35 @@ void screen_clipmeter(uint8_t display, uint8_t happened_now)
 
     uint8_t start, end;
 
-    if (display == 0xFF)
+    if (display_id == 0xFF)
     {
         start = 0;
         end = GLCD_COUNT;
     }
     else
     {
-        start = display;
+        start = display_id;
         end = start + 1;
     }
 
     uint8_t i;
     for (i = start; i < end; i++)
     {
-        display = i;
+        glcd_t *display = hardware_glcds(i);
 
         if (happened_now)
         {
             glcd_set_pixel(display, 126, 63, GLCD_BLACK);
-            last_time[display] = hardware_timestamp();
-            check_timeout[display] = 1;
+            last_time[i] = hardware_timestamp();
+            check_timeout[i] = 1;
         }
 
-        time_elapsed = hardware_timestamp() - last_time[display];
+        time_elapsed = hardware_timestamp() - last_time[i];
 
-        if (check_timeout[display] && time_elapsed > CLIPMETER_TIMEOUT)
+        if (check_timeout[i] && time_elapsed > CLIPMETER_TIMEOUT)
         {
             glcd_set_pixel(display, 126, 63, GLCD_WHITE);
-            check_timeout[display] = 0;
+            check_timeout[i] = 0;
         }
     }
 }
@@ -673,5 +685,5 @@ void screen_boot_feedback(uint8_t boot_stage)
     static uint8_t last_stage = 0xFF;
 
     if (boot_stage == last_stage) return;
-    glcd_draw_image(boot_stage, 0, 0, boot_screens[boot_stage], GLCD_BLACK);
+    glcd_draw_image(hardware_glcds(boot_stage), 0, 0, boot_screens[boot_stage], GLCD_BLACK);
 }

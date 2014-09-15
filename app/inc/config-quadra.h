@@ -62,11 +62,6 @@
                                 CLKPWR_PCONP_PCUART2 | CLKPWR_PCONP_PCUART3 |   \
                                 CLKPWR_PCONP_PCUSB
 
-//// Actuators types
-#define NONE                0
-#define FOOT                1
-#define KNOB                2
-
 //// Slots count
 // One slot is a set of display, knob, footswitch and led
 #define SLOTS_COUNT         4
@@ -107,46 +102,37 @@
 #define LED3_PINS           {3, 21, 3, 22, 3, 20}
 
 //// GLCDs configurations
+// GLCD driver
+#define GLCD_DRIVER         KS0108
+
 // Amount of displays
-#define GLCD_COUNT              SLOTS_COUNT
+#define GLCD_COUNT          SLOTS_COUNT
 
-// Display ports and pins definitions
-#define GLCD_DATABUS_PORT       1
-#define GLCD_DI_PORT            1
-#define GLCD_DI_PIN             17
-#define GLCD_EN_PORT            1
-#define GLCD_EN_PIN             16
-#define GLCD_RW_PORT            1
-#define GLCD_RW_PIN             20
-#define GLCD_CS1_PORT           1
-#define GLCD_CS1_PIN            18
-#define GLCD_CS2_PORT           1
-#define GLCD_CS2_PIN            19
-#define GLCD_RST_PORT           1
-#define GLCD_RST_PIN            15
+// GCLD common definitions
+#define GLCD_COMMON_CONFIG  .data_bus_port = 1,             \
+                            .cs1_port = 1, .cs1_pin = 18,   \
+                            .cs2_port = 1, .cs2_pin = 19,   \
+                            .cd_port = 1, .cd_pin = 17,     \
+                            .en_port = 1, .en_pin = 16,     \
+                            .rw_port = 1, .rw_pin = 20,     \
+                            .rst_port = 1, .rst_pin = 15
 
-// Display backlight ports and pins
-#define GLCD0_BACKLIGHT_PORT    2
-#define GLCD0_BACKLIGHT_PIN     7
-#define GLCD1_BACKLIGHT_PORT    2
-#define GLCD1_BACKLIGHT_PIN     4
-#define GLCD2_BACKLIGHT_PORT    2
-#define GLCD2_BACKLIGHT_PIN     6
-#define GLCD3_BACKLIGHT_PORT    2
-#define GLCD3_BACKLIGHT_PIN     5
+#define GLCD0_CONFIG    { GLCD_COMMON_CONFIG, \
+                          .backlight_port = 2, .backlight_pin = 7 },
 
-// Switcher ports and pins definitions
-// The switcher is used to select the display
-#define SWITCHER_DIR_PORT       1
-#define SWITCHER_DIR_PIN        21
-#define SWITCHER_CH0_PORT       1
-#define SWITCHER_CH0_PIN        11
-#define SWITCHER_CH1_PORT       1
-#define SWITCHER_CH1_PIN        8
-#define SWITCHER_CH2_PORT       1
-#define SWITCHER_CH2_PIN        10
-#define SWITCHER_CH3_PORT       1
-#define SWITCHER_CH3_PIN        9
+#define GLCD1_CONFIG    { GLCD_COMMON_CONFIG, \
+                          .backlight_port = 2, .backlight_pin = 4 },
+
+#define GLCD2_CONFIG    { GLCD_COMMON_CONFIG, \
+                          .backlight_port = 2, .backlight_pin = 6 },
+
+#define GLCD3_CONFIG    { GLCD_COMMON_CONFIG, \
+                          .backlight_port = 2, .backlight_pin = 5 },
+
+// Selector ports and pins definitions
+#define SELECTOR_DIR_PINS       {1, 21}
+#define SELECTOR_CHANNELS_PINS  {1, 11, 1, 8, 1, 10, 1, 9}
+
 
 //// Actuators configuration
 // Actuators IDs
@@ -501,6 +487,11 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 ////////////////////////////////////////////////////////////////
 ////// DON'T CHANGE THIS DEFINES
 
+//// Actuators types
+#define NONE            0
+#define FOOT            1
+#define KNOB            2
+
 // serial count definition
 #define SERIAL_COUNT    4
 
@@ -537,6 +528,33 @@ enum {ENCODER0, ENCODER1, ENCODER2, ENCODER3, FOOTSWITCH0, FOOTSWITCH1, FOOTSWIT
 
 #define SERIAL_MAX_TX_BUFF_SIZE     MAX(MAX(SERIAL0_TX_BUFF_SIZE, SERIAL1_TX_BUFF_SIZE), \
                                         MAX(SERIAL2_TX_BUFF_SIZE, SERIAL3_TX_BUFF_SIZE))
+
+// GLCD configurations definitions
+#ifndef GLCD0_CONFIG
+#define GLCD0_CONFIG
+#endif
+
+#ifndef GLCD1_CONFIG
+#define GLCD1_CONFIG
+#endif
+
+#ifndef GLCD2_CONFIG
+#define GLCD2_CONFIG
+#endif
+
+#ifndef GLCD3_CONFIG
+#define GLCD3_CONFIG
+#endif
+
+// GLCD drivers definitions
+enum {KS0108, UC1701};
+
+// GLCD driver include
+#if GLCD_DRIVER == KS0108
+#include "ks0108.h"
+#elif GLCD_DRIVER == UC1701
+#include "uc1701.h"
+#endif
 
 // system menu display definition
 #if (TOOL_SYSTEM == TOOL_DISPLAY0)
