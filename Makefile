@@ -2,8 +2,7 @@
 PRJNAME = mod-controller
 
 # toolchain configuration
-PATH := ${PATH}:/opt/toolchain/arm-bare_newlib_cortex_m3_nommu-eabi/bin/
-TOOLCHAIN_PREFIX = arm-cortexm3-bare-
+TOOLCHAIN_PREFIX = arm-none-eabi-
 
 # cpu configuration
 THUMB = -mthumb
@@ -51,7 +50,6 @@ BUILD_ON_CHANGE = Makefile $(APP_INC)/config.h
 # C flags
 CFLAGS += -mcpu=$(MCU)
 CFLAGS += -Wall -Wextra -Werror -Wpointer-arith -Wredundant-decls
-#CFLAGS += -Wcast-align -Wcast-qual
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUT_DIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 CFLAGS += -MMD -MP -MF $(OUT_DIR)/dep/$(@F).d
 CFLAGS += -I. $(patsubst %,-I%,$(INC))
@@ -60,8 +58,8 @@ CFLAGS += -DCONTROLLER_HASH_COMMIT=`git log -1 --pretty=format:\"%h\"`
 
 # Linker flags
 LDFLAGS = -Wl,-Map=$(OUT_DIR)/$(PRJNAME).map,--cref
-LDFLAGS += -L. $(patsubst %,-L%,$(LIBDIR))
-LDFLAGS += -lc -lgcc -lm
+LDFLAGS += -specs=rdimon.specs
+LDFLAGS += -Wl,--start-group -lgcc -lc -lm -lrdimon -Wl,--end-group
 LDFLAGS += -T./link/LPC.ld
 
 # Define programs and commands.
@@ -70,6 +68,13 @@ OBJCOPY = $(TOOLCHAIN_PREFIX)objcopy
 OBJDUMP = $(TOOLCHAIN_PREFIX)objdump
 NM      = $(TOOLCHAIN_PREFIX)nm
 SIZE    = $(TOOLCHAIN_PREFIX)size
+
+# define the output files
+ELF = $(OUT_DIR)/$(PRJNAME).elf
+BIN = $(OUT_DIR)/$(PRJNAME).bin
+HEX = $(OUT_DIR)/$(PRJNAME).hex
+SYM = $(OUT_DIR)/$(PRJNAME).sym
+LSS = $(OUT_DIR)/$(PRJNAME).lss
 
 # Colors definitions
 GREEN 	= '\e[0;32m'
@@ -93,28 +98,28 @@ prebuild:
 	@ln -fs ./config-$(mod).h ./app/inc/config.h
 
 # Create final output file in ihex format from ELF output file (.hex).
-%.hex: %.elf
+$(HEX): $(ELF)
 	@echo -e ${GREEN}Creating HEX${NOCOLOR}
 	@$(OBJCOPY) -O ihex $< $@
 
 # Create final output file in raw binary format from ELF output file (.bin)
-%.bin: %.elf
+$(BIN): $(ELF)
 	@echo -e ${GREEN}Creating BIN${NOCOLOR}
 	@$(OBJCOPY) -O binary $< $@
 
 # Create extended listing file/disassambly from ELF output file.
 # using objdump (testing: option -C)
-%.lss: %.elf
+$(LSS): $(ELF)
 	@echo -e ${GREEN}Creating listing file/disassambly${NOCOLOR}
 	@$(OBJDUMP) -h -S -C -r $< > $@
 
 # Create a symbols table from ELF output file.
-%.sym: %.elf
+$(SYM): $(ELF)
 	@echo -e ${GREEN}Creating symbols table${NOCOLOR}
 	@$(NM) -n $< > $@
 
 # Link: create ELF output file from object files.
-%.elf: $(OBJ) $(BUILD_ON_CHANGE)
+$(ELF): $(OBJ) $(BUILD_ON_CHANGE)
 	@echo -e ${GREEN}Linking objects: generating ELF${NOCOLOR}
 	@$(CC) $(THUMB) $(CFLAGS) $(OBJ) --output $@ -nostartfiles $(LDFLAGS)
 
@@ -123,7 +128,8 @@ prebuild:
 	@$(CC) $(THUMB) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(ALL_OBJ) $(OUT_DIR)
+	@echo -e ${GREEN}Object files cleaned out $<${NOCOLOR}
+	@rm -rf $(ALL_OBJ) $(OUT_DIR)
 
 size:
 	@$(SIZE) out/mod-controller.elf
