@@ -134,6 +134,7 @@ static void i2c_write(uint8_t data)
 
     SET_SCL()
     ack = READ_SDA();
+    (void)(ack);    // just to avoid warning
     CLR_SCL()
     CONFIG_SDA_OUT();
 }

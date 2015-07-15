@@ -331,6 +331,7 @@ char *str_duplicate(const char *str)
 void delay_us(volatile uint32_t time)
 {
     register uint32_t _time asm ("r0");
+    (void)(_time); // just to avoid warning
     _time = time;
 
     __asm__ volatile
@@ -352,6 +353,7 @@ void delay_us(volatile uint32_t time)
 void delay_ms(volatile uint32_t time)
 {
     register uint32_t _time asm ("r0");
+    (void)(_time); // just to avoid warning
     _time = time;
 
     __asm__ volatile
