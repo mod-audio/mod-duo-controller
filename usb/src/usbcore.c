@@ -151,7 +151,7 @@ void USB_StatusOutStage(void)
  *    Parameters:      None (global SetupPacket)
  *    Return Value:    TRUE - Success, FALSE - Error
  */
-__inline uint32_t USB_ReqGetStatus(void)
+static __inline uint32_t USB_ReqGetStatus(void)
 {
     uint32_t n, m;
     switch (SetupPacket.bmRequestType.BM.Recipient)
@@ -202,7 +202,7 @@ __inline uint32_t USB_ReqGetStatus(void)
  *                            (global SetupPacket)
  *    Return Value:    TRUE - Success, FALSE - Error
  */
-__inline uint32_t USB_ReqSetClrFeature(uint32_t sc)
+static __inline uint32_t USB_ReqSetClrFeature(uint32_t sc)
 {
     uint32_t n, m;
     switch (SetupPacket.bmRequestType.BM.Recipient)
@@ -282,7 +282,7 @@ __inline uint32_t USB_ReqSetClrFeature(uint32_t sc)
  *    Parameters:      None (global SetupPacket)
  *    Return Value:    TRUE - Success, FALSE - Error
  */
-__inline uint32_t USB_ReqSetAddress(void)
+static __inline uint32_t USB_ReqSetAddress(void)
 {
     switch (SetupPacket.bmRequestType.BM.Recipient)
     {
@@ -301,7 +301,7 @@ __inline uint32_t USB_ReqSetAddress(void)
  *    Parameters:      None (global SetupPacket)
  *    Return Value:    TRUE - Success, FALSE - Error
  */
-__inline uint32_t USB_ReqGetDescriptor(void)
+static __inline uint32_t USB_ReqGetDescriptor(void)
 {
     uint8_t*  pD;
     uint32_t len, n;
@@ -393,7 +393,7 @@ __inline uint32_t USB_ReqGetDescriptor(void)
  *    Parameters:      None (global SetupPacket)
  *    Return Value:    TRUE - Success, FALSE - Error
  */
-__inline uint32_t USB_ReqGetConfiguration(void)
+static __inline uint32_t USB_ReqGetConfiguration(void)
 {
     switch (SetupPacket.bmRequestType.BM.Recipient)
     {
@@ -412,7 +412,7 @@ __inline uint32_t USB_ReqGetConfiguration(void)
  *    Parameters:      None (global SetupPacket)
  *    Return Value:    TRUE - Success, FALSE - Error
  */
-__inline uint32_t USB_ReqSetConfiguration(void)
+static __inline uint32_t USB_ReqSetConfiguration(void)
 {
     USB_COMMON_DESCRIPTOR* pD;
     uint32_t alt = 0;
@@ -527,7 +527,7 @@ __inline uint32_t USB_ReqSetConfiguration(void)
  *    Parameters:      None (global SetupPacket)
  *    Return Value:    TRUE - Success, FALSE - Error
  */
-__inline uint32_t USB_ReqGetInterface(void)
+static __inline uint32_t USB_ReqGetInterface(void)
 {
     switch (SetupPacket.bmRequestType.BM.Recipient)
     {
@@ -553,7 +553,7 @@ __inline uint32_t USB_ReqGetInterface(void)
  *    Parameters:      None (global SetupPacket)
  *    Return Value:    TRUE - Success, FALSE - Error
  */
-__inline uint32_t USB_ReqSetInterface(void)
+static __inline uint32_t USB_ReqSetInterface(void)
 {
     USB_COMMON_DESCRIPTOR* pD;
     uint32_t ifn = 0, alt = 0, old = 0, msk = 0;

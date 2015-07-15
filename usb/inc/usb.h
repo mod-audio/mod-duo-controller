@@ -4,7 +4,9 @@
 
 #include <stdint.h>
 
+#ifndef __packed
 #define __packed    __attribute__((packed))
+#endif
 
 typedef union __packed
 {
