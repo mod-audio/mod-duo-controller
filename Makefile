@@ -9,11 +9,11 @@ THUMB = -mthumb
 MCU = cortex-m3
 
 # build configuration
+mod=$(MAKECMDGOALS)
 ifeq ($(mod),duo)
 CPU = LPC1759
 CPU_SERIE = LPC17xx
-else
-mod = quadra
+else ifeq ($(mod),quadra)
 CPU = LPC1788
 CPU_SERIE = LPC177x_8x
 endif
@@ -80,7 +80,16 @@ LSS = $(OUT_DIR)/$(PRJNAME).lss
 GREEN 	= '\e[0;32m'
 NOCOLOR	= '\e[0m'
 
+ifeq ($(mod),)
+all:
+	@echo -e "Usage:\tmake duo"
+	@echo -e "\tmake quadra"
+else
 all: prebuild build
+endif
+
+duo: all
+quadra: all
 
 build: elf lss sym hex bin
 
