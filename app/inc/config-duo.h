@@ -25,8 +25,8 @@
 // equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
 // SERIAL0
 #define SERIAL0
-#define SERIAL0_BAUD_RATE       115200
-#define SERIAL0_PRIORITY        5
+#define SERIAL0_BAUD_RATE       1500000
+#define SERIAL0_PRIORITY        1
 #define SERIAL0_RX_PORT         0
 #define SERIAL0_RX_PIN          3
 #define SERIAL0_RX_FUNC         1
@@ -38,7 +38,7 @@
 #define SERIAL0_HAS_OE          0
 // SERIAL1
 #define SERIAL1
-#define SERIAL1_BAUD_RATE       500000
+#define SERIAL1_BAUD_RATE       115200
 #define SERIAL1_PRIORITY        4
 #define SERIAL1_RX_PORT         0
 #define SERIAL1_RX_PIN          16
@@ -53,8 +53,8 @@
 #define SERIAL1_OE_PIN          22
 // SERIAL2
 #define SERIAL2
-#define SERIAL2_BAUD_RATE       1500000
-#define SERIAL2_PRIORITY        1
+#define SERIAL2_BAUD_RATE       500000
+#define SERIAL2_PRIORITY        5
 #define SERIAL2_RX_PORT         2
 #define SERIAL2_RX_PIN          9
 #define SERIAL2_RX_FUNC         2
@@ -85,8 +85,8 @@
 // to block the pin must be set to 0
 // to unblock the pin must be configured to input
 #define ARM_RESET
-#define ARM_RESET_PORT      1
-#define ARM_RESET_PIN       9
+#define ARM_RESET_PORT      0
+#define ARM_RESET_PIN       30
 
 //// LEDs configuration
 // Amount of LEDS
@@ -94,29 +94,30 @@
 
 // LEDs ports and pins definitions
 // format definition: {R_PORT, R_PIN, G_PORT, G_PIN, B_PORT, B_PIN}
-#define LED0_PINS           {1, 19, 1, 20, 1, 18}
-#define LED1_PINS           {1, 31, 0, 26, 1, 30}
+#define LED0_PINS           {2, 2, 2, 1, 2, 0}
+#define LED1_PINS           {2, 5, 2, 4, 2, 3}
 
 //// GLCDs configurations
-// GLCD driver
-#define GLCD_DRIVER         KS0108
+// GLCD driver, valid options: KS0108, UC1701
+#define GLCD_DRIVER         UC1701
 
 // Amount of displays
 #define GLCD_COUNT          SLOTS_COUNT
 
 // GCLD common definitions
-#define GLCD_COMMON_CONFIG  .data_bus_port = 2,             \
-                            .cs1_port = 0, .cs1_pin = 10,   \
-                            .cs2_port = 0, .cs2_pin = 11,   \
-                            .cd_port = 1, .cd_pin = 28,     \
-                            .en_port = 0, .en_pin = 0,      \
-                            .rw_port = 1, .rw_pin = 29,     \
-                            .rst_port = 0, .rst_pin = 1
+// check the drivers header to see how to set the structure
+#define GLCD_COMMON_CONFIG  .ssp_module = LPC_SSP0, .ssp_clock = 100000, \
+                            .ssp_clk_port = 1, .ssp_clk_pin = 20, .ssp_clk_func = 3, \
+                            .ssp_mosi_port = 1, .ssp_mosi_pin = 24, .ssp_mosi_func = 3, \
+                            .cd_port = 1, .cd_pin = 22, \
+                            .rst_port = 1, .rst_pin = 25
 
 #define GLCD0_CONFIG    { GLCD_COMMON_CONFIG, \
-                          .backlight_port = 1, .backlight_pin = 25 },
+                          .cs_port = 0, .cs_pin = 11, \
+                          .backlight_port = 1, .backlight_pin = 28 },
 
 #define GLCD1_CONFIG    { GLCD_COMMON_CONFIG, \
+                          .cs_port = 0, .cs_pin = 10, \
                           .backlight_port = 1, .backlight_pin = 26 },
 
 // Selector ports and pins definitions
@@ -133,16 +134,16 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // Footswitches ports and pins definitions
 // button definition: {BUTTON_PORT, BUTTON_PIN}
-#define FOOTSWITCH0_PINS    {0, 30}
-#define FOOTSWITCH1_PINS    {0, 29}
+#define FOOTSWITCH0_PINS    {1, 19}
+#define FOOTSWITCH1_PINS    {1, 18}
 
 // Amount of encoders
 #define ENCODERS_COUNT      SLOTS_COUNT
 
 // Encoders ports and pins definitions
 // encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC4_CH_PIN}
-#define ENCODER0_PINS       {0, 6, 0, 8, 0, 7}
-#define ENCODER1_PINS       {1, 24, 1, 22, 1, 23}
+#define ENCODER0_PINS       {0, 17, 0, 22, 0, 18}
+#define ENCODER1_PINS       {1, 31, 0, 26, 0, 25}
 
 //// ADC configuration
 // ADC Clock conversion (in Hz)
@@ -165,7 +166,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 //// webgui configuration
 // define the interface
 #define WEBGUI_COMM                 SERIAL
-#define WEBGUI_SERIAL               2
+#define WEBGUI_SERIAL               0
 #define WEBGUI_SERIAL_RX_BUFF_SIZE  SERIAL2_RX_BUFF_SIZE
 
 // define how many bytes will be allocated to rx/tx buffers
@@ -339,8 +340,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
-    {PEDALBOARD_ID+2, "Are you sure that you want to reset the pedalboard values to last saved state?"},    \
-    {PEDALBOARD_ID+3, "Are you sure that you want to save the current pedalboard values as default?"},      \
+    {PEDALBOARD_ID+2, "Are you sure to reset all pedalboard values to the last saved state?"},      \
+    {PEDALBOARD_ID+3, "Are you sure to save all current pedalboard values as default?"},            \
     {FACTORY_ID, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
 
 
@@ -386,7 +387,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 //// Command line interface configurations
 // defines the cli serial
-#define CLI_SERIAL                  0
+#define CLI_SERIAL                  1
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500
 // pacman packages names
@@ -416,7 +417,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define FACTORY_RESTORE_FOOTSWITCH  FOOTSWITCH1
 
 //// Control Chain definitions
-#define CONTROL_CHAIN_SERIAL        1
+#define CONTROL_CHAIN_SERIAL        2
 
 //// USB definitions
 #define USB_VID     0x9999
