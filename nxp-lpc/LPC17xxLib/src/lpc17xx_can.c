@@ -169,6 +169,7 @@ void CAN_Init(LPC_CAN_TypeDef *CANx, uint32_t baudrate)
 	CANx->CMR = (1<<1)|(1<<2)|(1<<3);
 	/* Read to clear interrupt pending in interrupt capture register */
 	temp = CANx->ICR;
+	(void)(temp); // to prevent warning
 	CANx->MOD = 0;// Return Normal operating
 
 	//Reset CANAF value
@@ -777,6 +778,7 @@ CAN_ERROR CAN_LoadFullCANEntry (LPC_CAN_TypeDef* CANx, uint16_t id)
 		cnt1 = 0;
 		cnt2 = CANAF_FullCAN_cnt;
 		bound1 = (CANAF_FullCAN_cnt - 1) >> 1;
+		(void)(abc); // to prevent warning
 		while (cnt1 <= bound1)
 		{
 			abc = (LPC_CANAF_RAM->mask[cnt1] >> 16)& 0xE7FF;
