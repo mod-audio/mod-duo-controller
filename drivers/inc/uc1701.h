@@ -54,6 +54,9 @@
 #define UC1701_PM_DEFAULT   63
 #define UC1701_RR_DEFAULT   3
 
+// display backlight turn on definition
+#define UC1701_BACKLIGHT_TURN_ON_WITH_ONE
+
 
 /*
 ************************************************************************************************************************
@@ -69,6 +72,7 @@ typedef struct UC1701_T {
     uint8_t cs_port, cs_pin;
     uint8_t cd_port, cd_pin;
     uint8_t rst_port, rst_pin;
+    uint8_t backlight_port, backlight_pin;
 
     uint8_t buffer[DISPLAY_HEIGHT/8][DISPLAY_WIDTH];
 } uc1701_t;

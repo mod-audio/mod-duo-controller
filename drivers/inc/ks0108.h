@@ -77,7 +77,7 @@ typedef struct KS0108_T {
     uint8_t rw_port, rw_pin;
     uint8_t rst_port, rst_pin;
     uint8_t backlight_port, backlight_pin;
-    
+
     uint8_t buffer[DISPLAY_HEIGHT/8][DISPLAY_WIDTH];
 } ks0108_t;
 

@@ -57,6 +57,15 @@
                                         while (SSP_GetStatus(disp->ssp_module, SSP_STAT_TXFIFO_EMPTY) == RESET || \
                                                SSP_GetStatus(disp->ssp_module, SSP_STAT_BUSY) == SET);
 
+// backlight macros
+#if defined UC1701_BACKLIGHT_TURN_ON_WITH_ONE
+#define BACKLIGHT_TURN_ON(port, pin)    SET_PIN(port, pin)
+#define BACKLIGHT_TURN_OFF(port, pin)   CLR_PIN(port, pin)
+#elif defined UC1701_BACKLIGHT_TURN_ON_WITH_ZERO
+#define BACKLIGHT_TURN_ON(port, pin)    CLR_PIN(port, pin)
+#define BACKLIGHT_TURN_OFF(port, pin)   SET_PIN(port, pin)
+#endif
+
 
 /*
 ************************************************************************************************************************
@@ -89,7 +98,7 @@ static void write_cmd(uc1701_t *disp, uint8_t cmd)
 {
     // activate chip select
     CLR_PIN(disp->cs_port, disp->cs_pin);
-    
+
     // command mode
     CLR_PIN(disp->cd_port, disp->cd_pin);
     SEND_DATA(disp, cmd);
@@ -116,11 +125,11 @@ static void write_data(uc1701_t *disp, uint16_t data)
 {
     // activate chip select
     CLR_PIN(disp->cs_port, disp->cs_pin);
-    
+
     // data mode
     SET_PIN(disp->cd_port, disp->cd_pin);
     SEND_DATA(disp, data);
-    
+
     // deactivate chip select
     SET_PIN(disp->cs_port, disp->cs_pin);
 }
@@ -190,6 +199,10 @@ void uc1701_init(uc1701_t *disp)
     CONFIG_PIN_OUTPUT(disp->rst_port, disp->rst_pin);
     CONFIG_PIN_OUTPUT(disp->cd_port, disp->cd_pin);
 
+    // backlight configuration
+    CONFIG_PIN_OUTPUT(disp->backlight_port, disp->backlight_pin);
+    BACKLIGHT_TURN_ON(disp->backlight_port, disp->backlight_pin);
+
     // setup the SPI
     PINSEL_SetPinFunc(disp->ssp_clk_port, disp->ssp_clk_pin, disp->ssp_clk_func);
     PINSEL_SetPinFunc(disp->ssp_mosi_port, disp->ssp_mosi_pin, disp->ssp_mosi_func);
@@ -257,6 +270,14 @@ void uc1701_init(uc1701_t *disp)
     // clear display
     uc1701_clear(disp, UC1701_WHITE);
     uc1701_update(disp);
+}
+
+void uc1701_backlight(uc1701_t *disp, uint8_t state)
+{
+    if (state)
+        BACKLIGHT_TURN_ON(disp->backlight_port, disp->backlight_pin);
+    else
+        BACKLIGHT_TURN_OFF(disp->backlight_port, disp->backlight_pin);
 }
 
 void uc1701_clear(uc1701_t *disp, uint8_t color)
