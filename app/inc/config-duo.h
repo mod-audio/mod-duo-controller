@@ -496,7 +496,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #endif
 
 // GLCD drivers definitions
-enum {KS0108, UC1701};
+#define KS0108      0
+#define UC1701      1
 
 // GLCD driver include
 #if GLCD_DRIVER == KS0108
