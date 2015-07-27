@@ -94,8 +94,8 @@
 
 // LEDs ports and pins definitions
 // format definition: {R_PORT, R_PIN, G_PORT, G_PIN, B_PORT, B_PIN}
-#define LED0_PINS           {2, 2, 2, 1, 2, 0}
-#define LED1_PINS           {2, 5, 2, 4, 2, 3}
+#define LED0_PINS           {2, 1, 2, 0, 2, 2}
+#define LED1_PINS           {2, 4, 2, 3, 2, 5}
 
 //// GLCDs configurations
 // GLCD driver, valid options: KS0108, UC1701
