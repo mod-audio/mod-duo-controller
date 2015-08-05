@@ -62,6 +62,7 @@
 */
 
 static serial_t *g_serial_instances[SERIAL_MAX_INSTANCES];
+static uint8_t g_init_instances = 0;
 
 
 /*
@@ -215,6 +216,17 @@ void serial_init(serial_t *serial)
     LPC_UART_TypeDef *uart;
     IRQn_Type irq;
 
+    // initialize instances
+    if (!g_init_instances)
+    {
+        uint8_t i;
+        for (i = 0; i < SERIAL_MAX_INSTANCES; i++)
+        {
+            g_serial_instances[i] = 0;
+        }
+        g_init_instances = 1;
+    }
+
     // pins setup
     PINSEL_SetPinFunc(serial->rx_port, serial->rx_pin, serial->rx_function);
     PINSEL_SetPinFunc(serial->tx_port, serial->tx_pin, serial->tx_function);
@@ -366,7 +378,10 @@ uint32_t serial_read(uint8_t uart_id, uint8_t *data, uint32_t data_size)
 
 void serial_set_callback(uint8_t uart_id, void (*receive_cb)(serial_t *serial))
 {
-    g_serial_instances[uart_id]->rx_callback = receive_cb;
+    if (g_serial_instances[uart_id])
+    {
+        g_serial_instances[uart_id]->rx_callback = receive_cb;
+    }
 }
 
 void UART0_IRQHandler(void)
