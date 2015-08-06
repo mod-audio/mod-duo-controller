@@ -331,6 +331,8 @@ uint32_t serial_send(uint8_t uart_id, const uint8_t *data, uint32_t data_size)
     LPC_UART_TypeDef *uart = GET_UART(uart_id);
     serial_t *serial = g_serial_instances[uart_id];
 
+    if (!serial) return 0;
+
     // Temporarily lock out UART transmit interrupts during this
     // read so the UART transmit interrupt won't cause problems
     // with the index values
@@ -361,6 +363,8 @@ uint32_t serial_read(uint8_t uart_id, uint8_t *data, uint32_t data_size)
 {
     LPC_UART_TypeDef *uart = GET_UART(uart_id);
     serial_t *serial = g_serial_instances[uart_id];
+
+    if (!serial) return 0;
 
     // Temporarily lock out UART receive interrupts during this
     // read so the UART receive interrupt won't cause problems
