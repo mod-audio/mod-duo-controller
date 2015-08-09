@@ -192,7 +192,7 @@ void USB_Init(uint8_t corenum)
     while ((LPC_USB->USBClkSt & 0x12) != 0x12);
 #endif
 
-    NVIC_SetPriority(USB_IRQn, (USB_PRIORITY << 3));
+    NVIC_SetPriority(USB_IRQn, USB_PRIORITY);
     NVIC_EnableIRQ(USB_IRQn);   /* enable USB interrupt */
     USB_Reset();
     USB_SetAddress(0);

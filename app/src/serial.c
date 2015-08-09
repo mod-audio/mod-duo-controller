@@ -304,7 +304,7 @@ void serial_init(serial_t *serial)
     UART_IntConfig(uart, UART_INTCFG_RLS, ENABLE);
 
     // set priority
-    NVIC_SetPriority(irq, (serial->priority << 3));
+    NVIC_SetPriority(irq, serial->priority);
 
     // Enable Interrupt for UART channel
     NVIC_EnableIRQ(irq);

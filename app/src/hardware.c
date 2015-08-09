@@ -44,43 +44,43 @@ static const led_pins_t LEDS_PINS[] = {
 #endif
 #ifdef LED1_PINS
     LED1_PINS,
-#endif    
-#ifdef LED2_PINS    
+#endif
+#ifdef LED2_PINS
     LED2_PINS,
-#endif    
-#ifdef LED3_PINS    
+#endif
+#ifdef LED3_PINS
     LED3_PINS
-#endif    
+#endif
 };
 
 static const uint8_t *ENCODER_PINS[] = {
 #ifdef ENCODER0_PINS
     (const uint8_t []) ENCODER0_PINS,
-#endif    
+#endif
 #ifdef ENCODER1_PINS
     (const uint8_t []) ENCODER1_PINS,
-#endif    
+#endif
 #ifdef ENCODER2_PINS
     (const uint8_t []) ENCODER2_PINS,
-#endif    
+#endif
 #ifdef ENCODER3_PINS
     (const uint8_t []) ENCODER3_PINS
-#endif    
+#endif
 };
 
 static const uint8_t *FOOTSWITCH_PINS[] = {
 #ifdef FOOTSWITCH0_PINS
     (const uint8_t []) FOOTSWITCH0_PINS,
-#endif    
+#endif
 #ifdef FOOTSWITCH1_PINS
     (const uint8_t []) FOOTSWITCH1_PINS,
-#endif    
+#endif
 #ifdef FOOTSWITCH2_PINS
     (const uint8_t []) FOOTSWITCH2_PINS,
-#endif    
+#endif
 #ifdef FOOTSWITCH3_PINS
     (const uint8_t []) FOOTSWITCH3_PINS
-#endif    
+#endif
 };
 
 
@@ -206,7 +206,7 @@ static void cooler_pwm(void) {}
 
 void hardware_setup(void)
 {
-    // set system tick for 1ms interrupt
+    // set system core clock
     SystemCoreClockUpdate();
 
     // configure the peripherals power
@@ -284,22 +284,22 @@ void hardware_setup(void)
     TIM_MATCHCFG_Type TIM_MatchConfigStruct ;
     // initialize timer 0, prescale count time of 10us
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-    TIM_ConfigStruct.PrescaleValue    = 10;
+    TIM_ConfigStruct.PrescaleValue = 10;
     // use channel 0, MR0
     TIM_MatchConfigStruct.MatchChannel = 0;
     // enable interrupt when MR0 matches the value in TC register
-    TIM_MatchConfigStruct.IntOnMatch   = TRUE;
+    TIM_MatchConfigStruct.IntOnMatch = TRUE;
     // enable reset on MR0: TIMER will reset if MR0 matches it
     TIM_MatchConfigStruct.ResetOnMatch = TRUE;
     // stop on MR0 if MR0 matches it
-    TIM_MatchConfigStruct.StopOnMatch  = FALSE;
+    TIM_MatchConfigStruct.StopOnMatch = FALSE;
     // set Match value, count value of 5 (5 * 10us = 50us --> 20 kHz)
-    TIM_MatchConfigStruct.MatchValue   = 5;
+    TIM_MatchConfigStruct.MatchValue = 5;
     // set configuration for Tim_config and Tim_MatchConfig
     TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &TIM_ConfigStruct);
     TIM_ConfigMatch(LPC_TIM0, &TIM_MatchConfigStruct);
     // set priority
-    NVIC_SetPriority(TIMER0_IRQn, (TIMER0_PRIORITY << 3));
+    NVIC_SetPriority(TIMER0_IRQn, TIMER0_PRIORITY);
     // enable interrupt for timer 0
     NVIC_EnableIRQ(TIMER0_IRQn);
     // to start timer
@@ -311,22 +311,22 @@ void hardware_setup(void)
 
     // initialize timer 1, prescale count time of 500us
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-    TIM_ConfigStruct.PrescaleValue    = 500;
+    TIM_ConfigStruct.PrescaleValue = 500;
     // use channel 1, MR1
     TIM_MatchConfigStruct.MatchChannel = 1;
     // enable interrupt when MR1 matches the value in TC register
-    TIM_MatchConfigStruct.IntOnMatch   = TRUE;
+    TIM_MatchConfigStruct.IntOnMatch = TRUE;
     // enable reset on MR1: TIMER will reset if MR1 matches it
     TIM_MatchConfigStruct.ResetOnMatch = TRUE;
     // stop on MR1 if MR1 matches it
-    TIM_MatchConfigStruct.StopOnMatch  = FALSE;
+    TIM_MatchConfigStruct.StopOnMatch = FALSE;
     // set Match value, count value of 1
-    TIM_MatchConfigStruct.MatchValue   = 1;
+    TIM_MatchConfigStruct.MatchValue = 1;
     // set configuration for Tim_config and Tim_MatchConfig
     TIM_Init(LPC_TIM1, TIM_TIMER_MODE, &TIM_ConfigStruct);
     TIM_ConfigMatch(LPC_TIM1, &TIM_MatchConfigStruct);
     // set priority
-    NVIC_SetPriority(TIMER1_IRQn, (TIMER1_PRIORITY << 3));
+    NVIC_SetPriority(TIMER1_IRQn, TIMER1_PRIORITY);
     // enable interrupt for timer 1
     NVIC_EnableIRQ(TIMER1_IRQn);
     // to start timer
