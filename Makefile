@@ -34,7 +34,12 @@ USB_INC 	= ./usb/inc
 USB_SRC 	= ./usb/src
 OUT_DIR		= ./out
 
-SRC = $(wildcard $(CMSIS_SRC)/*.c) $(wildcard $(CDL_SRC)/*.c) $(wildcard $(RTOS_SRC)/*.c) \
+CDL_LIBS = lpc17xx_clkpwr.c
+CDL_LIBS += lpc17xx_adc.c lpc17xx_gpio.c  lpc17xx_pinsel.c
+CDL_LIBS += lpc17xx_systick.c lpc17xx_timer.c
+CDL_LIBS += lpc17xx_uart.c lpc17xx_ssp.c
+
+SRC = $(wildcard $(CMSIS_SRC)/*.c) $(addprefix $(CDL_SRC)/,$(CDL_LIBS)) $(wildcard $(RTOS_SRC)/*.c) \
 	  $(wildcard $(DRIVERS_SRC)/*.c) $(wildcard $(APP_SRC)/*.c) $(wildcard $(USB_SRC)/*.c)
 
 # Object files
