@@ -42,6 +42,10 @@
 // this is used to block/unblock the glcd functions
 enum {SET_PIXEL, CLEAR, HLINE, VLINE, LINE, RECT, RECT_FILL, RECT_INVERT, DRAW_IMAGE, TEXT};
 
+#if ! defined(SELECTOR_DIR_PINS) || ! defined(SELECTOR_CHANNELS_PINS)
+#define NO_SELECTOR
+#endif
+
 
 /*
 ************************************************************************************************************************
@@ -119,9 +123,10 @@ enum {SELECTOR_OUTPUT_MODE, SELECTOR_INPUT_MODE};
 */
 
 static uint8_t g_id;
+#ifndef NO_SELECTOR
 static uint8_t g_n_channels;
 static uint8_t g_dir_pin[2], g_channels_pins[GLCD_COUNT*2];
-
+#endif
 
 /*
 ************************************************************************************************************************
@@ -215,6 +220,7 @@ static void write_data(ks0108_t *disp, uint8_t x, uint8_t y, uint8_t data)
     }
 }
 
+#ifndef NO_SELECTOR
 static void selector_init(uint8_t n_channels, const uint8_t *dir_pin, const uint8_t *channels_pins)
 {
     // configures direction pin
@@ -255,6 +261,7 @@ static void selector_channel(uint8_t channel)
 
     ENABLE_CHANNEL(g_channels_pins[(channel * 2) + 0], g_channels_pins[(channel * 2) + 1]);
 }
+#endif
 
 
 /*
@@ -267,10 +274,12 @@ void ks0108_init(ks0108_t *disp)
 {
     disp->id = g_id++;
 
+#ifndef NO_SELECTOR
     // initializes the selector
     selector_init(GLCD_COUNT, (const uint8_t [])SELECTOR_DIR_PINS, (const uint8_t [])SELECTOR_CHANNELS_PINS);
     selector_direction(SELECTOR_OUTPUT_MODE);
     selector_channel(disp->id);
+#endif
 
     // direction pins configuration
     CONFIG_PIN_OUTPUT(disp->rst_port, disp->rst_pin);
@@ -627,7 +636,9 @@ void ks0108_update(ks0108_t *disp)
 {
     uint8_t chip, page, x;
 
+#ifndef NO_SELECTOR
     selector_channel(disp->id);
+#endif
 
     for (chip = 0 ; chip < CHIP_COUNT; chip++)
     {
