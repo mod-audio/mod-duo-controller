@@ -105,9 +105,8 @@ struct COOLER_T {
 #define ABS(x)                  ((x) > 0 ? (x) : -(x))
 
 #ifdef ARM_RESET
-#define UNBLOCK_ARM_RESET()     GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_INPUT)
-#define BLOCK_ARM_RESET()       GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_OUTPUT); \
-                                GPIO_ClearValue(ARM_RESET_PORT, (1 << ARM_RESET_PIN))
+#define UNBLOCK_ARM_RESET()     GPIO_SetValue(ARM_RESET_PORT, (1 << ARM_RESET_PIN))
+#define BLOCK_ARM_RESET()       GPIO_ClearValue(ARM_RESET_PORT, (1 << ARM_RESET_PIN))
 #endif
 
 #define CPU_IS_ON()             (1 - ((FIO_ReadValue(CPU_STATUS_PORT) >> CPU_STATUS_PIN) & 1))
@@ -214,6 +213,7 @@ void hardware_setup(void)
 
     // ARM reset
     #ifdef ARM_RESET
+    GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_OUTPUT);
     BLOCK_ARM_RESET();
     #endif
 
@@ -259,11 +259,6 @@ void hardware_setup(void)
         actuator_set_prop(hardware_actuators(ENCODER0 + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
     }
 
-    // ADC initialization
-    ADC_Init(LPC_ADC, ADC_CLOCK);
-    ADC_BurstCmd(LPC_ADC, ENABLE);
-    ADC_StartCmd(LPC_ADC, ADC_START_CONTINUOUS);
-
     // Headphone initialization (TPA and ADC)
     #ifdef HEADPHONE
     tpa6130_init();
@@ -273,7 +268,9 @@ void hardware_setup(void)
     #endif
 
     // NTC initialization
+    #ifdef NTC
     ntc_init();
+    #endif
 
     ////////////////////////////////////////////////////////////////
     // Timer 0 configuration
@@ -430,7 +427,7 @@ led_t *hardware_leds(uint8_t led_id)
 
 void *hardware_actuators(uint8_t actuator_id)
 {
-    if ((int8_t)actuator_id >= ENCODER0 && actuator_id < (ENCODER0 + FOOTSWITCHES_COUNT))
+    if ((int8_t)actuator_id >= ENCODER0 && actuator_id < (ENCODER0 + ENCODERS_COUNT))
     {
         return (&g_encoders[actuator_id - ENCODER0]);
     }
