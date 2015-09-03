@@ -19,6 +19,10 @@
 #define TABLE_MIN_TEMP      10
 #define TABLE_MAX_TEMP      100
 
+#ifndef ADC_CLOCK
+#define ADC_CLOCK           100000
+#endif
+
 
 /*
 ************************************************************************************************************************
@@ -127,6 +131,11 @@ static uint16_t bisect(uint16_t target, const uint16_t *list, uint16_t list_size
 
 void ntc_init(void)
 {
+    // ADC initialization
+    ADC_Init(LPC_ADC, ADC_CLOCK);
+    ADC_BurstCmd(LPC_ADC, ENABLE);
+    ADC_StartCmd(LPC_ADC, ADC_START_CONTINUOUS);
+
     // configurates the adc pin
     PINSEL_SetPinFunc(NTC_ADC_PORT, NTC_ADC_PIN, NTC_ADC_PIN_CONF);
 
