@@ -199,6 +199,11 @@ void uc1701_init(uc1701_t *disp)
     CONFIG_PIN_OUTPUT(disp->rst_port, disp->rst_pin);
     CONFIG_PIN_OUTPUT(disp->cd_port, disp->cd_pin);
 
+    // initial values of GPIO
+    SET_PIN(disp->cs_port, disp->cs_pin);
+    SET_PIN(disp->rst_port, disp->rst_pin);
+    SET_PIN(disp->cd_port, disp->cd_pin);
+
     // backlight configuration
     CONFIG_PIN_OUTPUT(disp->backlight_port, disp->backlight_pin);
     BACKLIGHT_TURN_ON(disp->backlight_port, disp->backlight_pin);
@@ -222,44 +227,38 @@ void uc1701_init(uc1701_t *disp)
     SSP_Init(disp->ssp_module, &ssp_config);
     SSP_Cmd(disp->ssp_module, ENABLE);
 
-    // disable UC1701 when Power up
-    SET_PIN(disp->cs_port, disp->cs_pin);
-
-    // reset the controller
+    // reset display controller
+    CLR_PIN(disp->rst_port, disp->rst_pin);
+    DELAY_ms(2);
     SET_PIN(disp->rst_port, disp->rst_pin);
-    DELAY_ms(6);
+    DELAY_ms(2);
 
-    // system reset
-    write_cmd(disp, UC1701_SET_SR);
+    // bias ratio 1/7
+    write_cmd(disp, UC1701_SET_BR_7);
 
-    // power rise step 1
-    write_cmd(disp, UC1701_SET_PC | 0x04);
-    DELAY_ms(8);
+    // set SEG direction (column)
+    write_cmd(disp, UC1701_SEG_DIR_NORMAL);
 
-    // power rise step 2
-    write_cmd(disp, UC1701_SET_PC | 0x06);
-    DELAY_ms(8);
+    // set COM direction (row)
+    write_cmd(disp, UC1701_COM_DIR_NORMAL);
 
-    // power rise step 3
-    write_cmd(disp, UC1701_SET_PC | 0x07);
-    DELAY_ms(8);
-
-    // resitor ratio
+    // resistor ratio
     write_cmd(disp, UC1701_SET_RR | UC1701_RR_DEFAULT);
 
     // set eletronic volume (PM)
     write_double_cmd(disp, UC1701_SET_PM, UC1701_PM_DEFAULT);
 
-    DELAY_ms(120);
+    // power rise step 1
+    write_cmd(disp, UC1701_SET_PC | 0x04);
+    DELAY_ms(2);
 
-    // bias ratio 1/7
-    write_cmd(disp, UC1701_SET_BR_7);
+    // power rise step 2
+    write_cmd(disp, UC1701_SET_PC | 0x06);
+    DELAY_ms(2);
 
-    // set COM direction (row)
-    write_cmd(disp, UC1701_COM_DIR_NORMAL);
-
-    // set SEG direction (column)
-    write_cmd(disp, UC1701_SEG_DIR_NORMAL);
+    // power rise step 3
+    write_cmd(disp, UC1701_SET_PC | 0x07);
+    DELAY_ms(2);
 
     // set scroll line
     write_cmd(disp, UC1701_SET_SL);
