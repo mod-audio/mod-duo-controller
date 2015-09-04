@@ -48,33 +48,14 @@
 #define SERIAL1_TX_PIN          15
 #define SERIAL1_TX_FUNC         1
 #define SERIAL1_TX_BUFF_SIZE    32
-#define SERIAL1_HAS_OE          1
-#define SERIAL1_OE_PORT         0
-#define SERIAL1_OE_PIN          22
-// SERIAL2
-#define SERIAL2
-#define SERIAL2_BAUD_RATE       500000
-#define SERIAL2_PRIORITY        5
-#define SERIAL2_RX_PORT         2
-#define SERIAL2_RX_PIN          9
-#define SERIAL2_RX_FUNC         2
-#define SERIAL2_RX_BUFF_SIZE    32
-#define SERIAL2_TX_PORT         2
-#define SERIAL2_TX_PIN          8
-#define SERIAL2_TX_FUNC         2
-#define SERIAL2_TX_BUFF_SIZE    512
-#define SERIAL2_HAS_OE          0
+#define SERIAL1_HAS_OE          0
 
 //// Hardware peripheral definitions
 // Clock power control
-#define HW_CLK_PWR_CONTROL      CLKPWR_PCONP_PCTIM0 | CLKPWR_PCONP_PCTIM1 |     \
-                                CLKPWR_PCONP_PCUART0 | CLKPWR_PCONP_PCUART0 |   \
-                                CLKPWR_PCONP_PCSPI |                            \
-                                CLKPWR_PCONP_PCADC |                             \
-                                CLKPWR_PCONP_PCGPIO |                           \
-                                CLKPWR_PCONP_PCTIM2 | CLKPWR_PCONP_PCTIM3 |     \
-                                CLKPWR_PCONP_PCUART2 | CLKPWR_PCONP_PCUART3 |   \
-                                CLKPWR_PCONP_PCUSB
+#define HW_CLK_PWR_CONTROL      CLKPWR_PCONP_PCTIM0 | CLKPWR_PCONP_PCTIM1 | \
+                                CLKPWR_PCONP_PCUART0 | CLKPWR_PCONP_PCUART1 | \
+                                CLKPWR_PCONP_PCSSP0 |   \
+                                CLKPWR_PCONP_PCGPIO
 
 //// Slots count
 // One slot is a set of display, knob, footswitch and led
@@ -109,21 +90,17 @@
 #define GLCD_COMMON_CONFIG  .ssp_module = LPC_SSP0, .ssp_clock = 100000, \
                             .ssp_clk_port = 1, .ssp_clk_pin = 20, .ssp_clk_func = 3, \
                             .ssp_mosi_port = 1, .ssp_mosi_pin = 24, .ssp_mosi_func = 3, \
-                            .cd_port = 1, .cd_pin = 22, \
-                            .rst_port = 1, .rst_pin = 25
+                            .cd_port = 1, .cd_pin = 22
 
 #define GLCD0_CONFIG    { GLCD_COMMON_CONFIG, \
                           .cs_port = 0, .cs_pin = 11, \
+                          .rst_port = 1, .rst_pin = 25, \
                           .backlight_port = 1, .backlight_pin = 28 },
 
 #define GLCD1_CONFIG    { GLCD_COMMON_CONFIG, \
                           .cs_port = 0, .cs_pin = 10, \
+                          .rst_port = 1, .rst_pin = 29, \
                           .backlight_port = 1, .backlight_pin = 26 },
-
-// Selector ports and pins definitions
-#define SELECTOR_DIR_PINS       {0, 17}
-#define SELECTOR_CHANNELS_PINS  {0, 9, 0, 18}
-
 
 //// Actuators configuration
 // Actuators IDs
@@ -145,20 +122,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define ENCODER0_PINS       {0, 17, 0, 22, 0, 18}
 #define ENCODER1_PINS       {1, 31, 0, 26, 0, 25}
 
-//// ADC configuration
-// ADC Clock conversion (in Hz)
-#define ADC_CLOCK               100000
-
-//// NTC configuration
-// NTC port and pin
-#define NTC
-#define NTC_ADC_PORT            0
-#define NTC_ADC_PIN             25
-// ADC pin configuration, defines the ADC function number
-#define NTC_ADC_PIN_CONF        2
-// ADC NTC channel
-#define NTC_ADC_CHANNEL         2
-
 
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
@@ -167,11 +130,11 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // define the interface
 #define WEBGUI_COMM                 SERIAL
 #define WEBGUI_SERIAL               0
-#define WEBGUI_SERIAL_RX_BUFF_SIZE  SERIAL2_RX_BUFF_SIZE
+#define WEBGUI_SERIAL_RX_BUFF_SIZE  32
 
 // define how many bytes will be allocated to rx/tx buffers
 #define WEBGUI_COMM_RX_BUFF_SIZE    4096
-#define WEBGUI_COMM_TX_BUFF_SIZE    SERIAL2_TX_BUFF_SIZE
+#define WEBGUI_COMM_TX_BUFF_SIZE    512
 
 //// Protocol commands configuration
 // ping
