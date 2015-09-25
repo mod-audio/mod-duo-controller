@@ -118,7 +118,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define ENCODERS_COUNT      SLOTS_COUNT
 
 // Encoders ports and pins definitions
-// encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC4_CH_PIN}
+// encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC_CHB_PIN}
 #define ENCODER0_PINS       {0, 17, 0, 22, 0, 18}
 #define ENCODER1_PINS       {1, 31, 0, 26, 0, 25}
 
