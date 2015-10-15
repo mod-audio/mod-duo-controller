@@ -61,22 +61,14 @@
 // One slot is a set of display, knob, footswitch and led
 #define SLOTS_COUNT         2
 
-//// ARM reset pin
-// this pin is used to block/unblock the ARM reset
-// to block the pin must be set to 0
-// to unblock the pin must be configured to input
-#define ARM_RESET
-#define ARM_RESET_PORT      0
-#define ARM_RESET_PIN       30
-
 //// LEDs configuration
 // Amount of LEDS
 #define LEDS_COUNT          SLOTS_COUNT
 
 // LEDs ports and pins definitions
 // format definition: {R_PORT, R_PIN, G_PORT, G_PIN, B_PORT, B_PIN}
-#define LED0_PINS           {2, 1, 2, 0, 2, 2}
-#define LED1_PINS           {2, 4, 2, 3, 2, 5}
+#define LED0_PINS           {2, 1, 2, 2, 2, 0}
+#define LED1_PINS           {2, 4, 2, 5, 2, 3}
 
 //// GLCDs configurations
 // GLCD driver, valid options: KS0108, UC1701
@@ -90,17 +82,17 @@
 #define GLCD_COMMON_CONFIG  .ssp_module = LPC_SSP0, .ssp_clock = 100000, \
                             .ssp_clk_port = 1, .ssp_clk_pin = 20, .ssp_clk_func = 3, \
                             .ssp_mosi_port = 1, .ssp_mosi_pin = 24, .ssp_mosi_func = 3, \
-                            .cd_port = 1, .cd_pin = 22
+                            .cd_port = 1, .cd_pin = 19
 
 #define GLCD0_CONFIG    { GLCD_COMMON_CONFIG, \
                           .cs_port = 0, .cs_pin = 11, \
-                          .rst_port = 1, .rst_pin = 25, \
-                          .backlight_port = 1, .backlight_pin = 28 },
+                          .rst_port = 0, .rst_pin = 10, \
+                          .backlight_port = 1, .backlight_pin = 18 },
 
 #define GLCD1_CONFIG    { GLCD_COMMON_CONFIG, \
-                          .cs_port = 0, .cs_pin = 10, \
-                          .rst_port = 1, .rst_pin = 29, \
-                          .backlight_port = 1, .backlight_pin = 26 },
+                          .cs_port = 0, .cs_pin = 29, \
+                          .rst_port = 0, .rst_pin = 30, \
+                          .backlight_port = 1, .backlight_pin = 25 },
 
 //// Actuators configuration
 // Actuators IDs
@@ -111,8 +103,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // Footswitches ports and pins definitions
 // button definition: {BUTTON_PORT, BUTTON_PIN}
-#define FOOTSWITCH0_PINS    {1, 19}
-#define FOOTSWITCH1_PINS    {1, 18}
+#define FOOTSWITCH0_PINS    {1, 29}
+#define FOOTSWITCH1_PINS    {1, 28}
 
 // Amount of encoders
 #define ENCODERS_COUNT      SLOTS_COUNT
@@ -120,7 +112,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // Encoders ports and pins definitions
 // encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC_CHB_PIN}
 #define ENCODER0_PINS       {0, 17, 0, 22, 0, 18}
-#define ENCODER1_PINS       {1, 31, 0, 26, 0, 25}
+#define ENCODER1_PINS       {2, 8, 2, 6, 2, 7}
 
 
 ////////////////////////////////////////////////////////////////
