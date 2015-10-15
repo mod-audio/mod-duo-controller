@@ -237,18 +237,10 @@ void uc1701_init(uc1701_t *disp)
     write_cmd(disp, UC1701_SET_BR_7);
 
     // set SEG direction (column)
-#ifdef UC1701_REVERSE_COLUMNS
-    write_cmd(disp, UC1701_SEG_DIR_INVERSE);
-#else
     write_cmd(disp, UC1701_SEG_DIR_NORMAL);
-#endif
 
     // set COM direction (row)
-#ifdef UC1701_REVERSE_ROWS
-    write_cmd(disp, UC1701_COM_DIR_INVERSE);
-#else
     write_cmd(disp, UC1701_COM_DIR_NORMAL);
-#endif
 
     // resistor ratio
     write_cmd(disp, UC1701_SET_RR | UC1701_RR_DEFAULT);
@@ -277,6 +269,16 @@ void uc1701_init(uc1701_t *disp)
     // clear display
     uc1701_clear(disp, UC1701_WHITE);
     uc1701_update(disp);
+
+    DELAY_ms(2);
+
+    // apply new configurations
+#ifdef UC1701_REVERSE_COLUMNS
+    write_cmd(disp, UC1701_SEG_DIR_INVERSE);
+#endif
+#ifdef UC1701_REVERSE_ROWS
+    write_cmd(disp, UC1701_COM_DIR_INVERSE);
+#endif
 }
 
 void uc1701_backlight(uc1701_t *disp, uint8_t state)
