@@ -73,6 +73,8 @@
 //// GLCDs configurations
 // GLCD driver, valid options: KS0108, UC1701
 #define GLCD_DRIVER         UC1701
+#define UC1701_REVERSE_COLUMNS
+#define UC1701_REVERSE_ROWS
 
 // Amount of displays
 #define GLCD_COUNT          SLOTS_COUNT

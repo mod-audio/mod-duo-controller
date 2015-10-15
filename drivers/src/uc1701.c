@@ -237,10 +237,18 @@ void uc1701_init(uc1701_t *disp)
     write_cmd(disp, UC1701_SET_BR_7);
 
     // set SEG direction (column)
+#ifdef UC1701_REVERSE_COLUMNS
+    write_cmd(disp, UC1701_SEG_DIR_INVERSE);
+#else
     write_cmd(disp, UC1701_SEG_DIR_NORMAL);
+#endif
 
     // set COM direction (row)
+#ifdef UC1701_REVERSE_ROWS
+    write_cmd(disp, UC1701_COM_DIR_INVERSE);
+#else
     write_cmd(disp, UC1701_COM_DIR_NORMAL);
+#endif
 
     // resistor ratio
     write_cmd(disp, UC1701_SET_RR | UC1701_RR_DEFAULT);
