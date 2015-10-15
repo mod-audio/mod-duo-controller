@@ -85,8 +85,8 @@ static void actuators_cb(void *actuator);
 static void procotol_task(void *pvParameters);
 static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
-static void monitor_task(void *pvParameters);
-static void chain_task(void *pvParameters);
+//static void monitor_task(void *pvParameters);
+//static void chain_task(void *pvParameters);
 static void setup_task(void *pvParameters);
 
 // protocol callbacks
@@ -107,7 +107,7 @@ static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
 static void xrun_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
-static void chain_cb(proto_t *proto);
+//static void chain_cb(proto_t *proto);
 
 
 /*
@@ -134,7 +134,11 @@ int main(void)
 {
     // initialize hardware
     hardware_setup();
-
+//led_set_color(hardware_leds(0), GREEN);
+//led_set_color(hardware_leds(1), YELLOW);
+//led_blink(hardware_leds(0), 500, 500);
+//glcd_backlight(hardware_glcds(0), GLCD_BACKLIGHT_OFF);
+//glcd_backlight(hardware_glcds(1), GLCD_BACKLIGHT_OFF);
     // this task is used to setup the system and create the other tasks
     xTaskCreate(setup_task, NULL, 256, NULL, 1, NULL);
 
@@ -162,9 +166,9 @@ static void serial_cb(serial_t *serial)
     read_bytes = serial_read(uart_id, buffer, sizeof(buffer));
 
     if (uart_id == CLI_SERIAL)
+    {
         cli_append_data((const char*)buffer, read_bytes);
-    else if (uart_id == CONTROL_CHAIN_SERIAL && g_ui_communication_started)
-        chain_dev2ui_push(buffer, read_bytes, serial->eof);
+    }
 }
 
 // this callback is called from UART ISR in case of error
@@ -301,6 +305,7 @@ static void actuators_task(void *pvParameters)
     }
 }
 
+/*
 static void monitor_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
@@ -324,7 +329,8 @@ static void monitor_task(void *pvParameters)
         taskYIELD();
     }
 }
-
+*/
+/*
 static void chain_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
@@ -341,33 +347,33 @@ static void chain_task(void *pvParameters)
         taskYIELD();
     }
 }
-
+*/
 static void setup_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
     // set serial callbacks
     serial_set_callback(CLI_SERIAL, serial_cb);
-    serial_set_callback(CONTROL_CHAIN_SERIAL, serial_cb);
+//    serial_set_callback(CONTROL_CHAIN_SERIAL, serial_cb);
 
     // initialize the communication resources
     comm_init();
 
     // initialize the control chain
-    chain_init();
+//    chain_init();
 
     // create the queues
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create the tasks
     xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 3, NULL);
-    xTaskCreate(chain_task, TASK_NAME("chain"), 256, NULL, 4, NULL);
+//    xTaskCreate(chain_task, TASK_NAME("chain"), 256, NULL, 4, NULL);
     xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
-    xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
+//    xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
 
     // checks the system boot
-    system_check_boot();
+//    system_check_boot();
 
     // first boot screen feedback
     screen_boot_feedback(0);
@@ -401,7 +407,7 @@ static void setup_task(void *pvParameters)
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(XRUN_CMD, xrun_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
-    protocol_add_command(CHAIN_CMD, chain_cb);
+//    protocol_add_command(CHAIN_CMD, chain_cb);
 
     // CLI initialization
     cli_init();
@@ -584,11 +590,13 @@ static void resp_cb(proto_t *proto)
     comm_webgui_response_cb(proto->list);
 }
 
+/*
 static void chain_cb(proto_t *proto)
 {
     chain_ui2dev(proto->list[1]);
     protocol_response("resp 0", proto);
 }
+*/
 
 
 /*
