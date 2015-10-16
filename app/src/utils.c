@@ -514,7 +514,7 @@ uint32_t ringbuff_read_until(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_si
     return bytes;
 }
 
-uint32_t ringbuff_size(ringbuff_t *rb)
+uint32_t ringbuffer_used_space(ringbuff_t *rb)
 {
     return ((rb->head - rb->tail) % rb->size);
 }

@@ -102,8 +102,8 @@ uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size)
 uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size);
 // ringbuff_read_until: read the ring buffer until find the token and returns the number of bytes read
 uint32_t ringbuff_read_until(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size, uint8_t token);
-// ringbuff_size: returns the amount of unread bytes
-uint32_t ringbuff_size(ringbuff_t *rb);
+// ringbuffer_used_space: returns the amount of unread bytes
+uint32_t ringbuffer_used_space(ringbuff_t *rb);
 // ringbuff_available_space: returns the amount of free bytes
 uint32_t ringbuff_available_space(ringbuff_t *rb);
 // ringbuff_is_full: returns non zero is buffer is full
