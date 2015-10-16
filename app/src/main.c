@@ -24,7 +24,6 @@
 #include "screen.h"
 #include "cli.h"
 #include "comm.h"
-#include "chain.h"
 
 
 /*
@@ -86,7 +85,6 @@ static void procotol_task(void *pvParameters);
 static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
 //static void monitor_task(void *pvParameters);
-//static void chain_task(void *pvParameters);
 static void setup_task(void *pvParameters);
 
 // protocol callbacks
@@ -102,12 +100,8 @@ static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
 static void initial_state_cb(proto_t *proto);
 static void bank_config_cb(proto_t *proto);
-static void clipmeter_cb(proto_t *proto);
-static void peakmeter_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
-static void xrun_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
-//static void chain_cb(proto_t *proto);
 
 
 /*
@@ -134,11 +128,7 @@ int main(void)
 {
     // initialize hardware
     hardware_setup();
-//led_set_color(hardware_leds(0), GREEN);
-//led_set_color(hardware_leds(1), YELLOW);
-//led_blink(hardware_leds(0), 500, 500);
-//glcd_backlight(hardware_glcds(0), GLCD_BACKLIGHT_OFF);
-//glcd_backlight(hardware_glcds(1), GLCD_BACKLIGHT_OFF);
+
     // this task is used to setup the system and create the other tasks
     xTaskCreate(setup_task, NULL, 256, NULL, 1, NULL);
 
@@ -312,14 +302,6 @@ static void monitor_task(void *pvParameters)
 
     while (1)
     {
-        // reset the screen icons
-        screen_clipmeter(0xFF, 0);
-        screen_xrun(0);
-
-        // hardware verifications
-        hardware_headphone();
-        hardware_temperature();
-
         // process the command line
         cli_process();
 
@@ -330,44 +312,22 @@ static void monitor_task(void *pvParameters)
     }
 }
 */
-/*
-static void chain_task(void *pvParameters)
-{
-    UNUSED_PARAM(pvParameters);
 
-    while (1)
-    {
-        // As soon as a message is received from control chain the message will be
-        // directed to UI. The below function implements a binary semaphore internally.
-        uint32_t read = chain_dev2ui_pop(g_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE);
-
-        // sends the message to UI. Ignores the last byte (read - 1) to prevent send the \0 twice.
-        if (read) comm_webgui_send((const char*)g_msg_buffer, read-1);
-
-        taskYIELD();
-    }
-}
-*/
 static void setup_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
     // set serial callbacks
     serial_set_callback(CLI_SERIAL, serial_cb);
-//    serial_set_callback(CONTROL_CHAIN_SERIAL, serial_cb);
 
     // initialize the communication resources
     comm_init();
-
-    // initialize the control chain
-//    chain_init();
 
     // create the queues
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create the tasks
     xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 3, NULL);
-//    xTaskCreate(chain_task, TASK_NAME("chain"), 256, NULL, 4, NULL);
     xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
 //    xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
@@ -402,28 +362,11 @@ static void setup_task(void *pvParameters)
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
     protocol_add_command(INITIAL_STATE_CMD, initial_state_cb);
     protocol_add_command(BANK_CONFIG_CMD, bank_config_cb);
-    protocol_add_command(CLIPMETER_CMD, clipmeter_cb);
-    protocol_add_command(PEAKMETER_CMD, peakmeter_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
-    protocol_add_command(XRUN_CMD, xrun_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
-//    protocol_add_command(CHAIN_CMD, chain_cb);
 
     // CLI initialization
     cli_init();
-
-    // the grub is only for mod quadra
-    // this will be deprecated in the future
-#ifdef CLI_GRUB
-    while (cli_boot_stage() < LOGIN_STAGE);
-    screen_boot_feedback(1);
-
-    while (cli_boot_stage() < PROMPT_READY_STAGE);
-    screen_boot_feedback(2);
-
-    while (!g_ui_communication_started);
-    screen_boot_feedback(3);
-#endif
 
     // init the navigation
     naveg_init();
@@ -561,27 +504,9 @@ static void bank_config_cb(proto_t *proto)
     protocol_response("resp 0", proto);
 }
 
-static void peakmeter_cb(proto_t *proto)
-{
-    screen_peakmeter(atoi(proto->list[1]), atof(proto->list[2]), atof(proto->list[3]));
-    protocol_response("resp 0", proto);
-}
-
 static void tuner_cb(proto_t *proto)
 {
     screen_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
-    protocol_response("resp 0", proto);
-}
-
-static void clipmeter_cb(proto_t *proto)
-{
-    screen_clipmeter(atoi(proto->list[1]), 1);
-    protocol_response("resp 0", proto);
-}
-
-static void xrun_cb(proto_t *proto)
-{
-    screen_xrun(1);
     protocol_response("resp 0", proto);
 }
 
@@ -589,14 +514,6 @@ static void resp_cb(proto_t *proto)
 {
     comm_webgui_response_cb(proto->list);
 }
-
-/*
-static void chain_cb(proto_t *proto)
-{
-    chain_ui2dev(proto->list[1]);
-    protocol_response("resp 0", proto);
-}
-*/
 
 
 /*

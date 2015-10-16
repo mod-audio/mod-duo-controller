@@ -22,8 +22,6 @@
 ************************************************************************************************************************
 */
 
-#define PEAKMETERS_COUNT    4
-
 
 /*
 ************************************************************************************************************************
@@ -59,7 +57,6 @@ static const uint8_t *boot_screens[] = {
 ************************************************************************************************************************
 */
 
-static peakmeter_t g_peakmeter[PEAKMETERS_COUNT];
 static tuner_t g_tuner = {0, NULL, 0, 1};
 
 
@@ -82,62 +79,6 @@ static tuner_t g_tuner = {0, NULL, 0, 1};
 *           LOCAL FUNCTIONS
 ************************************************************************************************************************
 */
-
-static void peakmeter_design(void)
-{
-    glcd_t *display = hardware_glcds(PEAKMETER_DISPLAY);
-
-    // draws the title
-    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
-    textbox_t title;
-    title.color = GLCD_WHITE;
-    title.mode = TEXT_SINGLE_LINE;
-    title.align = ALIGN_LEFT_TOP;
-    title.top_margin = 1;
-    title.bottom_margin = 0;
-    title.left_margin = 2;
-    title.right_margin = 0;
-    title.height = 0;
-    title.width = 0;
-    title.font = alterebro15;
-    title.text = "Peak Meter";
-    widget_textbox(display, &title);
-    glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
-
-    // draws the bars contours
-    glcd_rect(display,  2, 11, 20, 45, GLCD_BLACK);
-    glcd_rect(display, 28, 11, 20, 45, GLCD_BLACK);
-    glcd_rect(display, 55, 11, 20, 45, GLCD_BLACK);
-    glcd_rect(display, 81, 11, 20, 45, GLCD_BLACK);
-
-    // draws the scale
-    textbox_t scale;
-    scale.color = GLCD_BLACK;
-    scale.mode = TEXT_SINGLE_LINE;
-    scale.align = ALIGN_RIGHT_NONE;
-    scale.top_margin = 0;
-    scale.bottom_margin = 0;
-    scale.left_margin = 0;
-    scale.right_margin = 2;
-    scale.font = alterebro15;
-    scale.height = 0;
-    scale.width = 0;
-    scale.y = 11;
-    scale.text = "0dB";
-    widget_textbox(display, &scale);
-    scale.y = 30;
-    scale.text = "-15dB";
-    widget_textbox(display, &scale);
-    scale.y = 49;
-    scale.text = "-30dB";
-    widget_textbox(display, &scale);
-
-    // draws the subtitles
-    glcd_text(display,  6, 57,  "IN1", alterebro15, GLCD_BLACK);
-    glcd_text(display, 32, 57,  "IN2", alterebro15, GLCD_BLACK);
-    glcd_text(display, 56, 57, "OUT1", alterebro15, GLCD_BLACK);
-    glcd_text(display, 81, 57, "OUT2", alterebro15, GLCD_BLACK);
-}
 
 
 /*
@@ -391,8 +332,6 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
 void screen_tool(uint8_t display_id, uint8_t tool)
 {
     bp_list_t *bp_list;
-    uint8_t i;
-
     glcd_t *display = hardware_glcds(display_id);
 
     switch (tool)
@@ -407,12 +346,6 @@ void screen_tool(uint8_t display_id, uint8_t tool)
             g_tuner.note = "?";
             g_tuner.cents = 0;
             widget_tuner(display, &g_tuner);
-            break;
-
-        case TOOL_PEAKMETER:
-            peakmeter_design();
-            for (i = 0; i < PEAKMETERS_COUNT; i++)
-                screen_peakmeter(i, -30.0, -30.0);
             break;
 
         case TOOL_NAVEG:
@@ -587,16 +520,6 @@ void screen_system_menu(menu_item_t *item)
     }
 }
 
-void screen_peakmeter(uint8_t pkm_id, float value, float peak)
-{
-    g_peakmeter[pkm_id].value = value;
-    g_peakmeter[pkm_id].peak = peak;
-
-    // checks if peakmeter is enable and update it
-    if (naveg_is_tool_mode(PEAKMETER_DISPLAY))
-        widget_peakmeter(hardware_glcds(PEAKMETER_DISPLAY), pkm_id, &g_peakmeter[pkm_id]);
-}
-
 void screen_tuner(float frequency, char *note, int8_t cents)
 {
     g_tuner.frequency = frequency;
@@ -615,69 +538,6 @@ void screen_tuner_input(uint8_t input)
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(TUNER_DISPLAY))
         widget_tuner(hardware_glcds(TUNER_DISPLAY), &g_tuner);
-}
-
-void screen_clipmeter(uint8_t display_id, uint8_t happened_now)
-{
-    static uint8_t check_timeout[GLCD_COUNT];
-    static uint32_t last_time[GLCD_COUNT];
-    uint32_t time_elapsed;
-
-    uint8_t start, end;
-
-    if (display_id == 0xFF)
-    {
-        start = 0;
-        end = GLCD_COUNT;
-    }
-    else
-    {
-        start = display_id;
-        end = start + 1;
-    }
-
-    uint8_t i;
-    for (i = start; i < end; i++)
-    {
-        glcd_t *display = hardware_glcds(i);
-
-        if (happened_now)
-        {
-            glcd_set_pixel(display, 126, 63, GLCD_BLACK);
-            last_time[i] = hardware_timestamp();
-            check_timeout[i] = 1;
-        }
-
-        time_elapsed = hardware_timestamp() - last_time[i];
-
-        if (check_timeout[i] && time_elapsed > CLIPMETER_TIMEOUT)
-        {
-            glcd_set_pixel(display, 126, 63, GLCD_WHITE);
-            check_timeout[i] = 0;
-        }
-    }
-}
-
-void screen_xrun(uint8_t happened_now)
-{
-    static uint8_t check_timeout;
-    static uint32_t last_time;
-    uint32_t time_elapsed;
-
-    if (happened_now)
-    {
-        glcd_set_pixel(XRUN_ICON_DISPLAY, 127, 63, GLCD_BLACK);
-        last_time = hardware_timestamp();
-        check_timeout = 1;
-    }
-
-    time_elapsed = hardware_timestamp() - last_time;
-
-    if (check_timeout && time_elapsed > XRUN_TIMEOUT)
-    {
-        glcd_set_pixel(XRUN_ICON_DISPLAY, 127, 63, GLCD_WHITE);
-        check_timeout = 0;
-    }
 }
 
 void screen_boot_feedback(uint8_t boot_stage)

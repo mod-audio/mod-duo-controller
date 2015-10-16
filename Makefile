@@ -10,7 +10,7 @@ MCU = cortex-m3
 
 # build configuration
 mod=$(MAKECMDGOALS)
-ifeq ($(mod),duo)
+ifeq ($(mod),$(filter $(mod),duo duo-rc1 duo-rc2))
 CPU = LPC1759
 CPU_SERIE = LPC17xx
 else ifeq ($(mod),quadra)
@@ -30,8 +30,6 @@ RTOS_SRC	= ./freertos/src
 RTOS_INC	= ./freertos/inc
 DRIVERS_INC	= ./drivers/inc
 DRIVERS_SRC	= ./drivers/src
-USB_INC 	= ./usb/inc
-USB_SRC 	= ./usb/src
 OUT_DIR		= ./out
 
 CDL_LIBS = lpc17xx_clkpwr.c
@@ -40,7 +38,7 @@ CDL_LIBS += lpc17xx_systick.c lpc17xx_timer.c
 CDL_LIBS += lpc17xx_uart.c lpc17xx_ssp.c
 
 SRC = $(wildcard $(CMSIS_SRC)/*.c) $(addprefix $(CDL_SRC)/,$(CDL_LIBS)) $(wildcard $(RTOS_SRC)/*.c) \
-	  $(wildcard $(DRIVERS_SRC)/*.c) $(wildcard $(APP_SRC)/*.c) $(wildcard $(USB_SRC)/*.c)
+	  $(wildcard $(DRIVERS_SRC)/*.c) $(wildcard $(APP_SRC)/*.c)
 
 # Object files
 OBJ = $(SRC:.c=.o)
@@ -87,13 +85,18 @@ NOCOLOR	= '\e[0m'
 
 ifeq ($(mod),)
 all:
-	@echo -e "Usage:\tmake duo"
+	@echo -e "Usage: to build, use one of the following:"
+	@echo -e "\tmake duo"
+	@echo -e "\tmake duo-rc1"
+	@echo -e "\tmake duo-rc2"
 	@echo -e "\tmake quadra"
 else
 all: prebuild build
 endif
 
 duo: all
+duo-rc1: all
+duo-rc2: all
 quadra: all
 
 build: elf lss sym hex bin
@@ -106,10 +109,13 @@ hex: $(OUT_DIR)/$(PRJNAME).hex
 bin: $(OUT_DIR)/$(PRJNAME).bin
 
 prebuild:
+	@touch .last_built
+	@[[ `cat .last_built` == $(mod) ]] || $(MAKE) clean
 	@mkdir -p $(OUT_DIR)
 	@mkdir -p $(OUT_DIR)/dep
 	@ln -fs ./$(CPU).ld ./link/LPCmem.ld
 	@ln -fs ./config-$(mod).h ./app/inc/config.h
+	@echo $(mod) > .last_built
 
 # Create final output file in ihex format from ELF output file (.hex).
 $(HEX): $(ELF)

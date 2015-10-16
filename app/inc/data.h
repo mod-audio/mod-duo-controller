@@ -97,17 +97,6 @@ typedef struct MENU_POPUP_T {
     const char *popup_content;
 } menu_popup_t;
 
-typedef struct CONTROL_CHAIN_T {
-    uint8_t start;
-    uint8_t hw_type_origin, hw_id_origin;
-    uint8_t hw_type_destination, hw_id_destination;
-    uint8_t function;
-    uint8_t data_size;
-    uint8_t checksum;
-    uint8_t end;
-    uint8_t *data; // keep the data pointer at end of struct
-} control_chain_t;
-
 
 /*
 ************************************************************************************************************************

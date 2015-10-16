@@ -122,7 +122,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 //// webgui configuration
 // define the interface
-#define WEBGUI_COMM                 SERIAL
 #define WEBGUI_SERIAL               0
 #define WEBGUI_SERIAL_RX_BUFF_SIZE  32
 
@@ -171,14 +170,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define PEDALBOARD_RESET_CMD    "pedalboard_reset"
 // pedalboard_save
 #define PEDALBOARD_SAVE_CMD     "pedalboard_save"
-// clipmeter <clipmeter_id>
-#define CLIPMETER_CMD           "clipmeter %i"
-// peakmeter <peakmeter_number> <peakmeter_value> <peakmeter_peak>
-#define PEAKMETER_CMD           "peakmeter %i %f %f"
-// peakmeter on
-#define PEAKMETER_ON_CMD        "peakmeter on"
-// peakmeter off
-#define PEAKMETER_OFF_CMD       "peakmeter off"
 // tuner <frequency> <note> <cents>
 #define TUNER_CMD               "tuner %f %s %i"
 // tuner on
@@ -187,16 +178,12 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define TUNER_OFF_CMD           "tuner off"
 // tuner_input <input>
 #define TUNER_INPUT_CMD         "tuner_input %i"
-// xrun
-#define XRUN_CMD                "xrun"
 // hw_con <hw_type> <hw_id>
 #define HW_CONNECTED_CMD        "hw_con %i %i"
 // hw_dis <hw_type> <hw_id>
 #define HW_DISCONNECTED_CMD     "hw_dis %i %i"
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
-// chain <binary_data>
-#define CHAIN_CMD               "chain %s"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -301,15 +288,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {PEDALBOARD_ID+3, "Are you sure to save all current pedalboard values as default?"},            \
     {FACTORY_ID, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
 
-
-//// Icons configuration
-// xrun display
-#define XRUN_ICON_DISPLAY       0
-// xrun timeout (in milliseconds)
-#define XRUN_TIMEOUT            1000
-// clipmeter timeout (in milliseconds)
-#define CLIPMETER_TIMEOUT       100
-
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
 #define TRIGGER_COLOR           GREEN
@@ -360,25 +338,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define SYSTEMCTL_MOD_HOST          "mod-host"
 #define SYSTEMCTL_MOD_UI            "mod-ui"
 #define SYSTEMCTL_MOD_BLUEZ         "mod-bluez"
-
-//// Pendrive restore definitions
-// defines the display where the popup will be showed
-#define PENDRIVE_RESTORE_DISPLAY    0
-// defines the popup title when the pendrive restore is invoked
-#define PENDRIVE_RESTORE_TITLE      "Pendrive Restore"
-// defines the popup title when the pendrive restore is invoked
-#define PENDRIVE_RESTORE_CONTENT    "To proceed with Pendrive Restore you need to hold the footswitches 1 and 2 and click YES."
-// defines the timeout for wait the user response (in seconds)
-#define PENDRIVE_RESTORE_TIMEOUT    30
-// defines which footswitch will be used to confirm the factory restore
-#define FACTORY_RESTORE_FOOTSWITCH  FOOTSWITCH1
-
-//// Control Chain definitions
-#define CONTROL_CHAIN_SERIAL        2
-
-//// USB definitions
-#define USB_VID     0x9999
-#define USB_PID     0x0001
 
 //// Dynamic menory allocation
 // defines the heap size (in bytes)

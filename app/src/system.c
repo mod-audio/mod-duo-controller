@@ -100,86 +100,6 @@ static void update_status(char *item_to_update)
 
 void system_check_boot(void)
 {
-    uint8_t i;
-    button_t *foots[FOOTSWITCHES_COUNT];
-    encoder_t *encoder;
-
-    // gets the footswitches objects
-    for (i = 0; i < FOOTSWITCHES_COUNT; i++)
-    {
-        foots[i] = (button_t *) hardware_actuators(FOOTSWITCH0 + i);
-    }
-
-    // gets the encoder objects
-    encoder = hardware_actuators(ENCODER0 + PENDRIVE_RESTORE_DISPLAY);
-
-    uint8_t status1, button_status = 0;
-    popup_t popup;
-
-    // delay to wait read the actuators
-    delay_ms(10);
-
-    // gets the footswitches status
-    status1 = BUTTON_PRESSED(actuator_get_status(foots[0]) & actuator_get_status(foots[1]));
-
-    // checks if footswitches combination is ok
-    if (status1)
-    {
-        // stop grub timeout
-        cli_grub_select(STOP_TIMEOUT);
-
-        popup.x = 0;
-        popup.y = 0;
-        popup.width = DISPLAY_WIDTH;
-        popup.height = DISPLAY_HEIGHT - 1;
-        popup.font = alterebro15;
-        popup.type = YES_NO;
-        popup.title = PENDRIVE_RESTORE_TITLE;
-        popup.content = PENDRIVE_RESTORE_CONTENT;
-        popup.button_selected = 1;
-        widget_popup(PENDRIVE_RESTORE_DISPLAY, &popup);
-
-        // waits the user response or timeout
-        uint32_t timeout, inital_time = hardware_timestamp();
-        while (1)
-        {
-            timeout = (hardware_timestamp() - inital_time) / 1000;
-            if (timeout >= PENDRIVE_RESTORE_TIMEOUT) break;
-
-            // check the encoder status
-            button_status = actuator_get_status(encoder);
-            if (BUTTON_CLICKED(button_status)) break;
-            if (ENCODER_TURNED_ACW(button_status) && popup.button_selected == 1)
-            {
-                popup.button_selected = 0;
-                widget_popup(PENDRIVE_RESTORE_DISPLAY, &popup);
-            }
-            else if (ENCODER_TURNED_CW(button_status) && popup.button_selected == 0)
-            {
-                popup.button_selected = 1;
-                widget_popup(PENDRIVE_RESTORE_DISPLAY, &popup);
-            }
-        }
-    }
-
-    // checks if the YES button was pressed
-    if (button_status && popup.button_selected == 0)
-    {
-        // gets the footswitches status
-        status1 = BUTTON_PRESSED(actuator_get_status(foots[0]) | actuator_get_status(foots[1]));
-
-        // checks if footswitches combination is ok
-        if (!status1)
-        {
-            // selects the grub pendrive entry
-            cli_grub_select(PENDRIVE_ENTRY);
-        }
-    }
-    else
-    {
-        // selects the grub regular entry
-        cli_grub_select(REGULAR_ENTRY);
-    }
 }
 
 void system_true_bypass_cb(void *arg)
@@ -329,31 +249,6 @@ void system_versions_cb(void *arg)
 
 void system_restore_cb(void *arg)
 {
-    menu_item_t *item = arg;
-    button_t *foot = (button_t *) hardware_actuators(FACTORY_RESTORE_FOOTSWITCH);
-
-    // checks if is the YES button
-    if (item->data.hover == 0)
-    {
-        uint8_t status = actuator_get_status(foot);
-
-        // checks the if the footswitch is pressed
-        if (BUTTON_PRESSED(status))
-        {
-            // removes all controls
-            naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
-
-            // selects the grub restore entry and reboot
-            hardware_reset(BLOCK);
-            cli_grub_select(RESTORE_ENTRY);
-            cli_reboot_cpu();
-
-            // refresh the screens for the restore process
-            naveg_toggle_tool(SYSTEM_DISPLAY);
-            uint8_t i;
-            for (i = 1; i < SLOTS_COUNT; i++)
-                screen_boot_feedback(i);
-        }
-    }
+    UNUSED_PARAM(arg);
 }
 

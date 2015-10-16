@@ -11,11 +11,6 @@
 #include "config.h"
 #include "serial.h"
 
-#include "usb.h"
-#include "usbhw.h"
-#include "usbcore.h"
-#include "cdcuser.h"
-
 #include "FreeRTOS.h"
 #include "semphr.h"
 
@@ -82,15 +77,10 @@ static ringbuff_t *g_webgui_rx_rb;
 ************************************************************************************************************************
 */
 
-#if WEBGUI_COMM == SERIAL
 static void webgui_rx_cb(serial_t *serial)
 {
     uint8_t buffer[WEBGUI_SERIAL_RX_BUFF_SIZE];
     uint32_t size = serial_read(serial->uart_id, buffer, WEBGUI_SERIAL_RX_BUFF_SIZE);
-#elif WEBGUI_COMM == USB_CDC
-static void webgui_rx_cb(uint8_t *buffer, uint32_t size)
-{
-#endif
 
     if (size > 0)
     {
@@ -122,18 +112,7 @@ void comm_init(void)
     g_webgui_sem = xSemaphoreCreateCounting(WEBGUI_MAX_SEM_COUNT, 0);
     g_webgui_rx_rb = ringbuf_create(WEBGUI_COMM_RX_BUFF_SIZE);
 
-#if WEBGUI_COMM == USB_CDC
-    // usb initialization
-    USB_Init(1);
-    USB_Connect(USB_CONNECT);
-    while (!USB_Configuration);
-
-    // cdc initialization
-    CDC_Init(WEBGUI_COMM_TX_BUFF_SIZE);
-    CDC_SetRxCallback(webgui_rx_cb);
-#elif WEBGUI_COMM == SERIAL
     serial_set_callback(WEBGUI_SERIAL, webgui_rx_cb);
-#endif
 }
 
 void comm_linux_send(const char *msg)
@@ -143,11 +122,7 @@ void comm_linux_send(const char *msg)
 
 void comm_webgui_send(const char *data, uint32_t data_size)
 {
-#if WEBGUI_COMM == USB_CDC
-    CDC_Send((const uint8_t*)data, data_size+1);
-#elif WEBGUI_COMM == SERIAL
     serial_send(WEBGUI_SERIAL, (const uint8_t*)data, data_size+1);
-#endif
 }
 
 ringbuff_t* comm_webgui_read(void)
@@ -180,9 +155,4 @@ void comm_webgui_wait_response(void)
 {
     g_webgui_blocked = 1;
     while (g_webgui_blocked);
-}
-
-void comm_control_chain_send(const uint8_t *data, uint32_t data_size)
-{
-    serial_send(CONTROL_CHAIN_SERIAL, data, data_size);
 }

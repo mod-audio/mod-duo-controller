@@ -1450,10 +1450,6 @@ void naveg_toggle_tool(uint8_t display)
                 request_banks_list();
                 break;
 
-            case PEAKMETER_DISPLAY:
-                comm_webgui_send(PEAKMETER_ON_CMD, strlen(PEAKMETER_ON_CMD));
-                break;
-
             case TUNER_DISPLAY:
                 comm_webgui_send(TUNER_ON_CMD, strlen(TUNER_ON_CMD));
                 break;
@@ -1474,10 +1470,6 @@ void naveg_toggle_tool(uint8_t display)
             case SYSTEM_DISPLAY:
                 g_update_cb = NULL;
                 g_update_data = NULL;
-                break;
-
-            case PEAKMETER_DISPLAY:
-                comm_webgui_send(PEAKMETER_OFF_CMD, strlen(PEAKMETER_OFF_CMD));
                 break;
 
             case TUNER_DISPLAY:
