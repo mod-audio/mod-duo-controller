@@ -136,7 +136,7 @@ uint32_t CDC_SendBreak(unsigned short wDurationOfBreak)
 
 void CDC_Init(uint32_t tx_buffer_size)
 {
-    g_tx_buffer = ringbuf_create(tx_buffer_size);
+    g_tx_buffer = ringbuff_create(tx_buffer_size);
 }
 
 void CDC_Send(const uint8_t *data, uint32_t data_size)

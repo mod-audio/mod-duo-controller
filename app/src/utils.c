@@ -438,7 +438,7 @@ float convert_from_ms(const char *unit_to, float value)
     return 0.0;
 }
 
-ringbuff_t *ringbuf_create(uint32_t buffer_size)
+ringbuff_t *ringbuff_create(uint32_t buffer_size)
 {
     ringbuff_t *rb = (ringbuff_t *) MALLOC(sizeof(ringbuff_t));
 

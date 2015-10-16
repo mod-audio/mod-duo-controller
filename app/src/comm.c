@@ -110,7 +110,7 @@ static void webgui_rx_cb(serial_t *serial)
 void comm_init(void)
 {
     g_webgui_sem = xSemaphoreCreateCounting(WEBGUI_MAX_SEM_COUNT, 0);
-    g_webgui_rx_rb = ringbuf_create(WEBGUI_COMM_RX_BUFF_SIZE);
+    g_webgui_rx_rb = ringbuff_create(WEBGUI_COMM_RX_BUFF_SIZE);
 
     serial_set_callback(WEBGUI_SERIAL, webgui_rx_cb);
 }

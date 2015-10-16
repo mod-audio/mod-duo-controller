@@ -94,8 +94,8 @@ float convert_to_ms(const char *unit_from, float value);
 float convert_from_ms(const char *unit_to, float value);
 
 // ring buffer functions
-// ringbuf_create: allocates memory to ring buffer
-ringbuff_t *ringbuf_create(uint32_t buffer_size);
+// ringbuff_create: allocates memory to ring buffer
+ringbuff_t *ringbuff_create(uint32_t buffer_size);
 // ringbuff_write: returns the number of bytes written
 uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size);
 // ringbuff_read: returns the number of bytes read

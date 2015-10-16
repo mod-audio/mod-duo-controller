@@ -310,8 +310,8 @@ void serial_init(serial_t *serial)
     NVIC_EnableIRQ(irq);
 
     // creates the ring buffers
-    serial->rx_buffer = ringbuf_create(serial->rx_buffer_size + 1);
-    serial->tx_buffer = ringbuf_create(serial->tx_buffer_size + 1);
+    serial->rx_buffer = ringbuff_create(serial->rx_buffer_size + 1);
+    serial->tx_buffer = ringbuff_create(serial->tx_buffer_size + 1);
 
     // initializes the struct vars
     serial->rx_callback = 0;
