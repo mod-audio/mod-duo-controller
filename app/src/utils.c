@@ -460,6 +460,17 @@ ringbuff_t *ringbuff_create(uint32_t buffer_size)
     return rb;
 }
 
+void ringbuff_destroy(ringbuff_t *rb)
+{
+    if (rb)
+    {
+        if (rb->buffer)
+            FREE(rb->buffer);
+
+        FREE(rb);
+    }
+}
+
 uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size)
 {
     uint32_t bytes = 0;
