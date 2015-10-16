@@ -47,9 +47,6 @@ ALL_OBJ = `find -name "*.o"`
 # include directories
 INC = $(DEVICE_INC) $(CMSIS_INC) $(CDL_INC) $(RTOS_INC) $(DRIVERS_INC) $(APP_INC) $(USB_INC)
 
-# build again when changes this files
-BUILD_ON_CHANGE = Makefile $(APP_INC)/config.h
-
 # C flags
 CFLAGS += -mcpu=$(MCU)
 CFLAGS += -Wall -Wextra -Werror -Wpointer-arith -Wredundant-decls
@@ -139,7 +136,7 @@ $(SYM): $(ELF)
 	@$(NM) -n $< > $@
 
 # Link: create ELF output file from object files.
-$(ELF): $(OBJ) $(BUILD_ON_CHANGE)
+$(ELF): $(OBJ)
 	@echo -e ${GREEN}Linking objects: generating ELF${NOCOLOR}
 	@$(CC) $(THUMB) $(CFLAGS) $(OBJ) --output $@ -nostartfiles $(LDFLAGS)
 
