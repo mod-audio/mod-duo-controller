@@ -89,7 +89,7 @@ void delay_us(volatile uint32_t time);
 void delay_ms(volatile uint32_t time);
 
 // time convertion functions
-// known units (not is case sensitive): bpm, hz, s, ms
+// known units (it isn't case sensitive): bpm, hz, s, ms
 float convert_to_ms(const char *unit_from, float value);
 float convert_from_ms(const char *unit_to, float value);
 
