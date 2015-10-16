@@ -142,7 +142,7 @@ void CDC_Init(uint32_t tx_buffer_size)
 void CDC_Send(const uint8_t *data, uint32_t data_size)
 {
     // check if there is free space to store the buffer
-    while (ringbuff_free_space(g_tx_buffer) < data_size);
+    while (ringbuff_available_space(g_tx_buffer) < data_size);
 
     uint8_t send = 0;
     if (ringbuff_size(g_tx_buffer) == 0) send = 1;
