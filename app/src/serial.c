@@ -135,7 +135,7 @@ static void uart_transmit(serial_t *serial)
     if (count > 0) UART_Send(uart, buffer, count, NONE_BLOCKING);
 
     // Enable THRE interrupt if buffer is not empty
-    if (!ringbuf_is_empty(serial->tx_buffer))
+    if (!ringbuff_is_empty(serial->tx_buffer))
     {
         UART_IntConfig(uart, UART_INTCFG_THRE, ENABLE);
     }

@@ -529,7 +529,7 @@ uint32_t ringbuff_is_full(ringbuff_t *rb)
     return BUFFER_IS_FULL(rb);
 }
 
-uint32_t ringbuf_is_empty(ringbuff_t *rb)
+uint32_t ringbuff_is_empty(ringbuff_t *rb)
 {
     return BUFFER_IS_EMPTY(rb);
 }
