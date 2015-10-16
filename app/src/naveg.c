@@ -38,13 +38,6 @@ enum {BANKS_LIST, PEDALBOARD_LIST};
 ************************************************************************************************************************
 */
 
-static const uint8_t g_tools_display[] = {
-    TOOL_DISPLAY0,
-    TOOL_DISPLAY1,
-    TOOL_DISPLAY2,
-    TOOL_DISPLAY3
-};
-
 static const menu_desc_t g_menu_desc[] = {
     SYSTEM_MENU
     {NULL, 0, -1, -1, NULL, 0}
@@ -1058,7 +1051,7 @@ static void bank_config_update(uint8_t bank_func_idx)
     // updates the navigation menu if the current pedalboards list
     // is the same assigned to foot pedalboards navigation (bank config)
     if (g_selected_pedalboards && g_current_bank == g_banks->hover &&
-        g_tool[TOOL_NAVEG].state == TOOL_ON && g_bp_state == PEDALBOARD_LIST)
+        g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && g_bp_state == PEDALBOARD_LIST)
     {
         g_naveg_pedalboards->selected = g_selected_pedalboards->selected;
         g_naveg_pedalboards->hover = g_selected_pedalboards->selected;
@@ -1249,8 +1242,8 @@ void naveg_ui_connection(uint8_t status)
 
     if (status == UI_CONNECTED)
     {
-        if (g_tool[NAVEG_DISPLAY].state == TOOL_ON)
-            naveg_toggle_tool(NAVEG_DISPLAY);
+        if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON)
+            naveg_toggle_tool(DISPLAY_TOOL_NAVIG);
 
         g_ui_connected = 1;
     }
@@ -1432,7 +1425,7 @@ void naveg_toggle_tool(uint8_t display)
     if (!g_initialized) return;
 
     // checks if is the navigation display and if the UI is connected
-    if (display == NAVEG_DISPLAY && g_ui_connected) return;
+    if (display == DISPLAY_TOOL_NAVIG && g_ui_connected) return;
 
     // clears the display
     screen_clear(display);
@@ -1446,18 +1439,18 @@ void naveg_toggle_tool(uint8_t display)
         // action to do when the tool is enabled
         switch (display)
         {
-            case NAVEG_DISPLAY:
+            case DISPLAY_TOOL_NAVIG:
                 request_banks_list();
                 break;
 
-            case TUNER_DISPLAY:
+            case DISPLAY_TOOL_TUNER:
                 comm_webgui_send(TUNER_ON_CMD, strlen(TUNER_ON_CMD));
                 break;
         }
 
         // draws the tool
         g_tool[display].state = TOOL_ON;
-        screen_tool(display, g_tools_display[display]);
+        screen_tool(display);
     }
     // changes the display to control mode
     else
@@ -1467,12 +1460,12 @@ void naveg_toggle_tool(uint8_t display)
         // action to do when the tool is disabled
         switch (display)
         {
-            case SYSTEM_DISPLAY:
+            case DISPLAY_TOOL_SYSTEM:
                 g_update_cb = NULL;
                 g_update_data = NULL;
                 break;
 
-            case TUNER_DISPLAY:
+            case DISPLAY_TOOL_TUNER:
                 comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
                 break;
         }
@@ -1604,25 +1597,25 @@ void naveg_enter(uint8_t display)
 {
     if (!g_initialized) return;
 
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_enter();
-    if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_enter();
-    if (g_tool[TUNER_DISPLAY].state  == TOOL_ON && display == TUNER_DISPLAY) tuner_enter();
+    if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && display == DISPLAY_TOOL_NAVIG) bp_enter();
+    if (g_tool[DISPLAY_TOOL_SYSTEM].state == TOOL_ON && display == DISPLAY_TOOL_SYSTEM) menu_enter();
+    if (g_tool[DISPLAY_TOOL_TUNER].state  == TOOL_ON && display == DISPLAY_TOOL_TUNER) tuner_enter();
 }
 
 void naveg_up(uint8_t display)
 {
     if (!g_initialized) return;
 
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_up();
-    if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_up();
+    if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && display == DISPLAY_TOOL_NAVIG) bp_up();
+    if (g_tool[DISPLAY_TOOL_SYSTEM].state == TOOL_ON && display == DISPLAY_TOOL_SYSTEM) menu_up();
 }
 
 void naveg_down(uint8_t display)
 {
     if (!g_initialized) return;
 
-    if (g_tool[NAVEG_DISPLAY].state == TOOL_ON && display == NAVEG_DISPLAY) bp_down();
-    if (g_tool[SYSTEM_DISPLAY].state == TOOL_ON && display == SYSTEM_DISPLAY) menu_down();
+    if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && display == DISPLAY_TOOL_NAVIG) bp_down();
+    if (g_tool[DISPLAY_TOOL_SYSTEM].state == TOOL_ON && display == DISPLAY_TOOL_SYSTEM) menu_down();
 }
 
 void naveg_reset_menu(void)

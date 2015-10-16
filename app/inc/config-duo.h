@@ -210,17 +210,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // time in milliseconds to enter in tool mode (hold rotary encoder button)
 #define TOOL_MODE_TIME      500
 
-// tools identification
-#define TOOL_SYSTEM     0
-#define TOOL_TUNER      1
-#define TOOL_PEAKMETER  2
-#define TOOL_NAVEG      3
-
-// setup of tools on displays
-#define TOOL_DISPLAY0   TOOL_SYSTEM
-#define TOOL_DISPLAY1   TOOL_NAVEG
-#define TOOL_DISPLAY2   TOOL_PEAKMETER
-#define TOOL_DISPLAY3   TOOL_TUNER
+// which display will show which tool
+#define DISPLAY_TOOL_SYSTEM 0
+#define DISPLAY_TOOL_TUNER  1
+#define DISPLAY_TOOL_NAVIG  2
 
 //// Screen definitions
 // defines the default rotary text
@@ -420,50 +413,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #include "ks0108.h"
 #elif GLCD_DRIVER == UC1701
 #include "uc1701.h"
-#endif
-
-// system menu display definition
-#if (TOOL_SYSTEM == TOOL_DISPLAY0)
-#define SYSTEM_DISPLAY   0
-#elif (TOOL_SYSTEM == TOOL_DISPLAY1)
-#define SYSTEM_DISPLAY   1
-#elif (TOOL_SYSTEM == TOOL_DISPLAY2)
-#define SYSTEM_DISPLAY   2
-#elif (TOOL_SYSTEM == TOOL_DISPLAY3)
-#define SYSTEM_DISPLAY   3
-#endif
-
-// peakmeter tool display definition
-#if (TOOL_PEAKMETER == TOOL_DISPLAY0)
-#define PEAKMETER_DISPLAY   0
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY1)
-#define PEAKMETER_DISPLAY   1
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY2)
-#define PEAKMETER_DISPLAY   2
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY3)
-#define PEAKMETER_DISPLAY   3
-#endif
-
-// tuner tool display definition
-#if (TOOL_TUNER == TOOL_DISPLAY0)
-#define TUNER_DISPLAY   0
-#elif (TOOL_TUNER == TOOL_DISPLAY1)
-#define TUNER_DISPLAY   1
-#elif (TOOL_TUNER == TOOL_DISPLAY2)
-#define TUNER_DISPLAY   2
-#elif (TOOL_TUNER == TOOL_DISPLAY3)
-#define TUNER_DISPLAY   3
-#endif
-
-// banks/pedalboards navigation display definition
-#if (TOOL_NAVEG == TOOL_DISPLAY0)
-#define NAVEG_DISPLAY   0
-#elif (TOOL_NAVEG == TOOL_DISPLAY1)
-#define NAVEG_DISPLAY   1
-#elif (TOOL_NAVEG == TOOL_DISPLAY2)
-#define NAVEG_DISPLAY   2
-#elif (TOOL_NAVEG == TOOL_DISPLAY3)
-#define NAVEG_DISPLAY   3
 #endif
 
 #endif

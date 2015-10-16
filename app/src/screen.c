@@ -329,26 +329,26 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
     widget_textbox(display, &footer);
 }
 
-void screen_tool(uint8_t display_id, uint8_t tool)
+void screen_tool(uint8_t display_id)
 {
     bp_list_t *bp_list;
     glcd_t *display = hardware_glcds(display_id);
 
-    switch (tool)
+    switch (display_id)
     {
-        case TOOL_SYSTEM:
+        case DISPLAY_TOOL_SYSTEM:
             naveg_reset_menu();
-            naveg_enter(SYSTEM_DISPLAY);
+            naveg_enter(DISPLAY_TOOL_SYSTEM);
             break;
 
-        case TOOL_TUNER:
+        case DISPLAY_TOOL_TUNER:
             g_tuner.frequency = 0.0;
             g_tuner.note = "?";
             g_tuner.cents = 0;
             widget_tuner(display, &g_tuner);
             break;
 
-        case TOOL_NAVEG:
+        case DISPLAY_TOOL_NAVIG:
             bp_list = naveg_get_banks();
             screen_bp_list("BANKS", bp_list);
             break;
@@ -360,7 +360,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
     listbox_t list_box;
     textbox_t title_box, empty;
 
-    glcd_t *display = hardware_glcds(NAVEG_DISPLAY);
+    glcd_t *display = hardware_glcds(DISPLAY_TOOL_NAVIG);
 
     // clears the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
@@ -423,7 +423,7 @@ void screen_system_menu(menu_item_t *item)
 {
     static menu_item_t *last_item;
 
-    glcd_t *display = hardware_glcds(NAVEG_DISPLAY);
+    glcd_t *display = hardware_glcds(DISPLAY_TOOL_SYSTEM);
 
     // clears the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
@@ -527,8 +527,8 @@ void screen_tuner(float frequency, char *note, int8_t cents)
     g_tuner.cents = cents;
 
     // checks if tuner is enable and update it
-    if (naveg_is_tool_mode(TUNER_DISPLAY))
-        widget_tuner(hardware_glcds(TUNER_DISPLAY), &g_tuner);
+    if (naveg_is_tool_mode(DISPLAY_TOOL_TUNER))
+        widget_tuner(hardware_glcds(DISPLAY_TOOL_TUNER), &g_tuner);
 }
 
 void screen_tuner_input(uint8_t input)
@@ -536,8 +536,8 @@ void screen_tuner_input(uint8_t input)
     g_tuner.input = input;
 
     // checks if tuner is enable and update it
-    if (naveg_is_tool_mode(TUNER_DISPLAY))
-        widget_tuner(hardware_glcds(TUNER_DISPLAY), &g_tuner);
+    if (naveg_is_tool_mode(DISPLAY_TOOL_TUNER))
+        widget_tuner(hardware_glcds(DISPLAY_TOOL_TUNER), &g_tuner);
 }
 
 void screen_boot_feedback(uint8_t boot_stage)
