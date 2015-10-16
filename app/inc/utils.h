@@ -107,7 +107,7 @@ uint32_t ringbuff_size(ringbuff_t *rb);
 // ringbuff_free_space: returns the amount of free bytes
 uint32_t ringbuff_free_space(ringbuff_t *rb);
 // ringbuff_is_full: returns non zero is buffer is full
-uint32_t ringbuf_is_full(ringbuff_t *rb);
+uint32_t ringbuff_is_full(ringbuff_t *rb);
 // ringbuff_is_empty: returns non zero is buffer is empty
 uint32_t ringbuf_is_empty(ringbuff_t *rb);
 

@@ -348,7 +348,7 @@ uint32_t serial_send(uint8_t uart_id, const uint8_t *data, uint32_t data_size)
     // waits until all data be sent
     while (to_write > 0)
     {
-        if (!ringbuf_is_full(serial->tx_buffer))
+        if (!ringbuff_is_full(serial->tx_buffer))
         {
             written = ringbuff_write(serial->tx_buffer, &data[index], to_write);
             to_write -= written;
