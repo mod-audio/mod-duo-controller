@@ -32,6 +32,10 @@
 #define DISPLAY_WIDTH       128
 #define DISPLAY_HEIGHT      64
 
+// chip definitions
+#define CHIP_COLUMNS        132
+#define CHIP_ROWS           65
+
 // colors
 #define UC1701_WHITE          0
 #define UC1701_BLACK          1

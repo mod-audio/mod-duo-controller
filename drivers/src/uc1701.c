@@ -308,9 +308,17 @@ void uc1701_update(uc1701_t *disp)
 
     for(i = 0; i < (DISPLAY_HEIGHT/8); i++)
     {
+        // set page address
         write_cmd(disp, UC1701_SET_PA + i);
+
+        // set column address to first display address, considering
+        // direction and difference of columns between display/chip
         write_cmd(disp, UC1701_SET_CA_MSB);
+#ifdef UC1701_REVERSE_COLUMNS
+        write_cmd(disp, UC1701_SET_CA_LSB + (CHIP_COLUMNS - DISPLAY_WIDTH));
+#else
         write_cmd(disp, UC1701_SET_CA_LSB);
+#endif
 
         for(j = 0; j < DISPLAY_WIDTH; j++)
         {
