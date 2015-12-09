@@ -212,8 +212,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // which display will show which tool
 #define DISPLAY_TOOL_SYSTEM 0
-#define DISPLAY_TOOL_TUNER  1
-#define DISPLAY_TOOL_NAVIG  2
+#define DISPLAY_TOOL_NAVIG  1
+#define DISPLAY_TOOL_TUNER  2
 
 //// Screen definitions
 // defines the default rotary text
