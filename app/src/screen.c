@@ -22,6 +22,9 @@
 ************************************************************************************************************************
 */
 
+#define FOOTER_NAME_WIDTH       ((DISPLAY_WIDTH * 75)/100)
+#define FOOTER_VALUE_WIDTH      (DISPLAY_WIDTH - FOOTER_NAME_WIDTH)
+
 
 /*
 ************************************************************************************************************************
@@ -314,7 +317,7 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
     footer.top_margin = 0;
     footer.bottom_margin = 0;
     footer.left_margin = 0;
-    footer.width = (value == NULL ? 124 : 56);
+    footer.width = (value == NULL ? DISPLAY_WIDTH : FOOTER_NAME_WIDTH);
     footer.right_margin = 0;
     footer.text = name;
     footer.y = 52;
@@ -322,8 +325,8 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
     widget_textbox(display, &footer);
 
     // draws the value field
-    footer.width = 64;
-    footer.right_margin = 4;
+    footer.width = FOOTER_VALUE_WIDTH;
+    footer.right_margin = 0;
     footer.text = value;
     footer.align = ALIGN_RIGHT_NONE;
     widget_textbox(display, &footer);
