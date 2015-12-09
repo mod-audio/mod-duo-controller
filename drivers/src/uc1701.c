@@ -585,6 +585,10 @@ void uc1701_text(uc1701_t *disp, uint8_t x, uint8_t y, const char *text, const u
 
         y_tmp = y;
 
+        // check if character fits on display before write it
+        if ((x + width) > DISPLAY_WIDTH)
+            break;
+
         // draws each character piece
         for (j = 0; j < bytes; j++)
         {
