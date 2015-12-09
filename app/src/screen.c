@@ -162,7 +162,8 @@ void screen_control(uint8_t display_id, control_t *control)
         graph.max = control->maximum;
         graph.value = control->value;
         graph.unit = unit;
-        graph.type = control->properties;
+        graph.type =
+            (control->properties == CONTROL_PROP_LOGARITHMIC ? GRAPH_TYPE_LOG : GRAPH_TYPE_LINEAR);
         widget_graph(display, &graph);
     }
 
