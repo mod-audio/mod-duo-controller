@@ -386,7 +386,6 @@ static void ping_cb(proto_t *proto)
 {
     if (!g_ui_communication_started)
     {
-        hardware_set_true_bypass(PROCESS);
         g_ui_communication_started = 1;
     }
 

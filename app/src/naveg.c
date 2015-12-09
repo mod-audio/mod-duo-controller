@@ -997,8 +997,7 @@ static void bank_config_update(uint8_t bank_func_idx)
     switch (g_bank_functions[i].function)
     {
         case BANK_FUNC_TRUE_BYPASS:
-            // toggle the true bypass
-            hardware_set_true_bypass(1 - hardware_get_true_bypass());
+            // TODO: toggle true bypass
             break;
 
         case BANK_FUNC_PEDALBOARD_NEXT:
@@ -1075,7 +1074,7 @@ static void bank_config_footer(void)
         switch (bank_conf->function)
         {
             case BANK_FUNC_TRUE_BYPASS:
-                bypass = hardware_get_true_bypass();
+                bypass = 0; // FIX: get true bypass state
                 led_set_color(hardware_leds(bank_conf->actuator_id), bypass ? BLACK : TRUE_BYPASS_COLOR);
 
                 if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;

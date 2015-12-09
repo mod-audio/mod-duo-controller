@@ -104,9 +104,7 @@ void system_check_boot(void)
 
 void system_true_bypass_cb(void *arg)
 {
-    menu_item_t *item = arg;
-    item->data.hover = 1 - hardware_get_true_bypass();
-    hardware_set_true_bypass(item->data.hover);
+    UNUSED_PARAM(arg);
 }
 
 void system_reset_pedalboard_cb(void *arg)

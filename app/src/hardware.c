@@ -26,11 +26,6 @@
 #define TIMER0_PRIORITY     3
 #define TIMER1_PRIORITY     2
 
-// defines the headphone update period
-#define HEADPHONE_UPDATE_PERIOD     (1000 / HEADPHONE_UPDATE_FRENQUENCY)
-// defines how much values will be used to calculates the mean
-#define HEADPHONE_MEAN_DEPTH        5
-
 
 /*
 ************************************************************************************************************************
@@ -127,7 +122,6 @@ static led_t g_leds[LEDS_COUNT];
 static encoder_t g_encoders[ENCODERS_COUNT];
 static button_t g_footswitches[FOOTSWITCHES_COUNT];
 static uint32_t g_counter;
-static uint8_t g_true_bypass;
 
 
 /*
@@ -224,18 +218,6 @@ void hardware_setup(void)
     GPIO_SetValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
     #endif
 
-    // configures the cooler
-    #ifdef COOLER
-    GPIO_SetDir(COOLER_PORT, (1 << COOLER_PIN), GPIO_DIRECTION_OUTPUT);
-    cooler_duty_cycle(COOLER_MAX_DC);
-    #endif
-
-    // true bypass
-    #ifdef TRUE_BYPASS
-    GPIO_SetDir(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN), GPIO_DIRECTION_OUTPUT);
-    hardware_set_true_bypass(BYPASS);
-    #endif
-
     // SLOTs initialization
     uint8_t i;
     for (i = 0; i < SLOTS_COUNT; i++)
@@ -258,14 +240,6 @@ void hardware_setup(void)
         actuator_set_prop(hardware_actuators(ENCODER0 + i), ENCODER_STEPS, 3);
         actuator_set_prop(hardware_actuators(ENCODER0 + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
     }
-
-    // Headphone initialization (TPA and ADC)
-    #ifdef HEADPHONE
-    tpa6130_init();
-    PINSEL_SetPinFunc(HEADPHONE_ADC_PORT, HEADPHONE_ADC_PIN, HEADPHONE_ADC_PIN_CONF);
-    ADC_IntConfig(LPC_ADC, HEADPHONE_ADC_CHANNEL, DISABLE);
-    ADC_ChannelCmd(LPC_ADC, HEADPHONE_ADC_CHANNEL, ENABLE);
-    #endif
 
     // NTC initialization
     #ifdef NTC
@@ -443,60 +417,6 @@ void *hardware_actuators(uint8_t actuator_id)
 uint32_t hardware_timestamp(void)
 {
     return g_counter;
-}
-
-void hardware_set_true_bypass(uint8_t value)
-{
-#ifdef TRUE_BYPASS
-    if (value == BYPASS)
-        GPIO_ClearValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
-    else
-        GPIO_SetValue(TRUE_BYPASS_PORT, (1 << TRUE_BYPASS_PIN));
-#endif
-    g_true_bypass = value;
-}
-
-uint8_t hardware_get_true_bypass(void)
-{
-    return g_true_bypass;
-}
-
-void hardware_headphone(void)
-{
-#ifdef HEADPHONE
-    static uint32_t adc_values[HEADPHONE_MEAN_DEPTH], adc_idx;
-
-    // stores the last adc samples
-    if (ADC_ChannelGetStatus(LPC_ADC, HEADPHONE_ADC_CHANNEL, ADC_DATA_DONE))
-    {
-        adc_values[adc_idx] = ADC_ChannelGetData(LPC_ADC, HEADPHONE_ADC_CHANNEL);
-        if (++adc_idx == HEADPHONE_MEAN_DEPTH) adc_idx = 0;
-    }
-
-    static uint32_t last_volume, last_counter;
-
-    // checks if need update the headphone volume
-    if ((g_counter - last_counter) >= HEADPHONE_UPDATE_PERIOD)
-    {
-        last_counter = g_counter;
-
-        uint32_t i, volume = 0;
-        for (i = 0; i < HEADPHONE_MEAN_DEPTH; i++)
-        {
-            volume += adc_values[i];
-        }
-
-        volume /= HEADPHONE_MEAN_DEPTH;
-        volume = 63 - (volume >> 6);
-
-        // checks the minimal volume variation
-        if (ABS(volume - last_volume) >= HEADPHONE_MINIMAL_VARIATION)
-        {
-            tpa6130_set_volume(volume);
-            last_volume = volume;
-        }
-    }
-#endif
 }
 
 void hardware_reset(uint8_t unblock)

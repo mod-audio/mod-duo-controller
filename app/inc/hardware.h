@@ -78,12 +78,6 @@ led_t *hardware_leds(uint8_t led_id);
 void *hardware_actuators(uint8_t actuator_id);
 // returns the timestamp (a variable increment in each millisecond)
 uint32_t hardware_timestamp(void);
-// set the true bypass value
-void hardware_set_true_bypass(uint8_t value);
-// get the true bypass value
-uint8_t hardware_get_true_bypass(void);
-// updates the headphone gain
-void hardware_headphone(void);
 // unblock/block the arm microcontroller reset
 void hardware_reset(uint8_t unblock);
 // changes the 485 direction
