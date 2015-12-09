@@ -270,6 +270,7 @@ uint32_t int_to_str(int32_t num, char *string, uint32_t string_size, uint8_t zer
 uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t precision)
 {
     double intp, fracp;
+    char *str = string;
 
     if (!string) return 0;
 
@@ -278,9 +279,20 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
     // splits integer and fractional parts
     fracp = modf(num, &intp);
 
+    // convert to absolute value
+    if (intp < 0.0) intp = -intp;
+    if (fracp < 0.0) fracp = -fracp;
+
+    // insert minus if negative number
+    if (num < 0.0)
+    {
+        *str = '-';
+        str++;
+    }
+
     // convert the integer part to string
     uint32_t int_len;
-    int_len = int_to_str((int32_t)intp, string, string_size, 0);
+    int_len = int_to_str((int32_t)intp, str, string_size, 0);
 
     // checks if convertion fail
     if (int_len == 0)
@@ -288,9 +300,6 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
         *string = 0;
         return 0;
     }
-
-    // convert to absolute value
-    if (fracp < 0.0) fracp = -fracp;
 
     // adds one to avoid lost the leading zeros
     fracp += 1.0;
@@ -303,7 +312,7 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
 
     // convert the fractional part
     uint32_t frac_len;
-    frac_len = int_to_str((int32_t)fracp, &string[int_len], string_size - int_len, 0);
+    frac_len = int_to_str((int32_t)fracp, &str[int_len], string_size - int_len, 0);
 
     // checks if convertion fail
     if (frac_len == 0)
@@ -313,7 +322,7 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
     }
 
     // inserts the dot covering the extra one added
-    string[int_len] = '.';
+    str[int_len] = '.';
 
     return (int_len + frac_len);
 }
