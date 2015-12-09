@@ -236,9 +236,6 @@ void widget_textbox(glcd_t *display, textbox_t *textbox)
         // TODO: others NONE options
     }
 
-    // clear the text area
-    glcd_rect_fill(display, textbox->x, textbox->y, textbox->width, textbox->height, GLCD_WHITE);
-
     uint8_t i = 0, index;
     const char *ptext = textbox->text;
     char buffer[DISPLAY_WIDTH/2];
