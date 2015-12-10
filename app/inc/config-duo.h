@@ -228,13 +228,12 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define ROOT_ID             (0 * 20)
 #define TRUE_BYPASS_ID      (1 * 20)
 #define PEDALBOARD_ID       (2 * 20)
-#define EXP_PEDAL_ID        (3 * 20)
-#define BLUETOOTH_ID        (4 * 20)
-#define INFO_ID             (5 * 20)
-#define CPU_ID              (6 * 20)
-#define SERVICES_ID         (7 * 20)
-#define VERSIONS_ID         (8 * 20)
-#define FACTORY_ID          (9 * 20)
+#define BLUETOOTH_ID        (3 * 20)
+#define INFO_ID             (4 * 20)
+#define CPU_ID              (5 * 20)
+#define SERVICES_ID         (6 * 20)
+#define VERSIONS_ID         (7 * 20)
+#define FACTORY_ID          (8 * 20)
 
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
@@ -244,8 +243,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                      , 0},  \
     {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  system_reset_pedalboard_cb, 0},  \
     {"Save State",                      MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  system_save_pedalboard_cb , 0},  \
-    {"Expression Pedal",                MENU_LIST,      EXP_PEDAL_ID,       PEDALBOARD_ID,  NULL                      , 0},  \
-    {"< Back to Pedalboard",            MENU_RETURN,    EXP_PEDAL_ID+1,     EXP_PEDAL_ID,   NULL                      , 0},  \
     {"Bluetooth",                       MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        system_bluetooth_cb       , 1},  \
     {"< Back to SETTINGS",              MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Pair",                            MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   system_bluetooth_pair_cb  , 0},  \
@@ -254,10 +251,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                      , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                      , 0},  \
-    {"CPU",                             MENU_LIST,      CPU_ID,             INFO_ID,        system_cpu_cb             , 0},  \
-    {"< Back to Info",                  MENU_RETURN,    CPU_ID+1,           CPU_ID,         NULL                      , 0},  \
-    {"Controller USB:",                 MENU_RETURN,    CPU_ID+2,           CPU_ID,         NULL                      , 0},  \
-    {"Temperature:",                    MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL                      , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb        , 1},  \
     {"< Back to Info",                  MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL                      , 0},  \
     {"jack:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    system_restart_jack_cb    , 0},  \
@@ -269,10 +262,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"mod-host:",                       MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                      , 0},  \
     {"mod-ui:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                      , 0},  \
     {"mod-controller:",                 MENU_NONE,      VERSIONS_ID+6,      VERSIONS_ID,    NULL                      , 0},  \
-    {"mod-python:",                     MENU_NONE,      VERSIONS_ID+7,      VERSIONS_ID,    NULL                      , 0},  \
-    {"mod-resources:",                  MENU_NONE,      VERSIONS_ID+8,      VERSIONS_ID,    NULL                      , 0},  \
-    {"bluez:",                          MENU_NONE,      VERSIONS_ID+9,      VERSIONS_ID,    NULL                      , 0},  \
-    {"controller-commit:",              MENU_NONE,      VERSIONS_ID+10,     VERSIONS_ID,    NULL                      , 0},  \
     {"Factory Restore",                 MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb         , 0},  \
 
 // popups text content, format : {menu_id, text_content}

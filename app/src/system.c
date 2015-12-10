@@ -147,38 +147,6 @@ void system_bluetooth_pair_cb(void *arg)
     cli_systemctl("restart " SYSTEMCTL_MOD_BLUEZ);
 }
 
-void system_cpu_cb(void *arg)
-{
-    menu_item_t *item = arg;
-
-    // updates the USB controller status
-    cli_check_controller();
-    const char *response = cli_get_response();
-    if (strcmp(response, "not found") != 0) response = "connected";
-
-    char *pstr = strstr(item->data.list[1], ":");
-    if (pstr)
-    {
-        pstr++;
-        *pstr++ = ' ';
-        strcpy(pstr, response);
-    }
-
-    // updates the temperature
-    pstr = strstr(item->data.list[2], ":");
-    if (pstr)
-    {
-        pstr++;
-        *pstr++ = ' ';
-
-        float temp = hardware_temperature();
-        pstr += float_to_str(temp, pstr, 5, 1);
-        *pstr++ = ' ';
-        *pstr++ = 'C';
-        *pstr++ = 0;
-    }
-}
-
 void system_services_cb(void *arg)
 {
     menu_item_t *item = arg;
@@ -217,36 +185,10 @@ void system_restart_ui_cb(void *arg)
 
 void system_versions_cb(void *arg)
 {
-    menu_item_t *item = arg;
-    const char *versions[] = {PACMAN_MOD_JACK,
-                              PACMAN_MOD_HOST,
-                              PACMAN_MOD_UI,
-                              PACMAN_MOD_CONTROLLER,
-                              PACMAN_MOD_PYTHON,
-                              PACMAN_MOD_RESOURCES,
-                              PACMAN_MOD_BLUEZ,
-                              NULL};
-
-    uint8_t i = 0;
-    while (versions[i])
-    {
-        cli_package_version(versions[i]);
-        update_status(item->data.list[i+1]);
-        screen_system_menu(item);
-        i++;
-    }
-
-    char *pstr = strstr(item->data.list[i+1], ":");
-    if (pstr)
-    {
-        pstr++;
-        *pstr++ = ' ';
-        strcpy(pstr, CONTROLLER_HASH_COMMIT);
-    }
+    UNUSED_PARAM(arg);
 }
 
 void system_restore_cb(void *arg)
 {
     UNUSED_PARAM(arg);
 }
-
