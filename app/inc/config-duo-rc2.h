@@ -61,14 +61,6 @@
 // One slot is a set of display, knob, footswitch and led
 #define SLOTS_COUNT         2
 
-//// ARM reset pin
-// this pin is used to block/unblock the ARM reset
-// to block the pin must be set to 0
-// to unblock the pin must be configured to input
-#define ARM_RESET
-#define ARM_RESET_PORT      0
-#define ARM_RESET_PIN       30
-
 //// LEDs configuration
 // Amount of LEDS
 #define LEDS_COUNT          SLOTS_COUNT
@@ -81,6 +73,8 @@
 //// GLCDs configurations
 // GLCD driver, valid options: KS0108, UC1701
 #define GLCD_DRIVER         UC1701
+#define UC1701_REVERSE_COLUMNS
+#define UC1701_REVERSE_ROWS
 
 // Amount of displays
 #define GLCD_COUNT          SLOTS_COUNT
@@ -128,7 +122,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 //// webgui configuration
 // define the interface
-#define WEBGUI_COMM                 SERIAL
 #define WEBGUI_SERIAL               0
 #define WEBGUI_SERIAL_RX_BUFF_SIZE  32
 
@@ -177,14 +170,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define PEDALBOARD_RESET_CMD    "pedalboard_reset"
 // pedalboard_save
 #define PEDALBOARD_SAVE_CMD     "pedalboard_save"
-// clipmeter <clipmeter_id>
-#define CLIPMETER_CMD           "clipmeter %i"
-// peakmeter <peakmeter_number> <peakmeter_value> <peakmeter_peak>
-#define PEAKMETER_CMD           "peakmeter %i %f %f"
-// peakmeter on
-#define PEAKMETER_ON_CMD        "peakmeter on"
-// peakmeter off
-#define PEAKMETER_OFF_CMD       "peakmeter off"
 // tuner <frequency> <note> <cents>
 #define TUNER_CMD               "tuner %f %s %i"
 // tuner on
@@ -193,16 +178,12 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define TUNER_OFF_CMD           "tuner off"
 // tuner_input <input>
 #define TUNER_INPUT_CMD         "tuner_input %i"
-// xrun
-#define XRUN_CMD                "xrun"
 // hw_con <hw_type> <hw_id>
 #define HW_CONNECTED_CMD        "hw_con %i %i"
 // hw_dis <hw_type> <hw_id>
 #define HW_DISCONNECTED_CMD     "hw_dis %i %i"
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
-// chain <binary_data>
-#define CHAIN_CMD               "chain %s"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -229,17 +210,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // time in milliseconds to enter in tool mode (hold rotary encoder button)
 #define TOOL_MODE_TIME      500
 
-// tools identification
-#define TOOL_SYSTEM     0
-#define TOOL_TUNER      1
-#define TOOL_PEAKMETER  2
-#define TOOL_NAVEG      3
-
-// setup of tools on displays
-#define TOOL_DISPLAY0   TOOL_SYSTEM
-#define TOOL_DISPLAY1   TOOL_NAVEG
-#define TOOL_DISPLAY2   TOOL_PEAKMETER
-#define TOOL_DISPLAY3   TOOL_TUNER
+// which display will show which tool
+#define DISPLAY_TOOL_SYSTEM 0
+#define DISPLAY_TOOL_NAVIG  1
+#define DISPLAY_TOOL_TUNER  2
 
 //// Screen definitions
 // defines the default rotary text
@@ -254,13 +228,12 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define ROOT_ID             (0 * 20)
 #define TRUE_BYPASS_ID      (1 * 20)
 #define PEDALBOARD_ID       (2 * 20)
-#define EXP_PEDAL_ID        (3 * 20)
-#define BLUETOOTH_ID        (4 * 20)
-#define INFO_ID             (5 * 20)
-#define CPU_ID              (6 * 20)
-#define SERVICES_ID         (7 * 20)
-#define VERSIONS_ID         (8 * 20)
-#define FACTORY_ID          (9 * 20)
+#define BLUETOOTH_ID        (3 * 20)
+#define INFO_ID             (4 * 20)
+#define CPU_ID              (5 * 20)
+#define SERVICES_ID         (6 * 20)
+#define VERSIONS_ID         (7 * 20)
+#define FACTORY_ID          (8 * 20)
 
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
@@ -270,8 +243,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                      , 0},  \
     {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  system_reset_pedalboard_cb, 0},  \
     {"Save State",                      MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  system_save_pedalboard_cb , 0},  \
-    {"Expression Pedal",                MENU_LIST,      EXP_PEDAL_ID,       PEDALBOARD_ID,  NULL                      , 0},  \
-    {"< Back to Pedalboard",            MENU_RETURN,    EXP_PEDAL_ID+1,     EXP_PEDAL_ID,   NULL                      , 0},  \
     {"Bluetooth",                       MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        system_bluetooth_cb       , 1},  \
     {"< Back to SETTINGS",              MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Pair",                            MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   system_bluetooth_pair_cb  , 0},  \
@@ -280,10 +251,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                      , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                      , 0},  \
-    {"CPU",                             MENU_LIST,      CPU_ID,             INFO_ID,        system_cpu_cb             , 0},  \
-    {"< Back to Info",                  MENU_RETURN,    CPU_ID+1,           CPU_ID,         NULL                      , 0},  \
-    {"Controller USB:",                 MENU_RETURN,    CPU_ID+2,           CPU_ID,         NULL                      , 0},  \
-    {"Temperature:",                    MENU_RETURN,    CPU_ID+3,           CPU_ID,         NULL                      , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb        , 1},  \
     {"< Back to Info",                  MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL                      , 0},  \
     {"jack:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    system_restart_jack_cb    , 0},  \
@@ -295,10 +262,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"mod-host:",                       MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                      , 0},  \
     {"mod-ui:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                      , 0},  \
     {"mod-controller:",                 MENU_NONE,      VERSIONS_ID+6,      VERSIONS_ID,    NULL                      , 0},  \
-    {"mod-python:",                     MENU_NONE,      VERSIONS_ID+7,      VERSIONS_ID,    NULL                      , 0},  \
-    {"mod-resources:",                  MENU_NONE,      VERSIONS_ID+8,      VERSIONS_ID,    NULL                      , 0},  \
-    {"bluez:",                          MENU_NONE,      VERSIONS_ID+9,      VERSIONS_ID,    NULL                      , 0},  \
-    {"controller-commit:",              MENU_NONE,      VERSIONS_ID+10,     VERSIONS_ID,    NULL                      , 0},  \
     {"Factory Restore",                 MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb         , 0},  \
 
 // popups text content, format : {menu_id, text_content}
@@ -306,15 +269,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {PEDALBOARD_ID+2, "Are you sure to reset all pedalboard values to the last saved state?"},      \
     {PEDALBOARD_ID+3, "Are you sure to save all current pedalboard values as default?"},            \
     {FACTORY_ID, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
-
-
-//// Icons configuration
-// xrun display
-#define XRUN_ICON_DISPLAY       0
-// xrun timeout (in milliseconds)
-#define XRUN_TIMEOUT            1000
-// clipmeter timeout (in milliseconds)
-#define CLIPMETER_TIMEOUT       100
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
@@ -366,25 +320,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define SYSTEMCTL_MOD_HOST          "mod-host"
 #define SYSTEMCTL_MOD_UI            "mod-ui"
 #define SYSTEMCTL_MOD_BLUEZ         "mod-bluez"
-
-//// Pendrive restore definitions
-// defines the display where the popup will be showed
-#define PENDRIVE_RESTORE_DISPLAY    0
-// defines the popup title when the pendrive restore is invoked
-#define PENDRIVE_RESTORE_TITLE      "Pendrive Restore"
-// defines the popup title when the pendrive restore is invoked
-#define PENDRIVE_RESTORE_CONTENT    "To proceed with Pendrive Restore you need to hold the footswitches 1 and 2 and click YES."
-// defines the timeout for wait the user response (in seconds)
-#define PENDRIVE_RESTORE_TIMEOUT    30
-// defines which footswitch will be used to confirm the factory restore
-#define FACTORY_RESTORE_FOOTSWITCH  FOOTSWITCH1
-
-//// Control Chain definitions
-#define CONTROL_CHAIN_SERIAL        2
-
-//// USB definitions
-#define USB_VID     0x9999
-#define USB_PID     0x0001
 
 //// Dynamic menory allocation
 // defines the heap size (in bytes)
@@ -467,50 +402,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #include "ks0108.h"
 #elif GLCD_DRIVER == UC1701
 #include "uc1701.h"
-#endif
-
-// system menu display definition
-#if (TOOL_SYSTEM == TOOL_DISPLAY0)
-#define SYSTEM_DISPLAY   0
-#elif (TOOL_SYSTEM == TOOL_DISPLAY1)
-#define SYSTEM_DISPLAY   1
-#elif (TOOL_SYSTEM == TOOL_DISPLAY2)
-#define SYSTEM_DISPLAY   2
-#elif (TOOL_SYSTEM == TOOL_DISPLAY3)
-#define SYSTEM_DISPLAY   3
-#endif
-
-// peakmeter tool display definition
-#if (TOOL_PEAKMETER == TOOL_DISPLAY0)
-#define PEAKMETER_DISPLAY   0
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY1)
-#define PEAKMETER_DISPLAY   1
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY2)
-#define PEAKMETER_DISPLAY   2
-#elif (TOOL_PEAKMETER == TOOL_DISPLAY3)
-#define PEAKMETER_DISPLAY   3
-#endif
-
-// tuner tool display definition
-#if (TOOL_TUNER == TOOL_DISPLAY0)
-#define TUNER_DISPLAY   0
-#elif (TOOL_TUNER == TOOL_DISPLAY1)
-#define TUNER_DISPLAY   1
-#elif (TOOL_TUNER == TOOL_DISPLAY2)
-#define TUNER_DISPLAY   2
-#elif (TOOL_TUNER == TOOL_DISPLAY3)
-#define TUNER_DISPLAY   3
-#endif
-
-// banks/pedalboards navigation display definition
-#if (TOOL_NAVEG == TOOL_DISPLAY0)
-#define NAVEG_DISPLAY   0
-#elif (TOOL_NAVEG == TOOL_DISPLAY1)
-#define NAVEG_DISPLAY   1
-#elif (TOOL_NAVEG == TOOL_DISPLAY2)
-#define NAVEG_DISPLAY   2
-#elif (TOOL_NAVEG == TOOL_DISPLAY3)
-#define NAVEG_DISPLAY   3
 #endif
 
 #endif
