@@ -85,11 +85,6 @@ static const uint8_t *FOOTSWITCH_PINS[] = {
 ************************************************************************************************************************
 */
 
-struct COOLER_T {
-    uint8_t duty_cycle;
-    uint8_t counter, state;
-} g_cooler;
-
 
 /*
 ************************************************************************************************************************
@@ -98,11 +93,6 @@ struct COOLER_T {
 */
 
 #define ABS(x)                  ((x) > 0 ? (x) : -(x))
-
-#ifdef ARM_RESET
-#define UNBLOCK_ARM_RESET()     GPIO_SetValue(ARM_RESET_PORT, (1 << ARM_RESET_PIN))
-#define BLOCK_ARM_RESET()       GPIO_ClearValue(ARM_RESET_PORT, (1 << ARM_RESET_PIN))
-#endif
 
 #define CPU_IS_ON()             (1 - ((FIO_ReadValue(CPU_STATUS_PORT) >> CPU_STATUS_PIN) & 1))
 #define CPU_PULSE_BUTTON()      GPIO_ClearValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));    \
@@ -144,52 +134,6 @@ static uint32_t g_counter;
 ************************************************************************************************************************
 */
 
-#ifdef COOLER
-static void cooler_duty_cycle(uint8_t duty_cycle)
-{
-    if (duty_cycle == 0)
-    {
-        GPIO_ClearValue(COOLER_PORT, (1 << COOLER_PIN));
-        g_cooler.state = 0;
-    }
-    else
-    {
-        if (duty_cycle >= COOLER_MAX_DC) duty_cycle = 0;
-        GPIO_SetValue(COOLER_PORT, (1 << COOLER_PIN));
-        g_cooler.state = 1;
-    }
-
-    g_cooler.duty_cycle = duty_cycle;
-    g_cooler.counter = duty_cycle;
-}
-
-static void cooler_pwm(void)
-{
-    // cooler PWM
-    if (g_cooler.duty_cycle)
-    {
-        g_cooler.counter--;
-        if (g_cooler.counter == 0)
-        {
-            if (g_cooler.state)
-            {
-                GPIO_ClearValue(COOLER_PORT, (1 << COOLER_PIN));
-                g_cooler.counter = 100 - g_cooler.duty_cycle;
-                g_cooler.state = 0;
-            }
-            else
-            {
-                GPIO_SetValue(COOLER_PORT, (1 << COOLER_PIN));
-                g_cooler.counter = g_cooler.duty_cycle;
-                g_cooler.state = 1;
-            }
-        }
-    }
-}
-#else
-static void cooler_pwm(void) {}
-#endif
-
 
 /*
 ************************************************************************************************************************
@@ -204,19 +148,6 @@ void hardware_setup(void)
 
     // configure the peripherals power
     CLKPWR_ConfigPPWR(HW_CLK_PWR_CONTROL, ENABLE);
-
-    // ARM reset
-    #ifdef ARM_RESET
-    GPIO_SetDir(ARM_RESET_PORT, (1 << ARM_RESET_PIN), GPIO_DIRECTION_OUTPUT);
-    BLOCK_ARM_RESET();
-    #endif
-
-    // CPU power pins configuration
-    #ifdef CPU_CONTROL
-    GPIO_SetDir(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN), GPIO_DIRECTION_OUTPUT);
-    GPIO_SetDir(CPU_STATUS_PORT, (1 << CPU_STATUS_PIN), GPIO_DIRECTION_INPUT);
-    GPIO_SetValue(CPU_BUTTON_PORT, (1 << CPU_BUTTON_PIN));
-    #endif
 
     // SLOTs initialization
     uint8_t i;
@@ -241,14 +172,9 @@ void hardware_setup(void)
         actuator_set_prop(hardware_actuators(ENCODER0 + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
     }
 
-    // NTC initialization
-    #ifdef NTC
-    ntc_init();
-    #endif
-
     ////////////////////////////////////////////////////////////////
     // Timer 0 configuration
-    // this timer is used to LEDs PWM and cooler PWM
+    // this timer is used to LEDs PWM
 
     // timer structs declaration
     TIM_TIMERCFG_Type TIM_ConfigStruct;
@@ -419,100 +345,12 @@ uint32_t hardware_timestamp(void)
     return g_counter;
 }
 
-void hardware_reset(uint8_t unblock)
-{
-#ifdef ARM_RESET
-    if (unblock) UNBLOCK_ARM_RESET();
-    else BLOCK_ARM_RESET();
-#else
-    (void)(unblock);
-#endif
-}
-
-void hardware_cpu_power(uint8_t power)
-{
-#ifdef CPU_CONTROL
-    switch (power)
-    {
-        case CPU_TURN_OFF:
-            if (CPU_IS_ON()) CPU_PULSE_BUTTON();
-            break;
-
-        case CPU_TURN_ON:
-            if (!CPU_IS_ON()) CPU_PULSE_BUTTON();
-            break;
-
-        case CPU_REBOOT:
-            if (CPU_IS_ON())
-            {
-                CPU_PULSE_BUTTON();
-                while (CPU_IS_ON());
-                delay_ms(100);
-                CPU_PULSE_BUTTON();
-            }
-            else CPU_PULSE_BUTTON();
-            break;
-    }
-#else
-    (void) (power);
-#endif
-}
-
-uint8_t hardware_cpu_status(void)
-{
-#ifdef CPU_CONTROL
-    return CPU_IS_ON();
-#else
-    return 0;
-#endif
-}
-
-float hardware_temperature(void)
-{
-    float temp = ntc_read();
-
-#ifdef COOLER
-    static int32_t startup_time;
-
-    // gets the timestamp to startup time
-    if (startup_time == 0)
-    {
-        startup_time = g_counter;
-        return temp;
-    }
-
-    // checks if the startup time is already reached
-    if (((g_counter - startup_time) < COOLER_STARTUP_TIME) && startup_time > 0) return temp;
-
-    // this is to mark that startup time already happened
-    startup_time = -1;
-
-    // calculates the duty cycle to current temperature
-    float a, b, duty_cycle;
-
-    a = (float) (COOLER_MAX_DC - COOLER_MIN_DC) / (float) (TEMPERATURE_MAX - TEMPERATURE_MIN);
-    b = COOLER_MAX_DC - a*TEMPERATURE_MAX;
-
-    duty_cycle = a*temp + b;
-
-    if (duty_cycle > COOLER_MAX_DC) duty_cycle = COOLER_MAX_DC;
-    if (duty_cycle < COOLER_MIN_DC) duty_cycle = COOLER_MIN_DC;
-
-    cooler_duty_cycle(duty_cycle);
-#endif
-
-    return temp;
-}
-
 void TIMER0_IRQHandler(void)
 {
     if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT) == SET)
     {
         // LEDs PWM
         leds_clock();
-
-        // cooler
-        cooler_pwm();
     }
 
     TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);

@@ -74,24 +74,12 @@ void cli_append_data(const char *data, uint32_t data_size);
 const char* cli_get_response(void);
 // process the data received
 void cli_process(void);
-// selects an grub entry
-void cli_grub_select(uint8_t entry);
-// reboot the CPU
-void cli_reboot_cpu(void);
-// sets the jack buffer size
-void cli_jack_set_bufsize(const char* bufsize);
-// gets the jack buffer size
-void cli_jack_get_bufsize(void);
-// requests information from systemctl
+// requests systemctl information
 void cli_systemctl(const char *parameters);
-// requests the package version from pacman
+// requests package version information
 void cli_package_version(const char *package_name);
 // requests bluetooth information
 void cli_bluetooth(uint8_t what_info);
-// requests information to check if usb controller has recognized by system
-void cli_check_controller(void);
-// retuns the boot stage
-uint8_t cli_boot_stage(void);
 
 
 /*

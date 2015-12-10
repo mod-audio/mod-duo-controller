@@ -13,9 +13,6 @@ mod=$(MAKECMDGOALS)
 ifeq ($(mod),$(filter $(mod),duo duo-rc1 duo-rc2))
 CPU = LPC1759
 CPU_SERIE = LPC17xx
-else ifeq ($(mod),quadra)
-CPU = LPC1788
-CPU_SERIE = LPC177x_8x
 endif
 
 # project directories
@@ -86,7 +83,6 @@ all:
 	@echo -e "\tmake duo"
 	@echo -e "\tmake duo-rc1"
 	@echo -e "\tmake duo-rc2"
-	@echo -e "\tmake quadra"
 else
 all: prebuild build
 endif
@@ -94,7 +90,6 @@ endif
 duo: all
 duo-rc1: all
 duo-rc2: all
-quadra: all
 
 build: elf lss sym hex bin
 

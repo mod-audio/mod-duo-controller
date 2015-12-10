@@ -78,16 +78,6 @@ led_t *hardware_leds(uint8_t led_id);
 void *hardware_actuators(uint8_t actuator_id);
 // returns the timestamp (a variable increment in each millisecond)
 uint32_t hardware_timestamp(void);
-// unblock/block the arm microcontroller reset
-void hardware_reset(uint8_t unblock);
-// changes the 485 direction
-void hardware_485_direction(uint8_t direction);
-// turn on, turn off, reset the cpu
-void hardware_cpu_power(uint8_t power);
-// return the cpu status
-uint8_t hardware_cpu_status(void);
-// checks the temperature and update the cooler duty cycle
-float hardware_temperature(void);
 
 
 /*

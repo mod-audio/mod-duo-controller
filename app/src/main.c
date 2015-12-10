@@ -332,9 +332,6 @@ static void setup_task(void *pvParameters)
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
 //    xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
 
-    // checks the system boot
-//    system_check_boot();
-
     // first boot screen feedback
     screen_boot_feedback(0);
 
@@ -389,7 +386,6 @@ static void ping_cb(proto_t *proto)
         g_ui_communication_started = 1;
     }
 
-    hardware_reset(UNBLOCK);
     protocol_response("resp 0", proto);
 }
 
@@ -526,7 +522,6 @@ static void resp_cb(proto_t *proto)
 void HardFault_Handler(void)
 {
     led_set_color(hardware_leds(0), CYAN);
-    hardware_reset(UNBLOCK);
     while (1);
 }
 
@@ -548,7 +543,6 @@ void UsageFault_Handler(void)
 void vApplicationMallocFailedHook(void)
 {
     led_set_color(hardware_leds(1), CYAN);
-    hardware_reset(UNBLOCK);
     while (1);
 }
 
