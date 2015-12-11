@@ -11,8 +11,6 @@
 #include "glcd_widget.h"
 #include "naveg.h"
 #include "hardware.h"
-#include "boot_screens.h"
-
 #include <string.h>
 
 
@@ -31,13 +29,6 @@
 *           LOCAL CONSTANTS
 ************************************************************************************************************************
 */
-
-static const uint8_t *boot_screens[] = {
-    boot_screen_0,
-    boot_screen_1,
-    boot_screen_2,
-    boot_screen_3,
-};
 
 
 /*
@@ -542,12 +533,4 @@ void screen_tuner_input(uint8_t input)
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(DISPLAY_TOOL_TUNER))
         widget_tuner(hardware_glcds(DISPLAY_TOOL_TUNER), &g_tuner);
-}
-
-void screen_boot_feedback(uint8_t boot_stage)
-{
-    static uint8_t last_stage = 0xFF;
-
-    if (boot_stage == last_stage) return;
-    glcd_draw_image(hardware_glcds(boot_stage), 0, 0, boot_screens[boot_stage], GLCD_BLACK);
 }

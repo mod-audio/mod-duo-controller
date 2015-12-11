@@ -24,6 +24,7 @@
 #include "screen.h"
 #include "cli.h"
 #include "comm.h"
+#include "images.h"
 
 
 /*
@@ -323,6 +324,10 @@ static void setup_task(void *pvParameters)
     // initialize the communication resources
     comm_init();
 
+    // draw start up images
+    glcd_draw_image(hardware_glcds(0), 0, 0, mod_logo, GLCD_BLACK);
+    glcd_draw_image(hardware_glcds(1), 0, 0, mod_logo, GLCD_BLACK);
+
     // create the queues
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
@@ -331,9 +336,6 @@ static void setup_task(void *pvParameters)
     xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
 //    xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
-
-    // first boot screen feedback
-    screen_boot_feedback(0);
 
     // actuators callbacks
     uint8_t i;
