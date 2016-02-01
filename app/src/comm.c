@@ -79,8 +79,8 @@ static ringbuff_t *g_webgui_rx_rb;
 
 static void webgui_rx_cb(serial_t *serial)
 {
-    uint8_t buffer[WEBGUI_SERIAL_RX_BUFF_SIZE];
-    uint32_t size = serial_read(serial->uart_id, buffer, WEBGUI_SERIAL_RX_BUFF_SIZE);
+    uint8_t buffer[SERIAL_MAX_RX_BUFF_SIZE];
+    uint32_t size = serial_read(serial->uart_id, buffer, sizeof(buffer));
 
     if (size > 0)
     {
@@ -95,6 +95,8 @@ static void webgui_rx_cb(serial_t *serial)
                 portBASE_TYPE xHigherPriorityTaskWoken;
                 xHigherPriorityTaskWoken = pdFALSE;
                 xSemaphoreGiveFromISR(g_webgui_sem, &xHigherPriorityTaskWoken);
+                portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+                break;
             }
         }
     }
@@ -113,11 +115,6 @@ void comm_init(void)
     g_webgui_rx_rb = ringbuff_create(WEBGUI_COMM_RX_BUFF_SIZE);
 
     serial_set_callback(WEBGUI_SERIAL, webgui_rx_cb);
-}
-
-void comm_linux_send(const char *msg)
-{
-    serial_send(CLI_SERIAL, (uint8_t*)msg, strlen(msg));
 }
 
 void comm_webgui_send(const char *data, uint32_t data_size)

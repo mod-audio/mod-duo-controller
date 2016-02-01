@@ -63,10 +63,6 @@
 // initialize the communication
 void comm_init(void);
 
-//// linux console communication functions
-// sends a message to linux console
-void comm_linux_send(const char *msg);
-
 //// webgui communication functions
 // sends a message to webgui
 void comm_webgui_send(const char *data, uint32_t data_size);
