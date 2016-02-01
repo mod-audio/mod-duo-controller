@@ -519,16 +519,19 @@ uint32_t ringbuff_read_until(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_si
     uint32_t bytes = 0;
     uint8_t *data = buffer;
 
-    while (buffer_size > 0 && !BUFFER_IS_EMPTY(rb))
+    if (ringbuff_count(rb, token) > 0)
     {
-        *data = rb->buffer[rb->tail];
-        BUFFER_INC(rb, tail);
+        while (buffer_size > 0 && !BUFFER_IS_EMPTY(rb))
+        {
+            *data = rb->buffer[rb->tail];
+            BUFFER_INC(rb, tail);
 
-        buffer_size--;
-        bytes++;
+            buffer_size--;
+            bytes++;
 
-        if (*data == token) break;
-        data++;
+            if (*data == token) break;
+            data++;
+        }
     }
 
     return bytes;
@@ -552,6 +555,35 @@ uint32_t ringbuff_is_full(ringbuff_t *rb)
 uint32_t ringbuff_is_empty(ringbuff_t *rb)
 {
     return BUFFER_IS_EMPTY(rb);
+}
+
+void ringbuff_flush(ringbuff_t *rb)
+{
+    if (rb)
+    {
+        rb->head = 0;
+        rb->tail = 0;
+    }
+}
+
+uint32_t ringbuff_count(ringbuff_t *rb, uint8_t byte)
+{
+    uint32_t count = 0;
+    uint32_t tail, head;
+    uint8_t data;
+
+    tail = rb->tail;
+    head = rb->head;
+
+    while (tail < head)
+    {
+        data = rb->buffer[tail];
+        tail = (tail + 1) % rb->size;
+
+        if (data == byte) count++;
+    }
+
+    return count;
 }
 
 void select_item(char *item_str)

@@ -98,20 +98,24 @@ float convert_from_ms(const char *unit_to, float value);
 ringbuff_t *ringbuff_create(uint32_t buffer_size);
 // ringbuff_destroy: de-allocates memory of the ring buffer
 void ringbuff_destroy(ringbuff_t *rb);
-// ringbuff_write: returns the number of bytes written
+// ringbuff_write: returns number of bytes written
 uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size);
-// ringbuff_read: returns the number of bytes read
+// ringbuff_read: returns number of bytes read
 uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size);
-// ringbuff_read_until: read the ring buffer until find the token and returns the number of bytes read
+// ringbuff_read_until: read ring buffer until find the token and returns number of bytes read
 uint32_t ringbuff_read_until(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size, uint8_t token);
-// ringbuffer_used_space: returns the amount of unread bytes
+// ringbuffer_used_space: returns amount of unread bytes
 uint32_t ringbuffer_used_space(ringbuff_t *rb);
-// ringbuff_available_space: returns the amount of free bytes
+// ringbuff_available_space: returns amount of free bytes
 uint32_t ringbuff_available_space(ringbuff_t *rb);
-// ringbuff_is_full: returns non zero is buffer is full
+// ringbuff_is_full: returns non zero if buffer is full
 uint32_t ringbuff_is_full(ringbuff_t *rb);
-// ringbuff_is_empty: returns non zero is buffer is empty
+// ringbuff_is_empty: returns non zero if buffer is empty
 uint32_t ringbuff_is_empty(ringbuff_t *rb);
+// ringbuff_flush: reset buffer indexes (old data will be overwritten)
+void ringbuff_flush(ringbuff_t *rb);
+// ringbuff_count: returns amount of ocurrencies of byte in the buffer
+uint32_t ringbuff_count(ringbuff_t *rb, uint8_t byte);
 
 // put "> " at begin of string
 void select_item(char *item_str);
