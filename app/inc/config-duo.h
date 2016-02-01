@@ -123,7 +123,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 //// webgui configuration
 // define the interface
 #define WEBGUI_SERIAL               0
-#define WEBGUI_SERIAL_RX_BUFF_SIZE  32
 
 // define how many bytes will be allocated to rx/tx buffers
 #define WEBGUI_COMM_RX_BUFF_SIZE    4096
@@ -241,11 +240,11 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"True Bypass                 ",    MENU_BYP_PROC,  TRUE_BYPASS_ID,     ROOT_ID,        system_true_bypass_cb     , 0},  \
     {"Pedalboard",                      MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                      , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                      , 0},  \
-    {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  system_reset_pedalboard_cb, 0},  \
-    {"Save State",                      MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  system_save_pedalboard_cb , 0},  \
-    {"Bluetooth",                       MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        system_bluetooth_cb       , 1},  \
+    {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  NULL                      , 0},  \
+    {"Save State",                      MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  NULL                      , 0},  \
+    {"Bluetooth",                       MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        NULL                      , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                      , 0},  \
-    {"Pair",                            MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   system_bluetooth_pair_cb  , 0},  \
+    {"Pair",                            MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Status:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Name:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                      , 0},  \
@@ -253,10 +252,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                      , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb        , 1},  \
     {"< Back to Info",                  MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL                      , 0},  \
-    {"jack:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    system_restart_jack_cb    , 0},  \
-    {"mod-host:",                       MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    system_restart_host_cb    , 0},  \
-    {"mod-ui:",                         MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    system_restart_ui_cb      , 0},  \
-    {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb        , 0},  \
+    {"jack:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    NULL                      , 0},  \
+    {"mod-host:",                       MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    NULL                      , 0},  \
+    {"mod-ui:",                         MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    NULL                      , 0},  \
+    {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        NULL                      , 0},  \
     {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                      , 0},  \
     {"jack:",                           MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                      , 0},  \
     {"mod-host:",                       MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                      , 0},  \
@@ -307,14 +306,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CLI_SERIAL                  1
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500
-// pacman packages names
-#define PACMAN_MOD_JACK             "jack2-mod"
-#define PACMAN_MOD_HOST             "mod-host"
-#define PACMAN_MOD_UI               "mod-ui"
-#define PACMAN_MOD_CONTROLLER       "mod-controller"
-#define PACMAN_MOD_PYTHON           "mod-python"
-#define PACMAN_MOD_RESOURCES        "mod-resources"
-#define PACMAN_MOD_BLUEZ            "mod-bluez"
+// defines size of received buffer
+#define CLI_RECEIVED_BUFFER_SIZE    64
+// defines size of response buffer
+#define CLI_RESPONSE_BUFFER_SIZE    64
 // systemctl services names
 #define SYSTEMCTL_JACK              "jackd"
 #define SYSTEMCTL_MOD_HOST          "mod-host"

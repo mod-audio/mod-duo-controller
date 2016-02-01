@@ -123,7 +123,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 //// webgui configuration
 // define the interface
 #define WEBGUI_SERIAL               0
-#define WEBGUI_SERIAL_RX_BUFF_SIZE  32
 
 // define how many bytes will be allocated to rx/tx buffers
 #define WEBGUI_COMM_RX_BUFF_SIZE    4096
