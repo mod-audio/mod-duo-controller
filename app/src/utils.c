@@ -575,7 +575,7 @@ uint32_t ringbuff_count(ringbuff_t *rb, uint8_t byte)
     tail = rb->tail;
     head = rb->head;
 
-    while (tail < head)
+    while (tail != head)
     {
         data = rb->buffer[tail];
         tail = (tail + 1) % rb->size;
