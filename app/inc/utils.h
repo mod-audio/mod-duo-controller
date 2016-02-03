@@ -116,6 +116,11 @@ uint32_t ringbuff_is_empty(ringbuff_t *rb);
 void ringbuff_flush(ringbuff_t *rb);
 // ringbuff_count: returns amount of ocurrencies of byte in the buffer
 uint32_t ringbuff_count(ringbuff_t *rb, uint8_t byte);
+// ringbuff_peek: read buffer keeping data in the ringbuffer
+void ringbuff_peek(ringbuff_t *rb, uint8_t *buffer, uint8_t peek_size);
+// ringbuff_search: search for an array of bytes and return how many bytes there
+//                  are before first byte of the array
+int32_t ringbuff_search(ringbuff_t *rb, const uint8_t *to_search, uint32_t size);
 
 // put "> " at begin of string
 void select_item(char *item_str);

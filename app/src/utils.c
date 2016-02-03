@@ -483,11 +483,13 @@ void ringbuff_destroy(ringbuff_t *rb)
 uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size)
 {
     uint32_t bytes = 0;
-    const uint8_t *pdata = data;
+    const uint8_t *pdata, dummy = 0;
 
+    pdata =  data ? data : &dummy;
     while (data_size > 0 && !BUFFER_IS_FULL(rb))
     {
-        rb->buffer[rb->head] = *pdata++;
+        rb->buffer[rb->head] = *pdata;
+        if (data) pdata++;
         BUFFER_INC(rb, head);
 
         data_size--;
@@ -500,11 +502,13 @@ uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size)
 uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size)
 {
     uint32_t bytes = 0;
-    uint8_t *data = buffer;
+    uint8_t *data, dummy;
 
+    data = buffer ? buffer : &dummy;
     while (buffer_size > 0 && !BUFFER_IS_EMPTY(rb))
     {
-        *data++ = rb->buffer[rb->tail];
+        *data = rb->buffer[rb->tail];
+        if (buffer) data++;
         BUFFER_INC(rb, tail);
 
         buffer_size--;
@@ -517,7 +521,14 @@ uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size)
 uint32_t ringbuff_read_until(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size, uint8_t token)
 {
     uint32_t bytes = 0;
-    uint8_t *data = buffer;
+    uint8_t *data, dummy;
+
+    data = buffer;
+    if (!buffer)
+    {
+        data = &dummy;
+        buffer_size = rb->size;
+    }
 
     if (ringbuff_count(rb, token) > 0)
     {
@@ -530,7 +541,7 @@ uint32_t ringbuff_read_until(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_si
             bytes++;
 
             if (*data == token) break;
-            data++;
+            if (buffer) data++;
         }
     }
 
@@ -584,6 +595,70 @@ uint32_t ringbuff_count(ringbuff_t *rb, uint8_t byte)
     }
 
     return count;
+}
+
+void ringbuff_peek(ringbuff_t *rb, uint8_t *buffer, uint8_t peek_size)
+{
+    uint32_t tail, head;
+    uint8_t *data = buffer;
+
+    tail = rb->tail;
+    head = rb->head;
+
+    while (peek_size > 0 && tail != head)
+    {
+        *data++ = rb->buffer[tail];
+        tail = (tail + 1) % rb->size;
+        peek_size--;
+    }
+}
+
+int32_t ringbuff_search(ringbuff_t *rb, const uint8_t *to_search, uint32_t size)
+{
+    uint32_t tail, head;
+    uint32_t count = 0;
+
+    tail = rb->tail;
+    head = rb->head;
+
+    while (tail != head)
+    {
+        const uint8_t *s = to_search;
+        uint8_t data;
+
+        // search for first byte
+        do
+        {
+            data = rb->buffer[tail];
+            tail = (tail + 1) % rb->size;
+            count++;
+        } while (data != *s && tail != head);
+
+        if (data == *s && size == 1)
+            return (count - 1);
+
+        // check next bytes
+        uint32_t i = size - 1, a = 1;
+        while (tail != head)
+        {
+            data = rb->buffer[tail];
+            tail = (tail + 1) % rb->size;
+
+            s++;
+            if (data != *s)
+            {
+                count += a;
+                break;
+            }
+
+            a++;
+
+            if (--i == 0)
+                return (count - 1);
+        }
+    }
+
+    return -1;
 }
 
 void select_item(char *item_str)
