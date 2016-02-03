@@ -96,16 +96,16 @@ static void uart_receive(serial_t *serial)
     // keeps one byte on FIFO to force CTI interrupt
     count = UART_Receive(uart, buffer, FIFO_TRIGGER-1, NONE_BLOCKING);
 
-    // writes the data to ring buffer
+    // writes data to ring buffer
     written = ringbuff_write(serial->rx_buffer, buffer, count);
 
     // checks if all data fits on ring buffer
     while (written < count)
     {
-        // invokes the callback because the buffer is full
+        // invokes callback because buffer is full
         if (serial->rx_callback) serial->rx_callback(serial);
 
-        // writes the data left
+        // writes remaining data
         written += ringbuff_write(serial->rx_buffer, &buffer[written], (count - written));
     }
 }
@@ -155,7 +155,7 @@ static void uart_handler(serial_t *serial)
 
     LPC_UART_TypeDef *uart = GET_UART(serial->uart_id);
 
-    // Determine the interrupt source
+    // Determine interrupt source
     intsrc = UART_GetIntId(uart);
     tmp = intsrc & UART_IIR_INTID_MASK;
 
@@ -309,11 +309,11 @@ void serial_init(serial_t *serial)
     // Enable Interrupt for UART channel
     NVIC_EnableIRQ(irq);
 
-    // creates the ring buffers
+    // creates ring buffers
     serial->rx_buffer = ringbuff_create(serial->rx_buffer_size + 1);
     serial->tx_buffer = ringbuff_create(serial->tx_buffer_size + 1);
 
-    // initializes the struct vars
+    // initializes struct vars
     serial->rx_callback = 0;
     serial->sof = 1;
     serial->eof = 0;
@@ -373,6 +373,27 @@ uint32_t serial_read(uint8_t uart_id, uint8_t *data, uint32_t data_size)
 
     uint32_t count;
     count = ringbuff_read(serial->rx_buffer, data, data_size);
+
+    // Re-enable UART interrupts
+    UART_IntConfig(uart, UART_INTCFG_RBR, ENABLE);
+
+    return count;
+}
+
+uint32_t serial_read_until(uint8_t uart_id, uint8_t *data, uint32_t data_size, uint8_t token)
+{
+    LPC_UART_TypeDef *uart = GET_UART(uart_id);
+    serial_t *serial = g_serial_instances[uart_id];
+
+    if (!serial) return 0;
+
+    // Temporarily lock out UART receive interrupts during this
+    // read so the UART receive interrupt won't cause problems
+    // with the index values
+    UART_IntConfig(uart, UART_INTCFG_RBR, DISABLE);
+
+    uint32_t count;
+    count = ringbuff_read_until(serial->rx_buffer, data, data_size, token);
 
     // Re-enable UART interrupts
     UART_IntConfig(uart, UART_INTCFG_RBR, ENABLE);
