@@ -39,15 +39,15 @@
 // SERIAL1
 #define SERIAL1
 #define SERIAL1_BAUD_RATE       115200
-#define SERIAL1_PRIORITY        4
+#define SERIAL1_PRIORITY        2
 #define SERIAL1_RX_PORT         0
 #define SERIAL1_RX_PIN          16
 #define SERIAL1_RX_FUNC         1
-#define SERIAL1_RX_BUFF_SIZE    32
+#define SERIAL1_RX_BUFF_SIZE    64
 #define SERIAL1_TX_PORT         0
 #define SERIAL1_TX_PIN          15
 #define SERIAL1_TX_FUNC         1
-#define SERIAL1_TX_BUFF_SIZE    32
+#define SERIAL1_TX_BUFF_SIZE    64
 #define SERIAL1_HAS_OE          0
 
 //// Hardware peripheral definitions
@@ -306,10 +306,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CLI_SERIAL                  1
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500
-// defines size of received buffer
-#define CLI_RECEIVED_BUFFER_SIZE    64
-// defines size of response buffer
-#define CLI_RESPONSE_BUFFER_SIZE    64
 // systemctl services names
 #define SYSTEMCTL_JACK              "jackd"
 #define SYSTEMCTL_MOD_HOST          "mod-host"

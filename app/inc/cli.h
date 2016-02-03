@@ -35,9 +35,6 @@ enum {GRUB_STAGE, KERNEL_STAGE, LOGIN_STAGE, PASSWORD_STAGE, WAIT_PROMPT_STAGE, 
 ************************************************************************************************************************
 */
 
-#define CLI_LINE_BUFFER_SIZE        512
-#define CLI_RESPONSE_BUFFER_SIZE    256
-
 
 /*
 ************************************************************************************************************************
@@ -68,12 +65,12 @@ enum {GRUB_STAGE, KERNEL_STAGE, LOGIN_STAGE, PASSWORD_STAGE, WAIT_PROMPT_STAGE, 
 
 // initializes all resources needed by CLI
 void cli_init(void);
-// appends data to line buffer
-void cli_append_data(const char *data, uint32_t data_size);
 // returns the console response
 const char* cli_get_response(void);
 // process the data received
 void cli_process(void);
+// execute a single command
+void cli_command(const char *command);
 // requests systemctl information
 void cli_systemctl(const char *parameters);
 // requests package version information
