@@ -73,7 +73,7 @@ enum {UBOOT_STARTING, UBOOT_HITKEY, KERNEL_STARTING, LOGIN, PASSWORD, N_BOOT_STE
 
 static char g_received[LINE_BUFFER_SIZE+1];
 static char g_response[LINE_BUFFER_SIZE+1];
-static uint8_t g_boot_step, g_boot_first_step_len, g_waiting_response;
+static uint8_t g_boot_step, g_waiting_response;
 static xSemaphoreHandle g_received_sem, g_response_sem;
 
 
@@ -97,48 +97,25 @@ static xSemaphoreHandle g_received_sem, g_response_sem;
 ************************************************************************************************************************
 */
 
-// return zero if match
-static uint8_t compare_peek(const char *str1, const char *str2)
-{
-    uint32_t i, sum = 0;
-
-    for (i = 0; i < PEEK_SIZE; i++)
-    {
-        sum += *str1++ ^ *str2++;
-    }
-
-    return sum;
-}
-
 // this callback is called from a ISR
 static void serial_cb(serial_t *serial)
 {
-    char peek[PEEK_SIZE];
-
-    if (g_boot_step == 0)
+    if (g_boot_step < N_BOOT_STEPS)
     {
+        uint32_t len = strlen(g_boot_steps[g_boot_step]);
+
         // need to search for first boot message to sync data
-        int32_t ahead = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[0], g_boot_first_step_len);
+        int32_t ahead = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[g_boot_step], len);
         if (ahead == -1)
         {
             // flush data if doesn't find first boot boot message
             ringbuff_flush(serial->rx_buffer);
+            return;
         }
         else if (ahead > 0)
         {
-            // remove bytes ahead of first boot message
+            // discard bytes ahead of boot message
             serial_read(CLI_SERIAL, NULL, ahead);
-        }
-    }
-
-    if (g_boot_step < N_BOOT_STEPS)
-    {
-        // check if beginning of message doesn't match with wanted boot message
-        ringbuff_peek(serial->rx_buffer, (uint8_t *) peek, PEEK_SIZE);
-        if (compare_peek(peek, g_boot_steps[g_boot_step]) != 0)
-        {
-            ringbuff_flush(serial->rx_buffer);
-            return;
         }
     }
 
@@ -175,8 +152,6 @@ void cli_init(void)
     vSemaphoreCreateBinary(g_received_sem);
     vSemaphoreCreateBinary(g_response_sem);
     serial_set_callback(CLI_SERIAL, serial_cb);
-
-    g_boot_first_step_len = strlen(g_boot_steps[0]);
 }
 
 const char* cli_get_response(void)
