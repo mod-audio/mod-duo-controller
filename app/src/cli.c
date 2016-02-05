@@ -26,12 +26,13 @@
 
 #define MOD_USER            "root"
 #define MOD_PASSWORD        "mod"
-#define ECHO_OFF_CMD        "stty -echo"
-#define SYSTEMCTL_CMD       "systemctl "
+#define DISABLE_ECHO        "stty -echo"
+#define SET_SP1_VAR         "export PS1=\"\""
 
 #define PEEK_SIZE           3
 #define LINE_BUFFER_SIZE    32
 #define RESPONSE_TIMEOUT    (CLI_RESPONSE_TIMEOUT / portTICK_RATE_MS)
+#define BOOT_TIMEOUT        (1000 / portTICK_RATE_MS)
 
 
 /*
@@ -45,10 +46,11 @@ static char *g_boot_steps[] = {
     "Hit any key",
     "Starting kernel",
     "modduo login:",
-    "Password:"
+    "Password:",
+    NULL
 };
 
-enum {UBOOT_STARTING, UBOOT_HITKEY, KERNEL_STARTING, LOGIN, PASSWORD, N_BOOT_STEPS};
+enum {UBOOT_STARTING, UBOOT_HITKEY, KERNEL_STARTING, LOGIN, PASSWORD, SHELL_CONFIG, N_BOOT_STEPS};
 
 
 /*
@@ -100,44 +102,60 @@ static xSemaphoreHandle g_received_sem, g_response_sem;
 // this callback is called from a ISR
 static void serial_cb(serial_t *serial)
 {
+    portBASE_TYPE xHigherPriorityTaskWoken;
+    xHigherPriorityTaskWoken = pdFALSE;
+
     if (g_boot_step < N_BOOT_STEPS)
     {
         uint32_t len = strlen(g_boot_steps[g_boot_step]);
 
-        // need to search for first boot message to sync data
-        int32_t ahead = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[g_boot_step], len);
-        if (ahead == -1)
+        // search for boot message
+        int32_t found = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[g_boot_step], len);
+
+        // doesn't need to retrieve data, so flush them out
+        ringbuff_flush(serial->rx_buffer);
+
+        // wake task if boot message match or not required (NULL)
+        if (!g_boot_steps[g_boot_step] || found >= 0)
         {
-            // flush data if doesn't find first boot boot message
-            ringbuff_flush(serial->rx_buffer);
-            return;
-        }
-        else if (ahead > 0)
-        {
-            // discard bytes ahead of boot message
-            serial_read(CLI_SERIAL, NULL, ahead);
+            xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
+            portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
         }
     }
-
-    // try read data until find a new line
-    uint32_t read;
-    read = serial_read_until(CLI_SERIAL, (uint8_t *) g_received, LINE_BUFFER_SIZE, '\n');
-    if (read == 0)
+    else if (g_waiting_response)
     {
-        // if can't find new line force reading
-        read = serial_read(CLI_SERIAL, (uint8_t *) g_received, LINE_BUFFER_SIZE);
+        // try read data until find a new line
+        uint32_t read;
+        read = serial_read_until(CLI_SERIAL, (uint8_t *) g_received, LINE_BUFFER_SIZE, '\n');
+        if (read == 0)
+        {
+            // if can't find new line force reading
+            read = serial_read(CLI_SERIAL, (uint8_t *) g_received, LINE_BUFFER_SIZE);
+        }
+
+        // make message null termined
+        g_received[read] = 0;
+
+        // all remaining data on buffer are not useful
+        ringbuff_flush(serial->rx_buffer);
+
+        xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
+        portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
     }
+    else
+    {
+        // check if received login message when it's not waiting for response neither in booting process
+        uint32_t len = strlen(g_boot_steps[LOGIN]);
+        int32_t found = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[LOGIN], len);
+        if (found >= 0)
+        {
+            g_boot_step = LOGIN;
+            xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
+            portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+        }
 
-    // make message null termined
-    g_received[read] = 0;
-
-    // all remaining data on buffer are not useful
-    ringbuff_flush(serial->rx_buffer);
-
-    portBASE_TYPE xHigherPriorityTaskWoken;
-    xHigherPriorityTaskWoken = pdFALSE;
-    xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
-    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+        ringbuff_flush(serial->rx_buffer);
+    }
 }
 
 
@@ -152,60 +170,82 @@ void cli_init(void)
     vSemaphoreCreateBinary(g_received_sem);
     vSemaphoreCreateBinary(g_response_sem);
     serial_set_callback(CLI_SERIAL, serial_cb);
+
+    // vSemaphoreCreateBinary is created as available which makes
+    // first xSemaphoreTake pass even if semaphore has not been given
+    // http://sourceforge.net/p/freertos/discussion/382005/thread/04bfabb9
+    xSemaphoreTake(g_received_sem, 0);
+    xSemaphoreTake(g_response_sem, 0);
 }
 
 const char* cli_get_response(void)
 {
-    if (xSemaphoreTake(g_response_sem, RESPONSE_TIMEOUT) == pdTRUE)
-    {
-        return g_response;
-    }
-
-    return NULL;
+    xSemaphoreTake(g_response_sem, RESPONSE_TIMEOUT);
+    return g_response;
 }
 
 void cli_process(void)
 {
-    xSemaphoreTake(g_received_sem, portMAX_DELAY);
+    static portTickType xTicksToWait = BOOT_TIMEOUT;
+    portBASE_TYPE xReturn;
+
+    xReturn = xSemaphoreTake(g_received_sem, xTicksToWait);
 
     // check if it's booting
     if (g_boot_step < N_BOOT_STEPS)
     {
-        uint32_t len = strlen(g_boot_steps[g_boot_step]);
-        if (strncmp(g_received, g_boot_steps[g_boot_step], len) == 0)
+        // if got timeout ...
+        if (xReturn == pdFALSE)
         {
-            switch (g_boot_step)
+            // and still in the first step ...
+            if (g_boot_step == 0)
             {
-                case UBOOT_STARTING:
-led_set_color(hardware_leds(0), RED);
-                    break;
-
-                case UBOOT_HITKEY:
-led_set_color(hardware_leds(0), BLUE);
-                    break;
-
-                case KERNEL_STARTING:
-led_set_color(hardware_leds(0), MAGENTA);
-                    break;
-
-                case LOGIN:
-                    cli_command(MOD_USER);
-led_set_color(hardware_leds(0), YELLOW);
-                    break;
-
-                case PASSWORD:
-                    cli_command(MOD_PASSWORD);
-led_set_color(hardware_leds(0), GREEN);
-                    break;
+                // force login step
+                g_boot_step = LOGIN;
             }
 
-            g_boot_step++;
+            // and already tried login ...
+            else if (g_boot_step == LOGIN)
+            {
+                // assume boot is done
+                g_boot_step = N_BOOT_STEPS;
+            }
+
+            // send new line to force interrupt
+            cli_command(NULL);
+            g_waiting_response = 0;
+            return;
         }
+
+        switch (g_boot_step)
+        {
+            case UBOOT_STARTING:
+                xTicksToWait = portMAX_DELAY;
+                break;
+
+            case LOGIN:
+                cli_command(MOD_USER);
+                break;
+
+            case PASSWORD:
+                cli_command(MOD_PASSWORD);
+                break;
+
+            case SHELL_CONFIG:
+                xTicksToWait = portMAX_DELAY;
+                cli_command(DISABLE_ECHO);
+                cli_command(SET_SP1_VAR);
+                break;
+        }
+
+        g_boot_step++;
+        g_waiting_response = 0;
     }
 
     // check if it's waiting command response
     else if (g_waiting_response)
     {
+        g_waiting_response = 0;
         strcpy(g_response, g_received);
         xSemaphoreGive(g_response_sem);
     }
@@ -213,18 +253,22 @@ led_set_color(hardware_leds(0), GREEN);
 
 void cli_command(const char *command)
 {
-    if (!command) return;
-
-    // TODO: make sure HMI is logged into shell
-
     g_waiting_response = 1;
-    serial_send(CLI_SERIAL, (uint8_t*) command, strlen(command));
-    serial_send(CLI_SERIAL, (uint8_t*) NEW_LINE, sizeof(NEW_LINE) - 1);
+    if (command) serial_send(CLI_SERIAL, (uint8_t*) command, strlen(command));
+    serial_send(CLI_SERIAL, (uint8_t*) NEW_LINE, 2);
 }
 
 void cli_systemctl(const char *parameters)
 {
     if (!parameters) return;
+
+    // default response
+    strcpy(g_response, "unknown");
+
+    g_waiting_response = 1;
+    serial_send(CLI_SERIAL, (uint8_t *) "systemctl ", 10);
+    serial_send(CLI_SERIAL, (uint8_t *) parameters, strlen(parameters));
+    serial_send(CLI_SERIAL, (uint8_t *) NEW_LINE, 2);
 }
 
 void cli_package_version(const char *package_name)
