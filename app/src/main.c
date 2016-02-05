@@ -78,14 +78,13 @@ static uint8_t g_ui_communication_started;
 */
 
 // local functions
-static void serial_cb(serial_t *serial);
 static void actuators_cb(void *actuator);
 
 // tasks
 static void procotol_task(void *pvParameters);
 static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
-//static void monitor_task(void *pvParameters);
+static void cli_task(void *pvParameters);
 static void setup_task(void *pvParameters);
 
 // protocol callbacks
@@ -146,21 +145,6 @@ int main(void)
 *           LOCAL FUNCTIONS
 ************************************************************************************************************************
 */
-
-// this callback is called from a ISR
-static void serial_cb(serial_t *serial)
-{
-    uint32_t read_bytes;
-    uint8_t uart_id, buffer[SERIAL_MAX_RX_BUFF_SIZE];
-
-    uart_id = serial->uart_id;
-    read_bytes = serial_read(uart_id, buffer, sizeof(buffer));
-
-    if (uart_id == CLI_SERIAL)
-    {
-        cli_append_data((const char*)buffer, read_bytes);
-    }
-}
 
 // this callback is called from UART ISR in case of error
 void serial_error(uint8_t uart_id, uint32_t error)
@@ -225,14 +209,14 @@ static void displays_task(void *pvParameters)
 
     while (1)
     {
-        taskENTER_CRITICAL();
+//        taskENTER_CRITICAL();
 
-        // update the GLCDs
+        // update GLCDs
         uint8_t i;
         for (i = 0; i < GLCD_COUNT; i++)
             glcd_update(hardware_glcds(i));
 
-        taskEXIT_CRITICAL();
+//        taskEXIT_CRITICAL();
         taskYIELD();
     }
 }
@@ -296,6 +280,17 @@ static void actuators_task(void *pvParameters)
     }
 }
 
+static void cli_task(void *pvParameters)
+{
+    UNUSED_PARAM(pvParameters);
+
+    while (1)
+    {
+        cli_process();
+    }
+}
+
+
 /*
 static void monitor_task(void *pvParameters)
 {
@@ -303,9 +298,6 @@ static void monitor_task(void *pvParameters)
 
     while (1)
     {
-        // process the command line
-        cli_process();
-
         // TODO: timer for navigation update
         //naveg_update();
 
@@ -318,15 +310,15 @@ static void setup_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
-    // set serial callbacks
-    serial_set_callback(CLI_SERIAL, serial_cb);
-
-    // initialize the communication resources
-    comm_init();
-
     // draw start up images
     glcd_draw_image(hardware_glcds(0), 0, 0, mod_logo, GLCD_BLACK);
     glcd_draw_image(hardware_glcds(1), 0, 0, mod_logo, GLCD_BLACK);
+
+    // CLI initialization
+    cli_init();
+
+    // initialize the communication resources
+    comm_init();
 
     // create the queues
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
@@ -335,7 +327,7 @@ static void setup_task(void *pvParameters)
     xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 3, NULL);
     xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
-//    xTaskCreate(monitor_task, TASK_NAME("mon"), 256, NULL, 1, NULL);
+    xTaskCreate(cli_task, TASK_NAME("cli"), 128, NULL, 1, NULL);
 
     // actuators callbacks
     uint8_t i;
@@ -363,9 +355,6 @@ static void setup_task(void *pvParameters)
     protocol_add_command(BANK_CONFIG_CMD, bank_config_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
-
-    // CLI initialization
-    cli_init();
 
     // init the navigation
     naveg_init();
