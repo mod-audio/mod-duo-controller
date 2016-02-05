@@ -621,6 +621,8 @@ int32_t ringbuff_search(ringbuff_t *rb, const uint8_t *to_search, uint32_t size)
     tail = rb->tail;
     head = rb->head;
 
+    if (!to_search) return -1;
+
     while (tail != head)
     {
         const uint8_t *s = to_search;
