@@ -236,8 +236,25 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
-    {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                      , 0},  \
-    {"True Bypass                 ",    MENU_BYP_PROC,  TRUE_BYPASS_ID,     ROOT_ID,        system_true_bypass_cb     , 0},  \
+    {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                , 0},  \
+    {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                , 0},  \
+    {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb  , 1},  \
+    {"< Back to Info",                  MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL                , 0},  \
+    {"jack:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    NULL                , 0},  \
+    {"mod-host:",                       MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    NULL                , 0},  \
+    {"mod-ui:",                         MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    NULL                , 0},  \
+    {"ttymidi:",                        MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    NULL                , 0},  \
+    {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        NULL                , 0},  \
+    {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                , 0},  \
+    {"jack:",                           MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                , 0},  \
+    {"mod-host:",                       MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
+    {"mod-ui:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                , 0},  \
+    {"mod-controller:",                 MENU_NONE,      VERSIONS_ID+6,      VERSIONS_ID,    NULL                , 0},  \
+    {"Factory Restore",                 MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb   , 0},  \
+
+/* --- menu options temporarily disabled (they were positioned below SETTINGS node)
+    {"True Bypass                 ",    MENU_BYP_PROC,  TRUE_BYPASS_ID,     ROOT_ID,        system_true_bypass_cb     , 1},  \
     {"Pedalboard",                      MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                      , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                      , 0},  \
     {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  NULL                      , 0},  \
@@ -248,26 +265,13 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"Status:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Name:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                      , 0},  \
     {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                      , 0},  \
-    {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                      , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                      , 0},  \
-    {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb        , 1},  \
-    {"< Back to Info",                  MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL                      , 0},  \
-    {"jack:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    NULL                      , 0},  \
-    {"mod-host:",                       MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    NULL                      , 0},  \
-    {"mod-ui:",                         MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    NULL                      , 0},  \
-    {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        NULL                      , 0},  \
-    {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                      , 0},  \
-    {"jack:",                           MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                      , 0},  \
-    {"mod-host:",                       MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                      , 0},  \
-    {"mod-ui:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                      , 0},  \
-    {"mod-controller:",                 MENU_NONE,      VERSIONS_ID+6,      VERSIONS_ID,    NULL                      , 0},  \
-    {"Factory Restore",                 MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb         , 0},  \
+*/
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
-    {PEDALBOARD_ID+2, "Are you sure to reset all pedalboard values to the last saved state?"},      \
-    {PEDALBOARD_ID+3, "Are you sure to save all current pedalboard values as default?"},            \
-    {FACTORY_ID, "To proceed with Factory Restore you need to hold the last footswitch and click YES."},
+    {PEDALBOARD_ID+2, "Are you sure to reset all pedalboard values to last saved state?"},      \
+    {PEDALBOARD_ID+3, "Are you sure to save all current pedalboard values as default?"},        \
+    {FACTORY_ID, "To proceed with Factory Restore please hold first footswitch and click YES."},
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
@@ -306,11 +310,6 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CLI_SERIAL                  1
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500
-// systemctl services names
-#define SYSTEMCTL_JACK              "jackd"
-#define SYSTEMCTL_MOD_HOST          "mod-host"
-#define SYSTEMCTL_MOD_UI            "mod-ui"
-#define SYSTEMCTL_MOD_BLUEZ         "mod-bluez"
 
 //// Dynamic menory allocation
 // defines the heap size (in bytes)
