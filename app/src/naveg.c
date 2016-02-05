@@ -1170,11 +1170,11 @@ void naveg_init(void)
     g_menu = node_create(NULL);
     create_menu_tree(g_menu, &root_desc);
 
-    // sets the current menu
+    // sets current menu
     g_current_menu = g_menu;
     g_current_item = g_menu->first_child->data;
 
-    // initialize the update variables
+    // initialize update variables
     g_update_cb = NULL;
     g_update_data = NULL;
 
