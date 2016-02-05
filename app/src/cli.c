@@ -136,6 +136,10 @@ static void serial_cb(serial_t *serial)
         // make message null termined
         g_received[read] = 0;
 
+        // remove new line from response
+        if (g_received[read-2] == '\r')
+            g_received[read-2] = 0;
+
         // all remaining data on buffer are not useful
         ringbuff_flush(serial->rx_buffer);
 
@@ -254,20 +258,25 @@ void cli_process(void)
 void cli_command(const char *command)
 {
     g_waiting_response = 1;
+
+    // default response
+    g_response[0] = 0;
+
     if (command) serial_send(CLI_SERIAL, (uint8_t*) command, strlen(command));
     serial_send(CLI_SERIAL, (uint8_t*) NEW_LINE, 2);
 }
 
-void cli_systemctl(const char *parameters)
+void cli_systemctl(const char *command, const char *service)
 {
-    if (!parameters) return;
+    if (!command || !service) return;
 
     // default response
     strcpy(g_response, "unknown");
 
     g_waiting_response = 1;
     serial_send(CLI_SERIAL, (uint8_t *) "systemctl ", 10);
-    serial_send(CLI_SERIAL, (uint8_t *) parameters, strlen(parameters));
+    serial_send(CLI_SERIAL, (uint8_t *) command, strlen(command));
+    serial_send(CLI_SERIAL, (uint8_t *) service, strlen(service));
     serial_send(CLI_SERIAL, (uint8_t *) NEW_LINE, 2);
 }
 

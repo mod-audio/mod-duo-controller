@@ -71,11 +71,11 @@ const char* cli_get_response(void);
 void cli_process(void);
 // execute a single command
 void cli_command(const char *command);
-// requests systemctl information
-void cli_systemctl(const char *parameters);
-// requests package version information
+// request systemctl command
+void cli_systemctl(const char *command, const char *service);
+// request package version information
 void cli_package_version(const char *package_name);
-// requests bluetooth information
+// request bluetooth information
 void cli_bluetooth(uint8_t what_info);
 
 
