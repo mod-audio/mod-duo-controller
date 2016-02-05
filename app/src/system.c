@@ -26,12 +26,26 @@
 ************************************************************************************************************************
 */
 
+// true bypass
+#define TRUE_BYPASS_SET(ch,val) "amixer -D hw:MODDUO sset '" #ch " True-Bypass' " #val " > /dev/null"
+#define TRUE_BYPASS_GET(ch)     "amixer -D hw:MODDUO sget '" #ch " True-Bypass' | grep -o \"\\[.*\\]\""
+#define TRUE_BYPASS_TOGGLE(ch)  "amixer -D hw:MODDUO sset '" #ch " True-Bypass' toggle > /dev/null"
+
 
 /*
 ************************************************************************************************************************
 *           LOCAL CONSTANTS
 ************************************************************************************************************************
 */
+
+// systemctl services names
+const char *systemctl_services[] = {
+    "jack2",
+    "mod-host",
+    "mod-ui",
+    "ttymidi",
+    NULL
+};
 
 
 /*
@@ -98,10 +112,6 @@ static void update_status(char *item_to_update)
 ************************************************************************************************************************
 */
 
-void system_check_boot(void)
-{
-}
-
 void system_true_bypass_cb(void *arg)
 {
     UNUSED_PARAM(arg);
@@ -109,56 +119,32 @@ void system_true_bypass_cb(void *arg)
 
 void system_reset_pedalboard_cb(void *arg)
 {
-    menu_item_t *item = arg;
-
-    // checks if is the YES button
-    if (item->data.hover == 0)
-        comm_webgui_send(PEDALBOARD_RESET_CMD, strlen(PEDALBOARD_RESET_CMD));
+    UNUSED_PARAM(arg);
 }
 
 void system_save_pedalboard_cb(void *arg)
 {
-    menu_item_t *item = arg;
-
-    // checks if is the YES button
-    if (item->data.hover == 0)
-        comm_webgui_send(PEDALBOARD_SAVE_CMD, strlen(PEDALBOARD_SAVE_CMD));
+    UNUSED_PARAM(arg);
 }
 
 void system_bluetooth_cb(void *arg)
 {
-    menu_item_t *item = arg;
-
-    cli_systemctl("is-active " SYSTEMCTL_MOD_BLUEZ);
-    update_status(item->data.list[2]);
-
-    cli_bluetooth(BLUETOOTH_NAME);
-    update_status(item->data.list[3]);
-
-    cli_bluetooth(BLUETOOTH_ADDRESS);
-    update_status(item->data.list[4]);
-
-    screen_system_menu(item);
+    UNUSED_PARAM(arg);
 }
 
 void system_bluetooth_pair_cb(void *arg)
 {
     UNUSED_PARAM(arg);
-    cli_systemctl("restart " SYSTEMCTL_MOD_BLUEZ);
 }
 
 void system_services_cb(void *arg)
 {
     menu_item_t *item = arg;
-    const char *services[] = {"is-active " SYSTEMCTL_JACK,
-                              "is-active " SYSTEMCTL_MOD_HOST,
-                              "is-active " SYSTEMCTL_MOD_UI,
-                              NULL};
 
     uint8_t i = 0;
-    while (services[i])
+    while (systemctl_services[i])
     {
-        cli_systemctl(services[i]);
+        cli_systemctl("is-active ", systemctl_services[i]);
         update_status(item->data.list[i+1]);
         screen_system_menu(item);
         i++;
@@ -168,19 +154,16 @@ void system_services_cb(void *arg)
 void system_restart_jack_cb(void *arg)
 {
     UNUSED_PARAM(arg);
-    cli_systemctl("restart " SYSTEMCTL_JACK);
 }
 
 void system_restart_host_cb(void *arg)
 {
     UNUSED_PARAM(arg);
-    cli_systemctl("restart " SYSTEMCTL_MOD_HOST);
 }
 
 void system_restart_ui_cb(void *arg)
 {
     UNUSED_PARAM(arg);
-    cli_systemctl("restart " SYSTEMCTL_MOD_UI);
 }
 
 void system_versions_cb(void *arg)

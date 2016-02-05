@@ -59,9 +59,6 @@
 ************************************************************************************************************************
 */
 
-// this function checks if the boot will proceed normally or will be an alternative boot
-void system_check_boot(void);
-
 // system menu callbacks
 void system_true_bypass_cb(void *arg);
 void system_reset_pedalboard_cb(void *arg);
