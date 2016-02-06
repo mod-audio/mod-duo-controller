@@ -24,9 +24,8 @@
 ************************************************************************************************************************
 */
 
-enum {MODUSB_ENTRY, REGULAR_ENTRY, RESTORE_ENTRY, PENDRIVE_ENTRY, STOP_TIMEOUT = 0xFF};
+enum {CLI_DISCARD_RESPONSE, CLI_RETRIEVE_RESPONSE};
 enum {BLUETOOTH_NAME, BLUETOOTH_ADDRESS};
-enum {GRUB_STAGE, KERNEL_STAGE, LOGIN_STAGE, PASSWORD_STAGE, WAIT_PROMPT_STAGE, PROMPT_READY_STAGE};
 
 
 /*
@@ -65,14 +64,12 @@ enum {GRUB_STAGE, KERNEL_STAGE, LOGIN_STAGE, PASSWORD_STAGE, WAIT_PROMPT_STAGE, 
 
 // initializes all resources needed by CLI
 void cli_init(void);
-// returns the console response
-const char* cli_get_response(void);
-// process the data received
+// process received data
 void cli_process(void);
-// execute a single command
-void cli_command(const char *command);
-// request systemctl command
-void cli_systemctl(const char *command, const char *service);
+// execute a single command and return its response if asked for
+const char* cli_command(const char *command, uint8_t response_action);
+// execute systemctl command and return its status if any
+const char* cli_systemctl(const char *command, const char *service);
 // request package version information
 void cli_package_version(const char *package_name);
 // request bluetooth information

@@ -91,11 +91,10 @@ const char *systemctl_services[] = {
 ************************************************************************************************************************
 */
 
-static void update_status(char *item_to_update)
+static void update_status(char *item_to_update, const char *response)
 {
     if (!item_to_update) return;
 
-    const char *response = cli_get_response();
     char *pstr = strstr(item_to_update, ":");
     if (pstr && response)
     {
@@ -144,8 +143,9 @@ void system_services_cb(void *arg)
     uint8_t i = 0;
     while (systemctl_services[i])
     {
-        cli_systemctl("is-active ", systemctl_services[i]);
-        update_status(item->data.list[i+1]);
+        const char *response;
+        response = cli_systemctl("is-active ", systemctl_services[i]);
+        update_status(item->data.list[i+1], response);
         screen_system_menu(item);
         i++;
     }

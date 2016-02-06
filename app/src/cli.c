@@ -182,12 +182,6 @@ void cli_init(void)
     xSemaphoreTake(g_response_sem, 0);
 }
 
-const char* cli_get_response(void)
-{
-    xSemaphoreTake(g_response_sem, RESPONSE_TIMEOUT);
-    return g_response;
-}
-
 void cli_process(void)
 {
     static portTickType xTicksToWait = BOOT_TIMEOUT;
@@ -216,8 +210,7 @@ void cli_process(void)
             }
 
             // send new line to force interrupt
-            cli_command(NULL);
-            g_waiting_response = 0;
+            cli_command(NULL, CLI_DISCARD_RESPONSE);
             return;
         }
 
@@ -228,22 +221,21 @@ void cli_process(void)
                 break;
 
             case LOGIN:
-                cli_command(MOD_USER);
+                cli_command(MOD_USER, CLI_DISCARD_RESPONSE);
                 break;
 
             case PASSWORD:
-                cli_command(MOD_PASSWORD);
+                cli_command(MOD_PASSWORD, CLI_DISCARD_RESPONSE);
                 break;
 
             case SHELL_CONFIG:
                 xTicksToWait = portMAX_DELAY;
-                cli_command(DISABLE_ECHO);
-                cli_command(SET_SP1_VAR);
+                cli_command(DISABLE_ECHO, CLI_DISCARD_RESPONSE);
+                cli_command(SET_SP1_VAR, CLI_DISCARD_RESPONSE);
                 break;
         }
 
         g_boot_step++;
-        g_waiting_response = 0;
     }
 
     // check if it's waiting command response
@@ -255,29 +247,48 @@ void cli_process(void)
     }
 }
 
-void cli_command(const char *command)
+const char* cli_command(const char *command, uint8_t response_action)
 {
-    g_waiting_response = 1;
+    g_waiting_response = response_action;
 
     // default response
     g_response[0] = 0;
 
-    if (command) serial_send(CLI_SERIAL, (uint8_t*) command, strlen(command));
-    serial_send(CLI_SERIAL, (uint8_t*) NEW_LINE, 2);
+    // send command
+    if (command)
+    {
+        serial_send(CLI_SERIAL, (uint8_t *) command, strlen(command));
+
+        // mutes command outputs if not waiting for response
+        if (response_action == CLI_DISCARD_RESPONSE)
+            serial_send(CLI_SERIAL, (uint8_t *) " &> /dev/null", 13);
+    }
+    serial_send(CLI_SERIAL, (uint8_t *) NEW_LINE, 2);
+
+    // take semaphore to wait for response
+    if (response_action == CLI_RETRIEVE_RESPONSE)
+    {
+        if (xSemaphoreTake(g_response_sem, RESPONSE_TIMEOUT) == pdTRUE)
+            return g_response;
+    }
+
+    return NULL;
 }
 
-void cli_systemctl(const char *command, const char *service)
+const char* cli_systemctl(const char *command, const char *service)
 {
-    if (!command || !service) return;
+    if (!command || !service) return NULL;
 
-    // default response
-    strcpy(g_response, "unknown");
-
-    g_waiting_response = 1;
+    // build command
     serial_send(CLI_SERIAL, (uint8_t *) "systemctl ", 10);
     serial_send(CLI_SERIAL, (uint8_t *) command, strlen(command));
     serial_send(CLI_SERIAL, (uint8_t *) service, strlen(service));
-    serial_send(CLI_SERIAL, (uint8_t *) NEW_LINE, 2);
+
+    const char *response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+    // default response
+    if (!response) strcpy(g_response, "unknown");
+
+    return g_response;
 }
 
 void cli_package_version(const char *package_name)
