@@ -46,7 +46,8 @@
 
 // buffer manipulation macros
 #define READ_BUFFER(disp,x,y)           disp->buffer[(y)/8][(DISPLAY_WIDTH-1)-(x)]
-#define WRITE_BUFFER(disp,x,y,data)     disp->buffer[(y)/8][(DISPLAY_WIDTH-1)-(x)] = (data)
+#define WRITE_BUFFER(disp,x,y,data)     disp->buffer[(y)/8][(DISPLAY_WIDTH-1)-(x)] = (data); \
+                                        disp->need_update = 1;
 
 // general purpose macros
 #define ABS_DIFF(a, b)                  ((a > b) ? (a - b) : (b - a))
@@ -300,30 +301,37 @@ void uc1701_clear(uc1701_t *disp, uint8_t color)
             disp->buffer[j][i] = color;
         }
     }
+
+    disp->need_update = 1;
 }
 
 void uc1701_update(uc1701_t *disp)
 {
-    uint8_t i, j;
-
-    for(i = 0; i < (DISPLAY_HEIGHT/8); i++)
+    if (disp->need_update)
     {
-        // set page address
-        write_cmd(disp, UC1701_SET_PA + i);
+        uint8_t i, j;
 
-        // set column address to first display address, considering
-        // direction and difference of columns between display/chip
-        write_cmd(disp, UC1701_SET_CA_MSB);
+        for(i = 0; i < (DISPLAY_HEIGHT/8); i++)
+        {
+            // set page address
+            write_cmd(disp, UC1701_SET_PA + i);
+
+            // set column address to first display address, considering
+            // direction and difference of columns between display/chip
+            write_cmd(disp, UC1701_SET_CA_MSB);
 #ifdef UC1701_REVERSE_COLUMNS
-        write_cmd(disp, UC1701_SET_CA_LSB + (CHIP_COLUMNS - DISPLAY_WIDTH));
+            write_cmd(disp, UC1701_SET_CA_LSB + (CHIP_COLUMNS - DISPLAY_WIDTH));
 #else
-        write_cmd(disp, UC1701_SET_CA_LSB);
+            write_cmd(disp, UC1701_SET_CA_LSB);
 #endif
 
-        for(j = 0; j < DISPLAY_WIDTH; j++)
-        {
-            write_data(disp, disp->buffer[i][j]);
+            for(j = 0; j < DISPLAY_WIDTH; j++)
+            {
+                write_data(disp, disp->buffer[i][j]);
+            }
         }
+
+        disp->need_update = 0;
     }
 }
 
