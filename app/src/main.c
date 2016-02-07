@@ -207,16 +207,13 @@ static void displays_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
+    uint8_t i = 0;
     while (1)
     {
-//        taskENTER_CRITICAL();
+        // update GLCD
+        glcd_update(hardware_glcds(i));
+        if (++i == GLCD_COUNT) i = 0;
 
-        // update GLCDs
-        uint8_t i;
-        for (i = 0; i < GLCD_COUNT; i++)
-            glcd_update(hardware_glcds(i));
-
-//        taskEXIT_CRITICAL();
         taskYIELD();
     }
 }
