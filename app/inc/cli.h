@@ -74,6 +74,8 @@ const char* cli_systemctl(const char *command, const char *service);
 void cli_package_version(const char *package_name);
 // request bluetooth information
 void cli_bluetooth(uint8_t what_info);
+// start restore proceeding
+void cli_restore(void);
 
 
 /*

@@ -75,7 +75,7 @@ enum {UBOOT_STARTING, UBOOT_HITKEY, KERNEL_STARTING, LOGIN, PASSWORD, SHELL_CONF
 
 static char g_received[LINE_BUFFER_SIZE+1];
 static char g_response[LINE_BUFFER_SIZE+1];
-static uint8_t g_boot_step, g_waiting_response;
+static uint8_t g_boot_step, g_waiting_response, g_restore;
 static xSemaphoreHandle g_received_sem, g_response_sem;
 
 
@@ -220,6 +220,16 @@ void cli_process(void)
                 xTicksToWait = portMAX_DELAY;
                 break;
 
+            case UBOOT_HITKEY:
+                if (g_restore)
+                {
+                    // stop auto boot and run restore
+                    cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+                    cli_command("run boot_restore", CLI_RETRIEVE_RESPONSE);
+                    g_restore = 0;
+                }
+                break;
+
             case LOGIN:
                 cli_command(MOD_USER, CLI_DISCARD_RESPONSE);
                 break;
@@ -309,4 +319,11 @@ void cli_bluetooth(uint8_t what_info)
         case BLUETOOTH_ADDRESS:
             break;
     }
+}
+
+void cli_restore(void)
+{
+    g_boot_step = 0;
+    g_restore = 1;
+    cli_command("reboot", CLI_DISCARD_RESPONSE);
 }

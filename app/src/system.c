@@ -173,5 +173,29 @@ void system_versions_cb(void *arg)
 
 void system_restore_cb(void *arg)
 {
-    UNUSED_PARAM(arg);
+    menu_item_t *item = arg;
+    button_t *foot = (button_t *) hardware_actuators(FOOTSWITCH0);
+
+    // check if YES option was chosen
+    if (item->data.hover == 0)
+    {
+        uint8_t status = actuator_get_status(foot);
+
+        // check if footswitch is pressed down
+        if (BUTTON_PRESSED(status))
+        {
+            // remove all controls
+            naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
+
+            // disable system menu
+            naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
+
+            // clear screens
+            for (uint8_t i = 1; i < SLOTS_COUNT; i++)
+                screen_clear(i);
+
+            // start restore
+            cli_restore();
+        }
+    }
 }
