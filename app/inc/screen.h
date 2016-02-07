@@ -70,7 +70,6 @@ void screen_bp_list(const char *title, bp_list_t *list);
 void screen_system_menu(menu_item_t *item);
 void screen_tuner(float frequency, char *note, int8_t cents);
 void screen_tuner_input(uint8_t input);
-void screen_boot_feedback(uint8_t boot_stage);
 
 
 /*
