@@ -10,8 +10,6 @@
 #include "utils.h"
 #include "serial.h"
 #include "actuator.h"
-#include "tpa6130.h"
-#include "ntc.h"
 
 #include "device.h"
 
