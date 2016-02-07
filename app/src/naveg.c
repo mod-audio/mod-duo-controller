@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 
 /*
@@ -207,6 +208,15 @@ static void display_control_add(control_t *control)
             break;
 
         case CONTROL_PROP_LOGARITHMIC:
+            if (control->minimum == 0.0)
+                control->minimum = FLT_MIN;
+
+            if (control->maximum == 0.0)
+                control->maximum = FLT_MIN;
+
+            if (control->value == 0.0)
+                control->value = FLT_MIN;
+
             control->step =
                 (control->steps - 1) * log(control->value / control->minimum) / log(control->maximum / control->minimum);
             break;
