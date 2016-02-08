@@ -416,6 +416,10 @@ void screen_bp_list(const char *title, bp_list_t *list)
 
 void screen_system_menu(menu_item_t *item)
 {
+    // return if system is disabled
+    if (!naveg_is_tool_mode(DISPLAY_TOOL_SYSTEM))
+        return;
+
     static menu_item_t *last_item;
 
     glcd_t *display = hardware_glcds(DISPLAY_TOOL_SYSTEM);
