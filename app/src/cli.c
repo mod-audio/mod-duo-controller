@@ -225,6 +225,7 @@ void cli_process(void)
                 {
                     // stop auto boot and run restore
                     cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+                    cli_command("run loadbootenv", CLI_RETRIEVE_RESPONSE);
                     cli_command("run boot_restore", CLI_RETRIEVE_RESPONSE);
                     g_restore = 0;
                 }
@@ -268,10 +269,6 @@ const char* cli_command(const char *command, uint8_t response_action)
     if (command)
     {
         serial_send(CLI_SERIAL, (uint8_t *) command, strlen(command));
-
-        // mutes command outputs if not waiting for response
-        if (response_action == CLI_DISCARD_RESPONSE)
-            serial_send(CLI_SERIAL, (uint8_t *) " &> /dev/null", 13);
     }
     serial_send(CLI_SERIAL, (uint8_t *) NEW_LINE, 2);
 
