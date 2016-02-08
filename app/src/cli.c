@@ -45,7 +45,7 @@ static char *g_boot_steps[] = {
     "U-Boot",
     "Hit any key",
     "Starting kernel",
-    "modduo login:",
+    "login:",
     "Password:",
     NULL
 };
