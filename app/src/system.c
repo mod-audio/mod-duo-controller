@@ -191,7 +191,7 @@ void system_restore_cb(void *arg)
             naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
 
             // clear screens
-            for (uint8_t i = 1; i < SLOTS_COUNT; i++)
+            for (uint8_t i = 0; i < SLOTS_COUNT; i++)
                 screen_clear(i);
 
             // start restore

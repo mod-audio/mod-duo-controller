@@ -327,4 +327,5 @@ void cli_restore(void)
     g_boot_step = 0;
     g_restore = 1;
     cli_command("reboot", CLI_DISCARD_RESPONSE);
+    glcd_text(hardware_glcds(0), 0, 0, "Entering Restore Mode", NULL, GLCD_BLACK);
 }
