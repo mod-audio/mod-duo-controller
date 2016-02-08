@@ -231,7 +231,6 @@ void cli_process(void)
                     cli_command(NULL, CLI_RETRIEVE_RESPONSE);
                     cli_command("run loadbootenv", CLI_RETRIEVE_RESPONSE);
                     cli_command("run boot_restore", CLI_RETRIEVE_RESPONSE);
-                    g_restore = 0;
                 }
                 break;
 
@@ -247,6 +246,12 @@ void cli_process(void)
                 xTicksToWait = portMAX_DELAY;
                 cli_command(DISABLE_ECHO, CLI_DISCARD_RESPONSE);
                 cli_command(SET_SP1_VAR, CLI_DISCARD_RESPONSE);
+
+                if (g_restore)
+                {
+                    cli_command("/root/restore.sh", CLI_DISCARD_RESPONSE);
+                    g_restore = 0;
+                }
                 break;
         }
 
