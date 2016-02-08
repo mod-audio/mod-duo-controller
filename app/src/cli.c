@@ -200,18 +200,22 @@ void cli_process(void)
             {
                 // force login step
                 g_boot_step = LOGIN;
+
+                // send new line to force interrupt
+                cli_command(NULL, CLI_DISCARD_RESPONSE);
+                return;
             }
 
             // and already tried login ...
             else if (g_boot_step == LOGIN)
             {
                 // assume boot is done
-                g_boot_step = N_BOOT_STEPS;
-            }
+                g_boot_step = SHELL_CONFIG;
 
-            // send new line to force interrupt
-            cli_command(NULL, CLI_DISCARD_RESPONSE);
-            return;
+                // send new line to force interrupt
+                cli_command(NULL, CLI_DISCARD_RESPONSE);
+                return;
+            }
         }
 
         switch (g_boot_step)
