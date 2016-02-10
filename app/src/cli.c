@@ -244,12 +244,12 @@ void cli_process(void)
 
             case SHELL_CONFIG:
                 xTicksToWait = portMAX_DELAY;
-                cli_command(DISABLE_ECHO, CLI_DISCARD_RESPONSE);
-                cli_command(SET_SP1_VAR, CLI_DISCARD_RESPONSE);
+                cli_command(DISABLE_ECHO, CLI_RETRIEVE_RESPONSE);
+                cli_command(SET_SP1_VAR, CLI_RETRIEVE_RESPONSE);
 
                 if (g_restore)
                 {
-                    cli_command("/root/restore.sh", CLI_DISCARD_RESPONSE);
+                    cli_command("/root/restore.sh", CLI_RETRIEVE_RESPONSE);
                     g_restore = 0;
                 }
                 break;
