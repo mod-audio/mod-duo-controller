@@ -165,7 +165,7 @@ static void actuators_cb(void *actuator)
     actuator_info[1] = ((button_t *)(actuator))->id;
     actuator_info[2] = actuator_get_status(actuator);
 
-    // sends the actuator to queue
+    // queue actuator info
     portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
     xQueueSendFromISR(g_actuators_queue, &actuator_info, &xHigherPriorityTaskWoken);
 
@@ -308,8 +308,8 @@ static void setup_task(void *pvParameters)
     UNUSED_PARAM(pvParameters);
 
     // draw start up images
-    glcd_draw_image(hardware_glcds(0), 0, 0, mod_logo, GLCD_BLACK);
-    glcd_draw_image(hardware_glcds(1), 0, 0, mod_logo, GLCD_BLACK);
+    screen_image(0, mod_logo);
+    screen_image(1, mod_duo);
 
     // CLI initialization
     cli_init();

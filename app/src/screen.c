@@ -538,3 +538,8 @@ void screen_tuner_input(uint8_t input)
     if (naveg_is_tool_mode(DISPLAY_TOOL_TUNER))
         widget_tuner(hardware_glcds(DISPLAY_TOOL_TUNER), &g_tuner);
 }
+
+void screen_image(uint8_t display, const uint8_t *image)
+{
+    glcd_draw_image(hardware_glcds(display), 0, 0, image, GLCD_BLACK);
+}
