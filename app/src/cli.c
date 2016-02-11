@@ -9,7 +9,9 @@
 #include "config.h"
 #include "serial.h"
 #include "utils.h"
+#include "screen.h"
 #include "hardware.h"
+#include "images.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
 
@@ -122,7 +124,7 @@ static void serial_cb(serial_t *serial)
             portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
         }
     }
-    else if (g_waiting_response)
+    else if (g_waiting_response || g_restore)
     {
         // try read data until find a new line
         uint32_t read;
@@ -246,16 +248,44 @@ void cli_process(void)
                 xTicksToWait = portMAX_DELAY;
                 cli_command(DISABLE_ECHO, CLI_RETRIEVE_RESPONSE);
                 cli_command(SET_SP1_VAR, CLI_RETRIEVE_RESPONSE);
-
-                if (g_restore)
-                {
-                    cli_command("/root/restore.sh", CLI_RETRIEVE_RESPONSE);
-                    g_restore = 0;
-                }
                 break;
         }
 
         g_boot_step++;
+    }
+
+    // restore mode
+    else if (g_restore)
+    {
+        if (g_restore == 1)
+        {
+            cli_command("/root/restore.sh", CLI_RETRIEVE_RESPONSE);
+            g_restore++;
+        }
+
+        char *msg = &g_received[8];
+        if (strncmp(g_received, "restore:", 8) == 0)
+        {
+            if (strcmp(msg, "fail") == 0)
+            {
+                cli_command("/root/restore.sh", CLI_RETRIEVE_RESPONSE);
+            }
+            else if (strcmp(msg, "done") == 0)
+            {
+                cli_command("hmi-reset && reboot", CLI_RETRIEVE_RESPONSE);
+
+                // if still here for some reason...
+                g_restore = 0;
+                screen_image(0, mod_logo);
+                screen_image(1, mod_duo);
+            }
+            else
+            {
+                glcd_clear(hardware_glcds(0), GLCD_WHITE);
+                glcd_text(hardware_glcds(0), 0, 0, msg, NULL, GLCD_BLACK);
+            }
+
+        }
     }
 
     // check if it's waiting command response
@@ -332,5 +362,6 @@ void cli_restore(void)
     g_boot_step = 0;
     g_restore = 1;
     cli_command("reboot", CLI_DISCARD_RESPONSE);
-    glcd_text(hardware_glcds(0), 0, 0, "Entering Restore Mode", NULL, GLCD_BLACK);
+    glcd_text(hardware_glcds(0), 0, 0, "starting restore", NULL, GLCD_BLACK);
+    glcd_text(hardware_glcds(0), 0, 8, "please wait", NULL, GLCD_BLACK);
 }
