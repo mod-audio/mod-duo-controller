@@ -26,6 +26,7 @@
 
 enum {CLI_DISCARD_RESPONSE, CLI_RETRIEVE_RESPONSE};
 enum {BLUETOOTH_NAME, BLUETOOTH_ADDRESS};
+enum {RESTORE_INIT, RESTORE_STATUS};
 
 
 /*
@@ -74,8 +75,8 @@ const char* cli_systemctl(const char *command, const char *service);
 void cli_package_version(const char *package_name);
 // request bluetooth information
 void cli_bluetooth(uint8_t what_info);
-// start restore proceeding
-void cli_restore(void);
+// set restore mode and return its status
+uint8_t cli_restore(uint8_t status);
 
 
 /*

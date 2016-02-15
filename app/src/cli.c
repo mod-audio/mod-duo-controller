@@ -259,22 +259,19 @@ void cli_process(void)
     {
         if (g_restore == 1)
         {
-            cli_command("/root/restore.sh", CLI_RETRIEVE_RESPONSE);
+            cli_command("/root/upgrade", CLI_RETRIEVE_RESPONSE);
             g_restore++;
         }
 
-        char *msg = &g_received[8];
-        if (strncmp(g_received, "restore:", 8) == 0)
+        char *msg = &g_received[4];
+        if (strncmp(g_received, "hmi:", 4) == 0)
         {
             if (strcmp(msg, "fail") == 0)
             {
-                cli_command("/root/restore.sh", CLI_RETRIEVE_RESPONSE);
+                cli_command("/root/upgrade", CLI_RETRIEVE_RESPONSE);
             }
             else if (strcmp(msg, "done") == 0)
             {
-                cli_command("hmi-reset && reboot", CLI_RETRIEVE_RESPONSE);
-
-                // if still here for some reason...
                 g_restore = 0;
                 screen_image(0, mod_logo);
                 screen_image(1, mod_duo);
@@ -357,11 +354,16 @@ void cli_bluetooth(uint8_t what_info)
     }
 }
 
-void cli_restore(void)
+uint8_t cli_restore(uint8_t action)
 {
-    g_boot_step = 0;
-    g_restore = 1;
-    cli_command("reboot", CLI_DISCARD_RESPONSE);
-    glcd_text(hardware_glcds(0), 0, 0, "starting restore", NULL, GLCD_BLACK);
-    glcd_text(hardware_glcds(0), 0, 8, "please wait", NULL, GLCD_BLACK);
+    if (action == RESTORE_INIT)
+    {
+        g_boot_step = 0;
+        g_restore = 1;
+        cli_command("reboot", CLI_DISCARD_RESPONSE);
+        glcd_text(hardware_glcds(0), 0, 0, "starting restore", NULL, GLCD_BLACK);
+        glcd_text(hardware_glcds(0), 0, 8, "please wait", NULL, GLCD_BLACK);
+    }
+
+    return g_restore;
 }

@@ -195,7 +195,7 @@ void system_restore_cb(void *arg)
                 screen_clear(i);
 
             // start restore
-            cli_restore();
+            cli_restore(RESTORE_INIT);
         }
     }
 }
