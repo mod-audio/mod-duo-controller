@@ -94,7 +94,7 @@
 #define GLCD1_CONFIG    { GLCD_COMMON_CONFIG, \
                           .cs_port = 0, .cs_pin = 29, \
                           .rst_port = 0, .rst_pin = 30, \
-                          .backlight_port = 1, .backlight_pin = 26 },
+                          .backlight_port = 1, .backlight_pin = 25 },
 
 //// Actuators configuration
 // Actuators IDs
