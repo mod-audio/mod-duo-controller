@@ -440,7 +440,7 @@ static void foot_control_rm(int32_t effect_instance, const char *symbol)
     for (i = 0; i < FOOTSWITCHES_COUNT; i++)
     {
         // if there is no controls assigned, load the default screen
-        if (!g_foots[i] && g_tool[i].state == TOOL_OFF)
+        if (!g_foots[i] && g_tool[i].state == TOOL_OFF && ! bank_config_check(i))
         {
             screen_footer(i, NULL, NULL);
             continue;
@@ -451,16 +451,20 @@ static void foot_control_rm(int32_t effect_instance, const char *symbol)
         {
             if (all_controls || strcmp(symbol, g_foots[i]->symbol) == 0)
             {
-                // turn off the led
-                led_set_color(hardware_leds(i), BLACK);
-
                 // remove the control
                 data_free_control(g_foots[i]);
                 g_foots[i] = NULL;
 
-                // update the footer
-                if (g_tool[i].state == TOOL_OFF)
-                    screen_footer(i, NULL, NULL);
+                // check if foot isn't being used to bank function
+                if (! bank_config_check(i))
+                {
+                    // turn off the led
+                    led_set_color(hardware_leds(i), BLACK);
+
+                    // update the footer
+                    if (g_tool[i].state == TOOL_OFF)
+                        screen_footer(i, NULL, NULL);
+                }
             }
         }
     }
