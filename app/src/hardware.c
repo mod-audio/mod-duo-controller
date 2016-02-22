@@ -147,6 +147,7 @@ void hardware_setup(void)
     // configure the peripherals power
     CLKPWR_ConfigPPWR(HW_CLK_PWR_CONTROL, ENABLE);
 
+    // set shutdown cpu button
     CONFIG_PIN_OUTPUT(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
     CLR_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
 
