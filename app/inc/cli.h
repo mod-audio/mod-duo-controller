@@ -24,7 +24,7 @@
 ************************************************************************************************************************
 */
 
-enum {CLI_DISCARD_RESPONSE, CLI_RETRIEVE_RESPONSE};
+enum {CLI_DISCARD_RESPONSE, CLI_RETRIEVE_RESPONSE, CLI_CACHE_ONLY};
 enum {BLUETOOTH_NAME, BLUETOOTH_ADDRESS};
 enum {RESTORE_INIT, RESTORE_STATUS};
 

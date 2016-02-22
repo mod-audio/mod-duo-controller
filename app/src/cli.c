@@ -288,7 +288,6 @@ void cli_process(void)
     // check if it's waiting command response
     else if (g_waiting_response)
     {
-        g_waiting_response = 0;
         strcpy(g_response, g_received);
         xSemaphoreGive(g_response_sem);
     }
@@ -296,7 +295,7 @@ void cli_process(void)
 
 const char* cli_command(const char *command, uint8_t response_action)
 {
-    g_waiting_response = response_action;
+    g_waiting_response = (response_action == CLI_RETRIEVE_RESPONSE ? 1 : 0);
 
     // default response
     g_response[0] = 0;
@@ -305,6 +304,8 @@ const char* cli_command(const char *command, uint8_t response_action)
     if (command)
     {
         serial_send(CLI_SERIAL, (uint8_t *) command, strlen(command));
+        if (response_action == CLI_CACHE_ONLY)
+            return NULL;
     }
     serial_send(CLI_SERIAL, (uint8_t *) NEW_LINE, 2);
 
@@ -312,9 +313,13 @@ const char* cli_command(const char *command, uint8_t response_action)
     if (response_action == CLI_RETRIEVE_RESPONSE)
     {
         if (xSemaphoreTake(g_response_sem, RESPONSE_TIMEOUT) == pdTRUE)
+        {
+            g_waiting_response = 0;
             return g_response;
+        }
     }
 
+    g_waiting_response = 0;
     return NULL;
 }
 

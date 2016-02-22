@@ -47,6 +47,12 @@ const char *systemctl_services[] = {
     NULL
 };
 
+const char *version_files[] = {
+    "rootfs",
+    "controller",
+    NULL
+};
+
 
 /*
 ************************************************************************************************************************
@@ -168,7 +174,18 @@ void system_restart_ui_cb(void *arg)
 
 void system_versions_cb(void *arg)
 {
-    UNUSED_PARAM(arg);
+    menu_item_t *item = arg;
+
+    uint8_t i = 0;
+    while (version_files[i])
+    {
+        const char *response;
+        cli_command("mod-version ", CLI_CACHE_ONLY);
+        response = cli_command(version_files[i], CLI_RETRIEVE_RESPONSE);
+        update_status(item->data.list[i+1], response);
+        screen_system_menu(item);
+        i++;
+    }
 }
 
 void system_restore_cb(void *arg)

@@ -245,12 +245,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"mod-host:",                       MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    NULL                , 0},  \
     {"mod-ui:",                         MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    NULL                , 0},  \
     {"ttymidi:",                        MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    NULL                , 0},  \
-    {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        NULL                , 0},  \
+    {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb  , 0},  \
     {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                , 0},  \
-    {"jack:",                           MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                , 0},  \
-    {"mod-host:",                       MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
-    {"mod-ui:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                , 0},  \
-    {"mod-controller:",                 MENU_NONE,      VERSIONS_ID+6,      VERSIONS_ID,    NULL                , 0},  \
+    {"system:",                         MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                , 0},  \
+    {"controller:",                     MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
     {"Factory Restore",                 MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb   , 0},  \
 
 /* --- menu options temporarily disabled (they were positioned below SETTINGS node)
