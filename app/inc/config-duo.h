@@ -116,6 +116,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define ENCODER0_PINS       {0, 17, 0, 22, 0, 18}
 #define ENCODER1_PINS       {2, 8, 2, 6, 2, 7}
 
+#define SHUTDOWN_BUTTON_PORT    4
+#define SHUTDOWN_BUTTON_PIN     28
+
 
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
