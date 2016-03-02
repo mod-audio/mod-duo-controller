@@ -30,9 +30,7 @@
 enum {PROCESS, BYPASS};
 enum {BLOCK, UNBLOCK};
 enum {RECEPTION, TRANSMISSION};
-enum {CPU_TURN_OFF, CPU_TURN_ON, CPU_REBOOT};
-enum {CPU_OFF, CPU_ON};
-
+enum {COREBOARD_TURN_OFF, COREBOARD_TURN_ON};
 
 /*
 ************************************************************************************************************************
@@ -78,6 +76,8 @@ led_t *hardware_leds(uint8_t led_id);
 void *hardware_actuators(uint8_t actuator_id);
 // returns the timestamp (a variable increment in each millisecond)
 uint32_t hardware_timestamp(void);
+// turn on/off coreboard
+void hardware_coreboard_power(uint8_t state);
 
 
 /*

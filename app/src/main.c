@@ -281,6 +281,8 @@ static void cli_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
+    hardware_coreboard_power(COREBOARD_TURN_ON);
+
     while (1)
     {
         cli_process();

@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "serial.h"
 #include "actuator.h"
-
+#include "task.h"
 #include "device.h"
 
 
@@ -147,9 +147,9 @@ void hardware_setup(void)
     // configure the peripherals power
     CLKPWR_ConfigPPWR(HW_CLK_PWR_CONTROL, ENABLE);
 
-    // set shutdown cpu button
+    // configure and set initial state of shutdown cpu button
     CONFIG_PIN_OUTPUT(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
-    CLR_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
+    SET_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
 
     // SLOTs initialization
     uint8_t i;
@@ -345,6 +345,24 @@ void *hardware_actuators(uint8_t actuator_id)
 uint32_t hardware_timestamp(void)
 {
     return g_counter;
+}
+
+void hardware_coreboard_power(uint8_t state)
+{
+    // coreboard requires 1s pulse to turn on
+    if (state == COREBOARD_TURN_ON)
+    {
+        CLR_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
+        vTaskDelay(1000 / portTICK_RATE_MS);
+        SET_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
+    }
+    // coreboard requires 5s pulse to turn off
+    else if (state == COREBOARD_TURN_OFF)
+    {
+        CLR_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
+        vTaskDelay(5000 / portTICK_RATE_MS);
+        SET_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
+    }
 }
 
 void TIMER0_IRQHandler(void)
