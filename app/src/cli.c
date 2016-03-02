@@ -366,7 +366,7 @@ uint8_t cli_restore(uint8_t action)
         g_boot_step = 0;
         g_restore = 1;
         cli_command("reboot", CLI_DISCARD_RESPONSE);
-        glcd_text(hardware_glcds(0), 0, 0, "starting restore", NULL, GLCD_BLACK);
+        glcd_text(hardware_glcds(0), 0, 0, "starting upgrade", NULL, GLCD_BLACK);
         glcd_text(hardware_glcds(0), 0, 8, "please wait", NULL, GLCD_BLACK);
     }
 

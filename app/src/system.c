@@ -188,7 +188,7 @@ void system_versions_cb(void *arg)
     }
 }
 
-void system_restore_cb(void *arg)
+void system_upgrade_cb(void *arg)
 {
     menu_item_t *item = arg;
     button_t *foot = (button_t *) hardware_actuators(FOOTSWITCH0);

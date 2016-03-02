@@ -235,7 +235,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CPU_ID              (5 * 20)
 #define SERVICES_ID         (6 * 20)
 #define VERSIONS_ID         (7 * 20)
-#define FACTORY_ID          (8 * 20)
+#define UPGRADE_ID          (8 * 20)
 
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
@@ -252,7 +252,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                , 0},  \
     {"system:",                         MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                , 0},  \
     {"controller:",                     MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
-    {"Factory Restore",                 MENU_CONFIRM,   FACTORY_ID,         ROOT_ID,        system_restore_cb   , 0},  \
+    {"System Upgrade",                  MENU_CONFIRM,   UPGRADE_ID,         ROOT_ID,        system_upgrade_cb   , 0},  \
 
 /* --- menu options temporarily disabled (they were positioned below SETTINGS node)
     {"True Bypass                 ",    MENU_BYP_PROC,  TRUE_BYPASS_ID,     ROOT_ID,        system_true_bypass_cb     , 1},  \
@@ -272,7 +272,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define POPUP_CONTENT   \
     {PEDALBOARD_ID+2, "Are you sure to reset all pedalboard values to last saved state?"},      \
     {PEDALBOARD_ID+3, "Are you sure to save all current pedalboard values as default?"},        \
-    {FACTORY_ID, "To proceed with Factory Restore please hold first footswitch and click YES."},
+    {UPGRADE_ID, "To proceed with system upgrade please hold first footswitch and click YES."},
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
