@@ -72,6 +72,11 @@ void system_restart_ui_cb(void *arg);
 void system_restart_bluez_cb(void *arg);
 void system_versions_cb(void *arg);
 void system_upgrade_cb(void *arg);
+void system_in1_volume(void *arg);
+void system_in2_volume(void *arg);
+void system_out1_volume(void *arg);
+void system_out2_volume(void *arg);
+void system_hp_volume(void *arg);
 
 
 /*

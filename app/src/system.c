@@ -216,3 +216,48 @@ void system_upgrade_cb(void *arg)
         }
     }
 }
+
+void system_in1_volume(void *arg)
+{
+    menu_item_t *item = arg;
+    item->data.min = -12.0;
+    item->data.max = 12.0;
+    item->data.step = 1.0;
+    item->data.value = 0.0; // TODO: read from ALSA
+}
+
+void system_in2_volume(void *arg)
+{
+    menu_item_t *item = arg;
+    item->data.min = -12.0;
+    item->data.max = 12.0;
+    item->data.step = 1.0;
+    item->data.value = 0.0; // TODO: read from ALSA
+}
+
+void system_out1_volume(void *arg)
+{
+    menu_item_t *item = arg;
+    item->data.min = -127.5;
+    item->data.max = 0.0;
+    item->data.step = 0.5;
+    item->data.value = 0.0; // TODO: read from ALSA
+}
+
+void system_out2_volume(void *arg)
+{
+    menu_item_t *item = arg;
+    item->data.min = -127.5;
+    item->data.max = 0.0;
+    item->data.step = 0.5;
+    item->data.value = 0.0; // TODO: read from ALSA
+}
+
+void system_hp_volume(void *arg)
+{
+    menu_item_t *item = arg;
+    item->data.min = -33.0;
+    item->data.max = 12.0;
+    item->data.step = 1.0;
+    item->data.value = 0.0; // TODO: read from ALSA
+}

@@ -227,19 +227,43 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // includes the system menu callbacks
 #include "system.h"
 // defines the menu id's
-#define ROOT_ID             (0 * 20)
-#define TRUE_BYPASS_ID      (1 * 20)
-#define PEDALBOARD_ID       (2 * 20)
-#define BLUETOOTH_ID        (3 * 20)
-#define INFO_ID             (4 * 20)
-#define CPU_ID              (5 * 20)
-#define SERVICES_ID         (6 * 20)
-#define VERSIONS_ID         (7 * 20)
-#define UPGRADE_ID          (8 * 20)
+#define ROOT_ID         (0 * 20)
+#define VOL_GAIN_ID     (1 * 20)
+#define INPUT1_ID       (2 * 20)
+#define INPUT2_ID       (3 * 20)
+#define HEADPHONE_ID    (4 * 20)
+#define INFO_ID         (5 * 20)
+#define SERVICES_ID     (6 * 20)
+#define VERSIONS_ID     (7 * 20)
+#define UPGRADE_ID      (8 * 20)
 
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
     {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                , 0},  \
+    {"Volume and Gains",                MENU_LIST,      VOL_GAIN_ID,        ROOT_ID,        NULL                , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    VOL_GAIN_ID+1,      VOL_GAIN_ID,    NULL                , 0},  \
+    {"Input 1",                         MENU_LIST,      INPUT1_ID,          VOL_GAIN_ID,    NULL                , 0},  \
+    {"< Back to Volume and Gains",      MENU_RETURN,    INPUT1_ID+1,        INPUT1_ID,      NULL                , 0},  \
+    {"Stage",                           MENU_SELECT,    INPUT1_ID+2,        INPUT1_ID,      NULL                , 0},  \
+    {"< Back to Input 1",               MENU_RETURN,    INPUT1_ID+3,        INPUT1_ID+2,    NULL                , 0},  \
+    {"Low",                             MENU_NONE,      INPUT1_ID+4,        INPUT1_ID+2,    NULL                , 0},  \
+    {"Mid",                             MENU_NONE,      INPUT1_ID+5,        INPUT1_ID+2,    NULL                , 0},  \
+    {"High",                            MENU_NONE,      INPUT1_ID+6,        INPUT1_ID+2,    NULL                , 0},  \
+    {"Fine Adjust",                     MENU_GRAPH,     INPUT1_ID+7,        INPUT1_ID,      system_in1_volume   , 0},  \
+    {"Input 2",                         MENU_LIST,      INPUT2_ID,          VOL_GAIN_ID,    NULL                , 0},  \
+    {"< Back to Volume and Gains",      MENU_RETURN,    INPUT2_ID+1,        INPUT2_ID,      NULL                , 0},  \
+    {"Stage",                           MENU_SELECT,    INPUT2_ID+2,        INPUT2_ID,      NULL                , 0},  \
+    {"< Back to Input 2",               MENU_RETURN,    INPUT2_ID+3,        INPUT2_ID+2,    NULL                , 0},  \
+    {"Low",                             MENU_NONE,      INPUT2_ID+4,        INPUT2_ID+2,    NULL                , 0},  \
+    {"Mid",                             MENU_NONE,      INPUT2_ID+5,        INPUT2_ID+2,    NULL                , 0},  \
+    {"High",                            MENU_NONE,      INPUT2_ID+6,        INPUT2_ID+2,    NULL                , 0},  \
+    {"Fine Adjust",                     MENU_GRAPH,     INPUT2_ID+7,        INPUT2_ID,      system_in2_volume   , 0},  \
+    {"Output 1",                        MENU_GRAPH,     VOL_GAIN_ID+2,      VOL_GAIN_ID,    system_out1_volume  , 0},  \
+    {"Output 2",                        MENU_GRAPH,     VOL_GAIN_ID+3,      VOL_GAIN_ID,    system_out2_volume  , 0},  \
+    {"Headphone",                       MENU_LIST,      HEADPHONE_ID,       ROOT_ID,        NULL                , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    HEADPHONE_ID+1,     HEADPHONE_ID,   NULL                , 0},  \
+    {"Volume",                          MENU_GRAPH,     HEADPHONE_ID+2,     HEADPHONE_ID,   system_hp_volume    , 0},  \
+    {"Direct Monitoring: ",             MENU_ON_OFF,    HEADPHONE_ID+3,     HEADPHONE_ID,   NULL                , 0},  \
     {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb  , 1},  \
@@ -270,9 +294,12 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
+    {UPGRADE_ID, "To proceed with system upgrade please hold first footswitch and click YES."},
+
+/*
     {PEDALBOARD_ID+2, "Are you sure to reset all pedalboard values to last saved state?"},      \
     {PEDALBOARD_ID+3, "Are you sure to save all current pedalboard values as default?"},        \
-    {UPGRADE_ID, "To proceed with system upgrade please hold first footswitch and click YES."},
+*/
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
