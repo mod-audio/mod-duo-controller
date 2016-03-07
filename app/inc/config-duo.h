@@ -227,43 +227,52 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // includes the system menu callbacks
 #include "system.h"
 // defines the menu id's
-#define ROOT_ID         (0 * 20)
-#define VOL_GAIN_ID     (1 * 20)
-#define INPUT1_ID       (2 * 20)
-#define INPUT2_ID       (3 * 20)
-#define HEADPHONE_ID    (4 * 20)
-#define INFO_ID         (5 * 20)
-#define SERVICES_ID     (6 * 20)
-#define VERSIONS_ID     (7 * 20)
-#define UPGRADE_ID      (8 * 20)
+#define ROOT_ID         (0 * 10)
+#define VOL_GAIN_ID     (1 * 10)
+#define IN1_ID          (2 * 10)
+#define IN1_STAGE_ID    (3 * 10)
+#define IN2_ID          (4 * 10)
+#define IN2_STAGE_ID    (5 * 10)
+#define HEADPHONE_ID    (6 * 10)
+#define INFO_ID         (7 * 10)
+#define SERVICES_ID     (8 * 10)
+#define VERSIONS_ID     (9 * 10)
+#define UPGRADE_ID      (10 * 10)
+#define VOLUME_ID       (11 * 10)
+
+#define IN1_VOLUME      VOLUME_ID+0
+#define IN2_VOLUME      VOLUME_ID+1
+#define OUT1_VOLUME     VOLUME_ID+2
+#define OUT2_VOLUME     VOLUME_ID+3
+#define HP_VOLUME       VOLUME_ID+4
 
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
     {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                , 0},  \
     {"Volume and Gains",                MENU_LIST,      VOL_GAIN_ID,        ROOT_ID,        NULL                , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    VOL_GAIN_ID+1,      VOL_GAIN_ID,    NULL                , 0},  \
-    {"Input 1",                         MENU_LIST,      INPUT1_ID,          VOL_GAIN_ID,    NULL                , 0},  \
-    {"< Back to Volume and Gains",      MENU_RETURN,    INPUT1_ID+1,        INPUT1_ID,      NULL                , 0},  \
-    {"Stage",                           MENU_SELECT,    INPUT1_ID+2,        INPUT1_ID,      NULL                , 0},  \
-    {"< Back to Input 1",               MENU_RETURN,    INPUT1_ID+3,        INPUT1_ID+2,    NULL                , 0},  \
-    {"Low",                             MENU_NONE,      INPUT1_ID+4,        INPUT1_ID+2,    NULL                , 0},  \
-    {"Mid",                             MENU_NONE,      INPUT1_ID+5,        INPUT1_ID+2,    NULL                , 0},  \
-    {"High",                            MENU_NONE,      INPUT1_ID+6,        INPUT1_ID+2,    NULL                , 0},  \
-    {"Fine Adjust",                     MENU_GRAPH,     INPUT1_ID+7,        INPUT1_ID,      system_in1_volume   , 0},  \
-    {"Input 2",                         MENU_LIST,      INPUT2_ID,          VOL_GAIN_ID,    NULL                , 0},  \
-    {"< Back to Volume and Gains",      MENU_RETURN,    INPUT2_ID+1,        INPUT2_ID,      NULL                , 0},  \
-    {"Stage",                           MENU_SELECT,    INPUT2_ID+2,        INPUT2_ID,      NULL                , 0},  \
-    {"< Back to Input 2",               MENU_RETURN,    INPUT2_ID+3,        INPUT2_ID+2,    NULL                , 0},  \
-    {"Low",                             MENU_NONE,      INPUT2_ID+4,        INPUT2_ID+2,    NULL                , 0},  \
-    {"Mid",                             MENU_NONE,      INPUT2_ID+5,        INPUT2_ID+2,    NULL                , 0},  \
-    {"High",                            MENU_NONE,      INPUT2_ID+6,        INPUT2_ID+2,    NULL                , 0},  \
-    {"Fine Adjust",                     MENU_GRAPH,     INPUT2_ID+7,        INPUT2_ID,      system_in2_volume   , 0},  \
-    {"Output 1",                        MENU_GRAPH,     VOL_GAIN_ID+2,      VOL_GAIN_ID,    system_out1_volume  , 0},  \
-    {"Output 2",                        MENU_GRAPH,     VOL_GAIN_ID+3,      VOL_GAIN_ID,    system_out2_volume  , 0},  \
-    {"Headphone",                       MENU_LIST,      HEADPHONE_ID,       ROOT_ID,        NULL                , 0},  \
+    {"Input 1",                         MENU_LIST,      IN1_ID,             VOL_GAIN_ID,    NULL                , 0},  \
+    {"< Back to Volume and Gains",      MENU_RETURN,    IN1_ID+1,           IN1_ID,         NULL                , 0},  \
+    {"Stage",                           MENU_SELECT,    IN1_STAGE_ID,       IN1_ID,         NULL                , 0},  \
+    {"< Back to Input 1",               MENU_RETURN,    IN1_STAGE_ID+1,     IN1_STAGE_ID,   NULL                , 0},  \
+    {"Low",                             MENU_NONE,      IN1_STAGE_ID+2,     IN1_STAGE_ID,   system_stage_cb     , 0},  \
+    {"Mid",                             MENU_NONE,      IN1_STAGE_ID+3,     IN1_STAGE_ID,   system_stage_cb     , 0},  \
+    {"High",                            MENU_NONE,      IN1_STAGE_ID+4,     IN1_STAGE_ID,   system_stage_cb     , 0},  \
+    {"Fine Adjust",                     MENU_GRAPH,     IN1_VOLUME,         IN1_ID,         system_volume_cb    , 0},  \
+    {"Input 2",                         MENU_LIST,      IN2_ID,             VOL_GAIN_ID,    NULL                , 0},  \
+    {"< Back to Volume and Gains",      MENU_RETURN,    IN2_ID+1,           IN2_ID,         NULL                , 0},  \
+    {"Stage",                           MENU_SELECT,    IN2_STAGE_ID,       IN2_ID,         NULL                , 0},  \
+    {"< Back to Input 2",               MENU_RETURN,    IN2_STAGE_ID+1,     IN2_STAGE_ID,   NULL                , 0},  \
+    {"Low",                             MENU_NONE,      IN2_STAGE_ID+2,     IN2_STAGE_ID,   system_stage_cb     , 0},  \
+    {"Mid",                             MENU_NONE,      IN2_STAGE_ID+3,     IN2_STAGE_ID,   system_stage_cb     , 0},  \
+    {"High",                            MENU_NONE,      IN2_STAGE_ID+4,     IN2_STAGE_ID,   system_stage_cb     , 0},  \
+    {"Fine Adjust",                     MENU_GRAPH,     IN2_VOLUME,         IN2_ID,         system_volume_cb    , 0},  \
+    {"Output 1",                        MENU_GRAPH,     OUT1_VOLUME,        VOL_GAIN_ID,    system_volume_cb    , 0},  \
+    {"Output 2",                        MENU_GRAPH,     OUT2_VOLUME,        VOL_GAIN_ID,    system_volume_cb    , 0},  \
+    {"Headphone",                       MENU_LIST,      HEADPHONE_ID,       ROOT_ID,        system_hp_bypass    , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    HEADPHONE_ID+1,     HEADPHONE_ID,   NULL                , 0},  \
-    {"Volume",                          MENU_GRAPH,     HEADPHONE_ID+2,     HEADPHONE_ID,   system_hp_volume    , 0},  \
-    {"Direct Monitoring: ",             MENU_ON_OFF,    HEADPHONE_ID+3,     HEADPHONE_ID,   NULL                , 0},  \
+    {"Volume",                          MENU_GRAPH,     HP_VOLUME,          HEADPHONE_ID,   system_volume_cb    , 0},  \
+    {"Direct Monitoring: ",             MENU_ON_OFF,    HEADPHONE_ID+3,     HEADPHONE_ID,   system_hp_bypass    , 0},  \
     {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb  , 1},  \

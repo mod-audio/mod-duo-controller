@@ -27,6 +27,8 @@
 typedef enum {MENU_NONE, MENU_RETURN, MENU_LIST, MENU_SELECT, MENU_CONFIRM, MENU_CANCEL, MENU_ON_OFF,
               MENU_YES_NO, MENU_BYP_PROC, MENU_GRAPH} menu_types_t;
 
+enum {MENU_EV_ENTER, MENU_EV_UP, MENU_EV_DOWN};
+
 
 /*
 ************************************************************************************************************************
@@ -75,7 +77,7 @@ typedef struct MENU_DESC_T {
     const char *name;
     menu_types_t type;
     int16_t id, parent_id;
-    void (*action_cb) (void *data);
+    void (*action_cb) (void *data, int event);
     uint8_t need_update;
 } menu_desc_t;
 

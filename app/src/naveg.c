@@ -87,7 +87,7 @@ static menu_item_t *g_current_item;
 static uint8_t g_max_items_list;
 static bank_config_t g_bank_functions[BANK_FUNC_AMOUNT];
 static uint8_t g_initialized, g_ui_connected;
-static void (*g_update_cb)(void *data);
+static void (*g_update_cb)(void *data, int event);
 static void *g_update_data;
 
 
@@ -804,7 +804,7 @@ static void menu_enter(void)
         item = g_current_item;
 
         // calls the action callback
-        if (item->desc->action_cb) item->desc->action_cb(item);
+        if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
 
         // gets the menu item
         item = g_current_menu->data;
@@ -854,7 +854,7 @@ static void menu_enter(void)
         }
 
         // calls the action callback
-        if (item->desc->action_cb) item->desc->action_cb(item);
+        if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
     }
     else if (item->desc->type == MENU_CONFIRM)
     {
@@ -892,7 +892,7 @@ static void menu_enter(void)
         item->data.hover = 1 - item->data.hover;
 
         // calls the action callback
-        if (item->desc->action_cb) item->desc->action_cb(item);
+        if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
     }
     else if (item->desc->type == MENU_NONE)
     {
@@ -908,7 +908,7 @@ static void menu_enter(void)
         }
 
         // calls the action callback
-        if (item->desc->action_cb) item->desc->action_cb(item);
+        if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
     }
     else if (item->desc->type == MENU_GRAPH)
     {
@@ -916,7 +916,7 @@ static void menu_enter(void)
         g_current_menu = node;
 
         // calls the action callback
-        if (item->desc->action_cb) item->desc->action_cb(item);
+        if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
     }
 
     screen_system_menu(item);
@@ -943,6 +943,10 @@ static void menu_up(void)
     {
         if (item->data.hover > 0) item->data.hover--;
     }
+
+    if (item->desc->action_cb)
+        item->desc->action_cb(item, MENU_EV_UP);
+
     screen_system_menu(item);
 }
 
@@ -959,6 +963,10 @@ static void menu_down(void)
     {
         if (item->data.hover < (item->data.list_count - 1)) item->data.hover++;
     }
+
+    if (item->desc->action_cb)
+        item->desc->action_cb(item, MENU_EV_DOWN);
+
     screen_system_menu(item);
 }
 
@@ -1677,5 +1685,5 @@ void naveg_reset_menu(void)
 
 void naveg_update(void)
 {
-    if (g_update_cb) (*g_update_cb)(g_update_data);
+    if (g_update_cb) (*g_update_cb)(g_update_data, MENU_EV_ENTER);
 }

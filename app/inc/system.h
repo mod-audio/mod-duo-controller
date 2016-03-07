@@ -60,23 +60,21 @@
 */
 
 // system menu callbacks
-void system_true_bypass_cb(void *arg);
-void system_reset_pedalboard_cb(void *arg);
-void system_save_pedalboard_cb(void *arg);
-void system_bluetooth_cb(void *arg);
-void system_bluetooth_pair_cb(void *arg);
-void system_services_cb(void *arg);
-void system_restart_jack_cb(void *arg);
-void system_restart_host_cb(void *arg);
-void system_restart_ui_cb(void *arg);
-void system_restart_bluez_cb(void *arg);
-void system_versions_cb(void *arg);
-void system_upgrade_cb(void *arg);
-void system_in1_volume(void *arg);
-void system_in2_volume(void *arg);
-void system_out1_volume(void *arg);
-void system_out2_volume(void *arg);
-void system_hp_volume(void *arg);
+void system_true_bypass_cb(void *arg, int event);
+void system_reset_pedalboard_cb(void *arg, int event);
+void system_save_pedalboard_cb(void *arg, int event);
+void system_bluetooth_cb(void *arg, int event);
+void system_bluetooth_pair_cb(void *arg, int event);
+void system_services_cb(void *arg, int event);
+void system_restart_jack_cb(void *arg, int event);
+void system_restart_host_cb(void *arg, int event);
+void system_restart_ui_cb(void *arg, int event);
+void system_restart_bluez_cb(void *arg, int event);
+void system_versions_cb(void *arg, int event);
+void system_upgrade_cb(void *arg, int event);
+void system_volume_cb(void *arg, int event);
+void system_stage_cb(void *arg, int event);
+void system_hp_bypass(void *arg, int event);
 
 
 /*

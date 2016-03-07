@@ -16,8 +16,10 @@
 #include "screen.h"
 #include "glcd_widget.h"
 #include "glcd.h"
+#include "utils.h"
 
 #include <string.h>
+#include <stdlib.h>
 
 
 /*
@@ -25,11 +27,6 @@
 *           LOCAL DEFINES
 ************************************************************************************************************************
 */
-
-// true bypass
-#define TRUE_BYPASS_SET(ch,val) "amixer -D hw:MODDUO sset '" #ch " True-Bypass' " #val " > /dev/null"
-#define TRUE_BYPASS_GET(ch)     "amixer -D hw:MODDUO sget '" #ch " True-Bypass' | grep -o \"\\[.*\\]\""
-#define TRUE_BYPASS_TOGGLE(ch)  "amixer -D hw:MODDUO sset '" #ch " True-Bypass' toggle > /dev/null"
 
 
 /*
@@ -110,6 +107,30 @@ static void update_status(char *item_to_update, const char *response)
     }
 }
 
+static void volume(menu_item_t *item, int event, const char *source, float min, float max, float step)
+{
+    cli_command("mod-amixer ", CLI_CACHE_ONLY);
+    cli_command(source, CLI_CACHE_ONLY);
+    cli_command(" volume ", CLI_CACHE_ONLY);
+
+    if (event == MENU_EV_ENTER)
+    {
+        const char *response;
+        response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+
+        item->data.min = min;
+        item->data.max = max;
+        item->data.step = step;
+        item->data.value = atof(response);
+    }
+    else if (event == MENU_EV_UP || event == MENU_EV_DOWN)
+    {
+        char value[8];
+        float_to_str(item->data.value, value, sizeof value, 1);
+        cli_command(value, CLI_RETRIEVE_RESPONSE);
+    }
+}
+
 
 /*
 ************************************************************************************************************************
@@ -117,33 +138,40 @@ static void update_status(char *item_to_update, const char *response)
 ************************************************************************************************************************
 */
 
-void system_true_bypass_cb(void *arg)
+void system_true_bypass_cb(void *arg, int event)
 {
     UNUSED_PARAM(arg);
+    UNUSED_PARAM(event);
 }
 
-void system_reset_pedalboard_cb(void *arg)
+void system_reset_pedalboard_cb(void *arg, int event)
 {
     UNUSED_PARAM(arg);
+    UNUSED_PARAM(event);
 }
 
-void system_save_pedalboard_cb(void *arg)
+void system_save_pedalboard_cb(void *arg, int event)
 {
     UNUSED_PARAM(arg);
+    UNUSED_PARAM(event);
 }
 
-void system_bluetooth_cb(void *arg)
+void system_bluetooth_cb(void *arg, int event)
 {
     UNUSED_PARAM(arg);
+    UNUSED_PARAM(event);
 }
 
-void system_bluetooth_pair_cb(void *arg)
+void system_bluetooth_pair_cb(void *arg, int event)
 {
     UNUSED_PARAM(arg);
+    UNUSED_PARAM(event);
 }
 
-void system_services_cb(void *arg)
+void system_services_cb(void *arg, int event)
 {
+    UNUSED_PARAM(event);
+
     menu_item_t *item = arg;
 
     uint8_t i = 0;
@@ -157,23 +185,28 @@ void system_services_cb(void *arg)
     }
 }
 
-void system_restart_jack_cb(void *arg)
+void system_restart_jack_cb(void *arg, int event)
 {
     UNUSED_PARAM(arg);
+    UNUSED_PARAM(event);
 }
 
-void system_restart_host_cb(void *arg)
+void system_restart_host_cb(void *arg, int event)
 {
     UNUSED_PARAM(arg);
+    UNUSED_PARAM(event);
 }
 
-void system_restart_ui_cb(void *arg)
+void system_restart_ui_cb(void *arg, int event)
 {
     UNUSED_PARAM(arg);
+    UNUSED_PARAM(event);
 }
 
-void system_versions_cb(void *arg)
+void system_versions_cb(void *arg, int event)
 {
+    UNUSED_PARAM(event);
+
     menu_item_t *item = arg;
 
     uint8_t i = 0;
@@ -188,8 +221,10 @@ void system_versions_cb(void *arg)
     }
 }
 
-void system_upgrade_cb(void *arg)
+void system_upgrade_cb(void *arg, int event)
 {
+    UNUSED_PARAM(event);
+
     menu_item_t *item = arg;
     button_t *foot = (button_t *) hardware_actuators(FOOTSWITCH0);
 
@@ -217,47 +252,92 @@ void system_upgrade_cb(void *arg)
     }
 }
 
-void system_in1_volume(void *arg)
+void system_volume_cb(void *arg, int event)
 {
     menu_item_t *item = arg;
-    item->data.min = -12.0;
-    item->data.max = 12.0;
-    item->data.step = 1.0;
-    item->data.value = 0.0; // TODO: read from ALSA
+    float min, max, step;
+    const char *source;
+
+    switch (item->desc->id)
+    {
+        case IN1_VOLUME:
+            source = "input 1";
+            min = -12.0;
+            max = 12.0;
+            step = 1.0;
+            break;
+
+        case IN2_VOLUME:
+            source = "input 2";
+            min = -12.0;
+            max = 12.0;
+            step = 1.0;
+            break;
+
+        case OUT1_VOLUME:
+            source = "output 1";
+            min = -127.0;
+            max = 0.0;
+            step = 0.5;
+            break;
+
+        case OUT2_VOLUME:
+            source = "output 2";
+            min = -127.0;
+            max = 0.0;
+            step = 0.5;
+            break;
+
+        case HP_VOLUME:
+            source = "headphone";
+            min = -33.0;
+            max = 12.0;
+            step = 1.0;
+            break;
+    }
+
+    volume(item, event, source, min, max, step);
 }
 
-void system_in2_volume(void *arg)
+void system_stage_cb(void *arg, int event)
 {
     menu_item_t *item = arg;
-    item->data.min = -12.0;
-    item->data.max = 12.0;
-    item->data.step = 1.0;
-    item->data.value = 0.0; // TODO: read from ALSA
+
+    if (event == MENU_EV_ENTER)
+    {
+        char input[4];
+        uint8_t n_input = ((IN1_STAGE_ID - item->desc->parent_id) == 0 ? 1 : 2);
+        int_to_str(n_input, input, sizeof input, 0);
+
+        cli_command("mod-amixer input ", CLI_CACHE_ONLY);
+        cli_command(input, CLI_CACHE_ONLY);
+        cli_command(" stage ", CLI_CACHE_ONLY);
+        cli_command(item->desc->name, CLI_RETRIEVE_RESPONSE);
+    }
 }
 
-void system_out1_volume(void *arg)
+void system_hp_bypass(void *arg, int event)
 {
     menu_item_t *item = arg;
-    item->data.min = -127.5;
-    item->data.max = 0.0;
-    item->data.step = 0.5;
-    item->data.value = 0.0; // TODO: read from ALSA
-}
 
-void system_out2_volume(void *arg)
-{
-    menu_item_t *item = arg;
-    item->data.min = -127.5;
-    item->data.max = 0.0;
-    item->data.step = 0.5;
-    item->data.value = 0.0; // TODO: read from ALSA
-}
+    static uint8_t bypass_state;
 
-void system_hp_volume(void *arg)
-{
-    menu_item_t *item = arg;
-    item->data.min = -33.0;
-    item->data.max = 12.0;
-    item->data.step = 1.0;
-    item->data.value = 0.0; // TODO: read from ALSA
+    if (event == MENU_EV_ENTER)
+    {
+        // sync bypass value when get into on headphone menu
+        if (item->desc->id == HEADPHONE_ID)
+        {
+            const char *response = cli_command("mod-amixer headphone bypass", CLI_RETRIEVE_RESPONSE);
+
+            bypass_state = 0;
+            if (strcmp(response, "on") == 0)
+                bypass_state = 1;
+        }
+        else
+        {
+            cli_command("mod-amixer headphone bypass toggle", CLI_RETRIEVE_RESPONSE);
+            bypass_state = 1 - bypass_state;
+            item->data.hover = bypass_state;
+        }
+    }
 }
