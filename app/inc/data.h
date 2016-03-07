@@ -25,7 +25,7 @@
 */
 
 typedef enum {MENU_NONE, MENU_RETURN, MENU_LIST, MENU_SELECT, MENU_CONFIRM, MENU_CANCEL, MENU_ON_OFF,
-              MENU_YES_NO, MENU_BYP_PROC} menu_types_t;
+              MENU_YES_NO, MENU_BYP_PROC, MENU_GRAPH} menu_types_t;
 
 
 /*
@@ -84,6 +84,9 @@ typedef struct MENU_DATA_T {
     uint8_t list_count;
     uint8_t selected, hover;
     const char *popup_content;
+
+    // FIXME: need to be improved, not all menu items should have this vars (wasting memory)
+    float min, max, value, step;
 } menu_data_t;
 
 typedef struct MENU_ITEM_T {

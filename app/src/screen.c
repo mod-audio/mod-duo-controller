@@ -424,8 +424,8 @@ void screen_system_menu(menu_item_t *item)
 
     glcd_t *display = hardware_glcds(DISPLAY_TOOL_SYSTEM);
 
-    // clears the title
-    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
+    // clear screen
+    glcd_clear(display, GLCD_WHITE);
 
     // draws the title
     textbox_t title_box;
@@ -467,6 +467,18 @@ void screen_system_menu(menu_item_t *item)
     popup.width = DISPLAY_WIDTH;
     popup.height = DISPLAY_HEIGHT - 1;
     popup.font = alterebro15;
+
+    // graph
+    graph_t graph;
+    graph.x = 0;
+    graph.y = 18;
+    graph.color = GLCD_BLACK;
+    graph.font = alterebro24;
+    graph.min = item->data.min;
+    graph.max = item->data.max;
+    graph.value = item->data.value;
+    graph.unit = NULL;
+    graph.type = GRAPH_TYPE_LINEAR;
 
     switch (item->desc->type)
     {
@@ -515,6 +527,11 @@ void screen_system_menu(menu_item_t *item)
             list.count = last_item->data.list_count;
             list.list = last_item->data.list;
             widget_listbox(display, &list);
+            break;
+
+        case MENU_GRAPH:
+            widget_graph(display, &graph);
+            screen_footer(DISPLAY_TOOL_SYSTEM, "Click to return", NULL);
             break;
     }
 }

@@ -810,6 +810,15 @@ static void menu_enter(void)
         item = g_current_menu->data;
         g_current_item = item;
     }
+    else if (g_current_item->desc->type == MENU_GRAPH)
+    {
+        // if got a click on graph screen go back to parent
+        node = node->parent;
+        item = node->data;
+
+        // updates the current item
+        g_current_item = node->data;
+    }
 
     // checks the selected item
     if (item->desc->type == MENU_LIST || item->desc->type == MENU_SELECT)
@@ -901,6 +910,14 @@ static void menu_enter(void)
         // calls the action callback
         if (item->desc->action_cb) item->desc->action_cb(item);
     }
+    else if (item->desc->type == MENU_GRAPH)
+    {
+        // change current menu
+        g_current_menu = node;
+
+        // calls the action callback
+        if (item->desc->action_cb) item->desc->action_cb(item);
+    }
 
     screen_system_menu(item);
 
@@ -916,14 +933,32 @@ static void menu_enter(void)
 static void menu_up(void)
 {
     menu_item_t *item = g_current_item;
-    if (item->data.hover > 0) item->data.hover--;
+    if (item->desc->type == MENU_GRAPH)
+    {
+        item->data.value -= item->data.step;
+        if (item->data.value < item->data.min)
+            item->data.value = item->data.min;
+    }
+    else
+    {
+        if (item->data.hover > 0) item->data.hover--;
+    }
     screen_system_menu(item);
 }
 
 static void menu_down(void)
 {
     menu_item_t *item = g_current_item;
-    if (item->data.hover < (item->data.list_count - 1)) item->data.hover++;
+    if (item->desc->type == MENU_GRAPH)
+    {
+        item->data.value += item->data.step;
+        if (item->data.value > item->data.max)
+            item->data.value = item->data.max;
+    }
+    else
+    {
+        if (item->data.hover < (item->data.list_count - 1)) item->data.hover++;
+    }
     screen_system_menu(item);
 }
 
