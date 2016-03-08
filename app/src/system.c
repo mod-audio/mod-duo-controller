@@ -111,12 +111,12 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
 {
     cli_command("mod-amixer ", CLI_CACHE_ONLY);
     cli_command(source, CLI_CACHE_ONLY);
-    cli_command(" volume ", CLI_CACHE_ONLY);
+    cli_command(" vol ", CLI_CACHE_ONLY);
 
     if (event == MENU_EV_ENTER)
     {
         const char *response;
-        response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+        response = cli_command(NULL, CLI_DISCARD_RESPONSE);
 
         item->data.min = min;
         item->data.max = max;
@@ -127,7 +127,7 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
     {
         char value[8];
         float_to_str(item->data.value, value, sizeof value, 1);
-        cli_command(value, CLI_RETRIEVE_RESPONSE);
+        cli_command(value, CLI_DISCARD_RESPONSE);
     }
 }
 
@@ -261,35 +261,35 @@ void system_volume_cb(void *arg, int event)
     switch (item->desc->id)
     {
         case IN1_VOLUME:
-            source = "input 1";
+            source = "in 1";
             min = -12.0;
             max = 12.0;
             step = 1.0;
             break;
 
         case IN2_VOLUME:
-            source = "input 2";
+            source = "in 2";
             min = -12.0;
             max = 12.0;
             step = 1.0;
             break;
 
         case OUT1_VOLUME:
-            source = "output 1";
+            source = "out 1";
             min = -127.0;
             max = 0.0;
             step = 0.5;
             break;
 
         case OUT2_VOLUME:
-            source = "output 2";
+            source = "out 2";
             min = -127.0;
             max = 0.0;
             step = 0.5;
             break;
 
         case HP_VOLUME:
-            source = "headphone";
+            source = "hp";
             min = -33.0;
             max = 12.0;
             step = 1.0;
@@ -309,10 +309,10 @@ void system_stage_cb(void *arg, int event)
         uint8_t n_input = ((IN1_STAGE_ID - item->desc->parent_id) == 0 ? 1 : 2);
         int_to_str(n_input, input, sizeof input, 0);
 
-        cli_command("mod-amixer input ", CLI_CACHE_ONLY);
+        cli_command("mod-amixer in ", CLI_CACHE_ONLY);
         cli_command(input, CLI_CACHE_ONLY);
-        cli_command(" stage ", CLI_CACHE_ONLY);
-        cli_command(item->desc->name, CLI_RETRIEVE_RESPONSE);
+        cli_command(" stg ", CLI_CACHE_ONLY);
+        cli_command(item->desc->name, CLI_DISCARD_RESPONSE);
     }
 }
 
@@ -327,7 +327,7 @@ void system_hp_bypass(void *arg, int event)
         // sync bypass value when get into on headphone menu
         if (item->desc->id == HEADPHONE_ID)
         {
-            const char *response = cli_command("mod-amixer headphone bypass", CLI_RETRIEVE_RESPONSE);
+            const char *response = cli_command("mod-amixer hp byp", CLI_DISCARD_RESPONSE);
 
             bypass_state = 0;
             if (strcmp(response, "on") == 0)
@@ -335,7 +335,7 @@ void system_hp_bypass(void *arg, int event)
         }
         else
         {
-            cli_command("mod-amixer headphone bypass toggle", CLI_RETRIEVE_RESPONSE);
+            cli_command("mod-amixer hp byp toggle", CLI_DISCARD_RESPONSE);
             bypass_state = 1 - bypass_state;
             item->data.hover = bypass_state;
         }
