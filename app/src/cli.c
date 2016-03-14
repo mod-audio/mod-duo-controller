@@ -10,6 +10,7 @@
 #include "serial.h"
 #include "utils.h"
 #include "screen.h"
+#include "glcd_widget.h"
 #include "hardware.h"
 #include "images.h"
 #include "FreeRTOS.h"
@@ -164,6 +165,24 @@ static void serial_cb(serial_t *serial)
     }
 }
 
+static void write_msg(const char *msg)
+{
+    glcd_clear(hardware_glcds(0), GLCD_WHITE);
+    textbox_t msg_box;
+    msg_box.color = GLCD_BLACK;
+    msg_box.mode = TEXT_MULTI_LINES;
+    msg_box.align = ALIGN_LEFT_TOP;
+    msg_box.top_margin = 0;
+    msg_box.bottom_margin = 0;
+    msg_box.left_margin = 0;
+    msg_box.right_margin = 0;
+    msg_box.height = DISPLAY_HEIGHT;
+    msg_box.width = DISPLAY_WIDTH;
+    msg_box.font = alterebro15;
+    msg_box.text = msg;
+    widget_textbox(hardware_glcds(0), &msg_box);
+}
+
 
 /*
 ************************************************************************************************************************
@@ -278,10 +297,8 @@ void cli_process(void)
             }
             else
             {
-                glcd_clear(hardware_glcds(0), GLCD_WHITE);
-                glcd_text(hardware_glcds(0), 0, 0, msg, NULL, GLCD_BLACK);
+                write_msg(msg);
             }
-
         }
     }
 
@@ -366,8 +383,7 @@ uint8_t cli_restore(uint8_t action)
         g_boot_step = 0;
         g_restore = 1;
         cli_command("reboot", CLI_DISCARD_RESPONSE);
-        glcd_text(hardware_glcds(0), 0, 0, "starting upgrade", NULL, GLCD_BLACK);
-        glcd_text(hardware_glcds(0), 0, 8, "please wait", NULL, GLCD_BLACK);
+        write_msg("starting upgrade\nplease wait");
     }
 
     return g_restore;
