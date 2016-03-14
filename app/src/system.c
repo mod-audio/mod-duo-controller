@@ -170,18 +170,19 @@ void system_bluetooth_pair_cb(void *arg, int event)
 
 void system_services_cb(void *arg, int event)
 {
-    UNUSED_PARAM(event);
-
     menu_item_t *item = arg;
 
-    uint8_t i = 0;
-    while (systemctl_services[i])
+    if (event == MENU_EV_ENTER)
     {
-        const char *response;
-        response = cli_systemctl("is-active ", systemctl_services[i]);
-        update_status(item->data.list[i+1], response);
-        screen_system_menu(item);
-        i++;
+        uint8_t i = 0;
+        while (systemctl_services[i])
+        {
+            const char *response;
+            response = cli_systemctl("is-active ", systemctl_services[i]);
+            update_status(item->data.list[i+1], response);
+            screen_system_menu(item);
+            i++;
+        }
     }
 }
 
@@ -205,49 +206,51 @@ void system_restart_ui_cb(void *arg, int event)
 
 void system_versions_cb(void *arg, int event)
 {
-    UNUSED_PARAM(event);
-
     menu_item_t *item = arg;
 
-    uint8_t i = 0;
-    while (version_files[i])
+    if (event == MENU_EV_ENTER)
     {
-        const char *response;
-        cli_command("mod-version ", CLI_CACHE_ONLY);
-        response = cli_command(version_files[i], CLI_RETRIEVE_RESPONSE);
-        update_status(item->data.list[i+1], response);
-        screen_system_menu(item);
-        i++;
+        uint8_t i = 0;
+        while (version_files[i])
+        {
+            const char *response;
+            cli_command("mod-version ", CLI_CACHE_ONLY);
+            response = cli_command(version_files[i], CLI_RETRIEVE_RESPONSE);
+            update_status(item->data.list[i+1], response);
+            screen_system_menu(item);
+            i++;
+        }
     }
 }
 
 void system_upgrade_cb(void *arg, int event)
 {
-    UNUSED_PARAM(event);
-
-    menu_item_t *item = arg;
-    button_t *foot = (button_t *) hardware_actuators(FOOTSWITCH0);
-
-    // check if YES option was chosen
-    if (item->data.hover == 0)
+    if (event == MENU_EV_ENTER)
     {
-        uint8_t status = actuator_get_status(foot);
+        menu_item_t *item = arg;
+        button_t *foot = (button_t *) hardware_actuators(FOOTSWITCH0);
 
-        // check if footswitch is pressed down
-        if (BUTTON_PRESSED(status))
+        // check if YES option was chosen
+        if (item->data.hover == 0)
         {
-            // remove all controls
-            naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
+            uint8_t status = actuator_get_status(foot);
 
-            // disable system menu
-            naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
+            // check if footswitch is pressed down
+            if (BUTTON_PRESSED(status))
+            {
+                // remove all controls
+                naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
 
-            // clear screens
-            for (uint8_t i = 0; i < SLOTS_COUNT; i++)
-                screen_clear(i);
+                // disable system menu
+                naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
 
-            // start restore
-            cli_restore(RESTORE_INIT);
+                // clear screens
+                for (uint8_t i = 0; i < SLOTS_COUNT; i++)
+                    screen_clear(i);
+
+                // start restore
+                cli_restore(RESTORE_INIT);
+            }
         }
     }
 }
