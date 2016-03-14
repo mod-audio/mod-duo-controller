@@ -256,8 +256,10 @@ void widget_textbox(glcd_t *display, textbox_t *textbox)
         buffer[i++] = *ptext;
 
         // checks the width limit
-        if (text_width >= textbox->width)
+        if (text_width >= textbox->width || *ptext == '\n')
         {
+            if (*ptext == '\n') ptext++;
+
             // check whether is single line
             if (textbox->mode == TEXT_SINGLE_LINE) break;
             else buffer[i-1] = 0;
