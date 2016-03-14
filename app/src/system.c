@@ -116,7 +116,7 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
     if (event == MENU_EV_ENTER)
     {
         const char *response;
-        response = cli_command(NULL, CLI_DISCARD_RESPONSE);
+        response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
 
         item->data.min = min;
         item->data.max = max;
@@ -292,7 +292,7 @@ void system_volume_cb(void *arg, int event)
             source = "hp";
             min = -33.0;
             max = 12.0;
-            step = 1.0;
+            step = 3.0;
             break;
     }
 
@@ -327,7 +327,7 @@ void system_hp_bypass(void *arg, int event)
         // sync bypass value when get into on headphone menu
         if (item->desc->id == HEADPHONE_ID)
         {
-            const char *response = cli_command("mod-amixer hp byp", CLI_DISCARD_RESPONSE);
+            const char *response = cli_command("mod-amixer hp byp", CLI_RETRIEVE_RESPONSE);
 
             bypass_state = 0;
             if (strcmp(response, "on") == 0)
