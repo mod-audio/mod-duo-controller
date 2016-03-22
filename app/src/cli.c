@@ -35,7 +35,7 @@
 #define PEEK_SIZE           3
 #define LINE_BUFFER_SIZE    32
 #define RESPONSE_TIMEOUT    (CLI_RESPONSE_TIMEOUT / portTICK_RATE_MS)
-#define BOOT_TIMEOUT        (5000 / portTICK_RATE_MS)
+#define BOOT_TIMEOUT        (3000 / portTICK_RATE_MS)
 
 
 /*
@@ -62,6 +62,14 @@ enum {UBOOT_STARTING, UBOOT_HITKEY, KERNEL_STARTING, LOGIN, PASSWORD, SHELL_CONF
 ************************************************************************************************************************
 */
 
+typedef struct CLI_T {
+    char received[LINE_BUFFER_SIZE+1];
+    char response[LINE_BUFFER_SIZE+1];
+    uint8_t boot_step, pre_uboot;
+    uint8_t waiting_response;
+    uint8_t status;
+} cli_t;
+
 
 /*
 ************************************************************************************************************************
@@ -76,9 +84,7 @@ enum {UBOOT_STARTING, UBOOT_HITKEY, KERNEL_STARTING, LOGIN, PASSWORD, SHELL_CONF
 ************************************************************************************************************************
 */
 
-static char g_received[LINE_BUFFER_SIZE+1];
-static char g_response[LINE_BUFFER_SIZE+1];
-static uint8_t g_boot_step, g_waiting_response, g_restore;
+static cli_t g_cli;
 static xSemaphoreHandle g_received_sem, g_response_sem;
 
 
@@ -102,52 +108,88 @@ static xSemaphoreHandle g_received_sem, g_response_sem;
 ************************************************************************************************************************
 */
 
+static void process_response(serial_t *serial)
+{
+    portBASE_TYPE xHigherPriorityTaskWoken;
+    xHigherPriorityTaskWoken = pdFALSE;
+
+    // try read data until find a new line
+    uint32_t read;
+    read = serial_read_until(CLI_SERIAL, (uint8_t *) g_cli.received, LINE_BUFFER_SIZE, '\n');
+    if (read == 0)
+    {
+        // if can't find new line force reading
+        read = serial_read(CLI_SERIAL, (uint8_t *) g_cli.received, LINE_BUFFER_SIZE);
+    }
+
+    // make message null termined
+    g_cli.received[read] = 0;
+
+    // remove new line from response
+    if (g_cli.received[read-2] == '\r')
+        g_cli.received[read-2] = 0;
+
+    // all remaining data on buffer are not useful
+    ringbuff_flush(serial->rx_buffer);
+
+    xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
+    portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+}
+
 // this callback is called from a ISR
 static void serial_cb(serial_t *serial)
 {
     portBASE_TYPE xHigherPriorityTaskWoken;
     xHigherPriorityTaskWoken = pdFALSE;
 
-    if (g_boot_step < N_BOOT_STEPS)
+    if (g_cli.boot_step < N_BOOT_STEPS)
     {
-        uint32_t len = strlen(g_boot_steps[g_boot_step]);
+        uint32_t len = strlen(g_boot_steps[g_cli.boot_step]);
 
         // search for boot message
-        int32_t found = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[g_boot_step], len);
+        int32_t found = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[g_cli.boot_step], len);
 
-        // doesn't need to retrieve data, so flush them out
-        ringbuff_flush(serial->rx_buffer);
+        // set pre uboot flag
+        if (found < 0 && g_cli.boot_step == 0)
+            g_cli.pre_uboot = 1;
+        else
+            g_cli.pre_uboot = 0;
 
-        // wake task if boot message match or not required (NULL)
-        if (!g_boot_steps[g_boot_step] || found >= 0)
+        // check login
+        if (found >= 0 && g_cli.boot_step == LOGIN)
         {
-            xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
-            portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+            int32_t restore = ringbuff_search(serial->rx_buffer, (uint8_t *) "mod-restore", 11);
+
+            if (restore >= 0)
+            {
+                g_cli.status = LOGGED_ON_RESTORE;
+            }
+            else
+            {
+                g_cli.status = LOGGED_ON_SYSTEM;
+            }
+        }
+
+        if (g_cli.waiting_response)
+        {
+            process_response(serial);
+        }
+        else
+        {
+            // doesn't need to retrieve data, so flush them out
+            ringbuff_flush(serial->rx_buffer);
+
+            // wake task if boot message match to pattern or match is not required (NULL)
+            if (found >= 0 || !g_boot_steps[g_cli.boot_step])
+            {
+                xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
+                portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+            }
         }
     }
-    else if (g_waiting_response || g_restore)
+    else if (g_cli.waiting_response || g_cli.status == LOGGED_ON_RESTORE)
     {
-        // try read data until find a new line
-        uint32_t read;
-        read = serial_read_until(CLI_SERIAL, (uint8_t *) g_received, LINE_BUFFER_SIZE, '\n');
-        if (read == 0)
-        {
-            // if can't find new line force reading
-            read = serial_read(CLI_SERIAL, (uint8_t *) g_received, LINE_BUFFER_SIZE);
-        }
-
-        // make message null termined
-        g_received[read] = 0;
-
-        // remove new line from response
-        if (g_received[read-2] == '\r')
-            g_received[read-2] = 0;
-
-        // all remaining data on buffer are not useful
-        ringbuff_flush(serial->rx_buffer);
-
-        xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
-        portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
+        process_response(serial);
     }
     else
     {
@@ -156,7 +198,7 @@ static void serial_cb(serial_t *serial)
         int32_t found = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[LOGIN], len);
         if (found >= 0)
         {
-            g_boot_step = LOGIN;
+            g_cli.boot_step = LOGIN;
             xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
             portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
         }
@@ -211,16 +253,22 @@ void cli_process(void)
     xReturn = xSemaphoreTake(g_received_sem, xTicksToWait);
 
     // check if it's booting
-    if (g_boot_step < N_BOOT_STEPS)
+    if (g_cli.boot_step < N_BOOT_STEPS)
     {
         // if got timeout ...
         if (xReturn == pdFALSE)
         {
+            // and booting is in pre uboot stage
+            if (g_cli.pre_uboot)
+            {
+                return;
+            }
+
             // and still in the first step ...
-            if (g_boot_step == 0)
+            if (g_cli.boot_step == 0)
             {
                 // force login step
-                g_boot_step = LOGIN;
+                g_cli.boot_step = LOGIN;
 
                 // send new line to force interrupt
                 cli_command(NULL, CLI_DISCARD_RESPONSE);
@@ -228,10 +276,10 @@ void cli_process(void)
             }
 
             // and already tried login ...
-            else if (g_boot_step == LOGIN)
+            else if (g_cli.boot_step == LOGIN)
             {
                 // assume boot is done
-                g_boot_step = SHELL_CONFIG;
+                g_cli.boot_step = SHELL_CONFIG;
 
                 // send new line to force interrupt
                 cli_command(NULL, CLI_DISCARD_RESPONSE);
@@ -239,14 +287,14 @@ void cli_process(void)
             }
         }
 
-        switch (g_boot_step)
+        switch (g_cli.boot_step)
         {
             case UBOOT_STARTING:
                 xTicksToWait = portMAX_DELAY;
                 break;
 
             case UBOOT_HITKEY:
-                if (g_restore)
+                if (g_cli.status == LOGGED_ON_RESTORE)
                 {
                     // stop auto boot and run restore
                     cli_command(NULL, CLI_RETRIEVE_RESPONSE);
@@ -270,26 +318,18 @@ void cli_process(void)
                 break;
         }
 
-        g_boot_step++;
+        g_cli.boot_step++;
     }
 
     // restore mode
-    else if (g_restore)
+    else if (g_cli.status == LOGGED_ON_RESTORE)
     {
-        if (g_restore == 1)
+        char *msg = &g_cli.received[4];
+        if (strncmp(g_cli.received, "hmi:", 4) == 0)
         {
-            cli_command("/root/upgrade", CLI_RETRIEVE_RESPONSE);
-            g_restore++;
-        }
-
-        char *msg = &g_received[4];
-        if (strncmp(g_received, "hmi:", 4) == 0)
-        {
-            if (strcmp(msg, "fail") == 0)
-            {
-                cli_command("/root/upgrade", CLI_RETRIEVE_RESPONSE);
-            }
-            else if (strcmp(msg, "done") == 0)
+            write_msg(msg);
+#if 0
+            if (strcmp(msg, "done") == 0)
             {
                 g_restore = 0;
                 screen_image(0, mod_logo);
@@ -299,23 +339,24 @@ void cli_process(void)
             {
                 write_msg(msg);
             }
+#endif
         }
     }
 
     // check if it's waiting command response
-    else if (g_waiting_response)
+    else if (g_cli.waiting_response)
     {
-        strcpy(g_response, g_received);
+        strcpy(g_cli.response, g_cli.received);
         xSemaphoreGive(g_response_sem);
     }
 }
 
 const char* cli_command(const char *command, uint8_t response_action)
 {
-    g_waiting_response = (response_action == CLI_RETRIEVE_RESPONSE ? 1 : 0);
+    g_cli.waiting_response = (response_action == CLI_RETRIEVE_RESPONSE ? 1 : 0);
 
     // default response
-    g_response[0] = 0;
+    g_cli.response[0] = 0;
 
     // send command
     if (command)
@@ -331,12 +372,12 @@ const char* cli_command(const char *command, uint8_t response_action)
     {
         if (xSemaphoreTake(g_response_sem, RESPONSE_TIMEOUT) == pdTRUE)
         {
-            g_waiting_response = 0;
-            return g_response;
+            g_cli.waiting_response = 0;
+            return g_cli.response;
         }
     }
 
-    g_waiting_response = 0;
+    g_cli.waiting_response = 0;
     return NULL;
 }
 
@@ -351,9 +392,9 @@ const char* cli_systemctl(const char *command, const char *service)
 
     const char *response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
     // default response
-    if (!response) strcpy(g_response, "unknown");
+    if (!response) strcpy(g_cli.response, "unknown");
 
-    return g_response;
+    return g_cli.response;
 }
 
 void cli_package_version(const char *package_name)
@@ -364,7 +405,7 @@ void cli_package_version(const char *package_name)
 void cli_bluetooth(uint8_t what_info)
 {
     // default response
-    strcpy(g_response, "unknown");
+    strcpy(g_cli.response, "unknown");
 
     switch (what_info)
     {
@@ -380,11 +421,12 @@ uint8_t cli_restore(uint8_t action)
 {
     if (action == RESTORE_INIT)
     {
-        g_boot_step = 0;
-        g_restore = 1;
+        // force status to trigger restore after reboot
+        g_cli.boot_step = 0;
+        g_cli.status = LOGGED_ON_RESTORE;
         cli_command("reboot", CLI_DISCARD_RESPONSE);
         write_msg("starting upgrade\nplease wait");
     }
 
-    return g_restore;
+    return g_cli.status;
 }

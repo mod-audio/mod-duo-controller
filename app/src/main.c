@@ -233,7 +233,7 @@ static void actuators_task(void *pvParameters)
         xStatus = xQueueReceive(g_actuators_queue, &actuator_info, portMAX_DELAY);
 
         // checks if actuator has successfully taken
-        if (xStatus == pdPASS && ! cli_restore(RESTORE_STATUS))
+        if (xStatus == pdPASS && cli_restore(RESTORE_STATUS) != LOGGED_ON_RESTORE)
         {
             type = actuator_info[0];
             id = actuator_info[1];
