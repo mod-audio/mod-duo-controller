@@ -45,7 +45,8 @@ const char *systemctl_services[] = {
 };
 
 const char *version_files[] = {
-    "rootfs",
+    "restore",
+    "system",
     "controller",
     NULL
 };
@@ -210,13 +211,16 @@ void system_versions_cb(void *arg, int event)
 
     if (event == MENU_EV_ENTER)
     {
+        const char *response;
+        response = cli_command("cat /etc/mod-release/release", CLI_RETRIEVE_RESPONSE);
+        update_status(item->data.list[1], response);
+
         uint8_t i = 0;
         while (version_files[i])
         {
-            const char *response;
             cli_command("mod-version ", CLI_CACHE_ONLY);
             response = cli_command(version_files[i], CLI_RETRIEVE_RESPONSE);
-            update_status(item->data.list[i+1], response);
+            update_status(item->data.list[i+2], response);
             screen_system_menu(item);
             i++;
         }

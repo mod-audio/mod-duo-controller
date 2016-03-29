@@ -283,8 +283,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"ttymidi:",                        MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    NULL                , 0},  \
     {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb  , 0},  \
     {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                , 0},  \
-    {"system:",                         MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                , 0},  \
-    {"controller:",                     MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
+    {"release:",                        MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                , 0},  \
+    {"restore:",                        MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
+    {"system:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                , 0},  \
+    {"controller:",                     MENU_NONE,      VERSIONS_ID+5,      VERSIONS_ID,    NULL                , 0},  \
     {"System Upgrade",                  MENU_CONFIRM,   UPGRADE_ID,         ROOT_ID,        system_upgrade_cb   , 0},  \
 
 /* --- menu options temporarily disabled (they were positioned below SETTINGS node)
