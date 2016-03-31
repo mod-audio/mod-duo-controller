@@ -222,6 +222,7 @@ void system_versions_cb(void *arg, int event)
             cli_command("mod-version ", CLI_CACHE_ONLY);
             response = cli_command(version_files[i], CLI_RETRIEVE_RESPONSE);
             strncpy(version, response, (sizeof version) - 1);
+            version[(sizeof version) - 1] = 0;
             update_status(item->data.list[i+2], version);
             screen_system_menu(item);
             i++;
