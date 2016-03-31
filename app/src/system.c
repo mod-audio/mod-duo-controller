@@ -212,6 +212,7 @@ void system_versions_cb(void *arg, int event)
     if (event == MENU_EV_ENTER)
     {
         const char *response;
+        char version[8];
         response = cli_command("cat /etc/mod-release/release", CLI_RETRIEVE_RESPONSE);
         update_status(item->data.list[1], response);
 
@@ -220,7 +221,8 @@ void system_versions_cb(void *arg, int event)
         {
             cli_command("mod-version ", CLI_CACHE_ONLY);
             response = cli_command(version_files[i], CLI_RETRIEVE_RESPONSE);
-            update_status(item->data.list[i+2], response);
+            strncpy(version, response, (sizeof version) - 1);
+            update_status(item->data.list[i+2], version);
             screen_system_menu(item);
             i++;
         }
