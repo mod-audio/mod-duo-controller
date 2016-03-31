@@ -233,7 +233,7 @@ static void actuators_task(void *pvParameters)
         xStatus = xQueueReceive(g_actuators_queue, &actuator_info, portMAX_DELAY);
 
         // checks if actuator has successfully taken
-        if (xStatus == pdPASS && cli_restore(RESTORE_STATUS) != LOGGED_ON_RESTORE)
+        if (xStatus == pdPASS && cli_restore(RESTORE_STATUS) != LOGGED_ON_RESTORE && g_ui_communication_started)
         {
             type = actuator_info[0];
             id = actuator_info[1];
@@ -371,11 +371,7 @@ static void setup_task(void *pvParameters)
 
 static void ping_cb(proto_t *proto)
 {
-    if (!g_ui_communication_started)
-    {
-        g_ui_communication_started = 1;
-    }
-
+    g_ui_communication_started = 1;
     protocol_response("resp 0", proto);
 }
 
@@ -449,6 +445,7 @@ static void control_add_cb(proto_t *proto)
 
 static void control_rm_cb(proto_t *proto)
 {
+    g_ui_communication_started = 1;
     naveg_remove_control(atoi(proto->list[1]), proto->list[2]);
     protocol_response("resp 0", proto);
 }
@@ -473,6 +470,7 @@ static void control_get_cb(proto_t *proto)
 
 static void initial_state_cb(proto_t *proto)
 {
+    g_ui_communication_started = 1;
     naveg_initial_state(proto->list[1], proto->list[2], &(proto->list[3]));
     protocol_response("resp 0", proto);
 }
