@@ -323,10 +323,10 @@ static void setup_task(void *pvParameters)
     g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
 
     // create the tasks
-    xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 3, NULL);
-    xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 2, NULL);
+    xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 4, NULL);
+    xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 3, NULL);
+    xTaskCreate(cli_task, TASK_NAME("cli"), 128, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);
-    xTaskCreate(cli_task, TASK_NAME("cli"), 128, NULL, 1, NULL);
 
     // actuators callbacks
     uint8_t i;
