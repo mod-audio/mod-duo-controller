@@ -32,6 +32,7 @@
 #define MOD_PASSWORD        "mod"
 #define DISABLE_ECHO        "stty -echo"
 #define SET_SP1_VAR         "export PS1=\"\""
+#define RESTORE_HOSTNAME    "mod-restore"
 
 #define PEEK_SIZE           3
 #define LINE_BUFFER_SIZE    32
@@ -159,7 +160,7 @@ static void serial_cb(serial_t *serial)
         // check login
         if (found >= 0 && g_cli.boot_step == LOGIN)
         {
-            int32_t restore = ringbuff_search(serial->rx_buffer, (uint8_t *) "mod-restore", 11);
+            int32_t restore = ringbuff_search(serial->rx_buffer, (uint8_t *) RESTORE_HOSTNAME, (sizeof RESTORE_HOSTNAME) - 1);
 
             if (restore >= 0)
             {
@@ -316,6 +317,18 @@ void cli_process(void)
                 xTicksToWait = portMAX_DELAY;
                 cli_command(DISABLE_ECHO, CLI_RETRIEVE_RESPONSE);
                 cli_command(SET_SP1_VAR, CLI_RETRIEVE_RESPONSE);
+
+                // set login status
+                if (g_cli.status == NOT_LOGGED)
+                {
+                    const char *response = cli_command("cat /etc/hostname", CLI_RETRIEVE_RESPONSE);
+
+                    g_cli.status = LOGGED_ON_SYSTEM;
+                    if (strcmp(RESTORE_HOSTNAME, response) == 0)
+                    {
+                        g_cli.status = LOGGED_ON_RESTORE;
+                    }
+                }
                 break;
         }
 
@@ -329,18 +342,6 @@ void cli_process(void)
         if (strncmp(g_cli.received, "hmi:", 4) == 0)
         {
             write_msg(msg);
-#if 0
-            if (strcmp(msg, "done") == 0)
-            {
-                g_restore = 0;
-                screen_image(0, mod_logo);
-                screen_image(1, mod_duo);
-            }
-            else
-            {
-                write_msg(msg);
-            }
-#endif
         }
     }
 
