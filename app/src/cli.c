@@ -28,7 +28,7 @@
 
 #define NEW_LINE            "\r\n"
 
-#define MOD_USER            "root"
+#define MOD_USER            "hmi"
 #define MOD_PASSWORD        "mod"
 #define DISABLE_ECHO        "stty -echo"
 #define SET_SP1_VAR         "export PS1=\"\""
