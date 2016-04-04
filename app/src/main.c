@@ -358,6 +358,9 @@ static void setup_task(void *pvParameters)
     // init the navigation
     naveg_init();
 
+    // check if must enter in the restore mode
+    cli_restore(RESTORE_CHECK_BOOT);
+
     // deletes itself
     vTaskDelete(NULL);
 }

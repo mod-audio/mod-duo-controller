@@ -428,7 +428,7 @@ uint8_t cli_restore(uint8_t action)
         cli_command("reboot", CLI_DISCARD_RESPONSE);
         write_msg("starting upgrade\nplease wait");
     }
-    else if (action == RESTORE_STATUS)
+    else if (action == RESTORE_CHECK_BOOT)
     {
         button_t *foot = (button_t *) hardware_actuators(FOOTSWITCH0);
         encoder_t *knob = (encoder_t *) hardware_actuators(ENCODER0);
