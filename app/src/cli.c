@@ -12,6 +12,7 @@
 #include "screen.h"
 #include "glcd_widget.h"
 #include "hardware.h"
+#include "actuator.h"
 #include "images.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -426,6 +427,20 @@ uint8_t cli_restore(uint8_t action)
         g_cli.status = LOGGED_ON_RESTORE;
         cli_command("reboot", CLI_DISCARD_RESPONSE);
         write_msg("starting upgrade\nplease wait");
+    }
+    else if (action == RESTORE_STATUS)
+    {
+        button_t *foot = (button_t *) hardware_actuators(FOOTSWITCH0);
+        encoder_t *knob = (encoder_t *) hardware_actuators(ENCODER0);
+
+        // check if first footswitch and first encoder is pressed down
+        if (BUTTON_PRESSED(actuator_get_status(foot)) &&
+            BUTTON_PRESSED(actuator_get_status(knob)))
+        {
+            // force entering on restore mode
+            g_cli.boot_step = 0;
+            g_cli.status = LOGGED_ON_RESTORE;
+        }
     }
 
     return g_cli.status;
