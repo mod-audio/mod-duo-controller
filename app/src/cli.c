@@ -321,7 +321,7 @@ void cli_process(void)
                 // set login status
                 if (g_cli.status == NOT_LOGGED)
                 {
-                    const char *response = cli_command("cat /etc/hostname", CLI_RETRIEVE_RESPONSE);
+                    const char *response = cli_command("hostname", CLI_RETRIEVE_RESPONSE);
 
                     g_cli.status = LOGGED_ON_SYSTEM;
                     if (strcmp(RESTORE_HOSTNAME, response) == 0)
