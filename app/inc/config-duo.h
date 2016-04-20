@@ -139,9 +139,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // led <led_id> <red> <green> <blue>
 #define LED_CMD                 "led %i %i %i %i ..."
 // glcd_text <glcd_id> <x_pos> <y_pos> <text>
+#define GLCD_TEXT_CMD           "glcd_text %i %i %i %s"
+// glcd_dialog <content>
 #define GLCD_DIALOG_CMD         "glcd_dialog %s"
-// glcd_dialog <glcd_id> <type> <title> <content>
-#define GLCD_TEXT_CMD           "glcd_text %i %i %s %s"
 // glcd_draw <glcd_id> <x_pos> <y_pos> <data>
 #define GLCD_DRAW_CMD           "glcd_draw %i %i %i %s"
 // ui_con
