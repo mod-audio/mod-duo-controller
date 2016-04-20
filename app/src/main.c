@@ -92,6 +92,7 @@ static void ping_cb(proto_t *proto);
 static void say_cb(proto_t *proto);
 static void led_cb(proto_t *proto);
 static void glcd_text_cb(proto_t *proto);
+static void glcd_dialog_cb(proto_t *proto);
 static void glcd_draw_cb(proto_t *proto);
 static void gui_connection_cb(proto_t *proto);
 static void control_add_cb(proto_t *proto);
@@ -347,6 +348,7 @@ static void setup_task(void *pvParameters)
     protocol_add_command(SAY_CMD, say_cb);
     protocol_add_command(LED_CMD, led_cb);
     protocol_add_command(GLCD_TEXT_CMD, glcd_text_cb);
+    protocol_add_command(GLCD_DIALOG_CMD, glcd_dialog_cb);
     protocol_add_command(GLCD_DRAW_CMD, glcd_draw_cb);
     protocol_add_command(GUI_CONNECTED_CMD, gui_connection_cb);
     protocol_add_command(GUI_DISCONNECTED_CMD, gui_connection_cb);
@@ -412,6 +414,16 @@ static void glcd_text_cb(proto_t *proto)
 
     glcd_text(hardware_glcds(glcd_id), x, y, proto->list[4], NULL, GLCD_BLACK);
     protocol_response("resp 0", proto);
+}
+
+static void glcd_dialog_cb(proto_t *proto)
+{
+    uint8_t val = naveg_dialog(proto->list[1]);
+    char resp[16];
+    strcpy(resp, "resp 0 ");
+    resp[7] = val + '0';
+    resp[8] = 0;
+    protocol_response(resp, proto);
 }
 
 static void glcd_draw_cb(proto_t *proto)

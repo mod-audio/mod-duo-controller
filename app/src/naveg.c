@@ -13,6 +13,8 @@
 #include "led.h"
 #include "hardware.h"
 #include "comm.h"
+#include "FreeRTOS.h"
+#include "semphr.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -89,6 +91,7 @@ static bank_config_t g_bank_functions[BANK_FUNC_AMOUNT];
 static uint8_t g_initialized, g_ui_connected;
 static void (*g_update_cb)(void *data, int event);
 static void *g_update_data;
+static xSemaphoreHandle g_dialog_sem;
 
 
 /*
@@ -777,7 +780,7 @@ static void menu_enter(void)
 {
     uint8_t i;
     node_t *node = g_current_menu;
-    menu_item_t *item;
+    menu_item_t *item = g_current_item;
 
     // checks the current item
     if (g_current_item->desc->type == MENU_LIST || g_current_item->desc->type == MENU_SELECT)
@@ -927,6 +930,12 @@ static void menu_enter(void)
     {
         g_update_cb = item->desc->action_cb;
         g_update_data = item;
+    }
+
+    if (item->desc->type == MENU_CONFIRM2)
+    {
+        portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+        xSemaphoreGiveFromISR(g_dialog_sem, &xHigherPriorityTaskWoken);
     }
 }
 
@@ -1236,6 +1245,9 @@ void naveg_init(void)
     g_update_data = NULL;
 
     g_initialized = 1;
+
+    vSemaphoreCreateBinary(g_dialog_sem);
+    xSemaphoreTake(g_dialog_sem, 0);
 }
 
 void naveg_initial_state(char *bank_uid, char *pedalboard_uid, char **pedalboards_list)
@@ -1686,4 +1698,34 @@ void naveg_reset_menu(void)
 void naveg_update(void)
 {
     if (g_update_cb) (*g_update_cb)(g_update_data, MENU_EV_ENTER);
+}
+
+uint8_t naveg_dialog(const char *msg)
+{
+    static node_t *dummy_menu;
+    static menu_desc_t desc = {NULL, MENU_CONFIRM2, -2, -2, NULL, 0};
+
+    if (!dummy_menu)
+    {
+        menu_item_t *item;
+        item = (menu_item_t *) MALLOC(sizeof(menu_item_t));
+        item->data.hover = 0;
+        item->data.selected = 0xFF;
+        item->data.list_count = 2;
+        item->data.list = NULL;
+        item->data.popup_content = msg;
+        item->desc = &desc;
+        item->name = NULL;
+        dummy_menu = node_create(item);
+    }
+
+    g_tool[DISPLAY_TOOL_SYSTEM].state = TOOL_ON;
+    g_current_menu = dummy_menu;
+    g_current_item = dummy_menu->data;
+    screen_system_menu(g_current_item);
+
+    xSemaphoreTake(g_dialog_sem, portMAX_DELAY);
+
+    naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
+    return g_current_item->data.hover;
 }
