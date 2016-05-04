@@ -71,6 +71,8 @@ void system_restart_host_cb(void *arg, int event);
 void system_restart_ui_cb(void *arg, int event);
 void system_restart_bluez_cb(void *arg, int event);
 void system_versions_cb(void *arg, int event);
+void system_device_cb(void *arg, int event);
+void system_tag_cb(void *arg, int event);
 void system_upgrade_cb(void *arg, int event);
 void system_volume_cb(void *arg, int event);
 void system_stage_cb(void *arg, int event);

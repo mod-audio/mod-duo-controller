@@ -241,6 +241,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define VERSIONS_ID     (9 * 10)
 #define UPGRADE_ID      (10 * 10)
 #define VOLUME_ID       (11 * 10)
+#define DEVICE_ID       (12 * 10)
 
 #define IN1_VOLUME      VOLUME_ID+0
 #define IN2_VOLUME      VOLUME_ID+1
@@ -289,6 +290,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"restore:",                        MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
     {"system:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                , 0},  \
     {"controller:",                     MENU_NONE,      VERSIONS_ID+5,      VERSIONS_ID,    NULL                , 0},  \
+    {"Device",                          MENU_LIST,      DEVICE_ID,          INFO_ID,        system_device_cb    , 0},  \
+    {"< Back to Info",                  MENU_RETURN,    DEVICE_ID+1,        DEVICE_ID,      NULL                , 0},  \
+    {"Serial Number:",                  MENU_OK,        DEVICE_ID+2,        DEVICE_ID,      system_tag_cb       , 0},  \
     {"System Upgrade",                  MENU_CONFIRM,   UPGRADE_ID,         ROOT_ID,        system_upgrade_cb   , 0},  \
 
 /* --- menu options temporarily disabled (they were positioned below SETTINGS node)

@@ -802,7 +802,7 @@ static void menu_enter(void)
         // updates the current item
         if (!MENU_ITEM_IS_TOGGLE_TYPE(item) && item->desc->type != MENU_NONE) g_current_item = node->data;
     }
-    else if (g_current_item->desc->type == MENU_CONFIRM || g_current_item->desc->type == MENU_CANCEL)
+    else if (g_current_item->desc->type == MENU_CONFIRM || g_current_item->desc->type == MENU_CANCEL || g_current_item->desc->type == MENU_OK)
     {
         item = g_current_item;
 
@@ -882,13 +882,16 @@ static void menu_enter(void)
             i++;
         }
     }
-    else if (item->desc->type == MENU_CANCEL)
+    else if (item->desc->type == MENU_CANCEL || item->desc->type == MENU_OK)
     {
         // highlights the default button
         item->data.hover = 0;
 
         // defines the buttons count
         item->data.list_count = 1;
+
+        // calls the action callback
+        if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
     }
     else if (MENU_ITEM_IS_TOGGLE_TYPE(item))
     {

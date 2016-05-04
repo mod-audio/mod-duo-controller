@@ -230,6 +230,30 @@ void system_versions_cb(void *arg, int event)
     }
 }
 
+void system_device_cb(void *arg, int event)
+{
+    menu_item_t *item = arg;
+
+    if (event == MENU_EV_ENTER)
+    {
+        const char *response;
+        response = cli_command("cat /var/cache/mod/tag", CLI_RETRIEVE_RESPONSE);
+        update_status(item->data.list[1], response);
+    }
+}
+
+void system_tag_cb(void *arg, int event)
+{
+    menu_item_t *item = arg;
+
+    if (event == MENU_EV_ENTER)
+    {
+        const char *response;
+        response = cli_command("cat /var/cache/mod/tag", CLI_RETRIEVE_RESPONSE);
+        item->data.popup_content = response;
+    }
+}
+
 void system_upgrade_cb(void *arg, int event)
 {
     if (event == MENU_EV_ENTER)

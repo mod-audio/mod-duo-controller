@@ -495,7 +495,10 @@ void screen_system_menu(menu_item_t *item)
         case MENU_CONFIRM:
         case MENU_CONFIRM2:
         case MENU_CANCEL:
-            popup.type = (item->desc->type == MENU_CANCEL ? CANCEL_ONLY : YES_NO);
+        case MENU_OK:
+            if (item->desc->type == MENU_CANCEL) popup.type = CANCEL_ONLY;
+            else if (item->desc->type == MENU_OK) popup.type = OK_ONLY;
+            else popup.type = YES_NO;
             popup.title = item->desc->name;
             popup.content = item->data.popup_content;
             popup.button_selected = item->data.hover;
