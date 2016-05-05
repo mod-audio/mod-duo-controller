@@ -1313,9 +1313,6 @@ void naveg_ui_connection(uint8_t status)
 
     if (status == UI_CONNECTED)
     {
-        if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON)
-            naveg_toggle_tool(DISPLAY_TOOL_NAVIG);
-
         g_ui_connected = 1;
     }
     else
@@ -1329,6 +1326,9 @@ void naveg_ui_connection(uint8_t status)
         g_naveg_pedalboards = NULL;
         g_selected_pedalboards = NULL;
     }
+
+    if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON)
+        naveg_toggle_tool(DISPLAY_TOOL_NAVIG);
 }
 
 void naveg_add_control(control_t *control)
@@ -1494,9 +1494,6 @@ void naveg_foot_change(uint8_t foot)
 void naveg_toggle_tool(uint8_t display)
 {
     if (!g_initialized) return;
-
-    // checks if is the navigation display and if the UI is connected
-    if (display == DISPLAY_TOOL_NAVIG && g_ui_connected) return;
 
     // clears the display
     screen_clear(display);
@@ -1731,4 +1728,9 @@ uint8_t naveg_dialog(const char *msg)
 
     naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
     return g_current_item->data.hover;
+}
+
+uint8_t naveg_ui_status(void)
+{
+    return g_ui_connected;
 }

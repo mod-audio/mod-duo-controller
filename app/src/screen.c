@@ -399,17 +399,35 @@ void screen_bp_list(const char *title, bp_list_t *list)
     }
     else
     {
-        empty.color = GLCD_BLACK;
-        empty.mode = TEXT_SINGLE_LINE;
-        empty.font = alterebro24;
-        empty.top_margin = 0;
-        empty.bottom_margin = 0;
-        empty.left_margin = 0;
-        empty.right_margin = 0;
-        empty.height = 0;
-        empty.width = 0;
-        empty.text = "NO BANKS";
-        empty.align = ALIGN_CENTER_MIDDLE;
+        if (naveg_ui_status())
+        {
+            empty.color = GLCD_BLACK;
+            empty.mode = TEXT_MULTI_LINES;
+            empty.font = alterebro15;
+            empty.top_margin = 20;
+            empty.bottom_margin = 0;
+            empty.left_margin = 0;
+            empty.right_margin = 0;
+            empty.height = DISPLAY_HEIGHT;
+            empty.width = DISPLAY_WIDTH;
+            empty.text = "To access banks here please disconnect from the graphical interface";
+            empty.align = ALIGN_LEFT_TOP;
+        }
+        else
+        {
+            empty.color = GLCD_BLACK;
+            empty.mode = TEXT_SINGLE_LINE;
+            empty.font = alterebro24;
+            empty.top_margin = 0;
+            empty.bottom_margin = 0;
+            empty.left_margin = 0;
+            empty.right_margin = 0;
+            empty.height = 0;
+            empty.width = 0;
+            empty.text = "NO BANKS";
+            empty.align = ALIGN_CENTER_MIDDLE;
+        }
+
         widget_textbox(display, &empty);
     }
 }
