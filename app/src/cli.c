@@ -69,7 +69,7 @@ typedef struct CLI_T {
     char response[LINE_BUFFER_SIZE+1];
     uint8_t boot_step, pre_uboot;
     uint8_t waiting_response;
-    uint8_t status;
+    uint8_t status, debug;
 } cli_t;
 
 
@@ -298,9 +298,15 @@ void cli_process(void)
             case UBOOT_HITKEY:
                 if (g_cli.status == LOGGED_ON_RESTORE)
                 {
-                    // stop auto boot and run restore
+                    // stop auto boot and load variables
                     cli_command(NULL, CLI_RETRIEVE_RESPONSE);
                     cli_command("run loadbootenv", CLI_RETRIEVE_RESPONSE);
+
+                    // set debug mode if required
+                    if (g_cli.debug)
+                        cli_command("setenv extraargs mod_restore=debug", CLI_RETRIEVE_RESPONSE);
+
+                    // boot restore
                     cli_command("run boot_restore", CLI_RETRIEVE_RESPONSE);
                 }
                 break;
@@ -425,6 +431,7 @@ uint8_t cli_restore(uint8_t action)
     {
         // force status to trigger restore after reboot
         g_cli.boot_step = 0;
+        g_cli.debug = 0;
         g_cli.status = LOGGED_ON_RESTORE;
         cli_command("reboot", CLI_DISCARD_RESPONSE);
         write_msg("starting upgrade\nplease wait");
@@ -438,8 +445,9 @@ uint8_t cli_restore(uint8_t action)
         if (BUTTON_PRESSED(actuator_get_status(foot)) &&
             BUTTON_PRESSED(actuator_get_status(knob)))
         {
-            // force entering on restore mode
+            // force entering on restore mode using debug
             g_cli.boot_step = 0;
+            g_cli.debug = 1;
             g_cli.status = LOGGED_ON_RESTORE;
         }
     }
