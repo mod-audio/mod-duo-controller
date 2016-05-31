@@ -188,6 +188,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define HW_DISCONNECTED_CMD     "hw_dis %i %i"
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
+// reboot in restore mode
+#define RESTORE_CMD             "restore"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0

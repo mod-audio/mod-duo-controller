@@ -103,6 +103,7 @@ static void initial_state_cb(proto_t *proto);
 static void bank_config_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
+static void restore_cb(proto_t *proto);
 
 
 /*
@@ -360,6 +361,7 @@ static void setup_task(void *pvParameters)
     protocol_add_command(BANK_CONFIG_CMD, bank_config_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
+    protocol_add_command(RESTORE_CMD, restore_cb);
 
     // init the navigation
     naveg_init();
@@ -512,6 +514,12 @@ static void tuner_cb(proto_t *proto)
 static void resp_cb(proto_t *proto)
 {
     comm_webgui_response_cb(proto->list);
+}
+
+static void restore_cb(proto_t *proto)
+{
+    cli_restore(RESTORE_INIT);
+    protocol_response("resp 0", proto);
 }
 
 
