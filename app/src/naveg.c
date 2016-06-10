@@ -795,6 +795,9 @@ static void menu_enter(void)
         // checks if is 'back to previous'
         if (item->desc->type == MENU_RETURN)
         {
+            if (item->desc->action_cb)
+                item->desc->action_cb(item, MENU_EV_ENTER);
+
             node = node->parent->parent;
             item = node->data;
         }

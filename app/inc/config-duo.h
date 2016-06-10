@@ -255,7 +255,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define SYSTEM_MENU     \
     {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                , 0},  \
     {"Volume and Gains",                MENU_LIST,      VOL_GAIN_ID,        ROOT_ID,        NULL                , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    VOL_GAIN_ID+1,      VOL_GAIN_ID,    NULL                , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    VOL_GAIN_ID+1,      VOL_GAIN_ID,    system_save_gains_cb, 0},  \
     {"Input 1",                         MENU_LIST,      IN1_ID,             VOL_GAIN_ID,    NULL                , 0},  \
     {"< Back to Volume and Gains",      MENU_RETURN,    IN1_ID+1,           IN1_ID,         NULL                , 0},  \
     {"Stage",                           MENU_SELECT,    IN1_STAGE_ID,       IN1_ID,         NULL                , 0},  \
@@ -274,10 +274,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"Fine Adjust",                     MENU_GRAPH,     IN2_VOLUME,         IN2_ID,         system_volume_cb    , 0},  \
     {"Output 1",                        MENU_GRAPH,     OUT1_VOLUME,        VOL_GAIN_ID,    system_volume_cb    , 0},  \
     {"Output 2",                        MENU_GRAPH,     OUT2_VOLUME,        VOL_GAIN_ID,    system_volume_cb    , 0},  \
-    {"Headphone",                       MENU_LIST,      HEADPHONE_ID,       ROOT_ID,        system_hp_bypass    , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    HEADPHONE_ID+1,     HEADPHONE_ID,   NULL                , 0},  \
+    {"Headphone",                       MENU_LIST,      HEADPHONE_ID,       ROOT_ID,        system_hp_bypass_cb , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    HEADPHONE_ID+1,     HEADPHONE_ID,   system_save_gains_cb, 0},  \
     {"Volume",                          MENU_GRAPH,     HP_VOLUME,          HEADPHONE_ID,   system_volume_cb    , 0},  \
-    {"Direct Monitoring: ",             MENU_ON_OFF,    HEADPHONE_ID+3,     HEADPHONE_ID,   system_hp_bypass    , 0},  \
+    {"Direct Monitoring: ",             MENU_ON_OFF,    HEADPHONE_ID+3,     HEADPHONE_ID,   system_hp_bypass_cb , 0},  \
     {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb  , 1},  \

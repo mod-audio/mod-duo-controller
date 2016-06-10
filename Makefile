@@ -47,6 +47,7 @@ INC = $(DEVICE_INC) $(CMSIS_INC) $(CDL_INC) $(RTOS_INC) $(DRIVERS_INC) $(APP_INC
 # C flags
 CFLAGS += -mcpu=$(MCU)
 CFLAGS += -Wall -Wextra -Werror -Wpointer-arith -Wredundant-decls
+CFLAGS += -Wno-unused-const-variable
 CFLAGS += -Wa,-adhlns=$(addprefix $(OUT_DIR)/, $(notdir $(addsuffix .lst, $(basename $<))))
 CFLAGS += -MMD -MP -MF $(OUT_DIR)/dep/$(@F).d
 CFLAGS += -I. $(patsubst %,-I%,$(INC))

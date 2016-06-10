@@ -76,7 +76,8 @@ void system_tag_cb(void *arg, int event);
 void system_upgrade_cb(void *arg, int event);
 void system_volume_cb(void *arg, int event);
 void system_stage_cb(void *arg, int event);
-void system_hp_bypass(void *arg, int event);
+void system_hp_bypass_cb(void *arg, int event);
+void system_save_gains_cb(void *arg, int event);
 
 
 /*

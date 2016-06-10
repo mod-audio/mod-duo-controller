@@ -354,7 +354,7 @@ void system_stage_cb(void *arg, int event)
     }
 }
 
-void system_hp_bypass(void *arg, int event)
+void system_hp_bypass_cb(void *arg, int event)
 {
     menu_item_t *item = arg;
 
@@ -377,5 +377,15 @@ void system_hp_bypass(void *arg, int event)
             bypass_state = 1 - bypass_state;
             item->data.hover = bypass_state;
         }
+    }
+}
+
+void system_save_gains_cb(void *arg, int event)
+{
+    UNUSED_PARAM(arg);
+
+    if (event == MENU_EV_ENTER)
+    {
+        cli_command("mod-amixer save", CLI_DISCARD_RESPONSE);
     }
 }
