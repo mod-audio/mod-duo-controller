@@ -343,14 +343,32 @@ void system_stage_cb(void *arg, int event)
 
     if (event == MENU_EV_ENTER)
     {
-        char input[4];
-        uint8_t n_input = ((IN1_STAGE_ID - item->desc->parent_id) == 0 ? 1 : 2);
-        int_to_str(n_input, input, sizeof input, 0);
+        char input[3] = {'1', ' ', 0};
+
+        if (item->desc->id == IN2_STAGE_ID || item->desc->parent_id == IN2_STAGE_ID)
+            input[0]++;
 
         cli_command("mod-amixer in ", CLI_CACHE_ONLY);
         cli_command(input, CLI_CACHE_ONLY);
-        cli_command(" stg ", CLI_CACHE_ONLY);
-        cli_command(item->desc->name, CLI_DISCARD_RESPONSE);
+        cli_command("stg ", CLI_CACHE_ONLY);
+
+        if (item->desc->id == IN1_STAGE_ID ||
+            item->desc->id == IN2_STAGE_ID)
+        {
+            const char *response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+
+            uint8_t i;
+            for (i = 1; i < item->data.list_count; i++)
+            {
+                deselect_item(item->data.list[i]);
+                if (strcmp(item->data.list[i], response) == 0)
+                    select_item(item->data.list[i]);
+            }
+        }
+        else
+        {
+            cli_command(item->desc->name, CLI_DISCARD_RESPONSE);
+        }
     }
 }
 

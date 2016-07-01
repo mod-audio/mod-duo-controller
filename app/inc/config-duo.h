@@ -258,7 +258,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"< Back to SETTINGS",              MENU_RETURN,    VOL_GAIN_ID+1,      VOL_GAIN_ID,    system_save_gains_cb, 0},  \
     {"Input 1",                         MENU_LIST,      IN1_ID,             VOL_GAIN_ID,    NULL                , 0},  \
     {"< Back to Volume and Gains",      MENU_RETURN,    IN1_ID+1,           IN1_ID,         NULL                , 0},  \
-    {"Stage",                           MENU_SELECT,    IN1_STAGE_ID,       IN1_ID,         NULL                , 0},  \
+    {"Stage",                           MENU_SELECT,    IN1_STAGE_ID,       IN1_ID,         system_stage_cb     , 0},  \
     {"< Back to Input 1",               MENU_RETURN,    IN1_STAGE_ID+1,     IN1_STAGE_ID,   NULL                , 0},  \
     {"Low",                             MENU_NONE,      IN1_STAGE_ID+2,     IN1_STAGE_ID,   system_stage_cb     , 0},  \
     {"Mid",                             MENU_NONE,      IN1_STAGE_ID+3,     IN1_STAGE_ID,   system_stage_cb     , 0},  \
@@ -266,7 +266,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"Fine Adjust",                     MENU_GRAPH,     IN1_VOLUME,         IN1_ID,         system_volume_cb    , 0},  \
     {"Input 2",                         MENU_LIST,      IN2_ID,             VOL_GAIN_ID,    NULL                , 0},  \
     {"< Back to Volume and Gains",      MENU_RETURN,    IN2_ID+1,           IN2_ID,         NULL                , 0},  \
-    {"Stage",                           MENU_SELECT,    IN2_STAGE_ID,       IN2_ID,         NULL                , 0},  \
+    {"Stage",                           MENU_SELECT,    IN2_STAGE_ID,       IN2_ID,         system_stage_cb     , 0},  \
     {"< Back to Input 2",               MENU_RETURN,    IN2_STAGE_ID+1,     IN2_STAGE_ID,   NULL                , 0},  \
     {"Low",                             MENU_NONE,      IN2_STAGE_ID+2,     IN2_STAGE_ID,   system_stage_cb     , 0},  \
     {"Mid",                             MENU_NONE,      IN2_STAGE_ID+3,     IN2_STAGE_ID,   system_stage_cb     , 0},  \
