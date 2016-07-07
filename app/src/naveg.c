@@ -1534,6 +1534,9 @@ void naveg_toggle_tool(uint8_t display)
             case DISPLAY_TOOL_SYSTEM:
                 g_update_cb = NULL;
                 g_update_data = NULL;
+
+                // force save gains when leave the menu
+                system_save_gains_cb(NULL, MENU_EV_ENTER);
                 break;
 
             case DISPLAY_TOOL_TUNER:
