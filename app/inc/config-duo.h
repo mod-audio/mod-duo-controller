@@ -313,7 +313,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
-    {UPGRADE_ID, "To proceed with system upgrade please hold first footswitch and click YES."},
+    {UPGRADE_ID, "To proceed with system upgrade please keep pressed left footswitch and click YES."},
 
 /*
     {PEDALBOARD_ID+2, "Are you sure to reset all pedalboard values to last saved state?"},      \
