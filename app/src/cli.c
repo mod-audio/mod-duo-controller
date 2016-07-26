@@ -13,6 +13,7 @@
 #include "glcd_widget.h"
 #include "hardware.h"
 #include "actuator.h"
+#include "naveg.h"
 #include "images.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -429,6 +430,20 @@ uint8_t cli_restore(uint8_t action)
 {
     if (action == RESTORE_INIT)
     {
+        // remove all controls
+        naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
+
+        // disable system menu
+        naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
+
+        // clear screens
+        for (uint8_t i = 0; i < SLOTS_COUNT; i++)
+            screen_clear(i);
+
+        // turn off leds
+        for (uint8_t i = 0; i < SLOTS_COUNT; i++)
+            led_set_color(hardware_leds(i), BLACK);
+
         // force status to trigger restore after reboot
         g_cli.boot_step = 0;
         g_cli.debug = 0;

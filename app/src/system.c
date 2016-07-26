@@ -269,20 +269,6 @@ void system_upgrade_cb(void *arg, int event)
             // check if footswitch is pressed down
             if (BUTTON_PRESSED(status))
             {
-                // remove all controls
-                naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
-
-                // disable system menu
-                naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
-
-                // clear screens
-                for (uint8_t i = 0; i < SLOTS_COUNT; i++)
-                    screen_clear(i);
-
-                // turn off leds
-                for (uint8_t i = 0; i < SLOTS_COUNT; i++)
-                    led_set_color(hardware_leds(i), BLACK);
-
                 // start restore
                 cli_restore(RESTORE_INIT);
             }
