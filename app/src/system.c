@@ -145,16 +145,23 @@ void system_true_bypass_cb(void *arg, int event)
     UNUSED_PARAM(event);
 }
 
-void system_reset_pedalboard_cb(void *arg, int event)
+void system_pedalboard_cb(void *arg, int event)
 {
-    UNUSED_PARAM(arg);
-    UNUSED_PARAM(event);
-}
+    menu_item_t *item = arg;
 
-void system_save_pedalboard_cb(void *arg, int event)
-{
-    UNUSED_PARAM(arg);
-    UNUSED_PARAM(event);
+    if (event == MENU_EV_ENTER && item->data.hover == 0)
+    {
+        switch (item->desc->id)
+        {
+            case PEDALBOARD_SAVE_ID:
+                comm_webgui_send(PEDALBOARD_SAVE_CMD, strlen(PEDALBOARD_SAVE_CMD));
+                break;
+
+            case PEDALBOARD_RESET_ID:
+                comm_webgui_send(PEDALBOARD_RESET_CMD, strlen(PEDALBOARD_RESET_CMD));
+                break;
+        }
+    }
 }
 
 void system_bluetooth_cb(void *arg, int event)

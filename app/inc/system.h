@@ -61,8 +61,7 @@
 
 // system menu callbacks
 void system_true_bypass_cb(void *arg, int event);
-void system_reset_pedalboard_cb(void *arg, int event);
-void system_save_pedalboard_cb(void *arg, int event);
+void system_pedalboard_cb(void *arg, int event);
 void system_bluetooth_cb(void *arg, int event);
 void system_bluetooth_pair_cb(void *arg, int event);
 void system_services_cb(void *arg, int event);

@@ -244,12 +244,16 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define UPGRADE_ID      (10 * 10)
 #define VOLUME_ID       (11 * 10)
 #define DEVICE_ID       (12 * 10)
+#define PEDALBOARD_ID   (13 * 10)
 
 #define IN1_VOLUME      VOLUME_ID+0
 #define IN2_VOLUME      VOLUME_ID+1
 #define OUT1_VOLUME     VOLUME_ID+2
 #define OUT2_VOLUME     VOLUME_ID+3
 #define HP_VOLUME       VOLUME_ID+4
+
+#define PEDALBOARD_SAVE_ID   PEDALBOARD_ID+2
+#define PEDALBOARD_RESET_ID  PEDALBOARD_ID+3
 
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
@@ -278,6 +282,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"< Back to SETTINGS",              MENU_RETURN,    HEADPHONE_ID+1,     HEADPHONE_ID,   system_save_gains_cb, 0},  \
     {"Volume",                          MENU_GRAPH,     HP_VOLUME,          HEADPHONE_ID,   system_volume_cb    , 0},  \
     {"Direct Monitoring: ",             MENU_ON_OFF,    HEADPHONE_ID+3,     HEADPHONE_ID,   system_hp_bypass_cb , 0},  \
+    {"Pedalboard",                      MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                , 0},  \
+    {"Save State",                      MENU_CONFIRM,   PEDALBOARD_SAVE_ID, PEDALBOARD_ID,  system_pedalboard_cb, 0},  \
+    {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_RESET_ID,PEDALBOARD_ID,  system_pedalboard_cb, 0},  \
     {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb  , 1},  \
@@ -313,12 +321,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
+    {PEDALBOARD_SAVE_ID, "Save all current pedalboard values as default?"},         \
+    {PEDALBOARD_RESET_ID, "Reset all pedalboard values to last saved state?"},      \
     {UPGRADE_ID, "To proceed with system upgrade please keep pressed left footswitch and click YES."},
-
-/*
-    {PEDALBOARD_ID+2, "Are you sure to reset all pedalboard values to last saved state?"},      \
-    {PEDALBOARD_ID+3, "Are you sure to save all current pedalboard values as default?"},        \
-*/
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
