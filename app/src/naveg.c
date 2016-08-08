@@ -893,6 +893,21 @@ static void menu_enter(void)
         // defines the buttons count
         item->data.list_count = 1;
 
+        // default popup content value
+        item->data.popup_content = NULL;
+
+        // locates the popup menu
+        i = 0;
+        while (g_menu_popups[i].popup_content)
+        {
+            if (item->desc->id == g_menu_popups[i].menu_id)
+            {
+                item->data.popup_content = g_menu_popups[i].popup_content;
+                break;
+            }
+            i++;
+        }
+
         // calls the action callback
         if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
     }

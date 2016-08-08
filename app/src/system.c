@@ -166,8 +166,25 @@ void system_pedalboard_cb(void *arg, int event)
 
 void system_bluetooth_cb(void *arg, int event)
 {
-    UNUSED_PARAM(arg);
-    UNUSED_PARAM(event);
+    menu_item_t *item = arg;
+
+    if (event == MENU_EV_ENTER)
+    {
+        const char *response;
+        if (item->desc->id == BLUETOOTH_ID)
+        {
+            response = cli_command("mod-bluetooth status", CLI_RETRIEVE_RESPONSE);
+            update_status(item->data.list[2], response);
+            response = cli_command("mod-bluetooth name", CLI_RETRIEVE_RESPONSE);
+            update_status(item->data.list[3], response);
+            response = cli_command("mod-bluetooth address", CLI_RETRIEVE_RESPONSE);
+            update_status(item->data.list[4], response);
+        }
+        if (item->desc->id == BLUETOOTH_DISCO_ID)
+        {
+            cli_command("mod-bluetooth discovery", CLI_DISCARD_RESPONSE);
+        }
+    }
 }
 
 void system_bluetooth_pair_cb(void *arg, int event)

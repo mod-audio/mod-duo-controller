@@ -245,6 +245,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define VOLUME_ID       (11 * 10)
 #define DEVICE_ID       (12 * 10)
 #define PEDALBOARD_ID   (13 * 10)
+#define BLUETOOTH_ID    (14 * 10)
 
 #define IN1_VOLUME      VOLUME_ID+0
 #define IN2_VOLUME      VOLUME_ID+1
@@ -254,6 +255,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 #define PEDALBOARD_SAVE_ID   PEDALBOARD_ID+2
 #define PEDALBOARD_RESET_ID  PEDALBOARD_ID+3
+
+#define BLUETOOTH_DISCO_ID   BLUETOOTH_ID+2
+
 
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
@@ -286,6 +290,12 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                , 0},  \
     {"Save State",                      MENU_CONFIRM,   PEDALBOARD_SAVE_ID, PEDALBOARD_ID,  system_pedalboard_cb, 0},  \
     {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_RESET_ID,PEDALBOARD_ID,  system_pedalboard_cb, 0},  \
+    {"Bluetooth",                       MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        system_bluetooth_cb , 0},  \
+    {"< Back to SETTINGS",              MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                , 0},  \
+    {"Enable discovery",                MENU_OK,        BLUETOOTH_DISCO_ID, BLUETOOTH_ID,   NULL                , 0},  \
+    {"Status:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                , 0},  \
+    {"Name:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                , 0},  \
+    {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                , 0},  \
     {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb  , 1},  \
@@ -305,24 +315,11 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"Serial Number:",                  MENU_OK,        DEVICE_ID+2,        DEVICE_ID,      system_tag_cb       , 0},  \
     {"System Upgrade",                  MENU_CONFIRM,   UPGRADE_ID,         ROOT_ID,        system_upgrade_cb   , 0},  \
 
-/* --- menu options temporarily disabled (they were positioned below SETTINGS node)
-    {"True Bypass                 ",    MENU_BYP_PROC,  TRUE_BYPASS_ID,     ROOT_ID,        system_true_bypass_cb     , 1},  \
-    {"Pedalboard",                      MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                      , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                      , 0},  \
-    {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_ID+2,    PEDALBOARD_ID,  NULL                      , 0},  \
-    {"Save State",                      MENU_CONFIRM,   PEDALBOARD_ID+3,    PEDALBOARD_ID,  NULL                      , 0},  \
-    {"Bluetooth",                       MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        NULL                      , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                      , 0},  \
-    {"Pair",                            MENU_NONE,      BLUETOOTH_ID+2,     BLUETOOTH_ID,   NULL                      , 0},  \
-    {"Status:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                      , 0},  \
-    {"Name:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                      , 0},  \
-    {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                      , 0},  \
-*/
-
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
     {PEDALBOARD_SAVE_ID, "Save all current pedalboard values as default?"},         \
     {PEDALBOARD_RESET_ID, "Reset all pedalboard values to last saved state?"},      \
+    {BLUETOOTH_DISCO_ID, "Bluetooth discovery mode is now enabled for 2 minutes"},  \
     {UPGRADE_ID, "To proceed with system upgrade please keep pressed left footswitch and click YES."},
 
 //// Foot functions leds colors
