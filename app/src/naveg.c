@@ -810,7 +810,8 @@ static void menu_enter(void)
         item = g_current_item;
 
         // calls the action callback
-        if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
+        if (g_current_item->desc->type == MENU_CONFIRM && item->desc->action_cb)
+            item->desc->action_cb(item, MENU_EV_ENTER);
 
         // gets the menu item
         item = g_current_menu->data;

@@ -180,7 +180,7 @@ void system_bluetooth_cb(void *arg, int event)
             response = cli_command("mod-bluetooth address", CLI_RETRIEVE_RESPONSE);
             update_status(item->data.list[4], response);
         }
-        if (item->desc->id == BLUETOOTH_DISCO_ID)
+        else if (item->desc->id == BLUETOOTH_DISCO_ID)
         {
             cli_command("mod-bluetooth discovery", CLI_DISCARD_RESPONSE);
         }
