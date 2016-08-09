@@ -63,7 +63,6 @@
 void system_true_bypass_cb(void *arg, int event);
 void system_pedalboard_cb(void *arg, int event);
 void system_bluetooth_cb(void *arg, int event);
-void system_bluetooth_pair_cb(void *arg, int event);
 void system_services_cb(void *arg, int event);
 void system_restart_jack_cb(void *arg, int event);
 void system_restart_host_cb(void *arg, int event);

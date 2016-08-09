@@ -210,11 +210,20 @@ static void displays_task(void *pvParameters)
     UNUSED_PARAM(pvParameters);
 
     uint8_t i = 0;
+    uint32_t count = 0;
+
     while (1)
     {
         // update GLCD
         glcd_update(hardware_glcds(i));
         if (++i == GLCD_COUNT) i = 0;
+
+        // I know, this is embarrassing
+        if (++count == 500000)
+        {
+            naveg_update();
+            count = 0;
+        }
 
         taskYIELD();
     }
@@ -294,22 +303,6 @@ static void cli_task(void *pvParameters)
         cli_process();
     }
 }
-
-
-/*
-static void monitor_task(void *pvParameters)
-{
-    UNUSED_PARAM(pvParameters);
-
-    while (1)
-    {
-        // TODO: timer for navigation update
-        //naveg_update();
-
-        taskYIELD();
-    }
-}
-*/
 
 static void setup_task(void *pvParameters)
 {

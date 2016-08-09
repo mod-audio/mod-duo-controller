@@ -1719,7 +1719,11 @@ void naveg_reset_menu(void)
 
 void naveg_update(void)
 {
-    if (g_update_cb) (*g_update_cb)(g_update_data, MENU_EV_ENTER);
+    if (g_update_cb)
+    {
+        (*g_update_cb)(g_update_data, MENU_EV_ENTER);
+        screen_system_menu(g_update_data);
+    }
 }
 
 uint8_t naveg_dialog(const char *msg)

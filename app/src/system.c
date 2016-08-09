@@ -187,12 +187,6 @@ void system_bluetooth_cb(void *arg, int event)
     }
 }
 
-void system_bluetooth_pair_cb(void *arg, int event)
-{
-    UNUSED_PARAM(arg);
-    UNUSED_PARAM(event);
-}
-
 void system_services_cb(void *arg, int event)
 {
     menu_item_t *item = arg;
@@ -205,7 +199,6 @@ void system_services_cb(void *arg, int event)
             const char *response;
             response = cli_systemctl("is-active ", systemctl_services[i]);
             update_status(item->data.list[i+1], response);
-            screen_system_menu(item);
             i++;
         }
     }
