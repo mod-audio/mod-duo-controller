@@ -93,7 +93,7 @@ typedef struct MENU_DATA_T {
 
 typedef struct MENU_ITEM_T {
     char *name;
-    const menu_desc_t *desc;
+    menu_desc_t *desc;
     menu_data_t data;
 } menu_item_t;
 

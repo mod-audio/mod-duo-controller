@@ -41,7 +41,7 @@ enum {BANKS_LIST, PEDALBOARD_LIST};
 ************************************************************************************************************************
 */
 
-static const menu_desc_t g_menu_desc[] = {
+static menu_desc_t g_menu_desc[] = {
     SYSTEM_MENU
     {NULL, 0, -1, -1, NULL, 0}
 };
@@ -825,6 +825,15 @@ static void menu_enter(void)
 
         // updates the current item
         g_current_item = node->data;
+    }
+
+    // FIXME: that's dirty, so dirty...
+    if (item->desc->id == PEDALBOARD_ID)
+    {
+        if (naveg_ui_status())
+            item->desc->type = MENU_OK;
+        else
+            item->desc->type = MENU_LIST;
     }
 
     // checks the selected item

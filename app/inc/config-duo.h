@@ -317,6 +317,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // popups text content, format : {menu_id, text_content}
 #define POPUP_CONTENT   \
+    {PEDALBOARD_ID, "To access pedalboard options please disconnect from the graphical interface"}, \
     {PEDALBOARD_SAVE_ID, "Save all current pedalboard values as default?"},         \
     {PEDALBOARD_RESET_ID, "Reset all pedalboard values to last saved state?"},      \
     {BLUETOOTH_DISCO_ID, "Bluetooth discovery mode is now enabled for 2 minutes"},  \
