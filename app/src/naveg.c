@@ -1529,13 +1529,12 @@ void naveg_toggle_tool(uint8_t display)
     // changes the display to tool mode
     if (g_tool[display].state == TOOL_OFF)
     {
-        // initial state to banks/pedalboards navigation
-        g_bp_state = BANKS_LIST;
-
         // action to do when the tool is enabled
         switch (display)
         {
             case DISPLAY_TOOL_NAVIG:
+                // initial state to banks/pedalboards navigation
+                g_bp_state = BANKS_LIST;
                 request_banks_list();
                 break;
 
