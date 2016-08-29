@@ -172,6 +172,8 @@ void hardware_setup(void)
         // actuators properties
         actuator_set_prop(hardware_actuators(ENCODER0 + i), ENCODER_STEPS, 3);
         actuator_set_prop(hardware_actuators(ENCODER0 + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
+
+        actuator_set_prop(hardware_actuators(FOOTSWITCH0 + i), BUTTON_HOLD_TIME, 2000);
     }
 
     ////////////////////////////////////////////////////////////////

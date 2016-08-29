@@ -324,12 +324,12 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
     widget_textbox(display, &footer);
 }
 
-void screen_tool(uint8_t display_id)
+void screen_tool(uint8_t tool, uint8_t display_id)
 {
     bp_list_t *bp_list;
     glcd_t *display = hardware_glcds(display_id);
 
-    switch (display_id)
+    switch (tool)
     {
         case DISPLAY_TOOL_SYSTEM:
             naveg_reset_menu();
@@ -436,6 +436,9 @@ void screen_system_menu(menu_item_t *item)
 {
     // return if system is disabled
     if (!naveg_is_tool_mode(DISPLAY_TOOL_SYSTEM))
+        return;
+
+    if (naveg_is_tool_mode(DISPLAY_TOOL_NAVIG))
         return;
 
     static menu_item_t *last_item;
@@ -566,7 +569,7 @@ void screen_tuner(float frequency, char *note, int8_t cents)
 
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(DISPLAY_TOOL_TUNER))
-        widget_tuner(hardware_glcds(DISPLAY_TOOL_TUNER), &g_tuner);
+        widget_tuner(hardware_glcds(1), &g_tuner);
 }
 
 void screen_tuner_input(uint8_t input)
@@ -575,7 +578,7 @@ void screen_tuner_input(uint8_t input)
 
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(DISPLAY_TOOL_TUNER))
-        widget_tuner(hardware_glcds(DISPLAY_TOOL_TUNER), &g_tuner);
+        widget_tuner(hardware_glcds(1), &g_tuner);
 }
 
 void screen_image(uint8_t display, const uint8_t *image)

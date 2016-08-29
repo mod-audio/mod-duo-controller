@@ -1356,7 +1356,7 @@ void naveg_ui_connection(uint8_t status)
     }
 
     if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON)
-        naveg_toggle_tool(DISPLAY_TOOL_NAVIG);
+        naveg_toggle_tool(DISPLAY_TOOL_NAVIG, DISPLAY_TOOL_NAVIG);
 }
 
 void naveg_add_control(control_t *control)
@@ -1519,7 +1519,7 @@ void naveg_foot_change(uint8_t foot)
     control_set(foot, g_foots[foot]);
 }
 
-void naveg_toggle_tool(uint8_t display)
+void naveg_toggle_tool(uint8_t tool, uint8_t display)
 {
     if (!g_initialized) return;
 
@@ -1527,10 +1527,10 @@ void naveg_toggle_tool(uint8_t display)
     screen_clear(display);
 
     // changes the display to tool mode
-    if (g_tool[display].state == TOOL_OFF)
+    if (g_tool[tool].state == TOOL_OFF)
     {
         // action to do when the tool is enabled
-        switch (display)
+        switch (tool)
         {
             case DISPLAY_TOOL_NAVIG:
                 // initial state to banks/pedalboards navigation
@@ -1544,16 +1544,16 @@ void naveg_toggle_tool(uint8_t display)
         }
 
         // draws the tool
-        g_tool[display].state = TOOL_ON;
-        screen_tool(display);
+        g_tool[tool].state = TOOL_ON;
+        screen_tool(tool, display);
     }
     // changes the display to control mode
     else
     {
-        g_tool[display].state = TOOL_OFF;
+        g_tool[tool].state = TOOL_OFF;
 
         // action to do when the tool is disabled
-        switch (display)
+        switch (tool)
         {
             case DISPLAY_TOOL_SYSTEM:
                 g_update_cb = NULL;
@@ -1697,7 +1697,7 @@ void naveg_enter(uint8_t display)
 
     if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && display == DISPLAY_TOOL_NAVIG) bp_enter();
     if (g_tool[DISPLAY_TOOL_SYSTEM].state == TOOL_ON && display == DISPLAY_TOOL_SYSTEM) menu_enter();
-    if (g_tool[DISPLAY_TOOL_TUNER].state  == TOOL_ON && display == DISPLAY_TOOL_TUNER) tuner_enter();
+    if (g_tool[DISPLAY_TOOL_TUNER].state  == TOOL_ON && display == 1) tuner_enter();
 }
 
 void naveg_up(uint8_t display)
@@ -1760,7 +1760,7 @@ uint8_t naveg_dialog(const char *msg)
 
     xSemaphoreTake(g_dialog_sem, portMAX_DELAY);
 
-    naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
+    naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, DISPLAY_TOOL_SYSTEM);
     return g_current_item->data.hover;
 }
 

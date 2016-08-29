@@ -65,7 +65,7 @@ void screen_clear(uint8_t display_id);
 void screen_control(uint8_t display_id, control_t *control);
 void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max);
 void screen_footer(uint8_t display_id, const char *name, const char *value);
-void screen_tool(uint8_t display_id);
+void screen_tool(uint8_t tool, uint8_t display_id);
 void screen_bp_list(const char *title, bp_list_t *list);
 void screen_system_menu(menu_item_t *item);
 void screen_tuner(float frequency, char *note, int8_t cents);

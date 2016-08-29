@@ -264,7 +264,7 @@ static void actuators_task(void *pvParameters)
                 }
                 if (BUTTON_HOLD(status))
                 {
-                    naveg_toggle_tool(id);
+                    naveg_toggle_tool(id, id);
                 }
                 if (ENCODER_TURNED_CW(status))
                 {
@@ -284,6 +284,10 @@ static void actuators_task(void *pvParameters)
                 if (BUTTON_PRESSED(status))
                 {
                     naveg_foot_change(id);
+                }
+                if (BUTTON_HOLD(status))
+                {
+                    naveg_toggle_tool(DISPLAY_TOOL_TUNER, 1);
                 }
             }
 
@@ -334,7 +338,7 @@ static void setup_task(void *pvParameters)
         actuator_set_event(hardware_actuators(ENCODER0 + i), actuators_cb);
         actuator_enable_event(hardware_actuators(ENCODER0 + i), EV_ALL_ENCODER_EVENTS);
         actuator_set_event(hardware_actuators(FOOTSWITCH0 + i), actuators_cb);
-        actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_BUTTON_PRESSED);
+        actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_BUTTON_PRESSED | EV_BUTTON_HELD);
     }
 
     // protocol definitions
