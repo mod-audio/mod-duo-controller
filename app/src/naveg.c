@@ -1725,6 +1725,11 @@ void naveg_reset_menu(void)
     reset_menu_hover(g_menu);
 }
 
+int naveg_need_update(void)
+{
+    return (g_update_cb ? 1: 0);
+}
+
 void naveg_update(void)
 {
     if (g_update_cb)

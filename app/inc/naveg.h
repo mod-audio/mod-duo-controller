@@ -111,6 +111,7 @@ void naveg_down(uint8_t display);
 void naveg_reset_menu(void);
 // update the navigation screen if necessary
 void naveg_update(void);
+int naveg_need_update(void);
 uint8_t naveg_dialog(const char *msg);
 uint8_t naveg_ui_status(void);
 

@@ -219,9 +219,16 @@ static void displays_task(void *pvParameters)
         if (++i == GLCD_COUNT) i = 0;
 
         // I know, this is embarrassing
-        if (++count == 500000)
+        if (naveg_need_update())
         {
-            naveg_update();
+            if (++count == 500000)
+            {
+                naveg_update();
+                count = 0;
+            }
+        }
+        else
+        {
             count = 0;
         }
 
