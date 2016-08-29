@@ -65,7 +65,7 @@ typedef enum {
 #define CLOCK_PERIOD                1
 
 // Debounce configuration (in miliseconds)
-#define BUTTON_PRESS_DEBOUNCE       35
+#define BUTTON_PRESS_DEBOUNCE       15
 #define BUTTON_RELEASE_DEBOUNCE     50
 #define ENCODER_PRESS_DEBOUNCE      35
 #define ENCODER_RELEASE_DEBOUNCE    100
