@@ -410,3 +410,13 @@ void system_save_gains_cb(void *arg, int event)
         cli_command("mod-amixer save", CLI_DISCARD_RESPONSE);
     }
 }
+
+void system_banks_cb(void *arg, int event)
+{
+    UNUSED_PARAM(arg);
+
+    if (event == MENU_EV_ENTER)
+    {
+        naveg_toggle_tool(DISPLAY_TOOL_NAVIG, 0);
+    }
+}

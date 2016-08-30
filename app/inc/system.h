@@ -76,6 +76,7 @@ void system_volume_cb(void *arg, int event);
 void system_stage_cb(void *arg, int event);
 void system_hp_bypass_cb(void *arg, int event);
 void system_save_gains_cb(void *arg, int event);
+void system_banks_cb(void *arg, int event);
 
 
 /*

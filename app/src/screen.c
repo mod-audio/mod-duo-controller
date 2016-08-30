@@ -355,7 +355,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
     listbox_t list_box;
     textbox_t title_box, empty;
 
-    glcd_t *display = hardware_glcds(DISPLAY_TOOL_NAVIG);
+    glcd_t *display = hardware_glcds(0);
 
     // clears the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);

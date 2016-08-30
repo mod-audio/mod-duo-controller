@@ -26,6 +26,7 @@
 */
 
 static char g_back_to_bank[] = {"< Back to bank list"};
+static char g_back_to_settings[] = {"< Back to SETTINGS"};
 
 
 /*
@@ -190,7 +191,7 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
 {
     if (!list_data || list_count == 0 || (list_count % 2)) return NULL;
 
-    list_count /= 2;
+    list_count = (list_count / 2) + 1;
 
     // creates a array of bank
     bp_list_t *bp_list = (bp_list_t *) MALLOC(sizeof(bp_list_t));
@@ -205,7 +206,7 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
     // checks memory allocation
     if (!bp_list->names || !bp_list->uids) goto error;
 
-    uint32_t i = 0, j = 0;
+    uint32_t i = 0, j = 1;
 
     // initializes the pointers
     for (i = 0; i < (list_count + 1); i++)
@@ -213,6 +214,10 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
         bp_list->names[i] = NULL;
         bp_list->uids[i] = NULL;
     }
+
+    // first line is 'back to banks list'
+    bp_list->names[0] = g_back_to_settings;
+    bp_list->uids[0] = NULL;
 
     // fills the bp_list struct
     i = 0;
@@ -243,7 +248,7 @@ void data_free_banks_list(bp_list_t *bp_list)
 
     if (bp_list->names)
     {
-        for (i = 0; i < bp_list->count; i++)
+        for (i = 1; i < bp_list->count; i++)
             FREE(bp_list->names[i]);
 
         FREE(bp_list->names);
@@ -251,7 +256,7 @@ void data_free_banks_list(bp_list_t *bp_list)
 
     if (bp_list->uids)
     {
-        for (i = 0; i < bp_list->count; i++)
+        for (i = 1; i < bp_list->count; i++)
             FREE(bp_list->uids[i]);
 
         FREE(bp_list->uids);

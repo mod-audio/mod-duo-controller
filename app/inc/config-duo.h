@@ -218,8 +218,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 // which display will show which tool
 #define DISPLAY_TOOL_SYSTEM 0
-#define DISPLAY_TOOL_NAVIG  1
-#define DISPLAY_TOOL_TUNER  2
+#define DISPLAY_TOOL_TUNER  1
+#define DISPLAY_TOOL_NAVIG  2
 
 //// Screen definitions
 // defines the default rotary text
@@ -246,6 +246,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define DEVICE_ID       (12 * 10)
 #define PEDALBOARD_ID   (13 * 10)
 #define BLUETOOTH_ID    (14 * 10)
+#define BANKS_ID        (15 * 10)
 
 #define IN1_VOLUME      VOLUME_ID+0
 #define IN2_VOLUME      VOLUME_ID+1
@@ -262,6 +263,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
     {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                , 0},  \
+    {"Banks",                           MENU_NONE,      BANKS_ID,           ROOT_ID,        system_banks_cb     , 0},  \
     {"Volume and Gains",                MENU_LIST,      VOL_GAIN_ID,        ROOT_ID,        NULL                , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    VOL_GAIN_ID+1,      VOL_GAIN_ID,    system_save_gains_cb, 0},  \
     {"Input 1",                         MENU_LIST,      IN1_ID,             VOL_GAIN_ID,    NULL                , 0},  \

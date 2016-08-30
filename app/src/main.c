@@ -285,10 +285,6 @@ static void actuators_task(void *pvParameters)
                 {
                     naveg_foot_change(id);
                 }
-                if (BUTTON_HOLD(status))
-                {
-                    naveg_toggle_tool(DISPLAY_TOOL_TUNER, 1);
-                }
             }
 
             vPortFree(actuator_info);
@@ -338,7 +334,7 @@ static void setup_task(void *pvParameters)
         actuator_set_event(hardware_actuators(ENCODER0 + i), actuators_cb);
         actuator_enable_event(hardware_actuators(ENCODER0 + i), EV_ALL_ENCODER_EVENTS);
         actuator_set_event(hardware_actuators(FOOTSWITCH0 + i), actuators_cb);
-        actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_BUTTON_PRESSED | EV_BUTTON_HELD);
+        actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_BUTTON_PRESSED);
     }
 
     // protocol definitions
