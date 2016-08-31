@@ -1747,9 +1747,15 @@ void naveg_enter(uint8_t display)
 
     if (display_has_tool_enabled(display))
     {
-        if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_enter();
-        else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_enter();
-        else if (tool_is_on(DISPLAY_TOOL_TUNER)) tuner_enter();
+        if (display == 0)
+        {
+            if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_enter();
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_enter();
+        }
+        else if (display == 1)
+        {
+            if (tool_is_on(DISPLAY_TOOL_TUNER)) tuner_enter();
+        }
     }
 }
 
@@ -1759,8 +1765,11 @@ void naveg_up(uint8_t display)
 
     if (display_has_tool_enabled(display))
     {
-        if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_up();
-        else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_up();
+        if (display == 0)
+        {
+            if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_up();
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_up();
+        }
     }
 }
 
@@ -1770,8 +1779,11 @@ void naveg_down(uint8_t display)
 
     if (display_has_tool_enabled(display))
     {
-        if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_down();
-        else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_down();
+        if (display == 0)
+        {
+            if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_down();
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_down();
+        }
     }
 }
 
