@@ -353,7 +353,7 @@ void screen_tool(uint8_t tool, uint8_t display_id)
 void screen_bp_list(const char *title, bp_list_t *list)
 {
     listbox_t list_box;
-    textbox_t title_box, empty;
+    textbox_t title_box;
 
     glcd_t *display = hardware_glcds(0);
 
@@ -397,39 +397,25 @@ void screen_bp_list(const char *title, bp_list_t *list)
         list_box.text_left_margin = 2;
         widget_listbox(display, &list_box);
     }
+#if 1
     else
     {
         if (naveg_ui_status())
         {
-            empty.color = GLCD_BLACK;
-            empty.mode = TEXT_MULTI_LINES;
-            empty.font = alterebro15;
-            empty.top_margin = 20;
-            empty.bottom_margin = 0;
-            empty.left_margin = 0;
-            empty.right_margin = 0;
-            empty.height = DISPLAY_HEIGHT;
-            empty.width = DISPLAY_WIDTH;
-            empty.text = "To access banks here please disconnect from the graphical interface";
-            empty.align = ALIGN_LEFT_TOP;
+            popup_t popup;
+            popup.x = 0;
+            popup.y = 0;
+            popup.width = DISPLAY_WIDTH;
+            popup.height = DISPLAY_HEIGHT - 1;
+            popup.font = alterebro15;
+            popup.title = 0;
+            popup.content = "To access banks here please disconnect from the graphical interface";
+            popup.button_selected = 0;
+            popup.type = OK_ONLY;
+            widget_popup(display, &popup);
         }
-        else
-        {
-            empty.color = GLCD_BLACK;
-            empty.mode = TEXT_SINGLE_LINE;
-            empty.font = alterebro24;
-            empty.top_margin = 0;
-            empty.bottom_margin = 0;
-            empty.left_margin = 0;
-            empty.right_margin = 0;
-            empty.height = 0;
-            empty.width = 0;
-            empty.text = "NO BANKS";
-            empty.align = ALIGN_CENTER_MIDDLE;
-        }
-
-        widget_textbox(display, &empty);
     }
+#endif
 }
 
 void screen_system_menu(menu_item_t *item)

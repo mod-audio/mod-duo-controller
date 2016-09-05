@@ -708,6 +708,13 @@ static void bp_enter(void)
     bp_list_t *bp_list;
     const char *title;
 
+    if (naveg_ui_status())
+    {
+        tool_off(DISPLAY_TOOL_NAVIG);
+        tool_on(DISPLAY_TOOL_SYSTEM, 0);
+        screen_system_menu(g_current_item);
+    }
+
     if (!g_banks) return;
 
     if (g_bp_state == BANKS_LIST)
@@ -717,7 +724,6 @@ static void bp_enter(void)
             tool_off(DISPLAY_TOOL_NAVIG);
             tool_on(DISPLAY_TOOL_SYSTEM, 0);
             screen_system_menu(g_current_item);
-            //naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, 0);
             return;
         }
 
