@@ -437,11 +437,12 @@ uint8_t cli_restore(uint8_t action)
         naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
 
         // clear screens
-        for (uint8_t i = 0; i < SLOTS_COUNT; i++)
+        uint8_t i;
+        for (i = 0; i < SLOTS_COUNT; i++)
             screen_clear(i);
 
         // turn off leds
-        for (uint8_t i = 0; i < SLOTS_COUNT; i++)
+        for (i = 0; i < SLOTS_COUNT; i++)
             led_set_color(hardware_leds(i), BLACK);
 
         // force status to trigger restore after reboot
