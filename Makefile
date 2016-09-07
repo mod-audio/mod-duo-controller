@@ -10,7 +10,7 @@ MCU = cortex-m3
 
 # build configuration
 mod=$(MAKECMDGOALS)
-ifeq ($(mod),$(filter $(mod),duo duo-rc1 duo-rc2))
+ifeq ($(mod),$(filter $(mod),modduo))
 CPU = LPC1759
 CPU_SERIE = LPC17xx
 endif
@@ -79,16 +79,12 @@ NOCOLOR	= '\e[0m'
 ifeq ($(mod),)
 all:
 	@echo -e "Usage: to build, use one of the following:"
-	@echo -e "\tmake duo"
-	@echo -e "\tmake duo-rc1"
-	@echo -e "\tmake duo-rc2"
+	@echo -e "\tmake modduo"
 else
 all: prebuild build
 endif
 
-duo: all
-duo-rc1: all
-duo-rc2: all
+modduo: all
 
 build: elf lss sym hex bin
 
