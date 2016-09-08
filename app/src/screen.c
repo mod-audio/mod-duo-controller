@@ -345,6 +345,8 @@ void screen_tool(uint8_t tool, uint8_t display_id)
 
         case DISPLAY_TOOL_NAVIG:
             bp_list = naveg_get_banks();
+            if (bp_list && bp_list->selected == 0)
+                bp_list->selected = 1;
             screen_bp_list("BANKS", bp_list);
             break;
     }
@@ -397,7 +399,6 @@ void screen_bp_list(const char *title, bp_list_t *list)
         list_box.text_left_margin = 2;
         widget_listbox(display, &list_box);
     }
-#if 1
     else
     {
         if (naveg_ui_status())
@@ -415,7 +416,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
             widget_popup(display, &popup);
         }
     }
-#endif
+
 }
 
 void screen_system_menu(menu_item_t *item)
