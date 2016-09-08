@@ -324,12 +324,12 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
     widget_textbox(display, &footer);
 }
 
-void screen_tool(uint8_t display_id)
+void screen_tool(uint8_t tool, uint8_t display_id)
 {
     bp_list_t *bp_list;
     glcd_t *display = hardware_glcds(display_id);
 
-    switch (display_id)
+    switch (tool)
     {
         case DISPLAY_TOOL_SYSTEM:
             naveg_reset_menu();
@@ -345,6 +345,8 @@ void screen_tool(uint8_t display_id)
 
         case DISPLAY_TOOL_NAVIG:
             bp_list = naveg_get_banks();
+            if (bp_list && bp_list->selected == 0)
+                bp_list->selected = 1;
             screen_bp_list("BANKS", bp_list);
             break;
     }
@@ -353,9 +355,9 @@ void screen_tool(uint8_t display_id)
 void screen_bp_list(const char *title, bp_list_t *list)
 {
     listbox_t list_box;
-    textbox_t title_box, empty;
+    textbox_t title_box;
 
-    glcd_t *display = hardware_glcds(DISPLAY_TOOL_NAVIG);
+    glcd_t *display = hardware_glcds(0);
 
     // clears the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
@@ -401,41 +403,29 @@ void screen_bp_list(const char *title, bp_list_t *list)
     {
         if (naveg_ui_status())
         {
-            empty.color = GLCD_BLACK;
-            empty.mode = TEXT_MULTI_LINES;
-            empty.font = alterebro15;
-            empty.top_margin = 20;
-            empty.bottom_margin = 0;
-            empty.left_margin = 0;
-            empty.right_margin = 0;
-            empty.height = DISPLAY_HEIGHT;
-            empty.width = DISPLAY_WIDTH;
-            empty.text = "To access banks here please disconnect from the graphical interface";
-            empty.align = ALIGN_LEFT_TOP;
+            popup_t popup;
+            popup.x = 0;
+            popup.y = 0;
+            popup.width = DISPLAY_WIDTH;
+            popup.height = DISPLAY_HEIGHT - 1;
+            popup.font = alterebro15;
+            popup.title = 0;
+            popup.content = "To access banks here please disconnect from the graphical interface";
+            popup.button_selected = 0;
+            popup.type = OK_ONLY;
+            widget_popup(display, &popup);
         }
-        else
-        {
-            empty.color = GLCD_BLACK;
-            empty.mode = TEXT_SINGLE_LINE;
-            empty.font = alterebro24;
-            empty.top_margin = 0;
-            empty.bottom_margin = 0;
-            empty.left_margin = 0;
-            empty.right_margin = 0;
-            empty.height = 0;
-            empty.width = 0;
-            empty.text = "NO BANKS";
-            empty.align = ALIGN_CENTER_MIDDLE;
-        }
-
-        widget_textbox(display, &empty);
     }
+
 }
 
 void screen_system_menu(menu_item_t *item)
 {
     // return if system is disabled
     if (!naveg_is_tool_mode(DISPLAY_TOOL_SYSTEM))
+        return;
+
+    if (naveg_is_tool_mode(DISPLAY_TOOL_NAVIG))
         return;
 
     static menu_item_t *last_item;
@@ -566,7 +556,7 @@ void screen_tuner(float frequency, char *note, int8_t cents)
 
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(DISPLAY_TOOL_TUNER))
-        widget_tuner(hardware_glcds(DISPLAY_TOOL_TUNER), &g_tuner);
+        widget_tuner(hardware_glcds(1), &g_tuner);
 }
 
 void screen_tuner_input(uint8_t input)
@@ -575,7 +565,7 @@ void screen_tuner_input(uint8_t input)
 
     // checks if tuner is enable and update it
     if (naveg_is_tool_mode(DISPLAY_TOOL_TUNER))
-        widget_tuner(hardware_glcds(DISPLAY_TOOL_TUNER), &g_tuner);
+        widget_tuner(hardware_glcds(1), &g_tuner);
 }
 
 void screen_image(uint8_t display, const uint8_t *image)

@@ -33,6 +33,7 @@ enum {TOOL_OFF, TOOL_ON};
 enum {BANKS_LIST, PEDALBOARD_LIST};
 
 #define MAX_CHARS_MENU_NAME     (128/4)
+#define MAX_TOOLS               4
 
 
 /*
@@ -64,8 +65,8 @@ struct TAP_TEMPO_T {
 } g_tap_tempo[SLOTS_COUNT];
 
 struct TOOL_T {
-    uint8_t state;
-} g_tool[SLOTS_COUNT];
+    uint8_t state, display;
+} g_tool[MAX_TOOLS];
 
 
 /*
@@ -123,6 +124,44 @@ static void bank_config_footer(void);
 *           LOCAL FUNCTIONS
 ************************************************************************************************************************
 */
+
+static void tool_on(uint8_t tool, uint8_t display)
+{
+    g_tool[tool].state = TOOL_ON;
+    g_tool[tool].display = display;
+}
+
+static void tool_off(uint8_t tool)
+{
+    g_tool[tool].state = TOOL_OFF;
+}
+
+static int tool_is_on(uint8_t tool)
+{
+    return g_tool[tool].state;
+}
+
+static void display_disable_all_tools(uint8_t display)
+{
+    int i;
+    for (i = 0; i < MAX_TOOLS; i++)
+    {
+        if (g_tool[i].display == display)
+            g_tool[i].state = TOOL_OFF;
+    }
+}
+
+static int display_has_tool_enabled(uint8_t display)
+{
+    int i;
+    for (i = 0; i < MAX_TOOLS; i++)
+    {
+        if (g_tool[i].display == display && g_tool[i].state == TOOL_ON)
+            return 1;
+    }
+
+    return 0;
+}
 
 // search the control
 static control_t *search_control(int32_t effect_instance, const char *symbol, uint8_t *display)
@@ -247,7 +286,7 @@ static void display_control_add(control_t *control)
     }
 
     // if tool is enabled don't draws the control
-    if (g_tool[display].state == TOOL_ON) return;
+    if (display_has_tool_enabled(display)) return;
 
     // update the control screen
     screen_control(display, control);
@@ -266,7 +305,7 @@ static void display_control_rm(int32_t effect_instance, const char *symbol)
     {
         data_free_control(control);
         g_controls[display] = NULL;
-        if (g_tool[display].state == TOOL_OFF) screen_control(display, NULL);
+        if (!display_has_tool_enabled(display)) screen_control(display, NULL);
         return;
     }
 
@@ -285,7 +324,7 @@ static void display_control_rm(int32_t effect_instance, const char *symbol)
                 data_free_control(control);
                 g_controls[display] = NULL;
 
-                if (g_tool[display].state == TOOL_OFF) screen_control(display, NULL);
+                if (!display_has_tool_enabled(display)) screen_control(display, NULL);
             }
         }
     }
@@ -330,7 +369,7 @@ static void foot_control_add(control_t *control)
                 led_set_color(hardware_leds(control->actuator_id), TOGGLED_COLOR);
 
             // if is in tool mode break
-            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+            if (display_has_tool_enabled(control->actuator_id)) break;
 
             // updates the footer
             screen_footer(control->actuator_id, control->label,
@@ -343,7 +382,7 @@ static void foot_control_add(control_t *control)
             led_set_color(hardware_leds(control->actuator_id), TRIGGER_COLOR);
 
             // if is in tool mode break
-            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+            if (display_has_tool_enabled(control->actuator_id)) break;
 
             // updates the footer
             screen_footer(control->actuator_id, control->label, NULL);
@@ -379,7 +418,7 @@ static void foot_control_add(control_t *control)
             }
 
             // if is in tool mode break
-            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+            if (display_has_tool_enabled(control->actuator_id)) break;
 
             // footer text composition
             char value_txt[32];
@@ -399,7 +438,7 @@ static void foot_control_add(control_t *control)
                 led_set_color(hardware_leds(control->actuator_id), BLACK);
 
             // if is in tool mode break
-            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+            if (display_has_tool_enabled(control->actuator_id)) break;
 
             // updates the footer
             screen_footer(control->actuator_id, control->label,
@@ -424,7 +463,7 @@ static void foot_control_add(control_t *control)
             control->steps = control->scale_points_count;
 
             // if is in tool mode break
-            if (g_tool[control->actuator_id].state == TOOL_ON) break;
+            if (display_has_tool_enabled(control->actuator_id)) break;
 
             // updates the footer
             screen_footer(control->actuator_id, control->label, control->scale_points[i]->label);
@@ -443,7 +482,7 @@ static void foot_control_rm(int32_t effect_instance, const char *symbol)
     for (i = 0; i < FOOTSWITCHES_COUNT; i++)
     {
         // if there is no controls assigned, load the default screen
-        if (!g_foots[i] && g_tool[i].state == TOOL_OFF && ! bank_config_check(i))
+        if (!g_foots[i] && ! bank_config_check(i) && !display_has_tool_enabled(i))
         {
             screen_footer(i, NULL, NULL);
             continue;
@@ -465,7 +504,7 @@ static void foot_control_rm(int32_t effect_instance, const char *symbol)
                     led_set_color(hardware_leds(i), BLACK);
 
                     // update the footer
-                    if (g_tool[i].state == TOOL_OFF)
+                    if (!display_has_tool_enabled(i))
                         screen_footer(i, NULL, NULL);
                 }
             }
@@ -484,7 +523,7 @@ static void control_set(uint8_t display, control_t *control)
         case CONTROL_PROP_LOGARITHMIC:
 
             // update the screen
-            if (g_tool[control->actuator_id].state == TOOL_OFF)
+            if (!display_has_tool_enabled(display))
                 screen_control(display, control);
             break;
 
@@ -493,7 +532,7 @@ static void control_set(uint8_t display, control_t *control)
             if (control->actuator_type == KNOB)
             {
                 // update the screen
-                if (g_tool[control->actuator_id].state == TOOL_OFF)
+                if (!display_has_tool_enabled(display))
                     screen_control(display, control);
             }
             else if (control->actuator_type == FOOT)
@@ -504,7 +543,7 @@ static void control_set(uint8_t display, control_t *control)
 
                 // updates the value and the screen
                 control->value = control->scale_points[control->step]->value;
-                if (g_tool[control->actuator_id].state == TOOL_OFF)
+                if (!display_has_tool_enabled(display))
                     screen_footer(control->actuator_id, control->label, control->scale_points[control->step]->label);
             }
             break;
@@ -587,6 +626,8 @@ static void parse_banks_list(void *data)
 
 static void request_banks_list(void)
 {
+    g_bp_state = BANKS_LIST;
+
     // sets the response callback
     comm_webgui_set_response_cb(parse_banks_list);
 
@@ -667,10 +708,25 @@ static void bp_enter(void)
     bp_list_t *bp_list;
     const char *title;
 
+    if (naveg_ui_status())
+    {
+        tool_off(DISPLAY_TOOL_NAVIG);
+        tool_on(DISPLAY_TOOL_SYSTEM, 0);
+        screen_system_menu(g_current_item);
+    }
+
     if (!g_banks) return;
 
     if (g_bp_state == BANKS_LIST)
     {
+        if (g_banks->hover == 0)
+        {
+            tool_off(DISPLAY_TOOL_NAVIG);
+            tool_on(DISPLAY_TOOL_SYSTEM, 0);
+            screen_system_menu(g_current_item);
+            return;
+        }
+
         request_pedalboards_list(g_banks->uids[g_banks->hover]);
         if (!g_naveg_pedalboards) return;
 
@@ -953,14 +1009,17 @@ static void menu_enter(void)
         if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
     }
 
-    screen_system_menu(item);
-
-    g_update_cb = NULL;
-    g_update_data = NULL;
-    if (item->desc->need_update)
+    if (tool_is_on(DISPLAY_TOOL_SYSTEM) && !tool_is_on(DISPLAY_TOOL_NAVIG))
     {
-        g_update_cb = item->desc->action_cb;
-        g_update_data = item;
+        screen_system_menu(item);
+
+        g_update_cb = NULL;
+        g_update_data = NULL;
+        if (item->desc->need_update)
+        {
+            g_update_cb = item->desc->action_cb;
+            g_update_data = item;
+        }
     }
 
     if (item->desc->type == MENU_CONFIRM2)
@@ -1147,7 +1206,7 @@ static void bank_config_update(uint8_t bank_func_idx)
     // updates the navigation menu if the current pedalboards list
     // is the same assigned to foot pedalboards navigation (bank config)
     if (g_selected_pedalboards && g_current_bank == g_banks->hover &&
-        g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && g_bp_state == PEDALBOARD_LIST)
+        tool_is_on(DISPLAY_TOOL_NAVIG) && g_bp_state == PEDALBOARD_LIST)
     {
         g_naveg_pedalboards->selected = g_selected_pedalboards->selected;
         g_naveg_pedalboards->hover = g_selected_pedalboards->selected;
@@ -1174,7 +1233,7 @@ static void bank_config_footer(void)
                 bypass = 0; // FIX: get true bypass state
                 led_set_color(hardware_leds(bank_conf->actuator_id), bypass ? BLACK : TRUE_BYPASS_COLOR);
 
-                if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;
+                if (display_has_tool_enabled(bank_conf->actuator_id)) break;
                 screen_footer(bank_conf->actuator_id, TRUE_BYPASS_FOOTER_TEXT,
                             (bypass ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
                 break;
@@ -1185,7 +1244,7 @@ static void bank_config_footer(void)
 
                 led_set_color(hardware_leds(bank_conf->actuator_id), color);
 
-                if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;
+                if (display_has_tool_enabled(bank_conf->actuator_id)) break;
                 screen_footer(bank_conf->actuator_id, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT);
                 break;
 
@@ -1195,7 +1254,7 @@ static void bank_config_footer(void)
 
                 led_set_color(hardware_leds(bank_conf->actuator_id), color);
 
-                if (g_tool[bank_conf->actuator_id].state == TOOL_ON) break;
+                if (display_has_tool_enabled(bank_conf->actuator_id)) break;
                 screen_footer(bank_conf->actuator_id, pedalboard_name, PEDALBOARD_PREV_FOOTER_TEXT);
                 break;
         }
@@ -1221,9 +1280,6 @@ void naveg_init(void)
 
         // initialize the foot controls pointers
         g_foots[i] = NULL;
-
-        // initialize the tools
-        g_tool[i].state = TOOL_OFF;
 
         // initialize the tap tempo
         g_tap_tempo[i].state = TT_INIT;
@@ -1355,8 +1411,9 @@ void naveg_ui_connection(uint8_t status)
         g_selected_pedalboards = NULL;
     }
 
-    if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON)
-        naveg_toggle_tool(DISPLAY_TOOL_NAVIG);
+
+    if (tool_is_on(DISPLAY_TOOL_NAVIG))
+        naveg_toggle_tool(DISPLAY_TOOL_NAVIG, 0);
 }
 
 void naveg_add_control(control_t *control)
@@ -1392,7 +1449,7 @@ void naveg_inc_control(uint8_t display)
     if (!g_initialized) return;
 
     // if is in tool mode return
-    if (g_tool[display].state == TOOL_ON) return;
+    if (display_has_tool_enabled(display)) return;
 
     control_t *control = g_controls[display];
     if (!control) return;
@@ -1413,7 +1470,7 @@ void naveg_dec_control(uint8_t display)
     if (!g_initialized) return;
 
     // if is in tool mode return
-    if (g_tool[display].state == TOOL_ON) return;
+    if (display_has_tool_enabled(display)) return;
 
     control_t *control = g_controls[display];
     if (!control) return;
@@ -1469,7 +1526,7 @@ void naveg_next_control(uint8_t display)
     if (!g_initialized) return;
 
     // if is in tool mode return
-    if (g_tool[display].state == TOOL_ON) return;
+    if (display_has_tool_enabled(display)) return;
 
     char buffer[128];
     uint8_t i;
@@ -1519,7 +1576,7 @@ void naveg_foot_change(uint8_t foot)
     control_set(foot, g_foots[foot]);
 }
 
-void naveg_toggle_tool(uint8_t display)
+void naveg_toggle_tool(uint8_t tool, uint8_t display)
 {
     if (!g_initialized) return;
 
@@ -1527,14 +1584,13 @@ void naveg_toggle_tool(uint8_t display)
     screen_clear(display);
 
     // changes the display to tool mode
-    if (g_tool[display].state == TOOL_OFF)
+    if (!tool_is_on(tool))
     {
         // action to do when the tool is enabled
-        switch (display)
+        switch (tool)
         {
             case DISPLAY_TOOL_NAVIG:
                 // initial state to banks/pedalboards navigation
-                g_bp_state = BANKS_LIST;
                 request_banks_list();
                 break;
 
@@ -1544,16 +1600,16 @@ void naveg_toggle_tool(uint8_t display)
         }
 
         // draws the tool
-        g_tool[display].state = TOOL_ON;
-        screen_tool(display);
+        tool_on(tool, display);
+        screen_tool(tool, display);
     }
     // changes the display to control mode
     else
     {
-        g_tool[display].state = TOOL_OFF;
+        display_disable_all_tools(display);
 
         // action to do when the tool is disabled
-        switch (display)
+        switch (tool)
         {
             case DISPLAY_TOOL_SYSTEM:
                 g_update_cb = NULL;
@@ -1586,7 +1642,7 @@ void naveg_toggle_tool(uint8_t display)
 
 uint8_t naveg_is_tool_mode(uint8_t display)
 {
-    return g_tool[display].state;
+    return display_has_tool_enabled(display);
 }
 
 void naveg_set_banks(bp_list_t *bp_list)
@@ -1625,7 +1681,7 @@ void naveg_bank_config(bank_config_t *bank_conf)
         {
             // updates the screen and led
             led_set_color(hardware_leds(g_bank_functions[i].actuator_id), BLACK);
-            if (g_tool[g_bank_functions[i].actuator_id].state == TOOL_OFF)
+            if (!display_has_tool_enabled(g_bank_functions[i].actuator_id))
                 screen_footer(g_bank_functions[i].actuator_id, NULL, NULL);
 
             // removes the function
@@ -1652,7 +1708,7 @@ void naveg_bank_config(bank_config_t *bank_conf)
             if (bank_conf->function == BANK_FUNC_NONE)
             {
                 led_set_color(hardware_leds(bank_conf->actuator_id), BLACK);
-                if (g_tool[bank_conf->actuator_id].state == TOOL_OFF)
+                if (!display_has_tool_enabled(bank_conf->actuator_id))
                     screen_footer(bank_conf->actuator_id, NULL, NULL);
 
                 // checks if has control assigned in this foot
@@ -1695,25 +1751,46 @@ void naveg_enter(uint8_t display)
 {
     if (!g_initialized) return;
 
-    if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && display == DISPLAY_TOOL_NAVIG) bp_enter();
-    if (g_tool[DISPLAY_TOOL_SYSTEM].state == TOOL_ON && display == DISPLAY_TOOL_SYSTEM) menu_enter();
-    if (g_tool[DISPLAY_TOOL_TUNER].state  == TOOL_ON && display == DISPLAY_TOOL_TUNER) tuner_enter();
+    if (display_has_tool_enabled(display))
+    {
+        if (display == 0)
+        {
+            if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_enter();
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_enter();
+        }
+        else if (display == 1)
+        {
+            if (tool_is_on(DISPLAY_TOOL_TUNER)) tuner_enter();
+        }
+    }
 }
 
 void naveg_up(uint8_t display)
 {
     if (!g_initialized) return;
 
-    if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && display == DISPLAY_TOOL_NAVIG) bp_up();
-    if (g_tool[DISPLAY_TOOL_SYSTEM].state == TOOL_ON && display == DISPLAY_TOOL_SYSTEM) menu_up();
+    if (display_has_tool_enabled(display))
+    {
+        if (display == 0)
+        {
+            if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_up();
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_up();
+        }
+    }
 }
 
 void naveg_down(uint8_t display)
 {
     if (!g_initialized) return;
 
-    if (g_tool[DISPLAY_TOOL_NAVIG].state == TOOL_ON && display == DISPLAY_TOOL_NAVIG) bp_down();
-    if (g_tool[DISPLAY_TOOL_SYSTEM].state == TOOL_ON && display == DISPLAY_TOOL_SYSTEM) menu_down();
+    if (display_has_tool_enabled(display))
+    {
+        if (display == 0)
+        {
+            if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_down();
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_down();
+        }
+    }
 }
 
 void naveg_reset_menu(void)
@@ -1758,14 +1835,14 @@ uint8_t naveg_dialog(const char *msg)
         dummy_menu = node_create(item);
     }
 
-    g_tool[DISPLAY_TOOL_SYSTEM].state = TOOL_ON;
+    tool_on(DISPLAY_TOOL_SYSTEM, 0);
     g_current_menu = dummy_menu;
     g_current_item = dummy_menu->data;
     screen_system_menu(g_current_item);
 
     xSemaphoreTake(g_dialog_sem, portMAX_DELAY);
 
-    naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
+    naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, DISPLAY_TOOL_SYSTEM);
     return g_current_item->data.hover;
 }
 

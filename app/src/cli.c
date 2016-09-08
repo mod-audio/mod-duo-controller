@@ -434,7 +434,7 @@ uint8_t cli_restore(uint8_t action)
         naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
 
         // disable system menu
-        naveg_toggle_tool(DISPLAY_TOOL_SYSTEM);
+        naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, DISPLAY_TOOL_SYSTEM);
 
         // clear screens
         uint8_t i;
