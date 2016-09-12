@@ -761,7 +761,7 @@ static void bp_enter(void)
             g_naveg_pedalboards->selected = g_naveg_pedalboards->hover;
 
             // request to GUI load the pedalboard
-            send_load_pedalboard(g_banks->selected, g_naveg_pedalboards->uids[g_naveg_pedalboards->selected]);
+            send_load_pedalboard(g_banks->selected - 1, g_naveg_pedalboards->uids[g_naveg_pedalboards->selected]);
 
             // if select a pedalboard in other bank free the old pedalboards list
             if (g_current_bank != g_banks->selected)
@@ -1359,7 +1359,7 @@ void naveg_initial_state(char *bank_uid, char *pedalboard_uid, char **pedalboard
     }
 
     // sets the bank index
-    uint8_t bank_id = atoi(bank_uid);
+    uint8_t bank_id = atoi(bank_uid) + 1;
     g_current_bank = bank_id;
     if (g_banks)
     {
