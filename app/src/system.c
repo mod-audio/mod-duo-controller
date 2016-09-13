@@ -44,7 +44,8 @@ const char *systemctl_services[] = {
     NULL
 };
 
-const char *version_files[] = {
+const char *versions_names[] = {
+    "version",
     "restore",
     "system",
     "controller",
@@ -230,20 +231,30 @@ void system_versions_cb(void *arg, int event)
     {
         const char *response;
         char version[8];
-        response = cli_command("cat /etc/mod-release/release", CLI_RETRIEVE_RESPONSE);
-        update_status(item->data.list[1], response);
 
         uint8_t i = 0;
-        while (version_files[i])
+        while (versions_names[i])
         {
             cli_command("mod-version ", CLI_CACHE_ONLY);
-            response = cli_command(version_files[i], CLI_RETRIEVE_RESPONSE);
+            response = cli_command(versions_names[i], CLI_RETRIEVE_RESPONSE);
             strncpy(version, response, (sizeof version) - 1);
             version[(sizeof version) - 1] = 0;
-            update_status(item->data.list[i+2], version);
+            update_status(item->data.list[i+1], version);
             screen_system_menu(item);
             i++;
         }
+    }
+}
+
+void system_release_cb(void *arg, int event)
+{
+    menu_item_t *item = arg;
+
+    if (event == MENU_EV_ENTER)
+    {
+        const char *response;
+        response = cli_command("mod-version release", CLI_RETRIEVE_RESPONSE);
+        item->data.popup_content = response;
     }
 }
 
@@ -420,3 +431,4 @@ void system_banks_cb(void *arg, int event)
         naveg_toggle_tool(DISPLAY_TOOL_NAVIG, 0);
     }
 }
+

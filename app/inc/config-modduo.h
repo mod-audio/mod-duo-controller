@@ -308,7 +308,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"ttymidi:",                        MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    NULL                , 0},  \
     {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb  , 0},  \
     {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                , 0},  \
-    {"release:",                        MENU_NONE,      VERSIONS_ID+2,      VERSIONS_ID,    NULL                , 0},  \
+    {"version:",                        MENU_OK,        VERSIONS_ID+2,      VERSIONS_ID,    system_release_cb   , 0},  \
     {"restore:",                        MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
     {"system:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                , 0},  \
     {"controller:",                     MENU_NONE,      VERSIONS_ID+5,      VERSIONS_ID,    NULL                , 0},  \
