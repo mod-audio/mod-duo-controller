@@ -97,7 +97,9 @@ bin: $(OUT_DIR)/$(PRJNAME).bin
 
 prebuild:
 	@touch .last_built
-	@[[ `cat .last_built` == $(mod) ]] || $(MAKE) clean
+ifneq ($(shell cat .last_built),$(mod))
+	@make clean
+endif
 	@mkdir -p $(OUT_DIR)
 	@mkdir -p $(OUT_DIR)/dep
 	@ln -fs ./$(CPU).ld ./link/LPCmem.ld
