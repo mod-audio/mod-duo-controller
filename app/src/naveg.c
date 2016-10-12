@@ -699,8 +699,14 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
     }
     buffer[i] = 0;
 
+    // sets the response callback
+    comm_webgui_set_response_cb(NULL);
+
     // send the data to GUI
     comm_webgui_send(buffer, i);
+
+    // waits the pedalboard loaded message to be received
+    comm_webgui_wait_response();
 }
 
 static void bp_enter(void)
