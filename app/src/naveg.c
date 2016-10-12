@@ -1173,7 +1173,7 @@ static void bank_config_update(uint8_t bank_func_idx)
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank - 1, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
 
@@ -1195,7 +1195,7 @@ static void bank_config_update(uint8_t bank_func_idx)
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank - 1, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
     }
