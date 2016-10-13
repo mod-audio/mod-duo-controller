@@ -574,8 +574,19 @@ static void control_set(uint8_t display, control_t *control)
                 // checks the tap tempo timeout
                 if (delta < g_tap_tempo[control->actuator_id].max)
                 {
-                    // converts and update the tap tempo value
-                    control->value = convert_from_ms(control->unit, delta);
+                    //get current value of tap tempo in ms
+                    float currentTapVal = convert_to_ms(control->unit, control->value);
+                    //check if it should be added to running average
+                    if (abs(currentTapVal - delta) < 100)
+                    {
+                        // converts and update the tap tempo value
+                        control->value = (2*(control->value) + convert_from_ms(control->unit, delta)) / 3;
+                    }
+                    else
+                    {
+                        // converts and update the tap tempo value
+                        control->value = convert_from_ms(control->unit, delta);
+                    }
 
                     // checks the values bounds
                     if (control->value > control->maximum) control->value = control->maximum;
