@@ -20,7 +20,7 @@
 ************************************************************************************************************************
 */
 
-#define FOOTER_NAME_WIDTH       ((DISPLAY_WIDTH * 75)/100)
+#define FOOTER_NAME_WIDTH       ((DISPLAY_WIDTH * 50)/100)
 #define FOOTER_VALUE_WIDTH      (DISPLAY_WIDTH - FOOTER_NAME_WIDTH)
 
 
