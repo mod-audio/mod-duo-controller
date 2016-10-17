@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <math.h>
 #include <float.h>
 
@@ -34,7 +35,6 @@ enum {BANKS_LIST, PEDALBOARD_LIST};
 
 #define MAX_CHARS_MENU_NAME     (128/4)
 #define MAX_TOOLS               4
-
 
 /*
 ************************************************************************************************************************
@@ -408,10 +408,24 @@ static void foot_control_add(control_t *control)
 
                 // time unit (ms, s)
                 if (strcmp(control->unit, "ms") == 0 || strcmp(control->unit, "s") == 0)
+                {
                     max = (uint32_t)(convert_to_ms(control->unit, control->maximum) + 0.5);
+                    //makes sure we enforce a proper timeout
+                    if (max > TAP_TEMPO_DEFAULT_TIMEOUT)
+                        max = TAP_TEMPO_DEFAULT_TIMEOUT;
+                }
                 // frequency unit (bpm, Hz)
                 else
-                    max = (uint32_t)(convert_to_ms(control->unit, control->minimum) + 0.5);
+                {
+                    //prevent division by 0 case
+                    if (control->minimum == 0)
+                        max = TAP_TEMPO_DEFAULT_TIMEOUT;
+                    else
+                        max = (uint32_t)(convert_to_ms(control->unit, control->minimum) + 0.5);
+                    //makes sure we enforce a proper timeout
+                    if (max > TAP_TEMPO_DEFAULT_TIMEOUT)
+                        max = TAP_TEMPO_DEFAULT_TIMEOUT;
+                }
 
                 g_tap_tempo[control->actuator_id].max = max;
                 g_tap_tempo[control->actuator_id].state = TT_COUNTING;
@@ -422,7 +436,13 @@ static void foot_control_add(control_t *control)
 
             // footer text composition
             char value_txt[32];
-            i = int_to_str(control->value, value_txt, sizeof(value_txt), 0);
+            //if unit=ms or unit=bpm -> use 0 decimal points
+            if (strcasecmp(control->unit, "ms") == 0 || strcasecmp(control->unit, "bpm") == 0)
+                i = int_to_str(control->value, value_txt, sizeof(value_txt), 0);
+            //if unit=s or unit=hz or unit=something else-> use 2 decimal points
+            else 
+                i = float_to_str(control->value, value_txt, sizeof(value_txt), 2);
+            //add space to footer
             value_txt[i++] = ' ';
             strcpy(&value_txt[i], control->unit);
 
@@ -577,7 +597,7 @@ static void control_set(uint8_t display, control_t *control)
                     //get current value of tap tempo in ms
                     float currentTapVal = convert_to_ms(control->unit, control->value);
                     //check if it should be added to running average
-                    if (abs(currentTapVal - delta) < 100)
+                    if (abs(currentTapVal - delta) < TAP_TEMPO_TAP_HYSTERESIS)
                     {
                         // converts and update the tap tempo value
                         control->value = (2*(control->value) + convert_from_ms(control->unit, delta)) / 3;

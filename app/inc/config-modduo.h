@@ -338,6 +338,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 //// Tap Tempo
 // defines the time that the led will stay turned on (in milliseconds)
 #define TAP_TEMPO_TIME_ON       20
+// defines the default timeout value (in milliseconds)
+#define TAP_TEMPO_DEFAULT_TIMEOUT 10000
+// defines the difference in time the taps can have to be registered to the same sequence (in milliseconds)
+#define TAP_TEMPO_TAP_HYSTERESIS 100
 
 //// Toggled
 // defines the toggled footer text
