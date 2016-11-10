@@ -18,7 +18,9 @@
 #define __STATE    0x02
 
 #define PWM_PERIOD      (((uint32_t)1E6) / (uint32_t)LEDS_PWM_CLOCK_Hz)
-#define COUNT_PRESCALE  ((uint32_t)1000 / PWM_PERIOD)
+//dirty fix to get taptempo LED in sync, determined by experimentation
+//was #define COUNT_PRESCALE ((uint32_t)1000 / PWM_PERIOD)
+#define COUNT_PRESCALE  (((uint32_t)1000 / (2*PWM_PERIOD)) - 2)
 
 
 /*

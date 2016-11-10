@@ -192,8 +192,8 @@ void hardware_setup(void)
     TIM_MatchConfigStruct.ResetOnMatch = TRUE;
     // stop on MR0 if MR0 matches it
     TIM_MatchConfigStruct.StopOnMatch = FALSE;
-    // set Match value, count value of 5 (5 * 10us = 50us --> 20 kHz)
-    TIM_MatchConfigStruct.MatchValue = 5;
+    // set Match value, count value of 1 (1 * 10us = 10us --> 100 kHz)
+    TIM_MatchConfigStruct.MatchValue = 1;
     // set configuration for Tim_config and Tim_MatchConfig
     TIM_Init(LPC_TIM0, TIM_TIMER_MODE, &TIM_ConfigStruct);
     TIM_ConfigMatch(LPC_TIM0, &TIM_MatchConfigStruct);

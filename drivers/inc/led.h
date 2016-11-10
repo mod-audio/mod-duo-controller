@@ -45,7 +45,7 @@
 #define MAX_LEDS                LEDS_COUNT // LEDS_COUNT is defined in config.h
 
 // defines the leds pwm clock in Hertz
-#define LEDS_PWM_CLOCK_Hz       20000
+#define LEDS_PWM_CLOCK_Hz       100000
 
 // defines if LED_TURN_ON_WITH_ZERO or LED_TURN_ON_WITH_ONE
 #define LED_TURN_ON_WITH_ZERO
