@@ -339,7 +339,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // defines the time that the led will stay turned on (in milliseconds)
 #define TAP_TEMPO_TIME_ON       100
 // defines the default timeout value (in milliseconds)
-#define TAP_TEMPO_DEFAULT_TIMEOUT 10000
+#define TAP_TEMPO_DEFAULT_TIMEOUT 3000
 // defines the difference in time the taps can have to be registered to the same sequence (in milliseconds)
 #define TAP_TEMPO_TAP_HYSTERESIS 100
 // defines the time (in milliseconds) that the tap can be over the maximum value to be registered
