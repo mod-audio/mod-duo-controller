@@ -342,6 +342,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define TAP_TEMPO_DEFAULT_TIMEOUT 10000
 // defines the difference in time the taps can have to be registered to the same sequence (in milliseconds)
 #define TAP_TEMPO_TAP_HYSTERESIS 100
+// defines the time (in milliseconds) that the tap can be over the maximum value to be registered
+#define TAP_TEMPO_MAXVAL_OVERFLOW 50
 
 //// Toggled
 // defines the toggled footer text

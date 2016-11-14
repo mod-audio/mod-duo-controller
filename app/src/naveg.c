@@ -591,8 +591,15 @@ static void control_set(uint8_t display, control_t *control)
 
             if (g_tap_tempo[control->actuator_id].state == TT_COUNTING)
             {
+                // checks if delta almost suits maximum allowed value   
+                if ((delta > g_tap_tempo[control->actuator_id].max) && ((delta - TAP_TEMPO_MAXVAL_OVERFLOW) < g_tap_tempo[control->actuator_id].max))
+                {
+                    // sets delta to maxvalue if just slightly over, instead of doing nothing
+                    delta = g_tap_tempo[control->actuator_id].max;
+                }
+
                 // checks the tap tempo timeout
-                if (delta < g_tap_tempo[control->actuator_id].max)
+                if (delta <= g_tap_tempo[control->actuator_id].max)
                 {
                     //get current value of tap tempo in ms
                     float currentTapVal = convert_to_ms(control->unit, control->value);
