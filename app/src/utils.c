@@ -502,13 +502,13 @@ uint32_t ringbuff_write(ringbuff_t *rb, const uint8_t *data, uint32_t data_size)
 uint32_t ringbuff_read(ringbuff_t *rb, uint8_t *buffer, uint32_t buffer_size)
 {
     uint32_t bytes = 0;
-    uint8_t *data, dummy;
+    uint8_t *data = buffer;
 
-    data = buffer ? buffer : &dummy;
     while (buffer_size > 0 && !BUFFER_IS_EMPTY(rb))
     {
-        *data = rb->buffer[rb->tail];
-        if (buffer) data++;
+        if (buffer)
+            *data++ = rb->buffer[rb->tail];
+
         BUFFER_INC(rb, tail);
 
         buffer_size--;
@@ -659,6 +659,48 @@ int32_t ringbuff_search(ringbuff_t *rb, const uint8_t *to_search, uint32_t size)
                 return (count - 1);
         }
     }
+
+    return -1;
+}
+
+int32_t ringbuff_search2(ringbuff_t *rb, const uint8_t *to_search, uint32_t size)
+{
+    if (!to_search)
+        return -1;
+
+    uint32_t tail = rb->tail;
+    uint32_t match = 0;
+
+    const uint8_t *s = to_search;
+    uint8_t data;
+
+    // search for first byte
+    do
+    {
+        data = rb->buffer[tail];
+        tail = (tail + 1) % rb->size;
+
+        if (data == *s)
+        {
+            s++;
+            match++;
+
+            if (match == size)
+            {
+                rb->tail = tail;
+                return 1;
+            }
+        }
+        else
+        {
+            if (data == '\n')
+                rb->tail = tail;
+
+            s = to_search;
+            match = 0;
+        }
+
+    } while (tail != rb->head);
 
     return -1;
 }

@@ -53,7 +53,7 @@ static char *g_boot_steps[] = {
     "Starting kernel",
     "login:",
     "Password:",
-    NULL
+    ""
 };
 
 enum {UBOOT_STARTING, UBOOT_HITKEY, KERNEL_STARTING, LOGIN, PASSWORD, SHELL_CONFIG, N_BOOT_STEPS};
@@ -149,8 +149,9 @@ static void serial_cb(serial_t *serial)
     {
         uint32_t len = strlen(g_boot_steps[g_cli.boot_step]);
 
-        // search for boot message
-        int32_t found = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[g_cli.boot_step], len);
+        // search for boot messages
+        int32_t found =
+            ringbuff_search2(serial->rx_buffer, (uint8_t *) g_boot_steps[g_cli.boot_step], len);
 
         // set pre uboot flag
         if (found < 0 && g_cli.boot_step == 0)
@@ -161,7 +162,8 @@ static void serial_cb(serial_t *serial)
         // check login
         if (found >= 0 && g_cli.boot_step == LOGIN)
         {
-            int32_t restore = ringbuff_search(serial->rx_buffer, (uint8_t *) RESTORE_HOSTNAME, (sizeof RESTORE_HOSTNAME) - 1);
+            int32_t restore =
+                ringbuff_search(serial->rx_buffer, (uint8_t *) RESTORE_HOSTNAME, (sizeof RESTORE_HOSTNAME) - 1);
 
             if (restore >= 0)
             {
@@ -180,10 +182,11 @@ static void serial_cb(serial_t *serial)
         else
         {
             // doesn't need to retrieve data, so flush them out
-            ringbuff_flush(serial->rx_buffer);
+            if (ringbuff_is_full(serial->rx_buffer))
+                ringbuff_flush(serial->rx_buffer);
 
             // wake task if boot message match to pattern or match is not required (NULL)
-            if (found >= 0 || !g_boot_steps[g_cli.boot_step])
+            if (found >= 0 || len == 0)
             {
                 xSemaphoreGiveFromISR(g_received_sem, &xHigherPriorityTaskWoken);
                 portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
