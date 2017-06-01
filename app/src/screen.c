@@ -485,7 +485,7 @@ void screen_system_menu(menu_item_t *item)
     graph.min = item->data.min;
     graph.max = item->data.max;
     graph.value = item->data.value;
-    graph.unit = NULL;
+    graph.unit = "dB";
     graph.type = GRAPH_TYPE_LINEAR;
 
     switch (item->desc->type)
