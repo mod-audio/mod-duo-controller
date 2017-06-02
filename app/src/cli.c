@@ -53,7 +53,7 @@ static char *g_boot_steps[] = {
     "Starting kernel",
     "login:",
     "Password:",
-    ""
+    "$"
 };
 
 enum {UBOOT_STARTING, UBOOT_HITKEY, KERNEL_STARTING, LOGIN, PASSWORD, SHELL_CONFIG, N_BOOT_STEPS};
@@ -145,42 +145,39 @@ static void serial_cb(serial_t *serial)
     portBASE_TYPE xHigherPriorityTaskWoken;
     xHigherPriorityTaskWoken = pdFALSE;
 
+    // booting process
     if (g_cli.boot_step < N_BOOT_STEPS)
     {
-        uint32_t len = strlen(g_boot_steps[g_cli.boot_step]);
-
-        // search for boot messages
-        int32_t found =
-            ringbuff_search2(serial->rx_buffer, (uint8_t *) g_boot_steps[g_cli.boot_step], len);
-
-        // set pre uboot flag
-        if (found < 0 && g_cli.boot_step == 0)
-            g_cli.pre_uboot = 1;
-        else
-            g_cli.pre_uboot = 0;
-
-        // check login
-        if (found >= 0 && g_cli.boot_step == LOGIN)
-        {
-            int32_t restore =
-                ringbuff_search(serial->rx_buffer, (uint8_t *) RESTORE_HOSTNAME, (sizeof RESTORE_HOSTNAME) - 1);
-
-            if (restore >= 0)
-            {
-                g_cli.status = LOGGED_ON_RESTORE;
-            }
-            else
-            {
-                g_cli.status = LOGGED_ON_SYSTEM;
-            }
-        }
-
         if (g_cli.waiting_response)
         {
             process_response(serial);
         }
         else
         {
+            uint32_t len = strlen(g_boot_steps[g_cli.boot_step]);
+
+            // check if logging in on regular system or restore
+            if (g_cli.boot_step == LOGIN)
+            {
+                int32_t found =
+                    ringbuff_search(serial->rx_buffer, (uint8_t *) RESTORE_HOSTNAME, (sizeof RESTORE_HOSTNAME) - 1);
+
+                if (found >= 0)
+                    g_cli.status = LOGGED_ON_RESTORE;
+                else
+                    g_cli.status = LOGGED_ON_SYSTEM;
+            }
+
+            // search for boot messages
+            int32_t found =
+                ringbuff_search2(serial->rx_buffer, (uint8_t *) g_boot_steps[g_cli.boot_step], len);
+
+            // set pre uboot flag
+            if (found < 0 && g_cli.boot_step == 0)
+                g_cli.pre_uboot = 1;
+            else
+                g_cli.pre_uboot = 0;
+
             // doesn't need to retrieve data, so flush them out
             if (ringbuff_is_full(serial->rx_buffer))
                 ringbuff_flush(serial->rx_buffer);
@@ -199,7 +196,7 @@ static void serial_cb(serial_t *serial)
     }
     else
     {
-        // check if received login message when it's not waiting for response neither in booting process
+        // check if received login message when it's not waiting for response nor in booting process
         uint32_t len = strlen(g_boot_steps[LOGIN]);
         int32_t found = ringbuff_search(serial->rx_buffer, (uint8_t *) g_boot_steps[LOGIN], len);
         if (found >= 0)
@@ -277,7 +274,7 @@ void cli_process(void)
                 g_cli.boot_step = LOGIN;
 
                 // send new line to force interrupt
-                cli_command(NULL, CLI_DISCARD_RESPONSE);
+                cli_command("echo", CLI_DISCARD_RESPONSE);
                 return;
             }
 
@@ -288,7 +285,7 @@ void cli_process(void)
                 g_cli.boot_step = SHELL_CONFIG;
 
                 // send new line to force interrupt
-                cli_command(NULL, CLI_DISCARD_RESPONSE);
+                cli_command("echo", CLI_DISCARD_RESPONSE);
                 return;
             }
         }
@@ -327,18 +324,6 @@ void cli_process(void)
                 xTicksToWait = portMAX_DELAY;
                 cli_command(DISABLE_ECHO, CLI_RETRIEVE_RESPONSE);
                 cli_command(SET_SP1_VAR, CLI_RETRIEVE_RESPONSE);
-
-                // set login status
-                if (g_cli.status == NOT_LOGGED)
-                {
-                    const char *response = cli_command("hostname", CLI_RETRIEVE_RESPONSE);
-
-                    g_cli.status = LOGGED_ON_SYSTEM;
-                    if (strcmp(RESTORE_HOSTNAME, response) == 0)
-                    {
-                        g_cli.status = LOGGED_ON_RESTORE;
-                    }
-                }
                 break;
         }
 
