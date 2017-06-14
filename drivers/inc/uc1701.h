@@ -43,6 +43,11 @@
 #define UC1701_WHITE_BLACK    3
 #define UC1701_CHESS          4
 
+// display status
+#define NEED_UPDATE     1
+#define UPDATING        2
+#define FORCE_REFRESH   4
+
 
 /*
 ************************************************************************************************************************
@@ -78,7 +83,7 @@ typedef struct UC1701_T {
     uint8_t rst_port, rst_pin;
     uint8_t backlight_port, backlight_pin;
 
-    uint8_t need_update;
+    uint8_t status;
     uint8_t buffer[DISPLAY_HEIGHT/8][DISPLAY_WIDTH];
 } uc1701_t;
 

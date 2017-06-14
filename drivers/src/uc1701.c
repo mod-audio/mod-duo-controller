@@ -16,6 +16,8 @@
 #include "hw_uc1701.h"
 #include "device.h"
 
+#include "task.h"
+
 
 /*
 ************************************************************************************************************************
@@ -47,14 +49,15 @@
 // buffer manipulation macros
 #define READ_BUFFER(disp,x,y)           disp->buffer[(y)/8][(DISPLAY_WIDTH-1)-(x)]
 #define WRITE_BUFFER(disp,x,y,data)     disp->buffer[(y)/8][(DISPLAY_WIDTH-1)-(x)] = (data); \
-                                        disp->need_update = 1;
+                                        disp->status |= NEED_UPDATE; \
+                                        if (disp->status & UPDATING) disp->status |= FORCE_REFRESH;
 
 // general purpose macros
 #define ABS_DIFF(a, b)                  ((a > b) ? (a - b) : (b - a))
 #define SWAP(a, b)                      do{uint8_t t; t = a; a = b; b = t;} while(0)
 
 // SSP macros
-#define SEND_DATA(disp, data)           SSP_SendData(disp->ssp_module, data); \
+#define SEND_DATA(disp, data)           taskENTER_CRITICAL(); SSP_SendData(disp->ssp_module, data); taskEXIT_CRITICAL();\
                                         while (SSP_GetStatus(disp->ssp_module, SSP_STAT_TXFIFO_EMPTY) == RESET || \
                                                SSP_GetStatus(disp->ssp_module, SSP_STAT_BUSY) == SET);
 
@@ -302,14 +305,16 @@ void uc1701_clear(uc1701_t *disp, uint8_t color)
         }
     }
 
-    disp->need_update = 1;
+    disp->status |= NEED_UPDATE;
 }
 
 void uc1701_update(uc1701_t *disp)
 {
-    if (disp->need_update)
+    if (disp->status & NEED_UPDATE)
     {
-        uint8_t i, j;
+        int i, j;
+
+        disp->status |= UPDATING;
 
         for(i = 0; i < (DISPLAY_HEIGHT/8); i++)
         {
@@ -327,11 +332,18 @@ void uc1701_update(uc1701_t *disp)
 
             for(j = 0; j < DISPLAY_WIDTH; j++)
             {
+                if (disp->status & FORCE_REFRESH)
+                {
+                    i = -1;
+                    disp->status &= ~FORCE_REFRESH;
+                    break;
+                }
+
                 write_data(disp, disp->buffer[i][j]);
             }
         }
 
-        disp->need_update = 0;
+        disp->status &= ~(NEED_UPDATE | UPDATING);
     }
 }
 
