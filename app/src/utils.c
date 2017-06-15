@@ -310,6 +310,9 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
         fracp *= 10;
     }
 
+    // add 0.5 to round
+    fracp += 0.5;
+
     // convert the fractional part
     uint32_t frac_len;
     frac_len = int_to_str((int32_t)fracp, &str[int_len], string_size - int_len, 0);
