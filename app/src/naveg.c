@@ -591,8 +591,9 @@ static void control_set(uint8_t display, control_t *control)
 
             if (g_tap_tempo[control->actuator_id].state == TT_COUNTING)
             {
-                // checks if delta almost suits maximum allowed value   
-                if ((delta > g_tap_tempo[control->actuator_id].max) && ((delta - TAP_TEMPO_MAXVAL_OVERFLOW) < g_tap_tempo[control->actuator_id].max))
+                // checks if delta almost suits maximum allowed value
+                if ((delta > g_tap_tempo[control->actuator_id].max) &&
+                    ((delta - TAP_TEMPO_MAXVAL_OVERFLOW) < g_tap_tempo[control->actuator_id].max))
                 {
                     // sets delta to maxvalue if just slightly over, instead of doing nothing
                     delta = g_tap_tempo[control->actuator_id].max;
@@ -1499,8 +1500,10 @@ void naveg_inc_control(uint8_t display)
     if (!control) return;
 
     // increments the step
-    control->step++;
-    if (control->step >= control->steps) control->step = control->steps - 1;
+    if (control->step < (control->steps - 1))
+        control->step++;
+    else
+        return;
 
     // converts the step to absolute value
     step_to_value(control);
@@ -1520,8 +1523,10 @@ void naveg_dec_control(uint8_t display)
     if (!control) return;
 
     // decrements the step
-    control->step--;
-    if (control->step < 0) control->step = 0;
+    if (control->step > 0)
+        control->step--;
+    else
+        return;
 
     // converts the step to absolute value
     step_to_value(control);
