@@ -30,7 +30,7 @@
 enum {PROCESS, BYPASS};
 enum {BLOCK, UNBLOCK};
 enum {RECEPTION, TRANSMISSION};
-enum {COREBOARD_TURN_OFF, COREBOARD_TURN_ON};
+enum {COREBOARD_INIT, COREBOARD_TURN_OFF, COREBOARD_TURN_ON};
 
 /*
 ************************************************************************************************************************

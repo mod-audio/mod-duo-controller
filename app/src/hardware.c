@@ -148,8 +148,10 @@ void hardware_setup(void)
     CLKPWR_ConfigPPWR(HW_CLK_PWR_CONTROL, ENABLE);
 
     // configure and set initial state of shutdown cpu button
+    // note: CLR_PIN will make the coreboard reboot unless SET_PIN is called in less than 5s
+    //       this is done in the beginning of cli_task()
     CONFIG_PIN_OUTPUT(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
-    SET_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
+    CLR_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
 
     // SLOTs initialization
     uint8_t i;
@@ -349,11 +351,17 @@ uint32_t hardware_timestamp(void)
 
 void hardware_coreboard_power(uint8_t state)
 {
-    // coreboard requires 1s pulse to turn on
-    if (state == COREBOARD_TURN_ON)
+    // coreboard sometimes requires 1s pulse to initialize
+    if (state == COREBOARD_INIT)
+    {
+        vTaskDelay(1000 / portTICK_RATE_MS);
+        SET_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
+    }
+    // coreboard requires 2s pulse to turn on
+    else if (state == COREBOARD_TURN_ON)
     {
         CLR_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
-        vTaskDelay(1000 / portTICK_RATE_MS);
+        vTaskDelay(2000 / portTICK_RATE_MS);
         SET_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
     }
     // coreboard requires 5s pulse to turn off

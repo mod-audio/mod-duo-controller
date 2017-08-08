@@ -303,7 +303,7 @@ static void cli_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
-    hardware_coreboard_power(COREBOARD_TURN_ON);
+    hardware_coreboard_power(COREBOARD_INIT);
 
     while (1)
     {
