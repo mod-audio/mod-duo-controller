@@ -287,7 +287,7 @@ void actuators_clock(void)
 {
     button_t *button;
     encoder_t *encoder;
-    uint8_t i, button_on, a, b, a_prev;
+    uint8_t i, button_on;
 
     for (i = 0; i < g_actuators_count; i++)
     {
@@ -463,40 +463,35 @@ void actuators_clock(void)
                 }
 
                 // --- rotary processing ---
+                // encoder algorithm from PaulStoffregen
+                // https://github.com/PaulStoffregen/Encoder
+                uint8_t seq = encoder->state & 3;
 
-                // checks steps
-                if (encoder->steps == 0) break;
+                seq |= READ_PIN(encoder->port_chA, encoder->pin_chA) ? 4 : 0;
+                seq |= READ_PIN(encoder->port_chB, encoder->pin_chB) ? 8 : 0;
 
-                // gets the current channels pins state
-                a = READ_PIN(encoder->port_chA, encoder->pin_chA);
-                b = READ_PIN(encoder->port_chB, encoder->pin_chB);
-
-                // gets the previous channel A state
-                a_prev = 0;
-                if (encoder->control & ENCODER_CHA_FLAG) a_prev = 1;
-
-                // checks rising edge
-                if (a_prev == 0 && a == 1 && (encoder->control & ENCODER_INIT_FLAG))
+                switch (seq)
                 {
-                    // checks the direction
-                    if (b == 0)
-                    {
-                        if (encoder->counter >= 0) encoder->counter++;
-                        else encoder->counter = 1;
-                    }
-                    else
-                    {
-                        if (encoder->counter <= 0) encoder->counter--;
-                        else encoder->counter = -1;
-                    }
+                    case 0: case 5: case 10: case 15:
+                        break;
+                    case 1: case 7: case 8: case 14:
+                        encoder->counter--;
+                        break;
+                    case 2: case 4: case 11: case 13:
+                        encoder->counter++;
+                        break;
+                    case 3: case 12:
+                        encoder->counter -= 2;
+                        break;
+                    default:
+                        encoder->counter += 2;
+                        break;
                 }
 
-                // save channel A state
-                if (a == 0) CLR_FLAG(encoder->control, ENCODER_CHA_FLAG);
-                else SET_FLAG(encoder->control, ENCODER_CHA_FLAG);
+                 encoder->state = (seq >> 2);
 
                 // checks the steps
-                if (ABS(encoder->counter) == encoder->steps)
+                if (ABS(encoder->counter) >= encoder->steps)
                 {
                     // update flags
                     CLR_FLAG(encoder->status, EV_ENCODER_TURNED_CW);
@@ -511,9 +506,6 @@ void actuators_clock(void)
 
                     encoder->counter = 0;
                 }
-
-                // this flag prevents the count in the first iteration
-                SET_FLAG(encoder->control, ENCODER_INIT_FLAG);
                 break;
         }
     }

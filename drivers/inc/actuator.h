@@ -100,7 +100,7 @@ typedef struct ENCODER_T {
 
     uint8_t port, pin, port_chA, pin_chA, port_chB, pin_chB;
     uint16_t hold_time, hold_time_counter;
-    uint8_t steps;
+    uint8_t steps, state;
     int8_t counter;
 } encoder_t;
 
