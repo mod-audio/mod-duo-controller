@@ -59,6 +59,8 @@
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
 #define TASK_NAME(name)     ((const signed char * const) (name))
 
+#define ACTUATORS_QUEUE_SIZE    5
+
 
 /*
 ************************************************************************************************************************
@@ -158,9 +160,12 @@ void serial_error(uint8_t uart_id, uint32_t error)
 // this callback is called from a ISR
 static void actuators_cb(void *actuator)
 {
+    static uint8_t i, info[ACTUATORS_QUEUE_SIZE][3];
+
     // does a copy of actuator id and status
     uint8_t *actuator_info;
-    actuator_info = (uint8_t *) pvPortMalloc(sizeof(uint8_t) * 3);
+    actuator_info = info[i];
+    if (++i == ACTUATORS_QUEUE_SIZE) i = 0;
 
     // fills the actuator info vector
     actuator_info[0] = ((button_t *)(actuator))->type;
@@ -294,7 +299,7 @@ static void actuators_task(void *pvParameters)
                 }
             }
 
-            vPortFree(actuator_info);
+            glcd_update(hardware_glcds(id));
         }
     }
 }
@@ -326,7 +331,7 @@ static void setup_task(void *pvParameters)
     comm_init();
 
     // create the queues
-    g_actuators_queue = xQueueCreate(10, sizeof(uint8_t *));
+    g_actuators_queue = xQueueCreate(ACTUATORS_QUEUE_SIZE, sizeof(uint8_t *));
 
     // create the tasks
     xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 4, NULL);
