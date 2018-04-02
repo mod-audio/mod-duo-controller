@@ -84,7 +84,7 @@ struct TOOL_T {
 
 static control_t *g_controls[SLOTS_COUNT], *g_foots[SLOTS_COUNT];
 static bp_list_t *g_banks, *g_naveg_pedalboards, *g_selected_pedalboards;
-static uint8_t g_bp_state, g_current_bank, g_current_pedalboard;
+static uint8_t g_bp_state, g_current_bank, g_current_pedalboard, g_bp_first;
 static node_t *g_menu, *g_current_menu;
 static menu_item_t *g_current_item;
 static uint8_t g_max_items_list;
@@ -93,7 +93,6 @@ static uint8_t g_initialized, g_ui_connected;
 static void (*g_update_cb)(void *data, int event);
 static void *g_update_data;
 static xSemaphoreHandle g_dialog_sem;
-
 
 /*
 ************************************************************************************************************************
@@ -780,6 +779,7 @@ static void bp_enter(void)
         g_naveg_pedalboards->hover = 0;
         bp_list = g_naveg_pedalboards;
         title = g_banks->names[g_banks->hover];
+        g_bp_first = 1;
 
         // sets the selected pedalboard out of range (initial state)
         g_naveg_pedalboards->selected = g_naveg_pedalboards->count;
@@ -804,6 +804,7 @@ static void bp_enter(void)
             // updates selected bank and pedalboard
             g_banks->selected = g_banks->hover;
             g_naveg_pedalboards->selected = g_naveg_pedalboards->hover;
+            g_bp_first=0; 
 
             // request to GUI load the pedalboard
             send_load_pedalboard(g_banks->selected - 1, g_naveg_pedalboards->uids[g_naveg_pedalboards->selected]);
@@ -1773,8 +1774,8 @@ void naveg_bank_config(bank_config_t *bank_conf)
         memcpy(&g_bank_functions[bank_conf->function], bank_conf, sizeof(bank_config_t));
 
     // checks if has pedalboards navigation functions and set the pointer to pedalboards list
-    if (bank_conf->function == BANK_FUNC_PEDALBOARD_NEXT ||
-        bank_conf->function == BANK_FUNC_PEDALBOARD_PREV)
+    if ((bank_conf->function == BANK_FUNC_PEDALBOARD_NEXT ||
+        bank_conf->function == BANK_FUNC_PEDALBOARD_PREV) && g_bp_first == 0)
     {
         g_selected_pedalboards = g_naveg_pedalboards;
     }
