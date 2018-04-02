@@ -1899,3 +1899,8 @@ uint8_t naveg_ui_status(void)
 {
     return g_ui_connected;
 }
+
+void naveg_settings_refresh(void)
+{
+    screen_system_menu(g_current_item);
+}

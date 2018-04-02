@@ -114,6 +114,7 @@ void naveg_update(void);
 int naveg_need_update(void);
 uint8_t naveg_dialog(const char *msg);
 uint8_t naveg_ui_status(void);
+void naveg_settings_refresh(void);
 
 
 /*

@@ -38,6 +38,8 @@ enum {COREBOARD_INIT, COREBOARD_TURN_OFF, COREBOARD_TURN_ON};
 ************************************************************************************************************************
 */
 
+#define MAX_BRIGHTNESS      4
+
 
 /*
 ************************************************************************************************************************
@@ -70,6 +72,7 @@ enum {COREBOARD_INIT, COREBOARD_TURN_OFF, COREBOARD_TURN_ON};
 void hardware_setup(void);
 // returns the glcd object relative to glcd id
 glcd_t *hardware_glcds(uint8_t glcd_id);
+void hardware_glcd_brightness(int level);
 // returns the led object relative to led id
 led_t *hardware_leds(uint8_t led_id);
 // returns the actuator object relative to actuator id

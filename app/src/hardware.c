@@ -24,7 +24,6 @@
 #define TIMER0_PRIORITY     3
 #define TIMER1_PRIORITY     2
 
-
 /*
 ************************************************************************************************************************
 *           LOCAL CONSTANTS
@@ -110,6 +109,7 @@ static led_t g_leds[LEDS_COUNT];
 static encoder_t g_encoders[ENCODERS_COUNT];
 static button_t g_footswitches[FOOTSWITCHES_COUNT];
 static uint32_t g_counter;
+static int g_brightness;
 
 
 /*
@@ -175,6 +175,9 @@ void hardware_setup(void)
         actuator_set_prop(hardware_actuators(ENCODER0 + i), ENCODER_STEPS, 3);
         actuator_set_prop(hardware_actuators(ENCODER0 + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
     }
+
+    // default glcd brightness
+    g_brightness = 2;
 
     ////////////////////////////////////////////////////////////////
     // Timer 0 configuration
@@ -323,6 +326,11 @@ glcd_t *hardware_glcds(uint8_t glcd_id)
     return &g_glcd[glcd_id];
 }
 
+void hardware_glcd_brightness(int level)
+{
+    g_brightness = level;
+}
+
 led_t *hardware_leds(uint8_t led_id)
 {
     if (led_id >= LEDS_COUNT) return NULL;
@@ -375,10 +383,41 @@ void hardware_coreboard_power(uint8_t state)
 
 void TIMER0_IRQHandler(void)
 {
+    static int count = 1, state;
+
     if (TIM_GetIntStatus(LPC_TIM0, TIM_MR0_INT) == SET)
     {
         // LEDs PWM
         leds_clock();
+
+        if (g_brightness == 0)
+        {
+            count = 1;
+            state = 1;
+        }
+        else if (g_brightness == MAX_BRIGHTNESS)
+        {
+            count = 1;
+            state = 0;
+        }
+
+        if (--count == 0)
+        {
+            if (state)
+            {
+                count = MAX_BRIGHTNESS - g_brightness;
+                glcd_backlight(&g_glcd[0], 0);
+                glcd_backlight(&g_glcd[1], 0);
+            }
+            else
+            {
+                count = g_brightness;
+                glcd_backlight(&g_glcd[0], 1);
+                glcd_backlight(&g_glcd[1], 1);
+            }
+
+            state ^= 1;
+        }
     }
 
     TIM_ClearIntPending(LPC_TIM0, TIM_MR0_INT);

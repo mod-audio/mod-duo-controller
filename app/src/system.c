@@ -432,3 +432,25 @@ void system_banks_cb(void *arg, int event)
     }
 }
 
+void system_display_cb(void *arg, int event)
+{
+    menu_item_t *item = arg;
+    static int level = 2;
+
+    if (event == MENU_EV_ENTER)
+    {
+        if (++level > MAX_BRIGHTNESS)
+            level = 0;
+
+        hardware_glcd_brightness(level);
+
+        char str_buf[8];
+        int_to_str((level * 25), str_buf, sizeof(str_buf), 0);
+
+        strcpy(item->name, item->desc->name);
+        strcat(item->name, "        ");
+        strcat(item->name, str_buf);
+        strcat(item->name, "%");
+        naveg_settings_refresh();
+    }
+}

@@ -247,6 +247,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define PEDALBOARD_ID   (13 * 10)
 #define BLUETOOTH_ID    (14 * 10)
 #define BANKS_ID        (15 * 10)
+#define DISP_BL_ID      (16 * 10)
 
 #define IN1_VOLUME      VOLUME_ID+0
 #define IN2_VOLUME      VOLUME_ID+1
@@ -298,6 +299,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"Status:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                , 0},  \
     {"Name:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                , 0},  \
     {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                , 0},  \
+    {"Display Brightness",              MENU_NONE,      DISP_BL_ID,         ROOT_ID,        system_display_cb   , 0},  \
     {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                , 0},  \
     {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                , 0},  \
     {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb  , 1},  \
