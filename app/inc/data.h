@@ -51,6 +51,7 @@ typedef struct SCALE_POINT_T {
 typedef struct CONTROL_T {
     uint8_t hardware_type, hardware_id;
     uint8_t actuator_type, actuator_id;
+    uint8_t display;
     char *label, *symbol, *unit;
     int32_t effect_instance;
     uint8_t properties_mask;

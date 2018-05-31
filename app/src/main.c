@@ -299,6 +299,18 @@ static void actuators_task(void *pvParameters)
                 }
             }
 
+            // pots
+            else if (type == POTENTIOMETER)
+            {
+                if (POT_TURNED(status))
+                {
+                    uint8_t value = actuator_pot_get_value(id);
+                    (void) value;
+                    //JTODO: create this function. 
+                    //naveg_pot_change(id, value);
+                }
+            }
+
             glcd_update(hardware_glcds(id));
         }
     }
@@ -341,13 +353,24 @@ static void setup_task(void *pvParameters)
 
     // actuators callbacks
     uint8_t i;
-    for (i = 0; i < SLOTS_COUNT; i++)
+    for (i = 0; i < ENCODERS_COUNT; i++)
     {
         actuator_set_event(hardware_actuators(ENCODER0 + i), actuators_cb);
         actuator_enable_event(hardware_actuators(ENCODER0 + i), EV_ALL_ENCODER_EVENTS);
+    }
+
+    for (i = 0; i < FOOTSWITCHES_COUNT; i++)
+    {
         actuator_set_event(hardware_actuators(FOOTSWITCH0 + i), actuators_cb);
         actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_BUTTON_PRESSED);
     }
+    /*
+    for (i = 0; i < POTS_COUNT; i++)
+    {
+        actuator_set_event(hardware_actuators(POT0 + i), actuators_cb);
+        actuator_enable_event(hardware_actuators(POT0 + i), EV_POT_TURNED);
+    }
+    */
 
     // protocol definitions
     protocol_add_command(PING_CMD, ping_cb);

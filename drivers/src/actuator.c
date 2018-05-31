@@ -25,9 +25,13 @@
     (EV_BUTTON_CLICKED | EV_BUTTON_PRESSED | EV_BUTTON_RELEASED | EV_BUTTON_HELD | \
      EV_ENCODER_TURNED | EV_ENCODER_TURNED_CW | EV_ENCODER_TURNED_ACW)
 
+#define POT_FLAGS \
+    (EV_POT_TURNED)
+
 #define TRIGGER_FLAGS \
     (EV_BUTTON_CLICKED | EV_BUTTON_HELD | \
-     EV_ENCODER_TURNED | EV_ENCODER_TURNED_CW | EV_ENCODER_TURNED_ACW)
+     EV_ENCODER_TURNED | EV_ENCODER_TURNED_CW | EV_ENCODER_TURNED_ACW| \
+     EV_POT_TURNED)
 
 #define TOGGLE_FLAGS \
     (EV_BUTTON_PRESSED | EV_BUTTON_RELEASED)
@@ -37,6 +41,10 @@
 #define ENCODER_INIT_FLAG   0x04
 #define CLICK_CANCEL_FLAG   0x10
 
+//ADC register definitions 
+#define SBIT_START          24u
+#define SBIT_DONE           31u
+#define SBIT_RESULT         4u
 
 /*
 *********************************************************************************************************
@@ -62,6 +70,7 @@
 #define CLR_FLAG(status,flag)       (status &= ~flag)
 #define ACTUATOR_TYPE(act)          (((button_t *)(act))->type)
 #define ABS(num)                    (num >= 0 ? num : -num)
+#define CHECK_BIT(x, n)             (((x) >> (n)) & 1)
 
 /*
 *********************************************************************************************************
@@ -71,7 +80,7 @@
 
 static void *g_actuators_pointers[MAX_ACTUATORS];
 static uint8_t g_actuators_count = 0;
-
+static uint8_t g_pot_value[POTS_COUNT];
 
 /*
 *********************************************************************************************************
@@ -99,6 +108,7 @@ static void event(void *actuator, uint8_t flags)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
+    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
     uint8_t status;
 
     switch (ACTUATOR_TYPE(actuator))
@@ -122,6 +132,15 @@ static void event(void *actuator, uint8_t flags)
                 encoder->status = status & ~(encoder->events_flags & (flags & TRIGGER_FLAGS));
             }
             break;
+
+        case POTENTIOMETER:
+         if (potentiometer->event && (potentiometer->events_flags & flags))
+            {
+                status = potentiometer->status;
+                potentiometer->status &= potentiometer->events_flags;
+                potentiometer->event(potentiometer);
+                potentiometer->status = status & ~(potentiometer->events_flags & (flags & TRIGGER_FLAGS));
+            }
     }
 }
 
@@ -136,6 +155,7 @@ void actuator_create(actuator_type_t type, uint8_t id, void *actuator)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
+    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
 
     switch (type)
     {
@@ -164,6 +184,17 @@ void actuator_create(actuator_type_t type, uint8_t id, void *actuator)
             encoder->steps = 0;
             encoder->counter = 0;
             break;
+
+        case POTENTIOMETER:
+            potentiometer->id = id;
+            potentiometer->type = type;
+            potentiometer->event = 0;
+            potentiometer->events_flags = 0;
+            potentiometer->debounce = 0;
+            potentiometer->control = 0;
+            potentiometer->status = 0;
+            potentiometer->steps = 0;
+            break;
     }
 
     // store the actuator pointer
@@ -176,6 +207,7 @@ void actuator_set_pins(void *actuator, const uint8_t *pins)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
+    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
 
     switch (ACTUATOR_TYPE(actuator))
     {
@@ -196,6 +228,12 @@ void actuator_set_pins(void *actuator, const uint8_t *pins)
             CONFIG_PIN_INPUT(encoder->port_chA, encoder->pin_chA);
             CONFIG_PIN_INPUT(encoder->port_chB, encoder->pin_chB);
             break;
+
+        case POTENTIOMETER:
+            potentiometer->mux_b0 = pins[0];
+            potentiometer->mux_b1 = pins[1];
+            potentiometer->mux_b2 = pins[2]; 
+            break;
     }
 }
 
@@ -204,6 +242,7 @@ void actuator_set_prop(void *actuator, actuator_prop_t prop, uint16_t value)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
+    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
 
     switch (ACTUATOR_TYPE(actuator))
     {
@@ -226,6 +265,13 @@ void actuator_set_prop(void *actuator, actuator_prop_t prop, uint16_t value)
                 encoder->steps = value;
             }
             break;
+
+        case POTENTIOMETER:
+            if (prop == POT_STEPS)
+            {
+                potentiometer->steps = value;   
+            }
+            break;
     }
 }
 
@@ -240,6 +286,10 @@ void actuator_enable_event(void *actuator, uint8_t events_flags)
 
         case ROTARY_ENCODER:
             ((encoder_t *)actuator)->events_flags = events_flags;
+            break;
+
+        case POTENTIOMETER:
+            ((potentiometer_t *)actuator)->events_flags = events_flags;
             break;
     }
 }
@@ -256,6 +306,10 @@ void actuator_set_event(void *actuator, void (*event)(void *actuator))
         case ROTARY_ENCODER:
             ((encoder_t *)actuator)->event = event;
             break;
+
+        case POTENTIOMETER:
+            ((potentiometer_t *)actuator)->event = event;
+            break;
     }
 }
 
@@ -265,6 +319,7 @@ uint8_t actuator_get_status(void *actuator)
     uint8_t status;
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
+    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
 
     switch (ACTUATOR_TYPE(actuator))
     {
@@ -277,22 +332,34 @@ uint8_t actuator_get_status(void *actuator)
             status = encoder->status;
             CLR_FLAG(encoder->status, TRIGGER_FLAGS);
             break;
+
+        case POTENTIOMETER:
+            status = potentiometer->status;
+            CLR_FLAG(potentiometer->status, TRIGGER_FLAGS);
+            break;
+
     }
 
     return status;
 }
 
+uint8_t actuator_pot_get_value(uint8_t id)
+{
+    return g_pot_value[id];
+}
 
 void actuators_clock(void)
 {
     button_t *button;
     encoder_t *encoder;
+    potentiometer_t *potentiometer;
     uint8_t i, button_on;
 
     for (i = 0; i < g_actuators_count; i++)
     {
         button = (button_t *) g_actuators_pointers[i];
         encoder = (encoder_t *) g_actuators_pointers[i];
+        potentiometer = (potentiometer_t *) g_actuators_pointers[i];
 
         switch (ACTUATOR_TYPE(g_actuators_pointers[i]))
         {
@@ -507,6 +574,53 @@ void actuators_clock(void)
                     encoder->counter = 0;
                 }
                 break;
+
+            case POTENTIOMETER:
+            (void) potentiometer;
+               //TODO: HARDCODED, FIX THAT 
+                //set the mux 
+              /*  if (pot->mux_b0 == 1){
+                    SET_PIN(1, 30);
+                }
+                else{
+                    CLR_PIN(1, 30);
+                    }
+                if (pot->mux_b1 == 1){
+                    SET_PIN(0, 26);
+                }
+                else{
+                    CLR_PIN(0, 26);
+                }
+                if (pot->mux_b2 == 1){
+                    SET_PIN(0, 25);
+                }
+                else{
+                    CLR_PIN(0, 25); 
+                }
+
+                //start ADC 
+                LPC_ADC->ADCR |= (1<<SBIT_START);
+
+                //Wait for the mesurement to complete (not nice i know)
+                while (check_bit(LPC_ADC->ADGDR, SBIT_DONE));
+                
+                //read the data
+                float data = (int)(((LPC_ADC->ADGDR>>SBIT_RESULT) & 0xfff) * 100 + .5);
+                float current_pot_val = (float)data / 100;
+
+                if (current_pot_val > g_pot_value[i]) {
+                    if ((current_pot_val - g_pot_value[i]) > POT_THRESHOLD){
+                        g_pot_value[i] = current_pot_val;
+                        event(pot, EV_POT_TURNED);
+                    }
+                }
+                if (current_pot_val < g_pot_value[i]) {
+                    if ((g_pot_value[i] - current_pot_val) > POT_THRESHOLD){
+                        g_pot_value[i] = current_pot_val;
+                        event(pot, EV_POT_TURNED);
+                    }
+                } */
+            break;
         }
     }
 }

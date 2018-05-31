@@ -71,8 +71,6 @@ typedef struct COLOR_T {
 
 typedef struct LED_PINS_T {
     uint8_t portR, pinR;
-    uint8_t portG, pinG;
-    uint8_t portB, pinB;
 } led_pins_t;
 
 typedef struct LED_T {

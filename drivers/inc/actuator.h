@@ -21,12 +21,12 @@
 
 // Actuators types
 typedef enum {
-    BUTTON, ROTARY_ENCODER
+    BUTTON, ROTARY_ENCODER, POTENTIOMETER
 } actuator_type_t;
 
 // Actuators properties
 typedef enum {
-    BUTTON_HOLD_TIME, ENCODER_STEPS
+    BUTTON_HOLD_TIME, ENCODER_STEPS, POT_STEPS
 } actuator_prop_t;
 
 // Events definition
@@ -40,6 +40,8 @@ typedef enum {
 #define EV_ENCODER_TURNED_CW    0x20
 #define EV_ENCODER_TURNED_ACW   0x40
 #define EV_ALL_ENCODER_EVENTS   0xEF
+//JTODO: how to decide on these value's 
+#define EV_POT_TURNED           0x60
 
 
 /*
@@ -48,7 +50,7 @@ typedef enum {
 *********************************************************************************************************
 */
 
-#define MAX_ACTUATORS               10
+#define MAX_ACTUATORS               15
 
 // The actuator is activated with ZERO or ONE?
 #define BUTTON_ACTIVATED            0
@@ -72,6 +74,10 @@ typedef enum {
 
 // Encoders configuration
 #define ENCODER_RESOLUTION          24
+
+//JTODO: decide on a decent resolution
+//Pot's configuration
+#define POT_RESOLUTION              24
 
 
 /*
@@ -104,6 +110,13 @@ typedef struct ENCODER_T {
     int8_t counter;
 } encoder_t;
 
+typedef struct POTENTIOMETER_T {
+    actuators_common_fields
+
+    uint8_t mux_b0, mux_b1, mux_b2;
+    uint8_t steps, state;
+    int8_t value;
+} potentiometer_t;
 
 /*
 *********************************************************************************************************
@@ -126,7 +139,7 @@ typedef struct ENCODER_T {
 #define ENCODER_TURNED(status)      ((status) & EV_ENCODER_TURNED)
 #define ENCODER_TURNED_CW(status)   ((status) & EV_ENCODER_TURNED_CW)
 #define ENCODER_TURNED_ACW(status)  ((status) & EV_ENCODER_TURNED_ACW)
-
+#define POT_TURNED(status)          ((status) & EV_POT_TURNED)
 
 /*
 *********************************************************************************************************
@@ -140,6 +153,7 @@ void actuator_set_prop(void *actuator, actuator_prop_t prop, uint16_t value);
 void actuator_enable_event(void *actuator, uint8_t events_flags);
 void actuator_set_event(void *actuator, void (*event)(void *actuator));
 uint8_t actuator_get_status(void *actuator);
+uint8_t actuator_pot_get_value(uint8_t id);
 void actuators_clock(void);
 
 

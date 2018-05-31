@@ -26,10 +26,12 @@
 ************************************************************************************************************************
 */
 
-typedef enum {ALIGN_LEFT_TOP, ALIGN_LEFT_MIDDLE, ALIGN_LEFT_BOTTOM,
-              ALIGN_CENTER_TOP,ALIGN_CENTER_MIDDLE, ALIGN_CENTER_BOTTOM,
-              ALIGN_RIGHT_TOP, ALIGN_RIGHT_MIDDLE, ALIGN_RIGHT_BOTTOM,
-              ALIGN_NONE_NONE, ALIGN_LEFT_NONE, ALIGN_RIGHT_NONE, ALIGN_CENTER_NONE} align_t;
+typedef enum {ALIGN_LEFT_TOP, ALIGN_LCENTER_TOP, ALIGN_LRIGHT_TOP, ALIGN_CENTER_TOP, ALIGN_RLEFT_TOP, ALIGN_RCENTER_TOP, ALIGN_RIGHT_TOP, 
+            ALIGN_LEFT_MTOP, ALIGN_LCENTER_MTOP, ALIGN_LRIGHT_MTOP, ALIGN_CENTER_MTOP, ALIGN_RLEFT_MTOP, ALIGN_RCENTER_MTOP, ALIGN_RIGHT_MTOP,
+            ALIGN_LEFT_MIDDLE, ALIGN_LCENTER_MIDDLE, ALIGN_LRIGHT_MIDDLE, ALIGN_CENTER_MIDDLE, ALIGN_RLEFT_MIDDLE, ALIGN_RCENTER_MIDDLE, ALIGN_RIGHT_MIDDLE, 
+            ALIGN_LEFT_MBOTTOM, ALIGN_LCENTER_MBOTTOM, ALIGN_LRIGHT_MBOTTOM, ALIGN_CENTER_MBOTTOM, ALIGN_RLEFT_MBOTTOM, ALIGN_RCENTER_MBOTTOM, ALIGN_RIGHT_MBOTTOM, 
+            ALIGN_LEFT_BOTTOM, ALIGN_LCENTER_BOTTOM, ALIGN_LRIGHT_BOTTOM, ALIGN_CENTER_BOTTOM, ALIGN_RLEFT_BOTTOM, ALIGN_RCENTER_BOTTOM, ALIGN_RIGHT_BOTTOM, 
+            ALIGN_NONE_NONE, ALIGN_LEFT_NONE, ALIGN_RIGHT_NONE, ALIGN_CENTER_NONE} align_t;
 
 typedef enum {TEXT_SINGLE_LINE, TEXT_MULTI_LINES} text_mode_t;
 
@@ -79,6 +81,12 @@ typedef struct GRAPH_T {
     graph_type_t type;
 } graph_t;
 
+typedef struct SLIDER_T {
+    uint8_t x, y, width;
+    uint8_t color;
+    float min, max, value;
+} slider_t;
+
 typedef struct PEAKMETER_T {
     float value, peak;
 } peakmeter_t;
@@ -122,6 +130,8 @@ typedef struct POPUP_T {
 void widget_textbox(glcd_t *display, textbox_t *textbox);
 void widget_listbox(glcd_t *display, listbox_t *listbox);
 void widget_listbox2(glcd_t *display, listbox_t *listbox);
+void widget_listbox3(glcd_t *display, listbox_t *listbox);
+void widget_slider(glcd_t *display, slider_t *slider);
 void widget_graph(glcd_t *display, graph_t *graph);
 void widget_peakmeter(glcd_t *display, uint8_t pkm_id, peakmeter_t *pkm);
 void widget_tuner(glcd_t *display, tuner_t *tuner);

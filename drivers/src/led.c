@@ -45,21 +45,14 @@
 
 #if defined LED_TURN_ON_WITH_ZERO
 #define R_ON(led)       CLR_PIN(led->pins.portR, led->pins.pinR)
-#define G_ON(led)       CLR_PIN(led->pins.portG, led->pins.pinG)
-#define B_ON(led)       CLR_PIN(led->pins.portB, led->pins.pinB)
 
 #define R_OFF(led)      SET_PIN(led->pins.portR, led->pins.pinR)
-#define G_OFF(led)      SET_PIN(led->pins.portG, led->pins.pinG)
-#define B_OFF(led)      SET_PIN(led->pins.portB, led->pins.pinB)
+
 
 #elif defined LED_TURN_ON_WITH_ONE
 #define R_ON(led)       SET_PIN(led->pins.portR, led->pins.pinR)
-#define G_ON(led)       SET_PIN(led->pins.portG, led->pins.pinG)
-#define B_ON(led)       SET_PIN(led->pins.portB, led->pins.pinB)
 
 #define R_OFF(led)      CLR_PIN(led->pins.portR, led->pins.pinR)
-#define G_OFF(led)      CLR_PIN(led->pins.portG, led->pins.pinG)
-#define B_OFF(led)      CLR_PIN(led->pins.portB, led->pins.pinB)
 #endif
 
 #define BLINK_ENABLE(led)       (led->control |= (__BLINK))
@@ -119,16 +112,10 @@ void led_init(led_t *led, const led_pins_t pins)
 
     // store the pins
     led->pins.portR = pins.portR;
-    led->pins.portG = pins.portG;
-    led->pins.portB = pins.portB;
     led->pins.pinR = pins.pinR;
-    led->pins.pinG = pins.pinG;
-    led->pins.pinB = pins.pinB;
 
     // pins direction configuration
     CONFIG_PIN_OUTPUT(pins.portR, pins.pinR);
-    CONFIG_PIN_OUTPUT(pins.portG, pins.pinG);
-    CONFIG_PIN_OUTPUT(pins.portB, pins.pinB);
 
     // store the configurations
     g_leds[g_leds_count] = led;
@@ -143,8 +130,6 @@ void led_init(led_t *led, const led_pins_t pins)
 
     // initial color
     R_OFF(led);
-    G_OFF(led);
-    B_OFF(led);
     led->color = BLACK;
 }
 
@@ -213,16 +198,8 @@ void leds_clock(void)
         if (led->color.r > 0 && led->color.r >= g_colors[i].r && BLINK_CHECK(led)) R_ON(led);
         else R_OFF(led);
 
-        if (led->color.g > 0 && led->color.g >= g_colors[i].g && BLINK_CHECK(led)) G_ON(led);
-        else G_OFF(led);
-
-        if (led->color.b > 0 && led->color.b >= g_colors[i].b && BLINK_CHECK(led)) B_ON(led);
-        else B_OFF(led);
-
         // increment each color (overflow expected)
         g_colors[i].r++;
-        g_colors[i].g++;
-        g_colors[i].b++;
 
         // only go ahead if passed 1ms
         if (count < COUNT_PRESCALE) continue;
@@ -244,8 +221,6 @@ void leds_clock(void)
                     // turn off the leds and set state
                     STATE_SET_OFF(led);
                     R_OFF(led);
-                    G_OFF(led);
-                    B_OFF(led);
                 }
                 else
                 {

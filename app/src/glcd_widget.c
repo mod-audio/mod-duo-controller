@@ -175,8 +175,28 @@ void widget_textbox(glcd_t *display, textbox_t *textbox)
             textbox->y = textbox->top_margin;
             break;
 
+        case ALIGN_LCENTER_TOP:
+            textbox->x = 32 - (text_width / 2);
+            textbox->y = textbox->top_margin;
+            break;
+
+        case ALIGN_LRIGHT_TOP:
+            textbox->x = 64 - text_width - 1  - textbox->right_margin;
+            textbox->y = textbox->top_margin;
+            break;
+
         case ALIGN_CENTER_TOP:
             textbox->x = (DISPLAY_WIDTH / 2) - (text_width / 2);
+            textbox->y = textbox->top_margin;
+            break;
+
+        case ALIGN_RLEFT_TOP:
+            textbox->x = 65 + textbox->left_margin;
+            textbox->y = textbox->top_margin;
+            break;
+
+        case ALIGN_RCENTER_TOP:
+            textbox->x = 96 - (text_width / 2);
             textbox->y = textbox->top_margin;
             break;
 
@@ -184,9 +204,55 @@ void widget_textbox(glcd_t *display, textbox_t *textbox)
             textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
             textbox->y = textbox->top_margin;
             break;
+        //--------------------------------------------------------------------
+        //middle top
+            case ALIGN_LEFT_MTOP:
+            textbox->x = textbox->left_margin;
+            textbox->y = 22;
+            break;
 
+        case ALIGN_LCENTER_MTOP:
+            textbox->x = 32 - (text_width / 2);
+            textbox->y = 20 + alterebro15[FONT_HEIGHT] + 1;
+            break;
+
+        case ALIGN_LRIGHT_MTOP:
+            textbox->x = 64 - text_width - 1  - textbox->right_margin;
+            textbox->y = 20 + alterebro15[FONT_HEIGHT] + 1;
+            break;
+
+        case ALIGN_CENTER_MTOP:
+            textbox->x = (DISPLAY_WIDTH / 2) - (text_width / 2);
+            textbox->y = 20 + alterebro15[FONT_HEIGHT] + 1;
+            break;
+
+        case ALIGN_RLEFT_MTOP:
+            textbox->x = 65 + textbox->left_margin;
+            textbox->y = 20 + alterebro15[FONT_HEIGHT] + 1;
+            break;
+
+        case ALIGN_RCENTER_MTOP:
+            textbox->x = 96 - (text_width / 2);
+            textbox->y = 20 + alterebro15[FONT_HEIGHT] + 1;
+            break;
+
+        case ALIGN_RIGHT_MTOP:
+            textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
+            textbox->y = 20 + alterebro15[FONT_HEIGHT] + 1;
+            break;
+        //-------------------------------------------------------------------
         case ALIGN_LEFT_MIDDLE:
             textbox->x = textbox->left_margin;
+            textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
+            break;
+
+        case ALIGN_LCENTER_MIDDLE:
+            textbox->x = 32 - (text_width / 2);
+            textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
+            break;
+
+        case ALIGN_LRIGHT_MIDDLE:
+            textbox->x = 64 - text_width - 1 - textbox->right_margin;
             textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
             break;
 
@@ -195,13 +261,69 @@ void widget_textbox(glcd_t *display, textbox_t *textbox)
             textbox->y = ((DISPLAY_HEIGHT / 2) - (text_height / 2)) + (textbox->top_margin - textbox->bottom_margin);
             break;
 
+        case ALIGN_RLEFT_MIDDLE:
+            textbox->x = 65 + textbox->left_margin;
+            textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
+            break;
+
+        case ALIGN_RCENTER_MIDDLE:
+            textbox->x = 96 - (text_width / 2);
+            textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
+            break;
+
         case ALIGN_RIGHT_MIDDLE:
             textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
             textbox->y = (DISPLAY_HEIGHT / 2) - (text_height / 2);
             break;
+        //---------------------------------------------------------------------
+        //middle bottom
+        case ALIGN_LEFT_MBOTTOM:
+            textbox->x = textbox->left_margin;
+            textbox->y = 48 - alterebro15[FONT_HEIGHT];
+            break;
 
+        case ALIGN_LCENTER_MBOTTOM:
+            textbox->x = 32 - (text_width / 2);
+            textbox->y = 48 - alterebro15[FONT_HEIGHT];
+            break;
+
+        case ALIGN_LRIGHT_MBOTTOM:
+            textbox->x = 64 - text_width -1  - textbox->right_margin;
+            textbox->y = 48 - alterebro15[FONT_HEIGHT];
+            break;
+
+        case ALIGN_CENTER_MBOTTOM:
+            textbox->x = (DISPLAY_WIDTH / 2) - (text_width / 2);
+            textbox->y = 48 - alterebro15[FONT_HEIGHT];
+            break;
+
+        case ALIGN_RLEFT_MBOTTOM:
+            textbox->x = 65 + textbox->left_margin;
+            textbox->y = 48 - alterebro15[FONT_HEIGHT];
+            break;
+
+        case ALIGN_RCENTER_MBOTTOM:
+            textbox->x = 96 - (text_width / 2);
+            textbox->y = 48 - alterebro15[FONT_HEIGHT];
+            break;
+
+        case ALIGN_RIGHT_MBOTTOM:
+            textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
+            textbox->y = 48 - alterebro15[FONT_HEIGHT];
+            break;
+        //-------------------------------------------------------------------------
         case ALIGN_LEFT_BOTTOM:
             textbox->x = textbox->left_margin;
+            textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
+            break;
+
+        case ALIGN_LCENTER_BOTTOM:
+            textbox->x = 32 - (text_width / 2);
+            textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
+            break;
+
+        case ALIGN_LRIGHT_BOTTOM:
+            textbox->x = 64 - text_width -1 - textbox->right_margin;
             textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
             break;
 
@@ -210,11 +332,21 @@ void widget_textbox(glcd_t *display, textbox_t *textbox)
             textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
             break;
 
+        case ALIGN_RCENTER_BOTTOM:
+            textbox->x = 96 - (text_width / 2);
+            textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
+            break;
+
+        case ALIGN_RLEFT_BOTTOM:
+            textbox->x = 65 + textbox->left_margin;
+            textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
+            break;
+
         case ALIGN_RIGHT_BOTTOM:
             textbox->x = DISPLAY_WIDTH - text_width - textbox->right_margin;
             textbox->y = DISPLAY_HEIGHT - text_height - textbox->bottom_margin;
             break;
-
+        //--------------------------------------------------------------
         default:
         case ALIGN_NONE_NONE:
             break;
@@ -367,6 +499,51 @@ void widget_listbox2(glcd_t *display, listbox_t *listbox) //FIXME: function hard
     glcd_rect_invert(display, listbox->x, 27, listbox->width, 13);
 }
 
+void widget_listbox3(glcd_t *display, listbox_t *listbox) //JTODO: make not hardcoded. also need smaller font (if possible)
+{
+    glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
+
+    if (listbox->selected > 0)
+    {
+        glcd_text(display, listbox->x + listbox->text_left_margin, 0, listbox->list[listbox->selected-1],System5x7, listbox->color);
+    }
+
+    if (listbox->selected < (listbox->count - 1))
+    {
+        glcd_text(display, listbox->x + listbox->text_left_margin, 14, listbox->list[listbox->selected+1], System5x7, listbox->color);
+    }
+
+    glcd_text(display, listbox->x + listbox->text_left_margin + 2, 7, listbox->list[listbox->selected], System5x7, listbox->color);
+    glcd_rect_invert(display, listbox->x,  7, listbox->width, 10);
+}
+
+void widget_slider(glcd_t *display, slider_t *slider)
+{
+    //JTODO:
+    //fix function for non integer value's 
+
+    uint8_t range = slider->max - slider->min;
+    double point = (slider->value * slider->width) / range;
+
+    //draw the line
+    glcd_rect_fill(display, slider->x, slider->y, slider->width, 1, slider->color);
+
+    //draw line ending's
+    glcd_rect_fill(display, slider->x, (slider->y - 1), 2, 3, slider->color);
+    glcd_rect_fill(display, (slider->x + slider->width - 1), (slider->y -1) , 2, 3, slider->color);
+
+    //clear point area
+    glcd_rect_fill(display, (point - 2), (slider->y - 2), 5, 5, ~slider->color);
+
+    //draw point
+    glcd_rect_fill(display, (point), (slider->y), 1, 1, slider->color);
+
+    //draw the circle
+    glcd_rect_fill(display, (point - 1), (slider->y - 2), 3, 1, slider->color);
+    glcd_rect_fill(display, (point - 1), (slider->y + 2), 3, 1, slider->color);
+    glcd_rect_fill(display, (point - 2), (slider->y - 1), 1, 3, slider->color);
+    glcd_rect_fill(display, (point + 2), (slider->y - 1), 1, 3, slider->color);
+}
 
 void widget_graph(glcd_t *display, graph_t *graph)
 {

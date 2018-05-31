@@ -61,14 +61,25 @@
 // One slot is a set of display, knob, footswitch and led
 #define SLOTS_COUNT         2
 
+//// System buttons
+//buttons that are being used for pages or instances on the sibling
+#define SYSBUTTONS_COUNT 3
+
 //// LEDs configuration
 // Amount of LEDS
-#define LEDS_COUNT          SLOTS_COUNT
+#define LEDS_COUNT          ((SLOTS_COUNT * 2) + SYSBUTTONS_COUNT)
 
 // LEDs ports and pins definitions
 // format definition: {R_PORT, R_PIN, G_PORT, G_PIN, B_PORT, B_PIN}
-#define LED0_PINS           {2, 1, 2, 2, 2, 0}
-#define LED1_PINS           {2, 4, 2, 5, 2, 3}
+#define LED0_PINS           {2, 1}//still original DUO for testing, sibling@ (1, 22)
+#define LED1_PINS           {2, 4}//still original DUO, sibling@ (1, 28)
+#define LED2_PINS           {1, 0}//testing, pins are not connected on duo, sibling@ {2, 5}
+#define LED3_PINS           {1, 1}//testing, pins are not connected on duo, sibling@ {2, 1}
+
+//system button LED's
+#define SLED0_PINS           {1, 1}
+#define SLED1_PINS           {1, 4}
+#define SLED2_PINS           {1, 15}
 
 //// GLCDs configurations
 // GLCD driver, valid options: KS0108, UC1701
@@ -98,28 +109,57 @@
 
 //// Actuators configuration
 // Actuators IDs
-enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
+enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3, POT0, POT1, POT2, POT3, POT4, POT5, POT6, POT7};
 
 // Amount of footswitches
-#define FOOTSWITCHES_COUNT  SLOTS_COUNT
+#define FOOTSWITCHES_COUNT  2
 
 // Footswitches ports and pins definitions
 // button definition: {BUTTON_PORT, BUTTON_PIN}
 #define FOOTSWITCH0_PINS    {1, 29}
 #define FOOTSWITCH1_PINS    {1, 28}
+#define FOOTSWITCH2_PINS    {1, 4}//testing, pins are not connected on duo, sibling@ {2, 2}
+#define FOOTSWITCH3_PINS    {1, 8}//testing, pins are not connected on duo, sibling@ {2, 1}
 
 // Amount of encoders
 #define ENCODERS_COUNT      SLOTS_COUNT
+
+//Amount of pot's
+#define POTS_COUNT (SLOTS_COUNT * 4)
 
 // Encoders ports and pins definitions
 // encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC_CHB_PIN}
 #define ENCODER0_PINS       {0, 17, 0, 22, 0, 18}
 #define ENCODER1_PINS       {2, 8, 2, 6, 2, 7}
 
+//minimmal value the pot has to change before actualy changing the value. 
+//resolution of ADC = 3.3/(2^{12}) = 3.3/4096 =0.000805 = 0.8mV
+#define POT_THRESHOLD 0.1
+
+// Pots ports and pins definitions 
+// pot's are being read by a mux
+// mux definitions: {PORT, PIN}
+#define MUX_A_INP 	{1, 31}
+#define MUX_D0_OUTP {1, 30}
+#define MUX_D1_OUTP {0, 26}
+#define MUX_D2_OUTP {0, 25}
+
+//Pot's Mux bit id's
+//the MUX id's are determaind by the PCB connections.  
+// id definition {B0, B1, B2}
+#define POT0_ID {0, 0, 1}
+#define POT1_ID {0, 1, 1}
+#define POT2_ID {1, 1, 1}
+#define POT3_ID {1, 0, 1}
+#define POT4_ID {0, 0, 0}
+#define POT5_ID {1, 1, 0}
+#define POT6_ID {1, 0, 0}
+#define POT7_ID {0, 1, 0}
+
 #define SHUTDOWN_BUTTON_PORT    4
 #define SHUTDOWN_BUTTON_PIN     28
 
-
+#define ACTUATOR_COUNT (ENCODERS_COUNT + POTS_COUNT + FOOTSWITCHES_COUNT)
 ////////////////////////////////////////////////////////////////
 ////// SETTINGS RELATED TO FIRMWARE
 
@@ -224,8 +264,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 //// Screen definitions
 // defines the default rotary text
 #define SCREEN_ROTARY_DEFAULT_NAME      "KNOB #"
+// defines the default pot text
+#define SCREEN_POT_DEFAULT_NAME         "POT #"
 // defines the default foot text
-#define SCREEN_FOOT_DEFAULT_NAME        "FOOT #"
+#define SCREEN_FOOT_DEFAULT_NAME        "POT/FOOT #"
 
 //// System menu configuration
 // includes the system menu callbacks
@@ -328,14 +370,14 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {UPGRADE_ID, "To proceed with system upgrade please keep pressed left footswitch and click YES."},
 
 //// Foot functions leds colors
-#define TOGGLED_COLOR           GREEN
-#define TRIGGER_COLOR           GREEN
-#define TAP_TEMPO_COLOR         GREEN
-#define ENUMERATED_COLOR        GREEN
+#define TOGGLED_COLOR           RED
+#define TRIGGER_COLOR           RED
+#define TAP_TEMPO_COLOR         RED
+#define ENUMERATED_COLOR        RED
 #define BYPASS_COLOR            RED
-#define TRUE_BYPASS_COLOR       WHITE
-#define PEDALBOARD_NEXT_COLOR   WHITE
-#define PEDALBOARD_PREV_COLOR   WHITE
+#define TRUE_BYPASS_COLOR       RED
+#define PEDALBOARD_NEXT_COLOR   RED
+#define PEDALBOARD_PREV_COLOR   RED
 
 //// Tap Tempo
 // defines the time that the led will stay turned on (in milliseconds)
@@ -388,6 +430,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define NONE            0
 #define FOOT            1
 #define KNOB            2
+#define POT 			3
 
 // serial count definition
 #define SERIAL_COUNT    4

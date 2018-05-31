@@ -24,6 +24,11 @@
 #define TIMER0_PRIORITY     3
 #define TIMER1_PRIORITY     2
 
+//ADC Register definitions. 
+#define SBIT_PDN            21u
+#define SBIT_CLK_DIV        8u
+#define SBIT_CHANNEL        5u
+
 /*
 ************************************************************************************************************************
 *           LOCAL CONSTANTS
@@ -75,6 +80,52 @@ static const uint8_t *FOOTSWITCH_PINS[] = {
 #endif
 };
 
+/*
+static const uint8_t *POT_IDS[] = {
+#ifdef POT0_IDS
+    (const uint8_t []) POT_IDS,
+#endif
+#ifdef POT1_IDS
+    (const uint8_t []) POT_IDS,
+#endif
+#ifdef POT2_IDS
+    (const uint8_t []) POT_IDS,
+#endif
+#ifdef POT3_IDS
+    (const uint8_t []) POT_IDS,
+#endif
+#ifdef POT4_IDS
+    (const uint8_t []) POT_IDS,
+#endif
+#ifdef POT5_IDS
+    (const uint8_t []) POT_IDS,
+#endif
+#ifdef POT6_IDS
+    (const uint8_t []) POT_IDS,
+#endif
+#ifdef POT7_IDS
+    (const uint8_t []) POT_IDS,
+#endif    
+};
+
+
+
+static const uint8_t *MUX_PINS[] = {
+#ifdef MUX_A_INP
+    (const uint8_t []) MUX_A_INP,
+#endif
+#ifdef MUX_D0_OUTP
+    (const uint8_t []) MUX_D0_OUTP,
+#endif
+#ifdef MUX_D1_OUTP
+    (const uint8_t []) MUX_D1_OUTP,
+#endif
+#ifdef MUX_D2_OUTP
+    (const uint8_t []) MUX_D2_OUTP
+#endif
+};
+
+*/
 
 /*
 ************************************************************************************************************************
@@ -108,6 +159,7 @@ static serial_t g_serial[SERIAL_COUNT];
 static led_t g_leds[LEDS_COUNT];
 static encoder_t g_encoders[ENCODERS_COUNT];
 static button_t g_footswitches[FOOTSWITCHES_COUNT];
+static potentiometer_t g_pots[POTS_COUNT];
 static uint32_t g_counter;
 static int g_brightness;
 
@@ -153,28 +205,48 @@ void hardware_setup(void)
     CONFIG_PIN_OUTPUT(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
     CLR_PIN(SHUTDOWN_BUTTON_PORT, SHUTDOWN_BUTTON_PIN);
 
+ 
     // SLOTs initialization
     uint8_t i;
-    for (i = 0; i < SLOTS_COUNT; i++)
+    for (i = 0; i < LEDS_COUNT; i++)
     {
         // LEDs initialization
         led_init(&g_leds[i], LEDS_PINS[i]);
+    }
 
+    for (i = 0; i < GLCD_COUNT; i++)
+    {
         // GLCD initialization
         glcd_init(&g_glcd[i]);
+    }
 
+    for (i = 0; i < ENCODERS_COUNT; i++)
+    {
         // actuators creation
         actuator_create(ROTARY_ENCODER, i, hardware_actuators(ENCODER0 + i));
-        actuator_create(BUTTON, i, hardware_actuators(FOOTSWITCH0 + i));
 
         // actuators pins configuration
         actuator_set_pins(hardware_actuators(ENCODER0 + i), ENCODER_PINS[i]);
-        actuator_set_pins(hardware_actuators(FOOTSWITCH0 + i), FOOTSWITCH_PINS[i]);
 
         // actuators properties
         actuator_set_prop(hardware_actuators(ENCODER0 + i), ENCODER_STEPS, 3);
         actuator_set_prop(hardware_actuators(ENCODER0 + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
     }
+
+    for (i = 0; i < FOOTSWITCHES_COUNT; i++)
+    {
+       actuator_create(BUTTON, i, hardware_actuators(FOOTSWITCH0 + i)); 
+       actuator_set_pins(hardware_actuators(FOOTSWITCH0 + i), FOOTSWITCH_PINS[i]);
+    }
+    /*
+    for (i = 0; i < POTS_COUNT; i++)
+    {
+        actuator_create(POT, i, hardware_actuators(POT0 + i));
+        actuator_set_pins(hardware_actuators(POT0 + i), POT_IDS[i]);
+    }
+
+    hardware_mux_init(MUX_PINS[0], MUX_PINS[1], MUX_PINS[2], MUX_PINS[3]);
+	*/
 
     // default glcd brightness
     g_brightness = 2;
@@ -348,6 +420,10 @@ void *hardware_actuators(uint8_t actuator_id)
     {
         return (&g_footswitches[actuator_id - FOOTSWITCH0]);
     }
+    if ((int8_t)actuator_id >= POT0 && actuator_id < (POT0 + POTS_COUNT))
+    {
+        return (&g_pots[actuator_id - POT0]);
+    }
 
     return NULL;
 }
@@ -355,6 +431,33 @@ void *hardware_actuators(uint8_t actuator_id)
 uint32_t hardware_timestamp(void)
 {
     return g_counter;
+}
+
+void hardware_mux_init(uint8_t *pins_mux_inp, uint8_t *pins_mux_b0, uint8_t *pins_mux_b1, uint8_t *pins_mux_b2){
+    //ADC INIT
+    //Enable CLOCK for internal ADC controller
+    LPC_SC->PCONP |= (1<<12);
+
+    //Select PCLK_ADC
+    LPC_SC->PCLKSEL0 |= (11<<24);
+
+    //Set the clock and Power ON ADC module
+    LPC_ADC->ADCR = ((1<<SBIT_PDN) | (10<<SBIT_CLK_DIV));
+
+    //Select the P1_31 AD0[5] for ADC function
+    LPC_PINCON->PINSEL3|= (11<<24);
+
+    //Set Pinmode
+    LPC_PINCON->PINMODE3 |= (11<<30);
+
+    //Select Channel 5 by setting 0th bit of ADCR
+    LPC_ADC->ADCR  |= (1<<SBIT_CHANNEL);
+
+    //set MUX pins
+    CONFIG_PIN_INPUT(pins_mux_inp[0], pins_mux_inp[1]);
+    CONFIG_PIN_OUTPUT(pins_mux_b0[0], pins_mux_b0[1]);
+    CONFIG_PIN_OUTPUT(pins_mux_b1[0], pins_mux_b1[1]);
+    CONFIG_PIN_OUTPUT (pins_mux_b2[0], pins_mux_b2[1]);
 }
 
 void hardware_coreboard_power(uint8_t state)

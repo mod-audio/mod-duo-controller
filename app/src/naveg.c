@@ -82,7 +82,7 @@ struct TOOL_T {
 ************************************************************************************************************************
 */
 
-static control_t *g_controls[SLOTS_COUNT], *g_foots[SLOTS_COUNT];
+static control_t *g_controls[SLOTS_COUNT], *g_foots[SLOTS_COUNT], *g_pots[POTS_COUNT];
 static bp_list_t *g_banks, *g_naveg_pedalboards, *g_selected_pedalboards;
 static uint8_t g_bp_state, g_current_bank, g_current_pedalboard, g_bp_first;
 static node_t *g_menu, *g_current_menu;
@@ -105,6 +105,9 @@ static void display_control_rm(int32_t effect_instance, const char *symbol);
 
 static void foot_control_add(control_t *control);
 static void foot_control_rm(int32_t effect_instance, const char *symbol);
+
+//static void pot_control_add(control_t *control);
+//static void pot_control_rm(int32_t effect_instance, const char *symbol);
 
 static uint8_t bank_config_check(uint8_t foot);
 static void bank_config_update(uint8_t bank_func_idx);
@@ -162,13 +165,53 @@ static int display_has_tool_enabled(uint8_t display)
     return 0;
 }
 
+static int display_get_id(control_t *control)
+{
+    switch(control->actuator_type)
+    {
+        case (KNOB):
+            if (control->actuator_id == 0)
+            {
+                return 0;
+            }
+            else if (control->actuator_id == 1)
+            {
+                return 1;
+            }
+        break;
+
+        case (FOOT):
+            if (control->actuator_id == 0 || 1)
+            {
+                return 0;
+            }
+            else if (control->actuator_id == 2 || 3)
+            {
+                return 1;
+            }
+        break;
+
+        case (POT):
+            if (control->actuator_id == 0 || 1 || 2 || 3)
+            {
+                return 0;
+            }
+            else if (control->actuator_id == 4 || 5 || 6 || 7)
+            {
+                return 1;
+            }
+        break;
+    }
+    return 0;
+}
+
 // search the control
 static control_t *search_control(int32_t effect_instance, const char *symbol, uint8_t *display)
 {
     uint8_t i;
     control_t *control;
 
-    for (i = 0; i < SLOTS_COUNT; i++)
+    for (i = 0; i < ACTUATOR_COUNT; i++)
     {
         control = g_controls[i];
         if (control)
@@ -232,7 +275,8 @@ static void display_control_add(control_t *control)
 {
     uint8_t display;
 
-    display = control->actuator_id;
+
+    display = display_get_id(control);
 
     // checks if is already a control assigned in this display and remove it
     if (g_controls[display]) data_free_control(g_controls[display]);
@@ -291,7 +335,7 @@ static void display_control_add(control_t *control)
     screen_control(display, control);
 
     // update the controls index screen
-    screen_controls_index(display, control->control_index, control->controls_count);
+    //screen_controls_index(display, control->control_index, control->controls_count);
 }
 
 // control removed from display
@@ -530,10 +574,109 @@ static void foot_control_rm(int32_t effect_instance, const char *symbol)
         }
     }
 }
+/*
+// control assigned to pot
+static void pot_control_add(control_t *control)
+{
+    uint8_t display;
 
+    display = display_get_id(*control);
+
+    control->display = display;
+
+    // checks the actuator id
+    if (control->actuator_id >= POTS_COUNT) return;
+
+    // checks if the pot is already used by other control and not is state updating
+    if (g_pots[control->actuator_id] && g_pots[control->actuator_id] != control)
+    {
+        data_free_control(control);
+        return;
+    }
+
+    // stores the pot
+    g_pots[control->actuator_id] = control;
+
+    switch (control->properties)
+    {
+        case CONTROL_PROP_LINEAR:
+            control->step =
+                (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
+            break;
+
+        case CONTROL_PROP_LOGARITHMIC:
+            if (control->minimum == 0.0)
+                control->minimum = FLT_MIN;
+
+            if (control->maximum == 0.0)
+                control->maximum = FLT_MIN;
+
+            if (control->value == 0.0)
+                control->value = FLT_MIN;
+
+            control->step =
+                (control->steps - 1) * log(control->value / control->minimum) / log(control->maximum / control->minimum);
+            break;
+
+        case CONTROL_PROP_INTEGER:
+            control->steps = (control->maximum - control->minimum) + 1;
+            control->step =
+                (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
+            break;
+    }
+
+    if (display_has_tool_enabled(display)) return; 
+
+    //screen_control_pot(id, display, control);
+}
+
+// control removed from pot
+static void pot_control_rm(int32_t effect_instance, const char *symbol)
+{
+    uint8_t id, display;
+
+    control_t *control = search_control(effect_instance, symbol, &id);
+
+    id = control->actuator_id;
+
+    display = display_get_id(*control);
+
+    control->display = display;
+
+    if (control)
+    {
+        data_free_control(control);
+        g_controls[id] = NULL;
+        if (!display_has_tool_enabled(display)) screen_control(id, NULL);
+        return;
+    }
+
+    uint8_t all_effects, all_controls;
+    all_effects = (effect_instance == ALL_EFFECTS) ? 1 : 0;
+    all_controls = (strcmp(symbol, ALL_CONTROLS) == 0) ? 1 : 0;
+
+    for (id = 0; id  < (POTS_COUNT); id++)
+    {
+        control = g_controls[id];
+
+        if (all_effects || control->effect_instance == effect_instance)
+        {
+            if (all_controls || strcmp(control->symbol, symbol) == 0)
+            {
+                data_free_control(control);
+                g_controls[id] = NULL;
+
+                if (!display_has_tool_enabled(display)) screen_control(id, NULL);
+            }
+        }
+    }
+}
+*/
 static void control_set(uint8_t display, control_t *control)
 {
     uint32_t delta, now;
+
+    ///id = control->actuator_id;
 
     switch (control->properties)
     {
@@ -543,7 +686,17 @@ static void control_set(uint8_t display, control_t *control)
 
             // update the screen
             if (!display_has_tool_enabled(display))
-                screen_control(display, control);
+            {
+                if (control->actuator_type == KNOB)
+                {
+                    screen_control(display, control);
+                }
+                else if (control->actuator_type == POT)
+                {
+                    //display = display_get_id(control);
+                    //screen_control_pot(id, display, control);
+                }
+            }
             break;
 
         case CONTROL_PROP_ENUMERATION:
@@ -1479,6 +1632,9 @@ void naveg_add_control(control_t *control)
         case FOOT:
             foot_control_add(control);
             break;
+        case POT:
+            //pot_control_add(control);
+            break;
     }
 }
 
@@ -1486,6 +1642,7 @@ void naveg_remove_control(int32_t effect_instance, const char *symbol)
 {
     if (!g_initialized) return;
 
+    //pot_control_rm(effect_instance, symbol);
     display_control_rm(effect_instance, symbol);
     foot_control_rm(effect_instance, symbol);
 }
@@ -1626,6 +1783,17 @@ void naveg_foot_change(uint8_t foot)
     control_set(foot, g_foots[foot]);
 }
 
+void naveg_pot_change(uint8_t id, uint8_t value)
+{
+    if (!g_initialized) return;
+
+    if (id >= POTS_COUNT) return;
+
+    g_pots[id]->value = value;
+
+    control_set(id, g_pots[id]);
+}
+
 void naveg_toggle_tool(uint8_t tool, uint8_t display)
 {
     if (!g_initialized) return;
@@ -1680,8 +1848,8 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         screen_control(display, control);
 
         // draws the controls index
-        if (control)
-            screen_controls_index(display, control->control_index, control->controls_count);
+        //if (control)
+            //screen_controls_index(display, control->control_index, control->controls_count);
 
         // checks the function assigned to foot and update the footer
         if (bank_config_check(display)) bank_config_footer();
