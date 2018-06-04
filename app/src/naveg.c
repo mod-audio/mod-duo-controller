@@ -82,12 +82,13 @@ struct TOOL_T {
 ************************************************************************************************************************
 */
 
-static control_t *g_controls[SLOTS_COUNT], *g_foots[SLOTS_COUNT], *g_pots[POTS_COUNT];
+static control_t *g_controls[ENCODERS_COUNT], *g_foots[FOOTSWITCHES_COUNT], *g_pots[POTS_COUNT];
 static bp_list_t *g_banks, *g_naveg_pedalboards, *g_selected_pedalboards;
 static uint8_t g_bp_state, g_current_bank, g_current_pedalboard, g_bp_first;
 static node_t *g_menu, *g_current_menu;
 static menu_item_t *g_current_item;
 static uint8_t g_max_items_list;
+static uint8_t g_saved_presets[SYSBUTTONS_COUNT], g_preset_uri[SYSBUTTONS_COUNT];
 static bank_config_t g_bank_functions[BANK_FUNC_AMOUNT];
 static uint8_t g_initialized, g_ui_connected;
 static void (*g_update_cb)(void *data, int event);
@@ -106,8 +107,8 @@ static void display_control_rm(int32_t effect_instance, const char *symbol);
 static void foot_control_add(control_t *control);
 static void foot_control_rm(int32_t effect_instance, const char *symbol);
 
-//static void pot_control_add(control_t *control);
-//static void pot_control_rm(int32_t effect_instance, const char *symbol);
+static void pot_control_add(control_t *control);
+static void pot_control_rm(int32_t effect_instance, const char *symbol);
 
 static uint8_t bank_config_check(uint8_t foot);
 static void bank_config_update(uint8_t bank_func_idx);
@@ -211,9 +212,32 @@ static control_t *search_control(int32_t effect_instance, const char *symbol, ui
     uint8_t i;
     control_t *control;
 
-    for (i = 0; i < ACTUATOR_COUNT; i++)
+    for (i = 0; i < ENCODERS_COUNT; i++)
     {
         control = g_controls[i];
+        if (control)
+        {
+            if (control->effect_instance == effect_instance &&
+                strcmp(control->symbol, symbol) == 0)
+            {
+                (*display) = i;
+                return control;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+// search the pot
+static control_t *search_pot(int32_t effect_instance, const char *symbol, uint8_t *display)
+{
+    uint8_t i;
+    control_t *control;
+
+    for (i = 0; i < POTS_COUNT; i++)
+    {
+        control = g_pots[i];
         if (control)
         {
             if (control->effect_instance == effect_instance &&
@@ -275,7 +299,6 @@ static void display_control_add(control_t *control)
 {
     uint8_t display;
 
-
     display = display_get_id(control);
 
     // checks if is already a control assigned in this display and remove it
@@ -332,10 +355,7 @@ static void display_control_add(control_t *control)
     if (display_has_tool_enabled(display)) return;
 
     // update the control screen
-    screen_control(display, control);
-
-    // update the controls index screen
-    //screen_controls_index(display, control->control_index, control->controls_count);
+    screen_encoder_box(display, control);
 }
 
 // control removed from display
@@ -348,7 +368,7 @@ static void display_control_rm(int32_t effect_instance, const char *symbol)
     {
         data_free_control(control);
         g_controls[display] = NULL;
-        if (!display_has_tool_enabled(display)) screen_control(display, NULL);
+        if (!display_has_tool_enabled(display)) screen_encoder_box(display, NULL);
         return;
     }
 
@@ -367,7 +387,7 @@ static void display_control_rm(int32_t effect_instance, const char *symbol)
                 data_free_control(control);
                 g_controls[display] = NULL;
 
-                if (!display_has_tool_enabled(display)) screen_control(display, NULL);
+                if (!display_has_tool_enabled(display)) screen_encoder_box(display, NULL);
             }
         }
     }
@@ -574,15 +594,13 @@ static void foot_control_rm(int32_t effect_instance, const char *symbol)
         }
     }
 }
-/*
+
 // control assigned to pot
 static void pot_control_add(control_t *control)
 {
     uint8_t display;
 
-    display = display_get_id(*control);
-
-    control->display = display;
+    display = display_get_id(control);
 
     // checks the actuator id
     if (control->actuator_id >= POTS_COUNT) return;
@@ -627,27 +645,24 @@ static void pot_control_add(control_t *control)
 
     if (display_has_tool_enabled(display)) return; 
 
-    //screen_control_pot(id, display, control);
+    screen_control_pot(control->actuator_id, display, control);
 }
 
 // control removed from pot
 static void pot_control_rm(int32_t effect_instance, const char *symbol)
 {
+
     uint8_t id, display;
 
-    control_t *control = search_control(effect_instance, symbol, &id);
+    control_t *control = search_pot(effect_instance, symbol, &id);
 
-    id = control->actuator_id;
-
-    display = display_get_id(*control);
-
-    control->display = display;
+    display = display_get_id(control);
 
     if (control)
     {
         data_free_control(control);
-        g_controls[id] = NULL;
-        if (!display_has_tool_enabled(display)) screen_control(id, NULL);
+        g_pots[id] = NULL;
+        if (!display_has_tool_enabled(display)) screen_control_pot(id, display, NULL);
         return;
     }
 
@@ -655,28 +670,28 @@ static void pot_control_rm(int32_t effect_instance, const char *symbol)
     all_effects = (effect_instance == ALL_EFFECTS) ? 1 : 0;
     all_controls = (strcmp(symbol, ALL_CONTROLS) == 0) ? 1 : 0;
 
-    for (id = 0; id  < (POTS_COUNT); id++)
+    for (id = 0; id < (POTS_COUNT); id++)
     {
-        control = g_controls[id];
+        control = g_pots[id];
 
         if (all_effects || control->effect_instance == effect_instance)
         {
             if (all_controls || strcmp(control->symbol, symbol) == 0)
             {
                 data_free_control(control);
-                g_controls[id] = NULL;
+                g_pots[id] = NULL;
 
-                if (!display_has_tool_enabled(display)) screen_control(id, NULL);
+                if (!display_has_tool_enabled(display)) screen_control_pot(id, display, NULL);
             }
         }
     }
 }
-*/
+
 static void control_set(uint8_t display, control_t *control)
 {
     uint32_t delta, now;
 
-    ///id = control->actuator_id;
+    uint8_t id = control->actuator_id;
 
     switch (control->properties)
     {
@@ -689,12 +704,12 @@ static void control_set(uint8_t display, control_t *control)
             {
                 if (control->actuator_type == KNOB)
                 {
-                    screen_control(display, control);
+                    screen_encoder_box(display, control);
                 }
                 else if (control->actuator_type == POT)
                 {
-                    //display = display_get_id(control);
-                    //screen_control_pot(id, display, control);
+                    display = display_get_id(control);
+                    screen_control_pot(id, display, control);
                 }
             }
             break;
@@ -705,7 +720,7 @@ static void control_set(uint8_t display, control_t *control)
             {
                 // update the screen
                 if (!display_has_tool_enabled(display))
-                    screen_control(display, control);
+                    screen_encoder_box(display, control);
             }
             else if (control->actuator_type == FOOT)
             {
@@ -799,6 +814,60 @@ static void control_set(uint8_t display, control_t *control)
 
     // send the data to GUI
     comm_webgui_send(buffer, i);
+}
+
+static void parse_preset(void *data)
+{
+    (void) data;
+    /*something like this? not tested yet, depends on modui
+    uint8_t id = data[0];
+    g_saved_presets[id] = data[1];
+    g_preset_uri[id] = data[2];
+    */
+}
+
+static void set_preset(uint8_t id)
+{
+    uint8_t preset = g_saved_presets[id];
+    uint8_t preset_uri = g_preset_uri[preset];
+
+    char buffer[128];
+    uint8_t i;
+
+    i = copy_command(buffer, PRESET_SET_CMD);
+
+    // inserts the preset
+    i += int_to_str(preset, &buffer[i], 4, 0);
+    buffer[i++] = ' ';
+
+    // inserts the actuator id
+    i += int_to_str(preset_uri, &buffer[i], 4, 0);
+    buffer[i] = 0;
+
+    comm_webgui_send(buffer, i);
+}
+
+static void load_preset(uint8_t id)
+{
+    //set response callback
+    comm_webgui_set_response_cb(parse_preset);
+
+    char buffer[128];
+    uint8_t i;
+
+    i = copy_command(buffer, PRESET_LOAD_CMD);
+
+    // inserts the actuator id
+    i += int_to_str(id, &buffer[i], 4, 0);
+    buffer[i] = 0;
+
+    comm_webgui_send(buffer, i);
+
+    //wait till the preset is loaded
+    comm_webgui_wait_response();
+
+    //turn on LED (preset loaded)
+    led_set_color(hardware_leds(id), RED);
 }
 
 static void parse_banks_list(void *data)
@@ -1472,17 +1541,24 @@ void naveg_init(void)
     uint32_t i;
 
     // initialize the global variables
-    for (i = 0; i < SLOTS_COUNT; i++)
+    for (i=0; i < ENCODERS_COUNT; i++)
     {
-        // initialize the display controls pointers
+      // initialize the display controls pointers
         g_controls[i] = NULL;
-
-        // initialize the foot controls pointers
+    }    
+    for (i=0; i < FOOTSWITCHES_COUNT; i++)
+    {
+      // initialize the foot controls pointers
         g_foots[i] = NULL;
 
-        // initialize the tap tempo
+      // initialize the tap tempo
         g_tap_tempo[i].state = TT_INIT;
     }
+    for (i=0; i < POTS_COUNT; i++)
+    {
+      // initialize the display controls pointers
+        g_pots[i] = NULL;
+    } 
 
     g_banks = NULL;
     g_naveg_pedalboards = NULL;
@@ -1632,8 +1708,9 @@ void naveg_add_control(control_t *control)
         case FOOT:
             foot_control_add(control);
             break;
+
         case POT:
-            //pot_control_add(control);
+            pot_control_add(control);
             break;
     }
 }
@@ -1642,9 +1719,9 @@ void naveg_remove_control(int32_t effect_instance, const char *symbol)
 {
     if (!g_initialized) return;
 
-    //pot_control_rm(effect_instance, symbol);
     display_control_rm(effect_instance, symbol);
     foot_control_rm(effect_instance, symbol);
+    pot_control_rm(effect_instance, symbol);
 }
 
 void naveg_inc_control(uint8_t display)
@@ -1789,9 +1866,31 @@ void naveg_pot_change(uint8_t id, uint8_t value)
 
     if (id >= POTS_COUNT) return;
 
+    g_pots[id]->actuator_id = id;
+
     g_pots[id]->value = value;
 
-    control_set(id, g_pots[id]);
+    uint8_t display = display_get_id(g_pots[id]);
+
+    control_set(display, g_pots[id]);
+}
+
+void naveg_system_button_clicked(uint8_t id)
+{
+    if (!g_saved_presets[id])
+    {
+        set_preset(id);
+    }
+    else 
+    {
+        load_preset(id);
+    }
+}
+
+void naveg_system_button_held(uint8_t id)
+{
+    load_preset(id);
+
 }
 
 void naveg_toggle_tool(uint8_t tool, uint8_t display)
@@ -1845,11 +1944,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         control_t *control = g_controls[display];
 
         // draws the control
-        screen_control(display, control);
-
-        // draws the controls index
-        //if (control)
-            //screen_controls_index(display, control->control_index, control->controls_count);
+        screen_encoder_box(display, control);
 
         // checks the function assigned to foot and update the footer
         if (bank_config_check(display)) bank_config_footer();

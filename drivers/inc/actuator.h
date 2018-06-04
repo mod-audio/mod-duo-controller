@@ -21,7 +21,7 @@
 
 // Actuators types
 typedef enum {
-    BUTTON, ROTARY_ENCODER, POTENTIOMETER
+    BUTTON, ROTARY_ENCODER, POTENTIOMETER, SYSTEM_BUTTON
 } actuator_type_t;
 
 // Actuators properties

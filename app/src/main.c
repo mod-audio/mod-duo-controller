@@ -305,9 +305,18 @@ static void actuators_task(void *pvParameters)
                 if (POT_TURNED(status))
                 {
                     uint8_t value = actuator_pot_get_value(id);
-                    (void) value;
-                    //JTODO: create this function. 
-                    //naveg_pot_change(id, value);
+                    naveg_pot_change(id, value);
+                }
+            }
+            else if (type == SYSTEM_BUTTON)
+            {
+                if (BUTTON_CLICKED(status))
+                {
+                    naveg_system_button_clicked(id);
+                }
+                if (BUTTON_HOLD(status))
+                {
+                    naveg_system_button_held(id);
                 }
             }
 
@@ -364,11 +373,17 @@ static void setup_task(void *pvParameters)
         actuator_set_event(hardware_actuators(FOOTSWITCH0 + i), actuators_cb);
         actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_BUTTON_PRESSED);
     }
-    /*
+    
     for (i = 0; i < POTS_COUNT; i++)
     {
         actuator_set_event(hardware_actuators(POT0 + i), actuators_cb);
         actuator_enable_event(hardware_actuators(POT0 + i), EV_POT_TURNED);
+    }
+    /*
+    for (i = 0; i < SYSBUTTONS_COUNT; i++)
+    {
+        actuator_set_event(hardware_actuators(SYSBUTTON + i), actuators_cb);
+        actuator_enable_event(hardware_actuators(SYSBUTTON + i), EV_BUTTON_PRESSED, EV_BUTTON_HELD);
     }
     */
 
@@ -561,7 +576,7 @@ static void restore_cb(proto_t *proto)
 
 void HardFault_Handler(void)
 {
-    led_set_color(hardware_leds(0), CYAN);
+    led_set_color(hardware_leds(0), RED);
     while (1);
 }
 

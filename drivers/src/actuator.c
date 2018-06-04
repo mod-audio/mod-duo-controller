@@ -113,6 +113,7 @@ static void event(void *actuator, uint8_t flags)
 
     switch (ACTUATOR_TYPE(actuator))
     {
+        case SYSTEM_BUTTON:
         case BUTTON:
             if (button->event && (button->events_flags & flags))
             {
@@ -159,6 +160,7 @@ void actuator_create(actuator_type_t type, uint8_t id, void *actuator)
 
     switch (type)
     {
+        case SYSTEM_BUTTON:
         case BUTTON:
             button->id = id;
             button->type = type;
@@ -211,6 +213,7 @@ void actuator_set_pins(void *actuator, const uint8_t *pins)
 
     switch (ACTUATOR_TYPE(actuator))
     {
+        case SYSTEM_BUTTON:
         case BUTTON:
             button->port = pins[0];
             button->pin = pins[1];
@@ -246,6 +249,7 @@ void actuator_set_prop(void *actuator, actuator_prop_t prop, uint16_t value)
 
     switch (ACTUATOR_TYPE(actuator))
     {
+        case SYSTEM_BUTTON:
         case BUTTON:
             if (prop == BUTTON_HOLD_TIME)
             {
@@ -280,6 +284,7 @@ void actuator_enable_event(void *actuator, uint8_t events_flags)
 {
     switch (ACTUATOR_TYPE(actuator))
     {
+        case SYSTEM_BUTTON:
         case BUTTON:
             ((button_t *)actuator)->events_flags = events_flags;
             break;
@@ -299,6 +304,7 @@ void actuator_set_event(void *actuator, void (*event)(void *actuator))
 {
     switch (ACTUATOR_TYPE(actuator))
     {
+        case SYSTEM_BUTTON:
         case BUTTON:
             ((button_t *)actuator)->event = event;
             break;
@@ -323,6 +329,7 @@ uint8_t actuator_get_status(void *actuator)
 
     switch (ACTUATOR_TYPE(actuator))
     {
+        case SYSTEM_BUTTON:
         case BUTTON:
             status = button->status;
             CLR_FLAG(button->status, TRIGGER_FLAGS);
@@ -363,6 +370,7 @@ void actuators_clock(void)
 
         switch (ACTUATOR_TYPE(g_actuators_pointers[i]))
         {
+            case SYSTEM_BUTTON:
             case BUTTON:
                 if (READ_PIN(button->port, button->pin) == BUTTON_ACTIVATED) button_on = BUTTON_ON_FLAG;
                 else button_on = 0;
@@ -576,22 +584,20 @@ void actuators_clock(void)
                 break;
 
             case POTENTIOMETER:
-            (void) potentiometer;
-               //TODO: HARDCODED, FIX THAT 
                 //set the mux 
-              /*  if (pot->mux_b0 == 1){
+                if (potentiometer->mux_b0 == 1){
                     SET_PIN(1, 30);
                 }
                 else{
                     CLR_PIN(1, 30);
                     }
-                if (pot->mux_b1 == 1){
+                if (potentiometer->mux_b1 == 1){
                     SET_PIN(0, 26);
                 }
                 else{
                     CLR_PIN(0, 26);
                 }
-                if (pot->mux_b2 == 1){
+                if (potentiometer->mux_b2 == 1){
                     SET_PIN(0, 25);
                 }
                 else{
@@ -602,7 +608,7 @@ void actuators_clock(void)
                 LPC_ADC->ADCR |= (1<<SBIT_START);
 
                 //Wait for the mesurement to complete (not nice i know)
-                while (check_bit(LPC_ADC->ADGDR, SBIT_DONE));
+                while (CHECK_BIT(LPC_ADC->ADGDR, SBIT_DONE));
                 
                 //read the data
                 float data = (int)(((LPC_ADC->ADGDR>>SBIT_RESULT) & 0xfff) * 100 + .5);
@@ -611,15 +617,15 @@ void actuators_clock(void)
                 if (current_pot_val > g_pot_value[i]) {
                     if ((current_pot_val - g_pot_value[i]) > POT_THRESHOLD){
                         g_pot_value[i] = current_pot_val;
-                        event(pot, EV_POT_TURNED);
+                        event(potentiometer, EV_POT_TURNED);
                     }
                 }
                 if (current_pot_val < g_pot_value[i]) {
                     if ((g_pot_value[i] - current_pot_val) > POT_THRESHOLD){
                         g_pot_value[i] = current_pot_val;
-                        event(pot, EV_POT_TURNED);
+                        event(potentiometer, EV_POT_TURNED);
                     }
-                } */
+                } 
             break;
         }
     }

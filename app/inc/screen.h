@@ -62,8 +62,6 @@
 */
 
 void screen_clear(uint8_t display_id);
-void screen_control(uint8_t display_id, control_t *control);
-void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max);
 void screen_encoder_box(uint8_t display_id, control_t *control);
 void screen_control_pot(uint8_t id, uint8_t display, control_t *control);
 void screen_pot_box_left(uint8_t display_id, control_t *control);

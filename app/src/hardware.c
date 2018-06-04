@@ -80,7 +80,7 @@ static const uint8_t *FOOTSWITCH_PINS[] = {
 #endif
 };
 
-/*
+
 static const uint8_t *POT_IDS[] = {
 #ifdef POT0_IDS
     (const uint8_t []) POT_IDS,
@@ -125,7 +125,7 @@ static const uint8_t *MUX_PINS[] = {
 #endif
 };
 
-*/
+
 
 /*
 ************************************************************************************************************************
@@ -238,15 +238,20 @@ void hardware_setup(void)
        actuator_create(BUTTON, i, hardware_actuators(FOOTSWITCH0 + i)); 
        actuator_set_pins(hardware_actuators(FOOTSWITCH0 + i), FOOTSWITCH_PINS[i]);
     }
-    /*
     for (i = 0; i < POTS_COUNT; i++)
     {
         actuator_create(POT, i, hardware_actuators(POT0 + i));
         actuator_set_pins(hardware_actuators(POT0 + i), POT_IDS[i]);
     }
-
+    /*
+    for (i = 0; i < SYSBUTTONS_COUNT; i++)
+    {
+       actuator_create(SYSBUTTON, i, hardware_actuators(SYSBUTTON0 + i)); 
+       actuator_set_pins((hardware_actuators(SYSBUTTON0) + i), SYSBUTTON_PINS[i]);
+       actuator_set_prop((hardware_actuators(SYSBUTTON0) + i), BUTTON_HOLD_TIME, TOOL_MODE_TIME);
+    }
+*/
     hardware_mux_init(MUX_PINS[0], MUX_PINS[1], MUX_PINS[2], MUX_PINS[3]);
-	*/
 
     // default glcd brightness
     g_brightness = 2;
@@ -433,7 +438,7 @@ uint32_t hardware_timestamp(void)
     return g_counter;
 }
 
-void hardware_mux_init(uint8_t *pins_mux_inp, uint8_t *pins_mux_b0, uint8_t *pins_mux_b1, uint8_t *pins_mux_b2){
+void hardware_mux_init(const uint8_t *pins_mux_inp, const uint8_t *pins_mux_b0, const uint8_t *pins_mux_b1, const uint8_t *pins_mux_b2){
     //ADC INIT
     //Enable CLOCK for internal ADC controller
     LPC_SC->PCONP |= (1<<12);
@@ -445,7 +450,7 @@ void hardware_mux_init(uint8_t *pins_mux_inp, uint8_t *pins_mux_b0, uint8_t *pin
     LPC_ADC->ADCR = ((1<<SBIT_PDN) | (10<<SBIT_CLK_DIV));
 
     //Select the P1_31 AD0[5] for ADC function
-    LPC_PINCON->PINSEL3|= (11<<24);
+    LPC_PINCON->PINSEL3 |= (3<<30); //P1.31 is connected to AD0.5
 
     //Set Pinmode
     LPC_PINCON->PINMODE3 |= (11<<30);
@@ -458,6 +463,8 @@ void hardware_mux_init(uint8_t *pins_mux_inp, uint8_t *pins_mux_b0, uint8_t *pin
     CONFIG_PIN_OUTPUT(pins_mux_b0[0], pins_mux_b0[1]);
     CONFIG_PIN_OUTPUT(pins_mux_b1[0], pins_mux_b1[1]);
     CONFIG_PIN_OUTPUT (pins_mux_b2[0], pins_mux_b2[1]);
+
+    
 }
 
 void hardware_coreboard_power(uint8_t state)

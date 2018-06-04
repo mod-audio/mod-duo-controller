@@ -89,217 +89,19 @@ void screen_clear(uint8_t display_id)
     glcd_clear(hardware_glcds(display_id), GLCD_WHITE);
 }
 
-void screen_control(uint8_t display_id, control_t *control)
-{
-    //for testing, bind encoder 0 to encoder 0 
-                 //bind encoder 1 to pot 2
-    if (display_id < 1){
-        screen_encoder_box(display_id, control);
-    }
-    else {
-        screen_pot_box_left(0, control);
-    }
-
-    //screen_encoder_box(display_id, control)
-
-    //code is not being used right now
-/*
-    glcd_t *display = hardware_glcds(display_id);
-
-    if (!control)
-    {
-        glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 51, GLCD_WHITE);
-
-        char text[sizeof(SCREEN_ROTARY_DEFAULT_NAME) + 2];
-        strcpy(text, SCREEN_ROTARY_DEFAULT_NAME);
-        text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)-1] = display_id + '1';
-        text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)] = 0;
-
-        textbox_t title;
-        title.color = GLCD_BLACK;
-        title.mode = TEXT_SINGLE_LINE;
-        title.font = alterebro24;
-        title.height = 0;
-        title.width = 0;
-        title.top_margin = 0;
-        title.bottom_margin = 0;
-        title.left_margin = 0;
-        title.right_margin = 0;
-        title.text = text;
-        title.align = ALIGN_CENTER_NONE;
-        title.y = 25 - (alterebro24[FONT_HEIGHT] / 2);
-        widget_textbox(display, &title);
-        return;
-    }
-
-    // clear the title area
-    glcd_rect_fill(display, 0, 0, 113, 15, GLCD_WHITE);
-
-    // control title label
-    textbox_t title;
-    title.color = GLCD_BLACK;
-    title.mode = TEXT_SINGLE_LINE;
-    title.font = alterebro24;
-    title.top_margin = 2;
-    title.bottom_margin = 0;
-    title.left_margin = 0;
-    title.right_margin = 0;
-    title.height = 0;
-    title.width = 113;
-    title.text = control->label;
-    title.align = ALIGN_LEFT_TOP;
-    widget_textbox(display, &title);
-
-    // horizontal title line
-    glcd_hline(display, 0, 16, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
-
-    // graph type control
-    if (control->properties == CONTROL_PROP_LINEAR ||
-        control->properties == CONTROL_PROP_LOGARITHMIC)
-    {
-        const char *unit;
-        unit = (strcmp(control->unit, "none") == 0 ? NULL : control->unit);
-
-        graph_t graph;
-        graph.x = 0;
-        graph.y = 18;
-        graph.color = GLCD_BLACK;
-        graph.font = alterebro24;
-        graph.min = control->minimum;
-        graph.max = control->maximum;
-        graph.value = control->value;
-        graph.unit = unit;
-        graph.type =
-            (control->properties == CONTROL_PROP_LOGARITHMIC ? GRAPH_TYPE_LOG : GRAPH_TYPE_LINEAR);
-        widget_graph(display, &graph);
-    }
-
-    // integer type control
-    else if (control->properties == CONTROL_PROP_INTEGER)
-    {
-        textbox_t value, unit;
-        char value_str[32];
-
-        // clear the text area
-        glcd_rect_fill(display, 0, 17, 128, 33, GLCD_WHITE);
-
-        // draws the value
-        int_to_str(control->value, value_str, sizeof(value_str), 0);
-        value.color = GLCD_BLACK;
-        value.mode = TEXT_SINGLE_LINE;
-        value.font = alterebro49;
-        value.top_margin = 3;
-        value.bottom_margin = 0;
-        value.left_margin = 0;
-        value.right_margin = (strcmp(control->unit, "none") == 0 ? 0 : 4);
-        value.height = 0;
-        value.width = 0;
-        value.text = value_str;
-        value.align = ALIGN_CENTER_MIDDLE;
-        widget_textbox(display, &value);
-
-        // draws the unit
-        if (strcmp(control->unit, "none") != 0)
-        {
-            unit.color = GLCD_BLACK;
-            unit.mode = TEXT_SINGLE_LINE;
-            unit.font = alterebro24;
-            unit.top_margin = 0;
-            unit.bottom_margin = 0;
-            unit.left_margin = 0;
-            unit.right_margin = 0;
-            unit.height = 0;
-            unit.width = 0;
-            unit.text = control->unit;
-            unit.align = ALIGN_NONE_NONE;
-            unit.x = value.x + value.width + 2;
-            unit.y = value.y + value.height - unit.font[FONT_HEIGHT];
-            widget_textbox(display, &unit);
-        }
-    }
-
-    // list type control
-    else if (control->properties == CONTROL_PROP_ENUMERATION ||
-             control->properties == CONTROL_PROP_SCALE_POINTS)
-    {
-        static char *labels_list[128];
-
-        uint8_t i;
-        for (i = 0; i < control->scale_points_count; i++)
-        {
-            labels_list[i] = control->scale_points[i]->label;
-        }
-
-        listbox_t list;
-        list.x = 0;
-        list.y = 17;
-        list.width = 128;
-        list.height = 33;
-        list.color = GLCD_BLACK;
-        list.font = alterebro15;
-        list.selected = control->step;
-        list.count = control->scale_points_count;
-        list.list = labels_list;
-        list.line_space = 1;
-        list.line_top_margin = 1;
-        list.line_bottom_margin = 0;
-        list.text_left_margin = 1;
-        widget_listbox2(display, &list);
-    }
-    */
-}
-
-//function is not used 
-void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max)
-{
-    char str_current[4], str_max[4];
-    int_to_str(current, str_current, sizeof(str_current), 2);
-    int_to_str(max, str_max, sizeof(str_max), 2);
-
-    if (max == 0) return;
-
-    glcd_t *display = hardware_glcds(display_id);
-
-    // vertical line index separator
-    glcd_vline(display, 114, 0, 16, GLCD_BLACK_WHITE);
-
-    // draws the max field
-    textbox_t index;
-    index.color = GLCD_BLACK;
-    index.mode = TEXT_SINGLE_LINE;
-    index.font = System5x7;
-    index.height = 0;
-    index.width = 0;
-    index.bottom_margin = 0;
-    index.left_margin = 0;
-    index.right_margin = 1;
-    index.align = ALIGN_RIGHT_TOP;
-    index.top_margin = 8;
-    index.text = str_max;
-    widget_textbox(display, &index);
-
-    // draws the current field
-    index.top_margin = 0;
-    index.text = str_current;
-    widget_textbox(display, &index);
-}
-
 //new duo sibling screen functions
 void screen_encoder_box(uint8_t display_id, control_t *control)
-{
-    if (display_id){
-        if (control){
-            control = NULL;
-        }
-    }
-
+{ 
     glcd_t *display = hardware_glcds(display_id);
+
+    if (!(display_id < 2)){return;}
 
     // clear the title area
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 20, GLCD_WHITE);
 
     // horizontal title line
     glcd_hline(display, 0, 20, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
+    
 
     if (!control)
     {
@@ -399,6 +201,7 @@ void screen_encoder_box(uint8_t display_id, control_t *control)
         slider.max = control->maximum;
         slider.value = control->value;
         widget_slider(display, &slider);
+        
     }
 }
 
@@ -427,16 +230,10 @@ void screen_control_pot(uint8_t id, uint8_t display, control_t *control)
 
 void screen_pot_box_left(uint8_t display_id, control_t *control)
 {
-    if (display_id){
-        if (control){
-            control = NULL;
-        }
-    }
-
     glcd_t *display = hardware_glcds(display_id);
     
     //clear area
-    glcd_rect_fill(display, 0, 21, 63, 29, GLCD_WHITE);
+    glcd_rect_fill(display, 0, 21, 64, 29, GLCD_WHITE);
     
     // horizontal  lines
     glcd_hline(display, 0, 20, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
@@ -450,11 +247,11 @@ void screen_pot_box_left(uint8_t display_id, control_t *control)
 
     if (!control)
     {
-        char text[sizeof(SCREEN_ROTARY_DEFAULT_NAME) + 2];
-        strcpy(text, SCREEN_ROTARY_DEFAULT_NAME);
-        if (display_id ==0){text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)-1] = display_id + '1';}
-        else {text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)-1] = display_id + '5';}
-        text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)] = 0;
+        char text[sizeof(SCREEN_POT_DEFAULT_NAME) + 2];
+        strcpy(text, SCREEN_POT_DEFAULT_NAME);
+        if (display_id ==0){text[sizeof(SCREEN_POT_DEFAULT_NAME)-1] = display_id + '1';}
+        else {text[sizeof(SCREEN_POT_DEFAULT_NAME)-1] = display_id + '5';}
+        text[sizeof(SCREEN_POT_DEFAULT_NAME)] = 0;
 
         textbox_t title;
         title.color = GLCD_BLACK;
@@ -467,7 +264,7 @@ void screen_pot_box_left(uint8_t display_id, control_t *control)
         title.left_margin = 0;
         title.right_margin = 0;
         title.text = text;
-        title.align = ALIGN_LEFT_MTOP;
+        title.align = ALIGN_LCENTER_MIDDLE;
         widget_textbox(display, &title);
         return;
     }
@@ -514,13 +311,6 @@ void screen_pot_box_left(uint8_t display_id, control_t *control)
 
 void screen_pot_box_right(uint8_t display_id, control_t *control)
 {
-
-    if (display_id){
-        if (control){
-            control = NULL;
-        }
-    }
-
     glcd_t *display = hardware_glcds(display_id);
 
     //clear area
@@ -538,11 +328,11 @@ void screen_pot_box_right(uint8_t display_id, control_t *control)
 
     if (!control)
     {
-        char text[sizeof(SCREEN_ROTARY_DEFAULT_NAME) + 2];
-        strcpy(text, SCREEN_ROTARY_DEFAULT_NAME);
-        if (display_id ==0){text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)-1] = display_id + '2';}
-        else {text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)-1] = display_id + '6';}
-        text[sizeof(SCREEN_ROTARY_DEFAULT_NAME)] = 0;
+        char text[sizeof(SCREEN_POT_DEFAULT_NAME) + 2];
+        strcpy(text, SCREEN_POT_DEFAULT_NAME);
+        if (display_id ==0){text[sizeof(SCREEN_POT_DEFAULT_NAME)-1] = display_id + '2';}
+        else {text[sizeof(SCREEN_POT_DEFAULT_NAME)-1] = display_id + '6';}
+        text[sizeof(SCREEN_POT_DEFAULT_NAME)] = 0;
 
         textbox_t title;
         title.color = GLCD_BLACK;
@@ -682,7 +472,7 @@ void screen_footer_pot_left(uint8_t display_id, control_t *control)
     glcd_t *display = hardware_glcds(display_id);
 
     // clear the footer area
-    glcd_rect_fill(display, 0, 51, 63, 13, GLCD_WHITE);
+    glcd_rect_fill(display, 0, 51, 64, 13, GLCD_WHITE);
 
     // horizontal footer line
     glcd_hline(display, 0, 50, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
@@ -823,7 +613,7 @@ void screen_footer_button_left(uint8_t display_id, const char *name, const char 
     glcd_t *display = hardware_glcds(display_id);
 
     // clear the footer area
-    glcd_rect_fill(display, 0, 51, 63, 13, GLCD_WHITE);
+    glcd_rect_fill(display, 0, 51, 64, 13, GLCD_WHITE);
 
     // horizontal footer line
     glcd_hline(display, 0, 50, DISPLAY_WIDTH, GLCD_BLACK_WHITE);

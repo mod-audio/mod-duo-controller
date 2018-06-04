@@ -78,7 +78,7 @@ led_t *hardware_leds(uint8_t led_id);
 // returns the actuator object relative to actuator id
 void *hardware_actuators(uint8_t actuator_id);
 // sets the ADC and sets the MUX pins
-void hardware_mux_init(uint8_t *pins_mux_inp, uint8_t *pins_mux_b0, uint8_t *pins_mux_b2, uint8_t *pins_mux_b3);
+void hardware_mux_init(const uint8_t *pins_mux_inp, const uint8_t *pins_mux_b0, const uint8_t *pins_mux_b2,const  uint8_t *pins_mux_b3);
 // returns the timestamp (a variable increment in each millisecond)
 uint32_t hardware_timestamp(void);
 // turn on/off coreboard

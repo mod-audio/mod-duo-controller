@@ -499,31 +499,32 @@ void widget_listbox2(glcd_t *display, listbox_t *listbox) //FIXME: function hard
     glcd_rect_invert(display, listbox->x, 27, listbox->width, 13);
 }
 
+    //JTODO, fix the font
 void widget_listbox3(glcd_t *display, listbox_t *listbox) //JTODO: make not hardcoded. also need smaller font (if possible)
 {
     glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
 
     if (listbox->selected > 0)
     {
-        glcd_text(display, listbox->x + listbox->text_left_margin, 0, listbox->list[listbox->selected-1],System5x7, listbox->color);
+        glcd_text(display, listbox->x + listbox->text_left_margin, 0, listbox->list[listbox->selected-1],SMfont, listbox->color);
     }
 
     if (listbox->selected < (listbox->count - 1))
     {
-        glcd_text(display, listbox->x + listbox->text_left_margin, 14, listbox->list[listbox->selected+1], System5x7, listbox->color);
+        glcd_text(display, listbox->x + listbox->text_left_margin, 14, listbox->list[listbox->selected+1], SMfont, listbox->color);
     }
 
-    glcd_text(display, listbox->x + listbox->text_left_margin + 2, 7, listbox->list[listbox->selected], System5x7, listbox->color);
-    glcd_rect_invert(display, listbox->x,  7, listbox->width, 10);
+    glcd_text(display, listbox->x + listbox->text_left_margin + 2, 7, listbox->list[listbox->selected], SMfont, listbox->color);
+    glcd_rect_invert(display, listbox->x,  6, listbox->width, 7);
 }
 
+
+    //JTODO, fix for decimal numbers. 
 void widget_slider(glcd_t *display, slider_t *slider)
 {
-    //JTODO:
-    //fix function for non integer value's 
+    double point;
 
-    uint8_t range = slider->max - slider->min;
-    double point = (slider->value * slider->width) / range;
+    point = (slider->value - slider->min) * (DISPLAY_WIDTH) / (slider->max - slider->min);
 
     //draw the line
     glcd_rect_fill(display, slider->x, slider->y, slider->width, 1, slider->color);

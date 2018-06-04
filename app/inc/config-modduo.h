@@ -125,7 +125,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3, PO
 #define ENCODERS_COUNT      SLOTS_COUNT
 
 //Amount of pot's
-#define POTS_COUNT (SLOTS_COUNT * 4)
+#define POTS_COUNT          8
 
 // Encoders ports and pins definitions
 // encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC_CHB_PIN}
@@ -134,7 +134,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3, PO
 
 //minimmal value the pot has to change before actualy changing the value. 
 //resolution of ADC = 3.3/(2^{12}) = 3.3/4096 =0.000805 = 0.8mV
-#define POT_THRESHOLD 0.1
+// threshold 1mV
+#define POT_THRESHOLD 0.001
 
 // Pots ports and pins definitions 
 // pot's are being read by a mux
@@ -206,6 +207,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3, PO
 #define BANKS_CMD               "banks"
 // bank_config <hw_type> <hw_id> <actuator_type> <actuator_id> <function>
 #define BANK_CONFIG_CMD         "bank_config %i %i %i %i %i"
+//presert load/create cmd <hw_id>
+#define PRESET_LOAD_CMD         "preset_load %i"
+//preset set cmd <preset_id> <preset_uri>
+#define PRESET_SET_CMD          "preset_set %i %i"
 // pedalboards <bank_uid>
 #define PEDALBOARDS_CMD         "pedalboards %s"
 // pedalboard <bank_id> <pedalboard_uid>

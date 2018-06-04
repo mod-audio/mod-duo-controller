@@ -87,6 +87,12 @@ float naveg_get_control(int32_t effect_instance, const char *symbol);
 void naveg_next_control(uint8_t display);
 // change the foot value
 void naveg_foot_change(uint8_t foot);
+// change the pot value
+void naveg_pot_change(uint8_t id, uint8_t value);
+//change system button value
+void naveg_system_button_clicked(uint8_t id);
+//system button held
+void naveg_system_button_held(uint8_t id);
 // toggle between control and tool
 void naveg_toggle_tool(uint8_t tool, uint8_t display);
 // returns if display is in tool mode
