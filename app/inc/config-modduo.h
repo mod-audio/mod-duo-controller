@@ -112,7 +112,7 @@
 enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3, POT0, POT1, POT2, POT3, POT4, POT5, POT6, POT7};
 
 // Amount of footswitches
-#define FOOTSWITCHES_COUNT  2
+#define FOOTSWITCHES_COUNT  4
 
 // Footswitches ports and pins definitions
 // button definition: {BUTTON_PORT, BUTTON_PIN}
@@ -124,13 +124,13 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3, PO
 // Amount of encoders
 #define ENCODERS_COUNT      SLOTS_COUNT
 
-//Amount of pot's
-#define POTS_COUNT          8
-
 // Encoders ports and pins definitions
 // encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC_CHB_PIN}
 #define ENCODER0_PINS       {0, 17, 0, 22, 0, 18}
 #define ENCODER1_PINS       {2, 8, 2, 6, 2, 7}
+
+//Amount of pot's
+#define POTS_COUNT          8
 
 //minimmal value the pot has to change before actualy changing the value. 
 //resolution of ADC = 3.3/(2^{12}) = 3.3/4096 =0.000805 = 0.8mV

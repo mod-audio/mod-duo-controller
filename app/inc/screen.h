@@ -63,7 +63,7 @@
 
 void screen_clear(uint8_t display_id);
 void screen_encoder_box(uint8_t display_id, control_t *control);
-void screen_control_pot(uint8_t id, uint8_t display, control_t *control);
+void screen_control_pot(control_t *control);
 void screen_pot_box_left(uint8_t display_id, control_t *control);
 void screen_pot_box_right(uint8_t display_id, control_t *control);
 void screen_footer(uint8_t display_id, const char *name, const char *value);

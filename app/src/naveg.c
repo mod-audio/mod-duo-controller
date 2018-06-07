@@ -62,7 +62,7 @@ static const menu_popup_t g_menu_popups[] = {
 struct TAP_TEMPO_T {
     uint32_t time, max;
     uint8_t state;
-} g_tap_tempo[SLOTS_COUNT];
+} g_tap_tempo[FOOTSWITCHES_COUNT];
 
 struct TOOL_T {
     uint8_t state, display;
@@ -376,7 +376,7 @@ static void display_control_rm(int32_t effect_instance, const char *symbol)
     all_effects = (effect_instance == ALL_EFFECTS) ? 1 : 0;
     all_controls = (strcmp(symbol, ALL_CONTROLS) == 0) ? 1 : 0;
 
-    for (display = 0; display < SLOTS_COUNT; display++)
+    for (display = 0; display < ENCODERS_COUNT; display++)
     {
         control = g_controls[display];
 
@@ -598,10 +598,7 @@ static void foot_control_rm(int32_t effect_instance, const char *symbol)
 // control assigned to pot
 static void pot_control_add(control_t *control)
 {
-    uint8_t display;
-
-    display = display_get_id(control);
-
+    uint8_t display = display_get_id(control);
     // checks the actuator id
     if (control->actuator_id >= POTS_COUNT) return;
 
@@ -645,7 +642,7 @@ static void pot_control_add(control_t *control)
 
     if (display_has_tool_enabled(display)) return; 
 
-    screen_control_pot(control->actuator_id, display, control);
+    screen_control_pot(control);
 }
 
 // control removed from pot
@@ -662,7 +659,7 @@ static void pot_control_rm(int32_t effect_instance, const char *symbol)
     {
         data_free_control(control);
         g_pots[id] = NULL;
-        if (!display_has_tool_enabled(display)) screen_control_pot(id, display, NULL);
+        if (!display_has_tool_enabled(display)) screen_control_pot(NULL);
         return;
     }
 
@@ -681,7 +678,7 @@ static void pot_control_rm(int32_t effect_instance, const char *symbol)
                 data_free_control(control);
                 g_pots[id] = NULL;
 
-                if (!display_has_tool_enabled(display)) screen_control_pot(id, display, NULL);
+                if (!display_has_tool_enabled(display)) screen_control_pot(NULL);
             }
         }
     }
@@ -690,8 +687,6 @@ static void pot_control_rm(int32_t effect_instance, const char *symbol)
 static void control_set(uint8_t display, control_t *control)
 {
     uint32_t delta, now;
-
-    uint8_t id = control->actuator_id;
 
     switch (control->properties)
     {
@@ -709,7 +704,7 @@ static void control_set(uint8_t display, control_t *control)
                 else if (control->actuator_type == POT)
                 {
                     display = display_get_id(control);
-                    screen_control_pot(id, display, control);
+                    screen_control_pot(control);
                 }
             }
             break;
@@ -1944,6 +1939,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         control_t *control = g_controls[display];
 
         // draws the control
+        //JTODO draw all controls
         screen_encoder_box(display, control);
 
         // checks the function assigned to foot and update the footer

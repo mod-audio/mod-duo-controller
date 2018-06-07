@@ -205,25 +205,29 @@ void screen_encoder_box(uint8_t display_id, control_t *control)
     }
 }
 
-void screen_control_pot(uint8_t id, uint8_t display, control_t *control)
+void screen_control_pot(control_t *control)
 {
-    switch (id)
+    switch (control->actuator_id)
     {
         case 0:
+            screen_pot_box_left(0, control);
         case 4:
-            screen_pot_box_left(display, control);
+            screen_pot_box_left(1, control);
         break;
         case 1:
+            screen_pot_box_right(0, control);
         case 5:
-            screen_pot_box_right(display, control);
+            screen_pot_box_right(1, control);
         break;
         case 2:
+            screen_footer_pot_left(0, control);
         case 6:
-            screen_footer_pot_left(display, control);
+            screen_footer_pot_left(1, control);
         break;
         case 3:
+            screen_footer_pot_right(0, control);
         case 7:
-            screen_footer_pot_right(display, control);
+            screen_footer_pot_right(1, control);
         break;
     }
 }
