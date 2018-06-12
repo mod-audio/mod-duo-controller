@@ -80,7 +80,6 @@
 
 static void *g_actuators_pointers[MAX_ACTUATORS];
 static uint8_t g_actuators_count = 0;
-static uint8_t g_pot_value[POTS_COUNT];
 
 /*
 *********************************************************************************************************
@@ -108,7 +107,7 @@ static void event(void *actuator, uint8_t flags)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
-    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
+    potentiometer_t *potentiometer = (potentiometer_t *) actuator;
     uint8_t status;
 
     switch (ACTUATOR_TYPE(actuator))
@@ -156,7 +155,7 @@ void actuator_create(actuator_type_t type, uint8_t id, void *actuator)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
-    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
+    potentiometer_t *potentiometer = (potentiometer_t *) actuator;
 
     switch (type)
     {
@@ -209,7 +208,7 @@ void actuator_set_pins(void *actuator, const uint8_t *pins)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
-    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
+    potentiometer_t *potentiometer = (potentiometer_t *) actuator;
 
     switch (ACTUATOR_TYPE(actuator))
     {
@@ -245,7 +244,7 @@ void actuator_set_prop(void *actuator, actuator_prop_t prop, uint16_t value)
 {
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
-    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
+    potentiometer_t *potentiometer = (potentiometer_t *) actuator;
 
     switch (ACTUATOR_TYPE(actuator))
     {
@@ -325,7 +324,7 @@ uint8_t actuator_get_status(void *actuator)
     uint8_t status;
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
-    potentiometer_t *potentiometer = (potentiometer_t *) potentiometer;
+    potentiometer_t *potentiometer = (potentiometer_t *) actuator;
 
     switch (ACTUATOR_TYPE(actuator))
     {
@@ -352,8 +351,10 @@ uint8_t actuator_get_status(void *actuator)
 
 uint8_t actuator_pot_get_value(uint8_t id)
 {
-    return g_pot_value[id];
+    potentiometer_t *potentiometer = (potentiometer_t *) g_actuators_pointers[id];
+    return potentiometer->value; 
 }
+
 
 void actuators_clock(void)
 {
@@ -584,7 +585,8 @@ void actuators_clock(void)
                 break;
 
             case POTENTIOMETER:
-                //set the mux 
+               
+               //set the mux 
                 if (potentiometer->mux_b0 == 1){
                     SET_PIN(1, 30);
                 }
@@ -603,29 +605,53 @@ void actuators_clock(void)
                 else{
                     CLR_PIN(0, 25); 
                 }
-
-                //start ADC 
-                LPC_ADC->ADCR |= (1<<SBIT_START);
-
-                //Wait for the mesurement to complete (not nice i know)
-                while (CHECK_BIT(LPC_ADC->ADGDR, SBIT_DONE));
                 
-                //read the data
-                float data = (int)(((LPC_ADC->ADGDR>>SBIT_RESULT) & 0xfff) * 100 + .5);
-                float current_pot_val = (float)data / 100;
+                uint32_t regVal, ADC_Data;
 
-                if (current_pot_val > g_pot_value[i]) {
-                    if ((current_pot_val - g_pot_value[i]) > POT_THRESHOLD){
-                        g_pot_value[i] = current_pot_val;
-                        event(potentiometer, EV_POT_TURNED);
+                //channel number is 0 through 7 ->set in config-moddduo
+                LPC_ADC->ADCR &= 0xFFFFFF00;
+                LPC_ADC->ADCR |= (1 << 24) | (1 << ADC_channelNum);
+                
+                //switch channel,start A/D convert 
+                // wait until end of A/D convert 
+                //while loop is also needed to create a delay,
+                //this makes sure the actuator que doesnt overflow. 
+                while ( 1 )   
+                {
+                    regVal = LPC_ADC->ADGDR;
+                    
+                    // read result of A/D conversion 
+                    if ( regVal & ADC_DONE )
+                    {
+                        break;
                     }
                 }
-                if (current_pot_val < g_pot_value[i]) {
-                    if ((g_pot_value[i] - current_pot_val) > POT_THRESHOLD){
-                        g_pot_value[i] = current_pot_val;
-                        event(potentiometer, EV_POT_TURNED);
-                    }
-                } 
+                // stop ADC now 
+                LPC_ADC->ADCR &= 0xF8FFFFFF;    
+                
+                // save data when it's not overrun, otherwise,  zero
+                if ( regVal & ADC_OVERRUN )     
+                {
+                    regVal = 0;
+                }
+  
+                ADC_Data = ( regVal >> 4 ) & 0xFFF;
+
+                //value is now 0 to POT_STEPS_CNT range
+                uint8_t steps = ((ADC_Data * potentiometer->steps) / 1024);
+
+                //value change not big eneugh for a step
+                if (steps == potentiometer->value)
+                {
+                    return; 
+                }
+                
+                //save value
+                potentiometer->value = steps;
+                g_actuators_pointers[i] = potentiometer;
+
+                event(potentiometer, EV_POT_TURNED);
+
             break;
         }
     }

@@ -132,10 +132,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3, PO
 //Amount of pot's
 #define POTS_COUNT          8
 
-//minimmal value the pot has to change before actualy changing the value. 
-//resolution of ADC = 3.3/(2^{12}) = 3.3/4096 =0.000805 = 0.8mV
-// threshold 1mV
-#define POT_THRESHOLD 0.001
+//defines the amount af steps for a pot
+#define POT_STEPS_CNT       100
 
 // Pots ports and pins definitions 
 // pot's are being read by a mux
@@ -144,6 +142,17 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1, FOOTSWITCH2, FOOTSWITCH3, PO
 #define MUX_D0_OUTP {1, 30}
 #define MUX_D1_OUTP {0, 26}
 #define MUX_D2_OUTP {0, 25}
+
+
+//ADC Register definitions. 
+#define ADC_Clk             13000000
+#define ADC_channelNum      5
+#define ADC_OFFSET          0x10
+#define ADC_INDEX           4
+#define ADC_DONE            0x80000000
+#define ADC_OVERRUN         0x40000000
+#define ADC_ADINT           0x00010000
+
 
 //Pot's Mux bit id's
 //the MUX id's are determaind by the PCB connections.  

@@ -154,6 +154,7 @@ void actuator_enable_event(void *actuator, uint8_t events_flags);
 void actuator_set_event(void *actuator, void (*event)(void *actuator));
 uint8_t actuator_get_status(void *actuator);
 uint8_t actuator_pot_get_value(uint8_t id);
+void actuator_pot_set_value(uint8_t id, uint32_t data);
 void actuators_clock(void);
 
 

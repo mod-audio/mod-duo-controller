@@ -166,7 +166,7 @@ static int display_has_tool_enabled(uint8_t display)
     return 0;
 }
 
-static int display_get_id(control_t *control)
+static int display_get_id_by_control(control_t *control)
 {
     switch(control->actuator_type)
     {
@@ -205,6 +205,7 @@ static int display_get_id(control_t *control)
     }
     return 0;
 }
+
 
 // search the control
 static control_t *search_control(int32_t effect_instance, const char *symbol, uint8_t *display)
@@ -299,7 +300,7 @@ static void display_control_add(control_t *control)
 {
     uint8_t display;
 
-    display = display_get_id(control);
+    display = display_get_id_by_control(control);
 
     // checks if is already a control assigned in this display and remove it
     if (g_controls[display]) data_free_control(g_controls[display]);
@@ -597,8 +598,10 @@ static void foot_control_rm(int32_t effect_instance, const char *symbol)
 
 // control assigned to pot
 static void pot_control_add(control_t *control)
-{
-    uint8_t display = display_get_id(control);
+{ 
+
+    uint8_t display = display_get_id_by_control(control);
+
     // checks the actuator id
     if (control->actuator_id >= POTS_COUNT) return;
 
@@ -642,24 +645,24 @@ static void pot_control_add(control_t *control)
 
     if (display_has_tool_enabled(display)) return; 
 
-    screen_control_pot(control);
+    screen_control_pot(control->actuator_id, control);
 }
 
 // control removed from pot
 static void pot_control_rm(int32_t effect_instance, const char *symbol)
 {
-
+    
     uint8_t id, display;
 
     control_t *control = search_pot(effect_instance, symbol, &id);
-
-    display = display_get_id(control);
+    
+    display = display_get_id_by_control(control);
 
     if (control)
     {
         data_free_control(control);
         g_pots[id] = NULL;
-        if (!display_has_tool_enabled(display)) screen_control_pot(NULL);
+        if (!display_has_tool_enabled(display)) screen_control_pot(control->actuator_id, NULL);
         return;
     }
 
@@ -678,7 +681,7 @@ static void pot_control_rm(int32_t effect_instance, const char *symbol)
                 data_free_control(control);
                 g_pots[id] = NULL;
 
-                if (!display_has_tool_enabled(display)) screen_control_pot(NULL);
+                if (!display_has_tool_enabled(display)) screen_control_pot(control->actuator_id, NULL);
             }
         }
     }
@@ -703,8 +706,8 @@ static void control_set(uint8_t display, control_t *control)
                 }
                 else if (control->actuator_type == POT)
                 {
-                    display = display_get_id(control);
-                    screen_control_pot(control);
+                    display = display_get_id_by_control(control);
+                    screen_control_pot(control->actuator_id, control);
                 }
             }
             break;
@@ -1862,12 +1865,11 @@ void naveg_pot_change(uint8_t id, uint8_t value)
     if (id >= POTS_COUNT) return;
 
     g_pots[id]->actuator_id = id;
-
+    g_pots[id]->actuator_type = POT;
     g_pots[id]->value = value;
 
-    uint8_t display = display_get_id(g_pots[id]);
-
-    control_set(display, g_pots[id]);
+    uint8_t display = display_get_id_by_control(g_pots[id]);
+   control_set(display, g_pots[id]);
 }
 
 void naveg_system_button_clicked(uint8_t id)
@@ -1936,16 +1938,75 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
         }
 
-        control_t *control = g_controls[display];
-
         // draws the control
-        //JTODO draw all controls
+        control_t *control = g_controls[display];
         screen_encoder_box(display, control);
+        
+        uint8_t id;
+        uint8_t pot_id;
 
-        // checks the function assigned to foot and update the footer
-        if (bank_config_check(display)) bank_config_footer();
-        else if (g_foots[display]) foot_control_add(g_foots[display]);
-        else screen_footer(display, NULL, NULL);
+        if (display == 0)
+        {
+            //left pot
+            pot_id = 0;
+            control_t *pot = (control_t *) g_pots[pot_id];
+            if (pot) screen_control_pot(pot_id, pot);
+            else screen_control_pot(pot_id, NULL);
+            //right pot
+            pot_id = 1;
+            pot = (control_t *) g_pots[pot_id];
+            if (pot) screen_control_pot(pot_id, pot);
+            else screen_control_pot(pot_id, NULL);
+            
+            //left footer
+            id = 0;
+            pot_id = id + 4;
+            // checks the function assigned to foot and update the footer
+            if (bank_config_check(id)) bank_config_footer();
+            else if (g_foots[id]) foot_control_add(g_foots[id]);
+                else if (g_pots[pot_id]) screen_control_pot(pot_id, g_pots[pot_id]);
+            else screen_footer(id, NULL, NULL);
+
+            //right footer
+            id = 1;
+            pot_id = id + 4;
+            // checks the function assigned to foot and update the footer
+            if (bank_config_check(id)) bank_config_footer();
+            else if (g_foots[id]) foot_control_add(g_foots[id]);
+                else if (g_pots[pot_id]) screen_control_pot(pot_id, g_pots[pot_id]);
+            else screen_footer(id, NULL, NULL);
+        }
+        else
+        {
+            //left pot
+            pot_id = 2;
+            control_t *pot = (control_t *) g_pots[pot_id];
+            if (pot) screen_control_pot(pot_id, pot);
+            else screen_control_pot(pot_id, NULL);
+            pot_id = 3;
+            //right pot
+            pot = (control_t *) g_pots[pot_id];
+            if (pot) screen_control_pot(pot_id, pot);
+            else screen_control_pot(pot_id, NULL);
+            
+            //left footer
+            id = 2;
+            pot_id = id + 4;
+            // checks the function assigned to foot and update the footer
+            if (bank_config_check(id)) bank_config_footer();
+            else if (g_foots[id]) foot_control_add(g_foots[id]);
+                else if (g_pots[pot_id]) screen_control_pot(pot_id, g_pots[pot_id]);
+            else screen_footer(id, NULL, NULL);
+
+            //right footer
+            id = 3;
+            pot_id = id + 4;
+            // checks the function assigned to foot and update the footer
+            if (bank_config_check(id)) bank_config_footer();
+            else if (g_foots[id]) foot_control_add(g_foots[id]);
+                else if (g_pots[pot_id]) screen_control_pot(pot_id, g_pots[pot_id]);
+            else screen_footer(id, NULL, NULL);
+        }
     }
 }
 

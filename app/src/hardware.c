@@ -24,10 +24,6 @@
 #define TIMER0_PRIORITY     3
 #define TIMER1_PRIORITY     2
 
-//ADC Register definitions. 
-#define SBIT_PDN            21u
-#define SBIT_CLK_DIV        8u
-#define SBIT_CHANNEL        5u
 
 /*
 ************************************************************************************************************************
@@ -238,10 +234,12 @@ void hardware_setup(void)
        actuator_create(BUTTON, i, hardware_actuators(FOOTSWITCH0 + i)); 
        actuator_set_pins(hardware_actuators(FOOTSWITCH0 + i), FOOTSWITCH_PINS[i]);
     }
+    
     for (i = 0; i < POTS_COUNT; i++)
     {
-        actuator_create(POT, i, hardware_actuators(POT0 + i));
+        actuator_create(POTENTIOMETER, i, hardware_actuators(POT0 + i));
         actuator_set_pins(hardware_actuators(POT0 + i), POT_IDS[i]);
+        actuator_set_prop(hardware_actuators(POT0 + i), POT_STEPS, POT_STEPS_CNT);
     }
     /*
     for (i = 0; i < SYSBUTTONS_COUNT; i++)
@@ -438,25 +436,28 @@ uint32_t hardware_timestamp(void)
     return g_counter;
 }
 
-void hardware_mux_init(const uint8_t *pins_mux_inp, const uint8_t *pins_mux_b0, const uint8_t *pins_mux_b1, const uint8_t *pins_mux_b2){
-    //ADC INIT
-    //Enable CLOCK for internal ADC controller
-    LPC_SC->PCONP |= (1<<12);
+void hardware_mux_init(const uint8_t *pins_mux_inp, const uint8_t *pins_mux_b0, const uint8_t *pins_mux_b1, const uint8_t *pins_mux_b2)
+{
+    //Enable CLOCK into ADC controller
+    LPC_SC->PCONP |= (1 << 12);
 
-    //Select PCLK_ADC
-    LPC_SC->PCLKSEL0 |= (11<<24);
+    //P1.30~31, A0.4~5, function 11
+    LPC_PINCON->PINSEL3 |= 0xF0000000; 
 
-    //Set the clock and Power ON ADC module
-    LPC_ADC->ADCR = ((1<<SBIT_PDN) | (10<<SBIT_CLK_DIV));
+    //No pull-up no pull-down (function 10) on these ADC pins.
+    LPC_PINCON->PINMODE3 &= ~0xF0000000;
+    LPC_PINCON->PINMODE3 |= 0xA0000000;
 
-    //Select the P1_31 AD0[5] for ADC function
-    LPC_PINCON->PINSEL3 |= (3<<30); //P1.31 is connected to AD0.5
-
-    //Set Pinmode
-    LPC_PINCON->PINMODE3 |= (11<<30);
-
-    //Select Channel 5 by setting 0th bit of ADCR
-    LPC_ADC->ADCR  |= (1<<SBIT_CHANNEL);
+    //By default, the PCLKSELx value is zero, thus, the PCLK for
+    //all the peripherals is 1/4 of the SystemFrequency. 
+    //Bit 24~25 is for ADC
+    LPC_ADC->ADCR = ( 0x01 << 0 ) |             // SEL=1,select channel 0~7 on ADC0 
+        ( ( 25000000 / ADC_Clk - 1 ) << 8 ) |   // CLKDIV = Fpclk / ADC_Clk - 1 
+        ( 0 << 16 ) |                           // BURST = 0, no BURST, software controlled 
+        ( 0 << 17 ) |                           // CLKS = 0, 11 clocks/10 bits 
+        ( 1 << 21 ) |                           // PDN = 1, normal operation 
+        ( 0 << 24 ) |                           // START = 0 A/D conversion stops 
+        ( 0 << 27 );                            // EDGE = 0 (CAP/MAT singal falling,trigger A/D conversion) 
 
     //set MUX pins
     CONFIG_PIN_INPUT(pins_mux_inp[0], pins_mux_inp[1]);
@@ -464,7 +465,7 @@ void hardware_mux_init(const uint8_t *pins_mux_inp, const uint8_t *pins_mux_b0, 
     CONFIG_PIN_OUTPUT(pins_mux_b1[0], pins_mux_b1[1]);
     CONFIG_PIN_OUTPUT (pins_mux_b2[0], pins_mux_b2[1]);
 
-    
+    return;
 }
 
 void hardware_coreboard_power(uint8_t state)

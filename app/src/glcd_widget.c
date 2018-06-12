@@ -500,7 +500,7 @@ void widget_listbox2(glcd_t *display, listbox_t *listbox) //FIXME: function hard
 }
 
     //JTODO, fix the font
-void widget_listbox3(glcd_t *display, listbox_t *listbox) //JTODO: make not hardcoded. also need smaller font (if possible)
+void widget_listbox3(glcd_t *display, listbox_t *listbox) 
 {
     glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
 

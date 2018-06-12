@@ -59,7 +59,7 @@
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
 #define TASK_NAME(name)     ((const signed char * const) (name))
 
-#define ACTUATORS_QUEUE_SIZE    5
+#define ACTUATORS_QUEUE_SIZE    30
 
 
 /*
@@ -304,7 +304,7 @@ static void actuators_task(void *pvParameters)
             {
                 if (POT_TURNED(status))
                 {
-                    uint8_t value = actuator_pot_get_value(id);
+                    float value = actuator_pot_get_value(id);
                     naveg_pot_change(id, value);
                 }
             }

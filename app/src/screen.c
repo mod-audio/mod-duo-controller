@@ -177,7 +177,7 @@ void screen_encoder_box(uint8_t display_id, control_t *control)
         widget_textbox(display, &title);
 
         // draws the value
-        int_to_str(control->value, value_str, sizeof(value_str), 0);
+        float_to_str(control->value, value_str, sizeof(value_str), 2);
         value.color = GLCD_BLACK;
         value.mode = TEXT_SINGLE_LINE;
         value.font = alterebro24;
@@ -205,29 +205,29 @@ void screen_encoder_box(uint8_t display_id, control_t *control)
     }
 }
 
-void screen_control_pot(control_t *control)
+void screen_control_pot(uint8_t id, control_t *control)
 {
-    switch (control->actuator_id)
+    switch (id)
     {
         case 0:
             screen_pot_box_left(0, control);
-        case 4:
+        case 2:
             screen_pot_box_left(1, control);
         break;
         case 1:
             screen_pot_box_right(0, control);
-        case 5:
+        case 3:
             screen_pot_box_right(1, control);
         break;
-        case 2:
-            screen_footer_pot_left(0, control);
+        case 4:
+            screen_pot_footer_left(0, control);
         case 6:
-            screen_footer_pot_left(1, control);
+            screen_pot_footer_left(1, control);
         break;
-        case 3:
-            screen_footer_pot_right(0, control);
+        case 5:
+            screen_pot_footer_right(0, control);
         case 7:
-            screen_footer_pot_right(1, control);
+            screen_pot_footer_right(1, control);
         break;
     }
 }
@@ -471,7 +471,7 @@ void screen_footer(uint8_t id, const char *name, const char *value)
 }
 
 //new duo sibling footer functions
-void screen_footer_pot_left(uint8_t display_id, control_t *control)
+void screen_pot_footer_left(uint8_t display_id, control_t *control)
 {
     glcd_t *display = hardware_glcds(display_id);
 
@@ -539,7 +539,7 @@ void screen_footer_pot_left(uint8_t display_id, control_t *control)
     //TODO MAKE NICE VISUALISATION
 }
 
-void screen_footer_pot_right(uint8_t display_id, control_t *control)
+void screen_pot_footer_right(uint8_t display_id, control_t *control)
 {
     glcd_t *display = hardware_glcds(display_id);
 
@@ -651,7 +651,7 @@ void screen_footer_button_left(uint8_t display_id, const char *name, const char 
         }
     }
 
-    buttonsetL[display_id] = 1;
+buttonsetL[display_id] = 1;
 
      // draws the name field
     textbox_t footer;
