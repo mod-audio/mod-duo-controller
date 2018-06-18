@@ -1823,22 +1823,13 @@ void naveg_up(uint8_t display)
 
     if (display_has_tool_enabled(display))
     {
-        if (display == 0)
+        if ((display == 0) && (steps_count > MENU_ENCODER_PULSES))
         {
+            steps_count = 0;   
             if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_up();
-            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) 
-                {   
-                    if (steps_count > MENU_ENCODER_PULSES)
-                    {
-                        menu_up();
-                        steps_count = 0;    
-                    }
-                    else
-                    {
-                        steps_count++;
-                    }  
-                }
-        }   
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_up();
+        }
+        else steps_count++;   
     }
 }
 
@@ -1850,22 +1841,13 @@ void naveg_down(uint8_t display)
 
     if (display_has_tool_enabled(display))
     {
-        if (display == 0)
+        if ((display == 0) && (steps_count > MENU_ENCODER_PULSES))
         {
+            steps_count = 0;   
             if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_down();
-            else if (tool_is_on(DISPLAY_TOOL_SYSTEM))
-                {   
-                    if (steps_count > MENU_ENCODER_PULSES)
-                    {
-                        menu_down();
-                        steps_count = 0;    
-                    }
-                    else
-                    {
-                        steps_count++;
-                    }  
-                }
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) menu_down();
         }
+        else steps_count++;
     }
 }
 
