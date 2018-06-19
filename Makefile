@@ -15,6 +15,9 @@ CPU = LPC1759
 CPU_SERIE = LPC17xx
 endif
 
+# target configuration
+TARGET_ADDR = root@modduo.local
+
 # project directories
 DEVICE_INC	= ./nxp-lpc
 CMSIS_INC	= ./nxp-lpc/CMSISv2p00_$(CPU_SERIE)/inc
@@ -142,3 +145,7 @@ clean:
 
 size:
 	@$(SIZE) out/mod-controller.elf
+
+install:
+	scp $(OUT_DIR)/$(PRJNAME).bin $(TARGET_ADDR):/tmp && \
+	ssh $(TARGET_ADDR) 'hmi-update /tmp/$(PRJNAME).bin && systemctl restart mod-ui'
