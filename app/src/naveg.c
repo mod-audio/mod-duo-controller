@@ -1492,6 +1492,8 @@ void naveg_remove_control(int32_t effect_instance, const char *symbol)
 
 void naveg_inc_control(uint8_t display)
 {
+    static uint8_t steps_count = 0;
+
     if (!g_initialized) return;
 
     // if is in tool mode return
@@ -1500,12 +1502,31 @@ void naveg_inc_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
 
-    // increments the step
-    if (control->step < (control->steps - 1))
-        control->step++;
-    else
-        return;
-
+    if ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS))
+    {
+        if (steps_count > SCROL_SENSITIVITY)
+        {
+            steps_count = 0;
+            // increments the step
+            if (control->step < (control->steps - 1))
+                control->step++;
+            else
+                return;
+        }
+        else 
+        {
+            steps_count++;
+            return;
+        }
+    }
+    else 
+    {
+        // increments the step
+        if (control->step < (control->steps - 1))
+            control->step++;
+        else
+            return;
+    }
     // converts the step to absolute value
     step_to_value(control);
 
@@ -1515,6 +1536,8 @@ void naveg_inc_control(uint8_t display)
 
 void naveg_dec_control(uint8_t display)
 {
+    static uint8_t steps_count = 0;
+    
     if (!g_initialized) return;
 
     // if is in tool mode return
@@ -1522,13 +1545,32 @@ void naveg_dec_control(uint8_t display)
 
     control_t *control = g_controls[display];
     if (!control) return;
-
-    // decrements the step
-    if (control->step > 0)
-        control->step--;
+    
+    if ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS))
+    {
+        if (steps_count > SCROL_SENSITIVITY)
+        { 
+            steps_count = 0;
+            // decrements the step
+            if (control->step > 0)
+                control->step--;
+            else
+                return;
+        }
+        else
+        {
+            steps_count++;
+            return;
+        }
+    }
     else
-        return;
-
+    {
+        // decrements the step
+        if (control->step > 0)
+            control->step--;
+        else
+            return;
+    }
     // converts the step to absolute value
     step_to_value(control);
 
@@ -1823,7 +1865,7 @@ void naveg_up(uint8_t display)
 
     if (display_has_tool_enabled(display))
     {
-        if ((display == 0) && (steps_count > MENU_ENCODER_PULSES))
+        if ((display == 0) && (steps_count > SCROL_SENSITIVITY))
         {
             steps_count = 0;   
             if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_up();
@@ -1841,7 +1883,7 @@ void naveg_down(uint8_t display)
 
     if (display_has_tool_enabled(display))
     {
-        if ((display == 0) && (steps_count > MENU_ENCODER_PULSES))
+        if ((display == 0) && (steps_count > SCROL_SENSITIVITY))
         {
             steps_count = 0;   
             if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_down();
