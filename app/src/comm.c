@@ -52,8 +52,8 @@
 */
 
 static void (*g_webgui_response_cb)(void *data) = NULL;
-static uint8_t g_webgui_blocked;
-static xSemaphoreHandle g_webgui_sem = NULL;
+static volatile uint8_t  g_webgui_blocked;
+static volatile xSemaphoreHandle g_webgui_sem = NULL;
 static ringbuff_t *g_webgui_rx_rb;
 
 

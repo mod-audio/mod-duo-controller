@@ -52,11 +52,11 @@ typedef struct CONTROL_T {
     uint8_t hardware_type, hardware_id;
     uint8_t actuator_type, actuator_id;
     char *label, *symbol, *unit;
-    int32_t effect_instance;
+    int16_t effect_instance;
     uint8_t properties_mask;
     uint8_t properties;
     float value, minimum, maximum;
-    int32_t step, steps;
+    int16_t step, steps;
     uint8_t controls_count, control_index;
     uint8_t scale_points_count;
     scale_point_t **scale_points;

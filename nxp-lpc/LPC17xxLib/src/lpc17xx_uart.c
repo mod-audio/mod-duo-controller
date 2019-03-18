@@ -67,7 +67,7 @@ static Status uart_set_divisors(LPC_UART_TypeDef *UARTx, uint32_t baudrate)
 {
 	Status errorStatus = ERROR;
 
-	uint32_t uClk;
+	uint32_t uClk = 0;
 	uint32_t d, m, bestd, bestm, tmp;
 	uint64_t best_divisor, divisor;
 	uint32_t current_error, best_error;

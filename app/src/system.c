@@ -346,6 +346,12 @@ void system_volume_cb(void *arg, int event)
             max = 12.0;
             step = 3.0;
             break;
+        default:
+            source = '\0';
+            min = 0;
+            max = 0;
+            step = 0;
+            break;
     }
 
     volume(item, event, source, min, max, step);

@@ -262,7 +262,7 @@ void actuator_set_event(void *actuator, void (*event)(void *actuator))
 
 uint8_t actuator_get_status(void *actuator)
 {
-    uint8_t status;
+    uint8_t status = 0;
     button_t *button = (button_t *) actuator;
     encoder_t *encoder = (encoder_t *) actuator;
 

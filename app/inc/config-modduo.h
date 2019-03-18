@@ -217,7 +217,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define TOOL_MODE_TIME      500
 
 // the amount of pulses from the encoder that is equal to one up/down movement in a menu
-#define SCROL_SENSITIVITY   3
+#define SCROL_SENSITIVITY   0
 
 // which display will show which tool
 #define DISPLAY_TOOL_SYSTEM 0

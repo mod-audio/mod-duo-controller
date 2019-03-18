@@ -252,6 +252,10 @@ void serial_init(serial_t *serial)
             uart = UART3;
             irq = UART3_IRQn;
             break;
+        default:
+            uart = UART0;
+            irq = UART0_IRQn;
+            break;
     }
 
 
