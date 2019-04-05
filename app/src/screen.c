@@ -507,7 +507,7 @@ void screen_system_menu(menu_item_t *item)
             list.count = item->data.list_count;
             list.list = item->data.list;
             widget_listbox(display, &list);
-            last_item = item;
+            if ((last_item->desc->id != TEMPO_ID)||(item->desc->id == SYSTEM_ID)||(item->desc->id == BYPASS_ID)) last_item = item;
             break;
 
         case MENU_CONFIRM:

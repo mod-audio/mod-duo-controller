@@ -275,8 +275,13 @@ static void actuators_task(void *pvParameters)
                     naveg_enter(id);
                 }
                 if (BUTTON_HOLD(status))
-                {
-                    naveg_toggle_tool(id, id);
+                {   
+                    if (id == DISPLAY_TOOL_TUNER)
+                    {
+                        if (!naveg_is_tool_mode(DISPLAY_TOOL_SYSTEM)) naveg_toggle_tool(id, id);
+                    }
+                    else naveg_toggle_tool(id, id);
+                    
                 }
                 if (ENCODER_TURNED_CW(status))
                 {
