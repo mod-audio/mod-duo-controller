@@ -177,7 +177,7 @@ void hardware_setup(void)
     }
 
     // default glcd brightness
-    g_brightness = 2;
+    g_brightness = MAX_BRIGHTNESS;
 
     ////////////////////////////////////////////////////////////////
     // Timer 0 configuration

@@ -68,7 +68,8 @@ typedef struct RINGBUFF_T {
 *           FUNCTION PROTOTYPES
 ************************************************************************************************************************
 */
-
+// copy an command to buffer
+uint8_t copy_command(char *buffer, const char *command);
 // splits the string in each whitespace occurrence and returns a array of strings NULL terminated
 char** strarr_split(char *str);
 // returns the string array length

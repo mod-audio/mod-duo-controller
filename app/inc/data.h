@@ -23,11 +23,11 @@
 *           DO NOT CHANGE THESE DEFINES
 ************************************************************************************************************************
 */
+typedef enum {MENU_NONE, MENU_RETURN, MENU_LIST, MENU_SELECT, MENU_CONFIRM, MENU_CANCEL, MENU_TOGGLE, MENU_CONFIRM2, 
+                MENU_OK, MENU_VOL, MENU_SET} menu_types_t;
 
-typedef enum {MENU_NONE, MENU_RETURN, MENU_LIST, MENU_SELECT, MENU_CONFIRM, MENU_CANCEL, MENU_ON_OFF,
-              MENU_YES_NO, MENU_BYP_PROC, MENU_GRAPH, MENU_CONFIRM2, MENU_OK} menu_types_t;
+enum {MENU_EV_ENTER, MENU_EV_UP, MENU_EV_DOWN, MENU_EV_NONE};
 
-enum {MENU_EV_ENTER, MENU_EV_UP, MENU_EV_DOWN};
 
 
 /*
@@ -85,10 +85,11 @@ typedef struct MENU_DATA_T {
     char **list;
     uint8_t list_count;
     uint8_t selected, hover;
+    char *popup_header;
     const char *popup_content;
 
     // FIXME: need to be improved, not all menu items should have this vars (wasting memory)
-    float min, max, value, step;
+    int16_t min, max, value, step;
 } menu_data_t;
 
 typedef struct MENU_ITEM_T {
@@ -99,9 +100,9 @@ typedef struct MENU_ITEM_T {
 
 typedef struct MENU_POPUP_T {
     int16_t menu_id;
+    char *popup_header;
     const char *popup_content;
 } menu_popup_t;
-
 
 /*
 ************************************************************************************************************************
@@ -115,9 +116,6 @@ typedef struct MENU_POPUP_T {
 *           MACRO'S
 ************************************************************************************************************************
 */
-
-#define MENU_ITEM_IS_TOGGLE_TYPE(item)      (item->desc->type == MENU_ON_OFF || item->desc->type == MENU_YES_NO || \
-                                             item->desc->type == MENU_BYP_PROC)
 
 
 /*

@@ -116,6 +116,20 @@ static void parse_quote(char *str)
 *           GLOBAL FUNCTIONS
 ************************************************************************************************************************
 */
+// copy an command to buffer
+uint8_t copy_command(char *buffer, const char *command)
+{
+    uint8_t i = 0;
+    const char *cmd = command;
+
+    while (*cmd && (*cmd != '%' && *cmd != '.'))
+    {
+        buffer[i++] = *cmd;
+        cmd++;
+    }
+
+    return i;
+}
 
 char** strarr_split(char *str)
 {

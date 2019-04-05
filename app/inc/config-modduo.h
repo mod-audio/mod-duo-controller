@@ -132,7 +132,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define WEBGUI_COMM_TX_BUFF_SIZE    512
 
 //// Protocol commands configuration
-// ping
+// ping0
 #define PING_CMD                "ping"
 // say <message>
 #define SAY_CMD                 "say %s ..."
@@ -190,6 +190,79 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define RESPONSE_CMD            "resp %i ..."
 // reboot in restore mode
 #define RESTORE_CMD             "restore"
+//new duo x protocol commands
+//get the name of the current pedalboard
+#define PB_NAME_GET_CMD          "get_pb_name"
+//set display brightness  <brightness>
+#define BRIGHTNESS_SET_CMD       "set_display_brightness %i"
+//get the current display brightness
+#define BRIGHTNESS_GET_CMD       "get_display_brightness"
+// set stereo link for the inputs 
+#define SL_IN_SET_CMD            "set_in_chan_link 0 %i"                      
+// get the current stereo link value for the inputs
+#define SL_IN_GET_CMD            "Xget_in_chan_link 0" 
+// set stereo link for the inputs 
+#define SL_OUT_SET_CMD           "set_out_chan_link 0 %i"                       
+// get the current stereo link value for the inputs
+#define SL_OUT_GET_CMD           "Xget_out_chan_link 0"
+ // mute the audio when tuner is on
+#define TUNER_MUTE_SET_CMD      "set_tuner_mute %i"           //not in mod-ui  
+// get the mute status of the tuner
+#define TUNER_MUTE_GET_CMD      "get_tuner_mute"              //not in mod-ui
+// set exp or cv input  <cv=1/exp=0>
+#define EXPCV_SET_CMD           "set_exp_cv %i"                     
+// get the current status of the cv/exp port
+#define EXPCV_GET_CMD           "get_exp_cv"
+// set headphone or cv output  <cv=1/hp=0>
+#define HPCV_SET_CMD            "set_hp_cv %i"                     
+// get the current status of the hp/cv port 
+#define HPCV_GET_CMD            "get_hp_cv"                 
+// set the quick bypass channel
+#define QBP_SET_CMD             "set_q_bypass %i"             //not in mod-ui
+// get the quick bypass channel
+#define QBP_GET_CMD             "get_q_bypass"               //not in mod-ui
+// toggle play status
+#define PLAY_SET_CMD            "set_play_status %i"        //not in mod-ui
+// get play status 
+#define PLAY_GET_CMD            "get_play_status"           //not in mod-ui
+// set midi clk source <internal = 0, slave = 1, link = 2>   
+#define MIDI_SRC_SET_CMD        "set_clk_src %i"                             
+// get the midi clk source channel
+#define MIDI_SRC_GET_CMD        "get_clk_src"
+//enable the midi clock <on=1/off=0>
+#define SEND_MIDI_CLK_CMD       "send_midi_clk %i"  
+//enable the midi clock <on=1/off=0>
+#define GET_MIDI_CLK_ENABLE_CMD  "get_send_midi_clk"    //we need this ? not in mod-ui
+// set midi prog change channnel <channel>
+#define MIDI_PRGCH_SET_CMD      "set_bank_prgch %i"                          
+// get midi prog change channnel 
+#define MIDI_PRGCH_GET_CMD      "get_bank_prgch"
+// set midi snapchot change channnel <channel>
+#define MIDI_SNAPSHOT_SET_CMD   "set_snapshot_prgch %i"                                
+// get midi snapchot change channnel
+#define MIDI_SNAPSHOT_GET_CMD   "get_snapshot_prgch"
+// toggle tempo status
+#define TEMPO_SET_CMD           "set_tempo_bpm %i"                       
+// get tmpo status 
+#define TEMPO_GET_CMD           "get_tempo_bpm"
+// toggle beats per bar tempo status
+#define BPB_SET_CMD             "set_tempo_bpb %i"                        
+// get beats per bar tempo status 
+#define BPB_GET_CMD             "get_tempo_bpb"
+// toggle bypass
+#define BYPASS_SET_CMD          "set_truebypass_value "                        
+// get bypass status 
+#define BYPASS_GET_CMD          "get_truebypass_value "
+//get profile data command <int profile>
+#define LOAD_PROFILE_CMD        "retrieve_profile %i"
+//store the current profile in mod-ui
+#define STORE_PROFILE_CMD        "store_profile %i"
+//get the current profile that is loaded
+#define GET_PROFILE_CMD         "get_current_profile"   //not in mod-ui
+//get master volume link channel
+//#define MASTER_VOL_SET_LINK_CMD     "get_master_volume_channel_mode"
+//get master volume link channel
+//#define MASTER_VOL_GET_LINK_CMD     "set_master_volume_channel_mode %i"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -223,10 +296,12 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define DISPLAY_TOOL_SYSTEM 0
 #define DISPLAY_TOOL_TUNER  1
 #define DISPLAY_TOOL_NAVIG  2
+#define DISPLAY_TOOL_SYSTEM_SUBMENU 3
+
 
 //// Screen definitions
 // defines the default rotary text
-#define SCREEN_ROTARY_DEFAULT_NAME      "KNOB #"
+#define SCREEN_ROTARY_DEFAULT_NAME      "ENDLESS KNOB #"
 // defines the default foot text
 #define SCREEN_FOOT_DEFAULT_NAME        "FOOT #"
 
@@ -235,12 +310,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #include "system.h"
 // defines the menu id's
 #define ROOT_ID         (0 * 10)
-#define VOL_GAIN_ID     (1 * 10)
-#define IN1_ID          (2 * 10)
-#define IN1_STAGE_ID    (3 * 10)
-#define IN2_ID          (4 * 10)
-#define IN2_STAGE_ID    (5 * 10)
-#define HEADPHONE_ID    (6 * 10)
+#define INP_ID          (1 * 10)
+#define OUTP_ID         (2 * 10)
+#define TUNER_ID        (3 * 10)
+#define SYSTEM_ID       (4 * 10)
 #define INFO_ID         (7 * 10)
 #define SERVICES_ID     (8 * 10)
 #define VERSIONS_ID     (9 * 10)
@@ -251,84 +324,133 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define BLUETOOTH_ID    (14 * 10)
 #define BANKS_ID        (15 * 10)
 #define DISP_BL_ID      (16 * 10)
+#define BYPASS_ID       (17 * 10)
+#define TEMPO_ID        (18 * 10)
+#define PROFILES_ID     (19 * 10)
+#define MIDI_ID         (20 * 10)
 
-#define IN1_VOLUME      VOLUME_ID+0
-#define IN2_VOLUME      VOLUME_ID+1
-#define OUT1_VOLUME     VOLUME_ID+2
-#define OUT2_VOLUME     VOLUME_ID+3
-#define HP_VOLUME       VOLUME_ID+4
-
+//pedalboard sub menu
 #define PEDALBOARD_SAVE_ID   PEDALBOARD_ID+2
 #define PEDALBOARD_RESET_ID  PEDALBOARD_ID+3
 
+//bypass sub menu
+#define BP1_ID              BYPASS_ID + 1
+#define BP2_ID              BYPASS_ID + 2 
+#define BP12_ID             BYPASS_ID + 3
+#define BP_SELECT_ID        BYPASS_ID + 4
+
+//tempo sub menu
+#define GLOBAL_TEMPO_ID    TEMPO_ID + 1
+#define ABLETON_LINK_ID    TEMPO_ID + 2
+
+//inputs sub menu
+#define IN1_VOLUME          VOLUME_ID+0
+#define IN2_VOLUME          VOLUME_ID+1
+#define STEREO_LINK_INP     INP_ID+1
+#define EXP_CV_INP          INP_ID+2
+
+//output sub menu
+#define OUT1_VOLUME         VOLUME_ID+2
+#define OUT2_VOLUME         VOLUME_ID+3
+#define HP_VOLUME           VOLUME_ID+4
+#define STEREO_LINK_OUTP    OUTP_ID+1
+#define HP_CV_OUTP          OUTP_ID+2
+#define MASTER_VOL_LINK     OUTP_ID+3
+
+//midi sub menu
+#define MIDI_CLK_SOURCE     MIDI_ID+2
+#define MIDI_CLK_SEND       MIDI_ID+3
+#define MIDI_SNAPSHOT       MIDI_ID+4
+#define MIDI_PEDALBOARD     MIDI_ID+5
+    
 #define BLUETOOTH_DISCO_ID   BLUETOOTH_ID+2
 
-
-// menu definition format: {name, type, id, parent_id, action_callback, need_update}
 #define SYSTEM_MENU     \
-    {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                , 0},  \
-    {"Banks",                           MENU_NONE,      BANKS_ID,           ROOT_ID,        system_banks_cb     , 0},  \
-    {"Current pedalboard",              MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    PEDALBOARD_ID+1,    PEDALBOARD_ID,  NULL                , 0},  \
-    {"Save State",                      MENU_CONFIRM,   PEDALBOARD_SAVE_ID, PEDALBOARD_ID,  system_pedalboard_cb, 0},  \
-    {"Reset State",                     MENU_CONFIRM,   PEDALBOARD_RESET_ID,PEDALBOARD_ID,  system_pedalboard_cb, 0},  \
-    {"Volume and Gains",                MENU_LIST,      VOL_GAIN_ID,        ROOT_ID,        NULL                , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    VOL_GAIN_ID+1,      VOL_GAIN_ID,    system_save_gains_cb, 0},  \
-    {"Input 1",                         MENU_LIST,      IN1_ID,             VOL_GAIN_ID,    NULL                , 0},  \
-    {"< Back to Volume and Gains",      MENU_RETURN,    IN1_ID+1,           IN1_ID,         NULL                , 0},  \
-    {"Stage",                           MENU_SELECT,    IN1_STAGE_ID,       IN1_ID,         system_stage_cb     , 0},  \
-    {"< Back to Input 1",               MENU_RETURN,    IN1_STAGE_ID+1,     IN1_STAGE_ID,   NULL                , 0},  \
-    {"Low",                             MENU_NONE,      IN1_STAGE_ID+2,     IN1_STAGE_ID,   system_stage_cb     , 0},  \
-    {"Mid",                             MENU_NONE,      IN1_STAGE_ID+3,     IN1_STAGE_ID,   system_stage_cb     , 0},  \
-    {"High",                            MENU_NONE,      IN1_STAGE_ID+4,     IN1_STAGE_ID,   system_stage_cb     , 0},  \
-    {"Fine Adjust",                     MENU_GRAPH,     IN1_VOLUME,         IN1_ID,         system_volume_cb    , 0},  \
-    {"Input 2",                         MENU_LIST,      IN2_ID,             VOL_GAIN_ID,    NULL                , 0},  \
-    {"< Back to Volume and Gains",      MENU_RETURN,    IN2_ID+1,           IN2_ID,         NULL                , 0},  \
-    {"Stage",                           MENU_SELECT,    IN2_STAGE_ID,       IN2_ID,         system_stage_cb     , 0},  \
-    {"< Back to Input 2",               MENU_RETURN,    IN2_STAGE_ID+1,     IN2_STAGE_ID,   NULL                , 0},  \
-    {"Low",                             MENU_NONE,      IN2_STAGE_ID+2,     IN2_STAGE_ID,   system_stage_cb     , 0},  \
-    {"Mid",                             MENU_NONE,      IN2_STAGE_ID+3,     IN2_STAGE_ID,   system_stage_cb     , 0},  \
-    {"High",                            MENU_NONE,      IN2_STAGE_ID+4,     IN2_STAGE_ID,   system_stage_cb     , 0},  \
-    {"Fine Adjust",                     MENU_GRAPH,     IN2_VOLUME,         IN2_ID,         system_volume_cb    , 0},  \
-    {"Output 1",                        MENU_GRAPH,     OUT1_VOLUME,        VOL_GAIN_ID,    system_volume_cb    , 0},  \
-    {"Output 2",                        MENU_GRAPH,     OUT2_VOLUME,        VOL_GAIN_ID,    system_volume_cb    , 0},  \
-    {"Headphone",                       MENU_LIST,      HEADPHONE_ID,       ROOT_ID,        system_hp_bypass_cb , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    HEADPHONE_ID+1,     HEADPHONE_ID,   system_save_gains_cb, 0},  \
-    {"Volume",                          MENU_GRAPH,     HP_VOLUME,          HEADPHONE_ID,   system_volume_cb    , 0},  \
-    {"Direct Monitoring: ",             MENU_ON_OFF,    HEADPHONE_ID+3,     HEADPHONE_ID,   system_hp_bypass_cb , 0},  \
-    {"Bluetooth",                       MENU_LIST,      BLUETOOTH_ID,       ROOT_ID,        system_bluetooth_cb , 1},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                , 0},  \
-    {"Enable discovery",                MENU_OK,        BLUETOOTH_DISCO_ID, BLUETOOTH_ID,   system_bluetooth_cb , 0},  \
-    {"Status:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                , 0},  \
-    {"Name:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                , 0},  \
-    {"Address:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                , 0},  \
-    {"Display Brightness",              MENU_NONE,      DISP_BL_ID,         ROOT_ID,        system_display_cb   , 0},  \
-    {"Info",                            MENU_LIST,      INFO_ID,            ROOT_ID,        NULL                , 0},  \
-    {"< Back to SETTINGS",              MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                , 0},  \
-    {"Services",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb  , 1},  \
-    {"< Back to Info",                  MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL                , 0},  \
-    {"jack:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    NULL                , 0},  \
-    {"mod-host:",                       MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    NULL                , 0},  \
-    {"mod-ui:",                         MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    NULL                , 0},  \
-    {"ttymidi:",                        MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    NULL                , 0},  \
-    {"Versions",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb  , 0},  \
-    {"< Back to Info",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                , 0},  \
-    {"version:",                        MENU_OK,        VERSIONS_ID+2,      VERSIONS_ID,    system_release_cb   , 0},  \
-    {"restore:",                        MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                , 0},  \
-    {"system:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                , 0},  \
-    {"controller:",                     MENU_NONE,      VERSIONS_ID+5,      VERSIONS_ID,    NULL                , 0},  \
-    {"Device",                          MENU_LIST,      DEVICE_ID,          INFO_ID,        system_device_cb    , 0},  \
-    {"< Back to Info",                  MENU_RETURN,    DEVICE_ID+1,        DEVICE_ID,      NULL                , 0},  \
-    {"Serial Number:",                  MENU_OK,        DEVICE_ID+2,        DEVICE_ID,      system_tag_cb       , 0},  \
-    {"System Upgrade",                  MENU_CONFIRM,   UPGRADE_ID,         ROOT_ID,        system_upgrade_cb   , 0},  \
+    {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                       , 0},  \
+    {"BANKS",                           MENU_NONE,      BANKS_ID,           ROOT_ID,        system_banks_cb            , 0},  \
+    {"CURRENT PEDALBOARD",              MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                       , 0},  \
+    {"SAVE STATE",                      MENU_CONFIRM,   PEDALBOARD_SAVE_ID, PEDALBOARD_ID,  system_pedalboard_cb       , 0},  \
+    {"RESET STATE",                     MENU_CONFIRM,   PEDALBOARD_RESET_ID,PEDALBOARD_ID,  system_pedalboard_cb       , 0},  \
+    {"HARDWARE BYPASS",                 MENU_LIST,      BYPASS_ID,          ROOT_ID,        system_quick_bypass_cb     , 0},  \
+    {"CHANNEL 1",                       MENU_TOGGLE,    BP1_ID,             BYPASS_ID,      system_bypass_cb           , 0},  \
+    {"CHANNEL 2",                       MENU_TOGGLE,    BP2_ID,             BYPASS_ID,      system_bypass_cb           , 0},  \
+    {"CHANNEL 1 & 2",                   MENU_TOGGLE,    BP12_ID,            BYPASS_ID,      system_bypass_cb           , 0},  \
+    {"QUICK BYPASS CHANNEL(S)",         MENU_TOGGLE,    BP_SELECT_ID,       BYPASS_ID,      system_bypass_cb           , 0},  \
+    {"TEMPO & TRANSPORT",               MENU_LIST,      TEMPO_ID,           ROOT_ID,        system_play_cb             , 0},  \
+    {"TEMPO",                           MENU_SET,       GLOBAL_TEMPO_ID,    TEMPO_ID,       system_tempo_cb            , 0},  \
+    {"BEATS PER BAR",                   MENU_SET,       ABLETON_LINK_ID,    TEMPO_ID,       system_bpb_cb              , 0},  \
+    {"TUNER",                           MENU_NONE,      TUNER_ID,           ROOT_ID,        system_tuner_cb            , 0},  \
+    {"USER PROFILES",                   MENU_LIST,      PROFILES_ID,        ROOT_ID,        NULL                       , 0},  \
+    {"USER PROFILE A",                  MENU_TOGGLE,    PROFILES_ID+1,      PROFILES_ID,    system_load_pro_cb         , 0},  \
+    {"USER PROFILE B",                  MENU_TOGGLE,    PROFILES_ID+2,      PROFILES_ID,    system_load_pro_cb         , 0},  \
+    {"USER PROFILE C",                  MENU_TOGGLE,    PROFILES_ID+3,      PROFILES_ID,    system_load_pro_cb         , 0},  \
+    {"USER PROFILE D",                  MENU_TOGGLE,    PROFILES_ID+4,      PROFILES_ID,    system_load_pro_cb         , 0},  \
+    {"OVERWRITE CURRENT PROFILE",       MENU_TOGGLE,    PROFILES_ID+5,      PROFILES_ID,    system_save_pro_cb         , 0},  \
+    {"SYSTEM",                          MENU_LIST,      SYSTEM_ID,          ROOT_ID,        NULL                       , 0},  \
+    {"INPUTS",                          MENU_LIST,      INP_ID,             SYSTEM_ID,      NULL                       , 0},  \
+    {"< BACK TO SYSTEM",                MENU_RETURN,    INP_ID+1,           INP_ID,         NULL                       , 0},  \
+    {"STEREO LINK",                     MENU_TOGGLE,    STEREO_LINK_INP,    INP_ID,         system_sl_in_cb            , 0},  \
+    {"INPUT 1 GAIN",                    MENU_VOL,       IN1_VOLUME,         INP_ID,         system_volume_cb           , 0},  \
+    {"INPUT 2 GAIN",                    MENU_VOL,       IN2_VOLUME,         INP_ID,         system_volume_cb           , 0},  \
+    {"OUTPUTS",                         MENU_LIST,      OUTP_ID,            SYSTEM_ID,      NULL                       , 0},  \
+    {"< BACK TO SYSTEM",                MENU_RETURN,    OUTP_ID+1,          OUTP_ID,        NULL                       , 0},  \
+    {"STEREO LINK ",                    MENU_TOGGLE,    STEREO_LINK_OUTP,   OUTP_ID,        system_sl_out_cb           , 0},  \
+    {"OUTPUT 1 GAIN",                   MENU_VOL,       OUT1_VOLUME,        OUTP_ID,        system_volume_cb           , 0},  \
+    {"OUTPUT 2 GAIN",                   MENU_VOL,       OUT2_VOLUME,        OUTP_ID,        system_volume_cb           , 0},  \
+    {"HEADPHONE VOLUME",                MENU_VOL,       HP_VOLUME,          OUTP_ID,        system_volume_cb           , 0},  \
+    {"SYNC & MIDI",                     MENU_LIST,      MIDI_ID,            SYSTEM_ID,      NULL                       , 0},  \
+    {"< BACK TO SYSTEM",                MENU_RETURN,    MIDI_ID+1,          MIDI_ID,        NULL                       , 0},  \
+    {"CLOCK SOURCE",                    MENU_TOGGLE,    MIDI_CLK_SOURCE,    MIDI_ID,        system_midi_src_cb         , 0},  \
+    {"SEND MIDI CLOCK",                 MENU_TOGGLE,    MIDI_CLK_SEND,      MIDI_ID,        system_midi_send_cb        , 0},  \
+    {"SNAPSHOT NAV MIDI CHAN",          MENU_SET,       MIDI_SNAPSHOT,      MIDI_ID,        system_ss_prog_change_cb   , 0},  \
+    {"PEDALBOARD NAV MIDI CHN",         MENU_SET,       MIDI_PEDALBOARD,    MIDI_ID,        system_pb_prog_change_cb   , 0},  \
+    {"BLUETOOTH",                       MENU_LIST,      BLUETOOTH_ID,       SYSTEM_ID,      system_bluetooth_cb        , 0},  \
+    {"< BACK TO SYSTEM",                MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                       , 0},  \
+    {"ENABLE DISCOVERY",                MENU_OK,        BLUETOOTH_DISCO_ID, BLUETOOTH_ID,   system_bluetooth_cb        , 0},  \
+    {"STATUS:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                       , 0},  \
+    {"NAME:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                       , 0},  \
+    {"ADDRESS:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                       , 0},  \
+    {"DISPLAY BRIGHTNESS",              MENU_TOGGLE,    DISP_BL_ID,         SYSTEM_ID,      system_display_cb          , 0},  \
+    {"INFO",                            MENU_LIST,      INFO_ID,            SYSTEM_ID,      NULL                       , 0},  \
+    {"< BACK TO SYSTEM",                MENU_RETURN,    INFO_ID+1,          INFO_ID,        NULL                       , 0},  \
+    {"SERVICES",                        MENU_LIST,      SERVICES_ID,        INFO_ID,        system_services_cb         , 1},  \
+    {"< BACK TO INFO",                  MENU_RETURN,    SERVICES_ID+1,      SERVICES_ID,    NULL                       , 0},  \
+    {"JACK:",                           MENU_NONE,      SERVICES_ID+2,      SERVICES_ID,    NULL                       , 0},  \
+    {"SSHD:",                           MENU_NONE,      SERVICES_ID+3,      SERVICES_ID,    NULL                       , 0},  \
+    {"MOD-UI:",                         MENU_NONE,      SERVICES_ID+4,      SERVICES_ID,    NULL                       , 0},  \
+    {"DNSMASQ:",                        MENU_NONE,      SERVICES_ID+5,      SERVICES_ID,    NULL                       , 0},  \
+    {"VERSIONS",                        MENU_LIST,      VERSIONS_ID,        INFO_ID,        system_versions_cb         , 0},  \
+    {"< BACK TO INFO",                  MENU_RETURN,    VERSIONS_ID+1,      VERSIONS_ID,    NULL                       , 0},  \
+    {"VERSION:",                        MENU_OK,        VERSIONS_ID+2,      VERSIONS_ID,    system_release_cb          , 0},  \
+    {"RESTORE:",                        MENU_NONE,      VERSIONS_ID+3,      VERSIONS_ID,    NULL                       , 0},  \
+    {"SYSTEM:",                         MENU_NONE,      VERSIONS_ID+4,      VERSIONS_ID,    NULL                       , 0},  \
+    {"CONTROLLER:",                     MENU_NONE,      VERSIONS_ID+5,      VERSIONS_ID,    NULL                       , 0},  \
+    {"DEVICE",                          MENU_LIST,      DEVICE_ID,          INFO_ID,        system_device_cb           , 0},  \
+    {"< BACK TO INFO",                  MENU_RETURN,    DEVICE_ID+1,        DEVICE_ID,      NULL                       , 0},  \
+    {"SERIAL NUMBER:",                  MENU_OK,        DEVICE_ID+2,        DEVICE_ID,      system_tag_cb              , 0},  \
+    {"SYSTEM UPGRADE",                  MENU_CONFIRM,   UPGRADE_ID,         SYSTEM_ID,      system_upgrade_cb          , 0},  \
 
-// popups text content, format : {menu_id, text_content}
+//POPUP DEFINES
+//PROFILE POPUP TXT
+#define PROFILE_POPUP_LOAD_TXT    "Loading a new profile may     change your in-/output        configuration. Are you sure   you want to continue? This    will discard any changes you  have made to the current user profile since last saving it."
+#define PROFILE_POPUP_RELOAD_TXT  "Are you sure you want to      reload the active user profile? This will discard any       changes you have made to this user profile since last saving it."
+// popups text content, format : {menu_id, header_content, text_content}
 #define POPUP_CONTENT   \
-    {PEDALBOARD_ID, "To access pedalboard options please disconnect from the graphical interface"}, \
-    {PEDALBOARD_SAVE_ID, "Save all current pedalboard values as default?"},         \
-    {PEDALBOARD_RESET_ID, "Reset all pedalboard values to last saved state?"},      \
-    {BLUETOOTH_DISCO_ID, "Bluetooth discovery mode is now enabled for 2 minutes"},  \
-    {UPGRADE_ID, "To proceed with system upgrade please keep pressed left footswitch and click YES."},
+    {PEDALBOARD_ID, "pedalboard", "To access pedalboard options  please disconnect from the    graphical interface"}, \
+    {BANKS_ID, "Banks", "To access pedalboard options  please disconnect from the    graphical interface"}, \
+    {PEDALBOARD_SAVE_ID, "Save state", "Would you like to save the    current parameter values as   the default for the active    pedalboard?"},         \
+    {PEDALBOARD_RESET_ID, "Reset state", "Would you like to reset all   parameter values to the last  saved state for the active    pedalboard?"},      \
+    {BLUETOOTH_DISCO_ID, "Enable Bluetooth", "Bluetooth discovery mode is   now enabled for 2 minutes"},  \
+    {UPGRADE_ID, "Start System Upgrade", "To start the system upgrade   process, please press and     hold down the left most buttonand press yes. "}, \
+    {PROFILES_ID+1, "Load user profile A", PROFILE_POPUP_LOAD_TXT}, \
+    {PROFILES_ID+2, "Load user profile B", PROFILE_POPUP_LOAD_TXT}, \
+    {PROFILES_ID+3, "Load user profile C", PROFILE_POPUP_LOAD_TXT}, \
+    {PROFILES_ID+4, "Load user profile D", PROFILE_POPUP_LOAD_TXT}, \
+    {PROFILES_ID+5, "Overwrite user profile", "Are you sure you want to      overwrite the active user     profile?"}, \
+    {PROFILES_ID+6, "Reload user profile A", PROFILE_POPUP_RELOAD_TXT}, \
+    {PROFILES_ID+7, "Reload user profile B", PROFILE_POPUP_RELOAD_TXT}, \
+    {PROFILES_ID+8, "Reload user profile C", PROFILE_POPUP_RELOAD_TXT}, \
+    {PROFILES_ID+9, "Reload user profile D", PROFILE_POPUP_RELOAD_TXT}, \
 
 //// Foot functions leds colors
 #define TOGGLED_COLOR           GREEN
@@ -445,6 +567,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #ifndef GLCD3_CONFIG
 #define GLCD3_CONFIG
 #endif
+
+#define DISPLAY_RIGHT 1
+#define DISPLAY_LEFT  0
 
 // GLCD drivers definitions
 #define KS0108      0

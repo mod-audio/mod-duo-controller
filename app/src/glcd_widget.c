@@ -557,21 +557,23 @@ void widget_peakmeter(glcd_t *display, uint8_t pkm_id, peakmeter_t *pkm)
 void widget_tuner(glcd_t *display, tuner_t *tuner)
 {
     // draws the title
-    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_BLACK);
+    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
+    glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
     textbox_t title;
-    title.color = GLCD_WHITE;
+    title.color = GLCD_BLACK;
     title.mode = TEXT_SINGLE_LINE;
-    title.align = ALIGN_LEFT_TOP;
-    title.top_margin = 1;
+    title.font = SMfont;
+    title.top_margin = 0;
     title.bottom_margin = 0;
-    title.left_margin = 2;
+    title.left_margin = 0;
     title.right_margin = 0;
     title.height = 0;
     title.width = 0;
-    title.font = alterebro15;
-    title.text = "Tuner";
+    title.text = "TUNER";
+    title.align = ALIGN_CENTER_TOP;
+    title.y = 0;
+    title.x = 0;
     widget_textbox(display, &title);
-    glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_WHITE);
 
     // clears subtitles
     glcd_rect_fill(display, 0, 51, DISPLAY_WIDTH, 12, GLCD_WHITE);
@@ -622,7 +624,7 @@ void widget_tuner(glcd_t *display, tuner_t *tuner)
     widget_textbox(display, &input);
 
     // constants configurations
-    const uint8_t num_bars = 5, y_bars = 18, w_bar = 4, h_bar = 21, bars_space = 3;
+    const uint8_t num_bars = 5, y_bars = 21, w_bar = 4, h_bar = 21, bars_space = 3;
     const uint8_t cents_range = 50;
 
     uint8_t x, n;
@@ -659,7 +661,7 @@ void widget_tuner(glcd_t *display, tuner_t *tuner)
     }
 
     // draws the note box
-    glcd_rect_fill(display, 36, 14, 56, 29, GLCD_WHITE);
+    glcd_rect_fill(display, 36, 17, 56, 29, GLCD_WHITE);
     textbox_t note;
     note.color = GLCD_BLACK;
     note.mode = TEXT_SINGLE_LINE;
@@ -668,7 +670,7 @@ void widget_tuner(glcd_t *display, tuner_t *tuner)
     note.bottom_margin = 2;
     note.left_margin = 0;
     note.right_margin = 0;
-    note.y = 15;
+    note.y = 18;
     note.height = 0;
     note.width = 0;
     note.font = alterebro49;
@@ -676,12 +678,8 @@ void widget_tuner(glcd_t *display, tuner_t *tuner)
     widget_textbox(display, &note);
 
     // checks if is tuned
-    if (n == 0) glcd_rect_invert(display, 36, 14, 56, 29);
-    else glcd_rect(display, 36, 14, 56, 29, GLCD_BLACK);
-
-    // fixes the font extra footer
-    glcd_hline(display, 36, 43, 56, GLCD_WHITE);
-    glcd_hline(display, 36, 44, 56, GLCD_WHITE);
+    if (n == 0) glcd_rect_invert(display, 36, 17, 56, 29);
+    else glcd_rect(display, 36, 17, 56, 29, GLCD_BLACK);
 }
 
 
@@ -693,25 +691,23 @@ void widget_popup(glcd_t *display, popup_t *popup)
     // draws the contour
     glcd_rect(display, popup->x, popup->y, popup->width, popup->height, GLCD_BLACK);
 
-    // draws the title background
-    glcd_rect_fill(display, popup->x, popup->y, popup->width, popup->font[FONT_HEIGHT] + 2, GLCD_BLACK);
-
     // draws the title text
     textbox_t title;
-    title.color = GLCD_WHITE;
+    title.color = GLCD_BLACK;
     title.mode = TEXT_SINGLE_LINE;
-    title.align = ALIGN_NONE_NONE;
-    title.top_margin = 0;
+    title.align = ALIGN_CENTER_TOP;
+    title.font = popup->font;
+    title.top_margin = 1;
     title.bottom_margin = 0;
     title.left_margin = 0;
     title.right_margin = 0;
-    title.x = popup->x + 1;
-    title.y = popup->y + 1;
-    title.height = 0;
-    title.width = 0;
-    title.font = popup->font;
+    title.height = 5;
+    title.width = DISPLAY_WIDTH;
     title.text = popup->title;
     widget_textbox(display, &title);
+
+    // draws the title background
+    glcd_rect_invert(display, popup->x+1, popup->y+1, popup->width-2, 6);
 
     // draws the content
     textbox_t content;
@@ -723,10 +719,10 @@ void widget_popup(glcd_t *display, popup_t *popup)
     content.left_margin = 0;
     content.right_margin = 0;
     content.font = popup->font;
-    content.x = title.x + 1;
+    content.x = popup->x + 2;
     content.y = popup->y + popup->font[FONT_HEIGHT] + 3;
     content.width = popup->width - 4;
-    content.height = (popup->font[FONT_HEIGHT] * 5); // FIXME: need be relative to popup height
+    content.height = ((popup->font[FONT_HEIGHT]+1) * 8); // FIXME: need be relative to popup height
     content.text = popup->content;
     widget_textbox(display, &content);
 
@@ -740,37 +736,39 @@ void widget_popup(glcd_t *display, popup_t *popup)
         case CANCEL_ONLY:
             button_text = (popup->type == OK_ONLY ? "OK" : "CANCEL");
             button_w = get_text_width(button_text, popup->font) + 8;
-            button_h = popup->font[FONT_HEIGHT] + 2;
+            button_h = popup->font[FONT_HEIGHT]+2;
             button_x = popup->x + (popup->width / 2) - (button_w / 2);
-            button_y = popup->y + popup->height - button_h - 2;
-            glcd_text(display, button_x + 4, button_y + 2, button_text, popup->font, GLCD_BLACK);
+            button_y = popup->y + popup->height - button_h;
+            glcd_text(display, button_x + 4, button_y, button_text, popup->font, GLCD_BLACK);
 
             if (popup->button_selected == 0)
-                glcd_rect_invert(display, button_x+1, button_y+1, button_w-2, button_h-2);
+                glcd_rect_invert(display, button_x+1, button_y-1, button_w-2, button_h);
             break;
 
         case OK_CANCEL:
         case YES_NO:
             button_text = (popup->type == OK_CANCEL ? "OK" : "YES");
             button_w = get_text_width(button_text, popup->font) + 8;
-            button_h = popup->font[FONT_HEIGHT] + 2;
+            button_h = popup->font[FONT_HEIGHT]+2;
             button_x = popup->x + (popup->width / 4) - (button_w / 2);
-            button_y = popup->y + popup->height - button_h - 2;
-            glcd_text(display, button_x + 4, button_y + 2, button_text, popup->font, GLCD_BLACK);
+            button_y = popup->y + popup->height - button_h;
+            glcd_text(display, button_x + 4, button_y, button_text, popup->font, GLCD_BLACK);
 
             if (popup->button_selected == 0)
-                glcd_rect_invert(display, button_x+1, button_y+1, button_w-2, button_h-2);
+                glcd_rect_invert(display, button_x+1, button_y-1, button_w-2, button_h);
 
             button_text = (popup->type == OK_CANCEL ? "CANCEL" : "NO");
             button_w = get_text_width(button_text, popup->font) + 8;
-            button_h = popup->font[FONT_HEIGHT] + 2;
+            button_h = popup->font[FONT_HEIGHT]+2;
             button_x = popup->x + popup->width - (popup->width / 4) - (button_w / 2);
-            button_y = popup->y + popup->height - button_h - 2;
-            glcd_text(display, button_x + 4, button_y + 2, button_text, popup->font, GLCD_BLACK);
+            button_y = popup->y + popup->height - button_h;
+            glcd_text(display, button_x + 4, button_y, button_text, popup->font, GLCD_BLACK);
 
             if (popup->button_selected == 1)
-                glcd_rect_invert(display, button_x+1, button_y+1, button_w-2, button_h-2);
+                glcd_rect_invert(display, button_x+1, button_y-1, button_w-2, button_h);
             break;
     }
+    glcd_hline(display, 0, DISPLAY_HEIGHT-1, DISPLAY_WIDTH, GLCD_BLACK);
 }
+
 
