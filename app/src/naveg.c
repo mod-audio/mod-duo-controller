@@ -1696,19 +1696,7 @@ void naveg_next_control(uint8_t display)
 
     i = copy_command(buffer, CONTROL_NEXT_CMD);
 
-    // inserts the hardware type
-    i += int_to_str(0, &buffer[i], 4, 0);
-    buffer[i++] = ' ';
-
-    // inserts the hardware id
-    i += int_to_str(0, &buffer[i], 4, 0);
-    buffer[i++] = ' ';
-
-    // inserts the actuator type
-    i += int_to_str(KNOB, &buffer[i], 4, 0);
-    buffer[i++] = ' ';
-
-    // inserts the actuator id
+    // inserts the hw id
     i += int_to_str(display, &buffer[i], 4, 0);
     buffer[i] = 0;
 
