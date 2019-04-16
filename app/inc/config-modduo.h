@@ -166,8 +166,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define INITIAL_STATE_CMD       "initial_state %s %s ..."
 // banks
 #define BANKS_CMD               "banks"
-// bank_config <hw_type> <hw_id> <actuator_type> <actuator_id> <function>
-#define BANK_CONFIG_CMD         "bank_config %i %i %i %i %i"
+// bank_config <hw_id> <function>
+#define BANK_CONFIG_CMD         "bank_config %i %i"
 // pedalboards <bank_uid>
 #define PEDALBOARDS_CMD         "pedalboards %s"
 // pedalboard <bank_id> <pedalboard_uid>
@@ -184,10 +184,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define TUNER_OFF_CMD           "tuner off"
 // tuner_input <input>
 #define TUNER_INPUT_CMD         "tuner_input %i"
-// hw_con <hw_type> <hw_id>
-#define HW_CONNECTED_CMD        "hw_con %i %i"
-// hw_dis <hw_type> <hw_id>
-#define HW_DISCONNECTED_CMD     "hw_dis %i %i"
+// hw_con 
+#define HW_CONNECTED_CMD        "hw_con"
+// hw_dis 
+#define HW_DISCONNECTED_CMD     "hw_dis"
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
 // reboot in restore mode
