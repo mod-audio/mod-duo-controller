@@ -291,9 +291,6 @@ static void display_control_add(control_t *control)
 
     // update the control screen
     screen_control(display, control);
-
-    // update the controls index screen
-    //screen_controls_index(display, control->control_index, control->controls_count);
 }
 
 // control removed from display
@@ -1826,10 +1823,6 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         // draws the control
         screen_control(display, control);
 
-        // draws the controls index
-        //if (control)
-            //screen_controls_index(display, control->control_index, control->controls_count);
-
         // checks the function assigned to foot and update the footer
         if (bank_config_check(display)) bank_config_footer();
         else if (g_foots[display]) foot_control_add(g_foots[display]);
@@ -1843,10 +1836,6 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
      
             // draws the control
             screen_control(display, control);
-
-            // draws the controls index
-            //if (control)
-                //screen_controls_index(display, control->control_index, control->controls_count);
     
             // checks the function assigned to foot and update the footer
             if (bank_config_check(display)) bank_config_footer();

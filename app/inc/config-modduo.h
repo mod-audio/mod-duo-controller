@@ -162,6 +162,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CONTROL_SET_CMD         "control_set %i %f"
 // control_next <hw_id>
 #define CONTROL_NEXT_CMD        "control_next %i"
+// control_index_set <hw_id> <current_index> <total_index>
+#define CONTROL_INDEX_SET       "control_set_index %i %i %i"
 // initial_state <current_bank_uid> <current_pedalboard_uid> [current_pedalboards_list]
 #define INITIAL_STATE_CMD       "initial_state %s %s ..."
 // banks
@@ -257,10 +259,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define STORE_PROFILE_CMD        "store_profile %i"
 //get the current profile that is loaded
 #define GET_PROFILE_CMD         "get_current_profile"   //not in mod-ui
-//get master volume link channel
-//#define MASTER_VOL_SET_LINK_CMD     "get_master_volume_channel_mode"
-//get master volume link channel
-//#define MASTER_VOL_GET_LINK_CMD     "set_master_volume_channel_mode %i"
+
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
