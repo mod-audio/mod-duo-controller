@@ -466,6 +466,7 @@ static void gui_connection_cb(proto_t *proto)
 static void control_add_cb(proto_t *proto)
 {
     control_t *control = data_parse_control(proto->list);
+
     naveg_add_control(control);
 
     protocol_response("resp 0", proto);
@@ -474,20 +475,32 @@ static void control_add_cb(proto_t *proto)
 static void control_rm_cb(proto_t *proto)
 {
     g_ui_communication_started = 1;
-    naveg_remove_control(atoi(proto->list[1]), proto->list[2]);
+    naveg_remove_control(atoi(proto->list[1]));
+
+    uint8_t i;
+    for (i = 2; i < TOTAL_ACTUATORS; i++)
+    {
+    	if (atoi(proto->list[i]) != 0)
+    	{
+ 			naveg_remove_control(atoi(proto->list[i]));
+    	}
+    	else break;
+    }
+    
     protocol_response("resp 0", proto);
 }
 
 static void control_set_cb(proto_t *proto)
 {
-    naveg_set_control(atoi(proto->list[1]), proto->list[2], atof(proto->list[3]));
+
+    naveg_set_control(atoi(proto->list[1]), atof(proto->list[2]));
     protocol_response("resp 0", proto);
 }
 
 static void control_get_cb(proto_t *proto)
 {
     float value;
-    value = naveg_get_control(atoi(proto->list[1]), proto->list[2]);
+    value = naveg_get_control(atoi(proto->list[1]));
 
     char resp[32];
     strcpy(resp, "resp 0 ");
@@ -506,11 +519,8 @@ static void initial_state_cb(proto_t *proto)
 static void bank_config_cb(proto_t *proto)
 {
     bank_config_t bank_func;
-    bank_func.hardware_type = atoi(proto->list[1]);
-    bank_func.hardware_id = atoi(proto->list[2]);
-    bank_func.actuator_type = atoi(proto->list[3]);
-    bank_func.actuator_id = atoi(proto->list[4]);
-    bank_func.function = atoi(proto->list[5]);
+    bank_func.hw_id = atoi(proto->list[1]);
+    bank_func.function = atoi(proto->list[2]);
     naveg_bank_config(&bank_func);
     protocol_response("resp 0", proto);
 }

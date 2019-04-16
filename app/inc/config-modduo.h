@@ -111,6 +111,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // Amount of encoders
 #define ENCODERS_COUNT      SLOTS_COUNT
 
+//total amount of actuators
+#define TOTAL_ACTUATORS (ENCODERS_COUNT + FOOTSWITCHES_COUNT)
+
 // Encoders ports and pins definitions
 // encoder definition: {ENC_BUTTON_PORT, ENC_BUTTON_PIN, ENC_CHA_PORT, ENC_CHA_PIN, ENC_CHB_PORT, ENC_CHB_PIN}
 #define ENCODER0_PINS       {0, 17, 0, 22, 0, 18}
@@ -148,18 +151,17 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define GUI_CONNECTED_CMD       "ui_con"
 // ui_dis
 #define GUI_DISCONNECTED_CMD    "ui_dis"
-// control_add <effect_instance> <symbol> <label> <control_prop> <unit> <value> <max> <min>
-//             <steps> <hw_type> <hw_id> <actuator_type> <actuator_id> <controls_count> <control_index>
+// control_add <hw_id> <label> <control_prop> <unit> <value> <max> <min> <steps> 
 //             [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
-#define CONTROL_ADD_CMD         "control_add %i %s %s %i %s %f %f %f %i %i %i %i %i %i %i ..."
-// control_rm <effect_instance> <symbol>
-#define CONTROL_REMOVE_CMD      "control_rm %i %s"
-// control_get <effect_instance> <symbol>
-#define CONTROL_GET_CMD         "control_get %i %s"
-// control_set <effect_instance> <symbol> <value>
-#define CONTROL_SET_CMD         "control_set %i %s %f"
-// control_next <hardware_type> <hardware_id> <actuator_type> <actuator_id>
-#define CONTROL_NEXT_CMD        "control_next %i %i %i %i"
+#define CONTROL_ADD_CMD         "control_add %i %s %i %s %f %f %f %i %i ..."
+// control_rm <hw_id>
+#define CONTROL_REMOVE_CMD      "control_rm %i ..."
+// control_get <hw_id> 
+#define CONTROL_GET_CMD         "control_get %i"
+// control_set <hw_id><value>
+#define CONTROL_SET_CMD         "control_set %i %f"
+// control_next <hw_id>
+#define CONTROL_NEXT_CMD        "control_next %i"
 // initial_state <current_bank_uid> <current_pedalboard_uid> [current_pedalboards_list]
 #define INITIAL_STATE_CMD       "initial_state %s %s ..."
 // banks

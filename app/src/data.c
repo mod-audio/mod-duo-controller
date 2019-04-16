@@ -26,7 +26,7 @@
 */
 
 static char g_back_to_bank[] = {"< Back to bank list"};
-static char g_back_to_settings[] = {"< Back to SETTINGS"};
+//static char g_back_to_settings[] = {"< Back to SETTINGS"};
 
 
 /*
@@ -81,8 +81,9 @@ control_t *data_parse_control(char **data)
 {
     control_t *control = NULL;
     uint32_t len = strarr_length(data);
-    const uint32_t min_params = 16;
-
+    const uint32_t min_params = 8;
+    uint8_t properties_mask = 0;
+    
     // checks if all data was received
     if (len >= min_params)
     {
@@ -90,44 +91,37 @@ control_t *data_parse_control(char **data)
         if (!control) goto error;
 
         // fills the control struct
-        control->effect_instance = atoi(data[1]);
-        control->symbol = str_duplicate(data[2]);
-        control->label = str_duplicate(data[3]);
-        control->properties_mask = atoi(data[4]);
-        control->unit = str_duplicate(data[5]);
-        control->value = atof(data[6]);
-        control->maximum = atof(data[7]);
-        control->minimum = atof(data[8]);
-        control->steps = atoi(data[9]);
-        control->hardware_type = atoi(data[10]);
-        control->hardware_id = atoi(data[11]);
-        control->actuator_type = atoi(data[12]);
-        control->actuator_id = atoi(data[13]);
-        control->controls_count = atoi(data[14]);
-        control->control_index = atoi(data[15]);
+        control->hw_id = atoi(data[1]);
+        control->label = str_duplicate(data[2]);
+        properties_mask = atoi(data[3]);
+        control->unit = str_duplicate(data[4]);
+        control->value = atof(data[5]);
+        control->maximum = atof(data[6]);
+        control->minimum = atof(data[7]);
+        control->steps = atoi(data[8]);
         control->scale_points_count = 0;
         control->scale_points = NULL;
 
-        // checks the memory allocation
-        if (!control->symbol || !control->label || !control->unit) goto error;
+        // checks the memory allocation 
+        if (!control->label || !control->unit) goto error;
     }
 
     control->properties = 0;
-    if (CONTROL_PROP_ENUMERATION & control->properties_mask)
+    if (CONTROL_PROP_ENUMERATION & properties_mask)
         control->properties = CONTROL_PROP_ENUMERATION;
-    else if (CONTROL_PROP_SCALE_POINTS & control->properties_mask)
+    else if (CONTROL_PROP_SCALE_POINTS & properties_mask)
         control->properties = CONTROL_PROP_SCALE_POINTS;
-    else if (CONTROL_PROP_TAP_TEMPO & control->properties_mask)
+    else if (CONTROL_PROP_TAP_TEMPO & properties_mask)
         control->properties = CONTROL_PROP_TAP_TEMPO;
-    else if (CONTROL_PROP_BYPASS & control->properties_mask)
+    else if (CONTROL_PROP_BYPASS & properties_mask)
         control->properties = CONTROL_PROP_BYPASS;
-    else if (CONTROL_PROP_TRIGGER & control->properties_mask)
+    else if (CONTROL_PROP_TRIGGER & properties_mask)
         control->properties = CONTROL_PROP_TRIGGER;
-    else if (CONTROL_PROP_TOGGLED & control->properties_mask)
+    else if (CONTROL_PROP_TOGGLED & properties_mask)
         control->properties = CONTROL_PROP_TOGGLED;
-    else if (CONTROL_PROP_LOGARITHMIC & control->properties_mask)
+    else if (CONTROL_PROP_LOGARITHMIC & properties_mask)
         control->properties = CONTROL_PROP_LOGARITHMIC;
-    else if (CONTROL_PROP_INTEGER & control->properties_mask)
+    else if (CONTROL_PROP_INTEGER & properties_mask)
         control->properties = CONTROL_PROP_INTEGER;
 
     // checks if has scale points
@@ -159,6 +153,7 @@ control_t *data_parse_control(char **data)
 error:
     data_free_control(control);
     return NULL;
+
 }
 
 void data_free_control(control_t *control)
