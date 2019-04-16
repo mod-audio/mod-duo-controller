@@ -184,15 +184,11 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define TUNER_OFF_CMD           "tuner off"
 // tuner_input <input>
 #define TUNER_INPUT_CMD         "tuner_input %i"
-// hw_con 
-#define HW_CONNECTED_CMD        "hw_con"
-// hw_dis 
-#define HW_DISCONNECTED_CMD     "hw_dis"
 // resp <status> ...
 #define RESPONSE_CMD            "resp %i ..."
 // reboot in restore mode
 #define RESTORE_CMD             "restore"
-//new duo x protocol commands
+//new duo-x menu protocol commands
 //get the name of the current pedalboard
 #define PB_NAME_GET_CMD          "get_pb_name"
 //set display brightness  <brightness>
