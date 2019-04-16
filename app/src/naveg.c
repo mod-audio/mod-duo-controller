@@ -1689,14 +1689,12 @@ void naveg_next_control(uint8_t display)
     // if is in tool mode return
     if (display_has_tool_enabled(display)) return;
 
-    naveg_remove_control(display); 
+    //naveg_remove_control(display); 
 
     char buffer[128];
     uint8_t i;
 
     i = copy_command(buffer, CONTROL_NEXT_CMD);
-
-    // FIXME: hardware type and hardware id must be deprecated
 
     // inserts the hardware type
     i += int_to_str(0, &buffer[i], 4, 0);
