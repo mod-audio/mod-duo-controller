@@ -1809,6 +1809,9 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         // draws the control
         screen_control(display, control);
 
+        //draw the index (do not update values)
+        naveg_set_index(0, DISPLAY_LEFT, 0, 0);
+
         // checks the function assigned to foot and update the footer
         if (bank_config_check(display)) bank_config_footer();
         else if (g_foots[display]) foot_control_add(g_foots[display]);
@@ -1823,6 +1826,9 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             // draws the control
             screen_control(display, control);
     
+            //draw the index (do not update values)
+            naveg_set_index(0, DISPLAY_RIGHT, 0, 0);
+
             // checks the function assigned to foot and update the footer
             if (bank_config_check(display)) bank_config_footer();
             else if (g_foots[display]) foot_control_add(g_foots[display]);
@@ -2097,6 +2103,20 @@ uint8_t naveg_ui_status(void)
     return g_ui_connected;
 }
 
+void naveg_set_index(uint8_t update, uint8_t display, uint8_t new_index, uint8_t new_index_count)
+{
+    static uint8_t index[ENCODERS_COUNT] = {};
+    static uint8_t index_count[ENCODERS_COUNT] = {};
+
+    if (update)
+    {
+        index[display] = new_index;
+        index_count[display] = new_index_count;
+    }
+
+    if (g_controls[display])screen_controls_index(display, index[display], index_count[display]);
+    return;
+}
 
 uint8_t naveg_tap_tempo_status(uint8_t id)
 {

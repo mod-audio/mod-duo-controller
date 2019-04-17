@@ -513,8 +513,8 @@ static void control_get_cb(proto_t *proto)
 
 static void control_set_index_cb(proto_t *proto)
 {
-    //display index <encoder hardware_id> <control index> <index_count>
-    screen_controls_index(atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]));
+    //index_set <updatevalues> <encoder hardware_id> <control index> <index_count>
+    naveg_set_index(1, atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]));
     protocol_response("resp 0", proto);
 }
 
