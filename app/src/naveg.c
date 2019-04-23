@@ -2114,7 +2114,11 @@ void naveg_set_index(uint8_t update, uint8_t display, uint8_t new_index, uint8_t
         index_count[display] = new_index_count;
     }
 
-    if (g_controls[display])screen_controls_index(display, index[display], index_count[display]);
+    if (g_controls[display]) 
+    {
+        screen_controls_index(display, index[display], index_count[display]);
+    }
+
     return;
 }
 
