@@ -272,6 +272,8 @@ void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max)
 
 void screen_footer(uint8_t display_id, const char *name, const char *value)
 {
+    if (display_id > FOOTSWITCHES_COUNT) return;
+
     glcd_t *display = hardware_glcds(display_id);
 
     // horizontal footer line

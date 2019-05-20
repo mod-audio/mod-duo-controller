@@ -50,7 +50,7 @@ typedef struct SCALE_POINT_T {
 
 typedef struct CONTROL_T {
     uint8_t hw_id;
-    char *label, *symbol, *unit;
+    char *label, *unit;
     uint8_t properties;
     float value, minimum, maximum;
     int16_t step, steps;

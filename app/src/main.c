@@ -477,10 +477,11 @@ static void control_add_cb(proto_t *proto)
 static void control_rm_cb(proto_t *proto)
 {
     g_ui_communication_started = 1;
+    
     naveg_remove_control(atoi(proto->list[1]));
 
     uint8_t i;
-    for (i = 2; i < TOTAL_ACTUATORS; i++)
+    for (i = 2; i < TOTAL_ACTUATORS + 1; i++)
     {
     	if (atoi(proto->list[i]) != 0)
     	{

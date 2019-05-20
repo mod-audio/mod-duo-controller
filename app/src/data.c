@@ -81,7 +81,7 @@ control_t *data_parse_control(char **data)
 {
     control_t *control = NULL;
     uint32_t len = strarr_length(data);
-    const uint32_t min_params = 8;
+    const uint32_t min_params = 9;
     uint8_t properties_mask = 0;
     
     // checks if all data was received
@@ -160,7 +160,6 @@ void data_free_control(control_t *control)
 {
     if (!control) return;
 
-    FREE(control->symbol);
     FREE(control->label);
     FREE(control->unit);
 
@@ -180,6 +179,7 @@ void data_free_control(control_t *control)
     }
 
     FREE(control);
+    return;
 }
 
 bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
@@ -258,6 +258,7 @@ void data_free_banks_list(bp_list_t *bp_list)
     }
 
     FREE(bp_list);
+    return;
 }
 
 bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
@@ -336,4 +337,5 @@ void data_free_pedalboards_list(bp_list_t *bp_list)
     }
 
     FREE(bp_list);
+    return;
 }

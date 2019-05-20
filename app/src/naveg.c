@@ -296,10 +296,13 @@ static void display_control_add(control_t *control)
 // control removed from display
 static void display_control_rm(uint8_t hw_id)
 {
-    uint8_t display;
+   uint8_t display;
+   display = hw_id;
+
     if (hw_id > ENCODERS_COUNT) return; 
 
-    control_t *control = search_control(hw_id, &display);
+    control_t *control = g_controls[display];
+
     if (control)
     {
         data_free_control(control);
@@ -307,8 +310,10 @@ static void display_control_rm(uint8_t hw_id)
         if (!display_has_tool_enabled(display)) screen_control(display, NULL);
         return;
     }
-
-    for (display = 0; display < SLOTS_COUNT; display++)
+    else if (!display_has_tool_enabled(display)) screen_control(display, NULL);
+    
+    //if remove all controls, not implemented atm TODO
+    /*for (display = 0; display < SLOTS_COUNT; display++)
     {
         control = g_controls[display];
 
@@ -319,7 +324,8 @@ static void display_control_rm(uint8_t hw_id)
 
             if (!display_has_tool_enabled(display)) screen_control(display, NULL);
         }
-    }
+    }*/
+
 }
 
 // control assigned to foot
@@ -344,6 +350,7 @@ static void foot_control_add(control_t *control)
     // stores the foot
     g_foots[control->hw_id - ENCODERS_COUNT] = control;
 
+
     // default state of led blink (no blink)
     led_blink(hardware_leds(control->hw_id), 0, 0);
 
@@ -361,7 +368,7 @@ static void foot_control_add(control_t *control)
             if (display_has_tool_enabled(control->hw_id)) break;
 
             // updates the footer
-            screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
+            screen_footer((control->hw_id - ENCODERS_COUNT), control->label,
                          (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT));
             break;
 
@@ -436,7 +443,7 @@ static void foot_control_add(control_t *control)
             strcpy(&value_txt[i], control->unit);
 
             // updates the footer
-            screen_footer(control->hw_id - ENCODERS_COUNT, control->label, value_txt);
+            screen_footer((control->hw_id - ENCODERS_COUNT), control->label, value_txt);
             break;
 
         case CONTROL_PROP_BYPASS:
@@ -475,7 +482,7 @@ static void foot_control_add(control_t *control)
             if (display_has_tool_enabled(control->hw_id - ENCODERS_COUNT)) break;
 
             // updates the footer
-            screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[i]->label);
+            screen_footer((control->hw_id - ENCODERS_COUNT), control->label, control->scale_points[i]->label);
             break;
     }
 }
@@ -485,7 +492,7 @@ static void foot_control_rm(uint8_t hw_id)
 {
     uint8_t i;
 
-    if (hw_id < ENCODERS_COUNT) return; 
+    //if (hw_id < ENCODERS_COUNT) return; 
 
     for (i = 0; i < FOOTSWITCHES_COUNT; i++)
     {
@@ -499,7 +506,6 @@ static void foot_control_rm(uint8_t hw_id)
         // checks if effect_instance and symbol match
         if (hw_id == g_foots[i]->hw_id)
         {
-            
             // remove the control
             data_free_control(g_foots[i]);
             g_foots[i] = NULL;
@@ -949,7 +955,6 @@ static void menu_enter(uint8_t display_id)
         // adds the menu lines 
         for (node = node->first_child; node; node = node->next)
         {
-            if (g_current_main_item->desc->id == SERVICES_ID)  led_set_color(hardware_leds(5), RED);
             menu_item_t *item_child = node->data;
 
             //all the menu items that have a value that needs to be updated when enterign the menu
@@ -1576,8 +1581,8 @@ void naveg_remove_control(uint8_t hw_id)
 {
     if (!g_initialized) return;
 
-    display_control_rm(hw_id);
-    foot_control_rm(hw_id);
+    if ((hw_id == 0) || (hw_id == 1)) display_control_rm(hw_id);
+    else foot_control_rm(hw_id);
 }
 
 void naveg_inc_control(uint8_t display)
@@ -1810,7 +1815,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         screen_control(display, control);
 
         //draw the index (do not update values)
-        naveg_set_index(0, DISPLAY_LEFT, 0, 0);
+        naveg_set_index(0, display, 0, 0);
 
         // checks the function assigned to foot and update the footer
         if (bank_config_check(display)) bank_config_footer();
@@ -1827,7 +1832,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             screen_control(display, control);
     
             //draw the index (do not update values)
-            naveg_set_index(0, DISPLAY_RIGHT, 0, 0);
+            naveg_set_index(0, display, 0, 0);
 
             // checks the function assigned to foot and update the footer
             if (bank_config_check(display)) bank_config_footer();

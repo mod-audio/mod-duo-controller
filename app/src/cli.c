@@ -419,7 +419,11 @@ uint8_t cli_restore(uint8_t action)
     if (action == RESTORE_INIT)
     {
         // remove all controls
-        //naveg_remove_control(ALL_EFFECTS, ALL_CONTROLS);
+        uint8_t j = 0;
+        for (j=0; j < TOTAL_ACTUATORS; j++)
+        {
+            naveg_remove_control(j);
+        }
 
         // disable system menu
         naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, DISPLAY_TOOL_SYSTEM);
