@@ -230,7 +230,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // get the midi clk source channel
 #define MIDI_SRC_GET_CMD        "get_clk_src"
 //enable the midi clock <on=1/off=0>
-#define SEND_MIDI_CLK_CMD       "send_midi_clk %i"  
+#define SEND_MIDI_CLK_CMD       "set_send_midi_clk %i"  
 //enable the midi clock <on=1/off=0>
 #define GET_MIDI_CLK_ENABLE_CMD  "get_send_midi_clk"    //we need this ? not in mod-ui
 // set midi prog change channnel <channel>
