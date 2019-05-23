@@ -13,8 +13,6 @@
 
 #include "FreeRTOS.h"
 #include "semphr.h"
-
-
 /*
 ************************************************************************************************************************
 *           LOCAL DEFINES
@@ -51,10 +49,11 @@
 ************************************************************************************************************************
 */
 
-static void (*g_webgui_response_cb)(void *data) = NULL;
+static  void (*g_webgui_response_cb)(void *data, menu_item_t *item) = NULL;
+static  menu_item_t *g_current_item;
 static volatile uint8_t  g_webgui_blocked;
 static volatile xSemaphoreHandle g_webgui_sem = NULL;
-static ringbuff_t *g_webgui_rx_rb;
+static  ringbuff_t *g_webgui_rx_rb;
 
 
 /*
@@ -79,13 +78,11 @@ static ringbuff_t *g_webgui_rx_rb;
 
 static void webgui_rx_cb(serial_t *serial)
 {
-    uint8_t buffer[SERIAL_MAX_RX_BUFF_SIZE];
+    uint8_t buffer[SERIAL_MAX_RX_BUFF_SIZE] = {};
     uint32_t size = serial_read(serial->uart_id, buffer, sizeof(buffer));
-
     if (size > 0)
     {
         ringbuff_write(g_webgui_rx_rb, buffer, size);
-
         // check end of message
         uint32_t i;
         for (i = 0; i < size; i++)
@@ -132,8 +129,9 @@ ringbuff_t* comm_webgui_read(void)
     return NULL;
 }
 
-void comm_webgui_set_response_cb(void (*resp_cb)(void *data))
+void comm_webgui_set_response_cb(void (*resp_cb)(void *data, menu_item_t *item), menu_item_t *item)
 {
+    g_current_item = item;
     g_webgui_response_cb = resp_cb;
 }
 
@@ -141,7 +139,7 @@ void comm_webgui_response_cb(void *data)
 {
     if (g_webgui_response_cb)
     {
-        g_webgui_response_cb(data);
+        g_webgui_response_cb(data, g_current_item);
         g_webgui_response_cb = NULL;
     }
 

@@ -14,6 +14,10 @@
 #include <string.h>
 
 
+//TODO, TESTING PLEASE REMOVE ME LATER
+#include "led.h"
+//#include "hardware.h"
+
 /*
 ************************************************************************************************************************
 *           LOCAL DEFINES
@@ -268,6 +272,8 @@ void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max)
 
 void screen_footer(uint8_t display_id, const char *name, const char *value)
 {
+    if (display_id > FOOTSWITCHES_COUNT) return;
+
     glcd_t *display = hardware_glcds(display_id);
 
     // horizontal footer line
@@ -347,6 +353,12 @@ void screen_tool(uint8_t tool, uint8_t display_id)
             bp_list = naveg_get_banks();
             if (bp_list && bp_list->selected == 0)
                 bp_list->selected = 1;
+            //if we already have a bank selected we enter that bank automaticly 
+            else {
+                bp_list->hover = bp_list->selected; 
+                naveg_enter(1);
+                return;
+                 }
             screen_bp_list("BANKS", bp_list);
             break;
     }
@@ -357,7 +369,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
     listbox_t list_box;
     textbox_t title_box;
 
-    glcd_t *display = hardware_glcds(0);
+    glcd_t *display = hardware_glcds(1);
 
     // clears the title
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 9, GLCD_WHITE);
@@ -365,7 +377,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
     // draws the title
     title_box.color = GLCD_BLACK;
     title_box.mode = TEXT_SINGLE_LINE;
-    title_box.font = alterebro15;
+    title_box.font = SMfont;
     title_box.top_margin = 0;
     title_box.bottom_margin = 0;
     title_box.left_margin = 0;
@@ -373,7 +385,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
     title_box.height = 0;
     title_box.width = 0;
     title_box.text = title;
-    title_box.align = ALIGN_LEFT_TOP;
+    title_box.align = ALIGN_CENTER_TOP;
     widget_textbox(display, &title_box);
 
     // title line separator
@@ -392,10 +404,10 @@ void screen_bp_list(const char *title, bp_list_t *list)
         list_box.selected = list->selected;
         list_box.count = count;
         list_box.list = list->names;
-        list_box.font = alterebro15;
-        list_box.line_space = 1;
+        list_box.font = SMfont;
+        list_box.line_space = 2;
         list_box.line_top_margin = 1;
-        list_box.line_bottom_margin = 0;
+        list_box.line_bottom_margin = 1;
         list_box.text_left_margin = 2;
         widget_listbox(display, &list_box);
     }
@@ -403,20 +415,21 @@ void screen_bp_list(const char *title, bp_list_t *list)
     {
         if (naveg_ui_status())
         {
-            popup_t popup;
-            popup.x = 0;
-            popup.y = 0;
-            popup.width = DISPLAY_WIDTH;
-            popup.height = DISPLAY_HEIGHT - 1;
-            popup.font = alterebro15;
-            popup.title = 0;
-            popup.content = "To access banks here please disconnect from the graphical interface";
-            popup.button_selected = 0;
-            popup.type = OK_ONLY;
-            widget_popup(display, &popup);
+            textbox_t message;
+            message.color = GLCD_BLACK;
+            message.mode = TEXT_SINGLE_LINE;
+            message.font = alterebro24;
+            message.top_margin = 0;
+            message.bottom_margin = 0;
+            message.left_margin = 0;
+            message.right_margin = 0;
+            message.height = 0;
+            message.width = 0;
+            message.text = "To access banks here please disconnect from the graphical interface";
+            message.align = ALIGN_CENTER_MIDDLE;
+            widget_textbox(display, &message);
         }
     }
-
 }
 
 void screen_system_menu(menu_item_t *item)
@@ -425,30 +438,44 @@ void screen_system_menu(menu_item_t *item)
     if (!naveg_is_tool_mode(DISPLAY_TOOL_SYSTEM))
         return;
 
-    if (naveg_is_tool_mode(DISPLAY_TOOL_NAVIG))
-        return;
-
     static menu_item_t *last_item;
 
-    glcd_t *display = hardware_glcds(DISPLAY_TOOL_SYSTEM);
+    glcd_t *display;
+    if (item->desc->id == ROOT_ID)
+    {    
+        display = hardware_glcds(DISPLAY_TOOL_SYSTEM);
+    }
+    else if (item->desc->id == TUNER_ID) return;
+    else
+    {
+      display = hardware_glcds(1);  
+    }
 
     // clear screen
     glcd_clear(display, GLCD_WHITE);
-
+  
     // draws the title
     textbox_t title_box;
     title_box.color = GLCD_BLACK;
     title_box.mode = TEXT_SINGLE_LINE;
-    title_box.font = alterebro15;
+    title_box.font = SMfont;
     title_box.top_margin = 0;
     title_box.bottom_margin = 0;
     title_box.left_margin = 0;
     title_box.right_margin = 0;
     title_box.height = 0;
     title_box.width = 0;
-    title_box.align = ALIGN_LEFT_TOP;
+    title_box.align = ALIGN_CENTER_TOP;
     title_box.text = item->name;
-    if (item->desc->type == MENU_NONE || MENU_ITEM_IS_TOGGLE_TYPE(item)) title_box.text = last_item->name;
+    if ((item->desc->type == MENU_NONE) || (item->desc->type == MENU_TOGGLE))
+    {
+        title_box.text = last_item->name;
+        if (title_box.text[strlen(item->name) - 1] == ']') title_box.text = last_item->desc->name; 
+    }
+    else if (title_box.text[strlen(item->name) - 1] == ']')
+    {   
+       title_box.text = item->desc->name;
+    }
     widget_textbox(display, &title_box);
 
     // title line separator
@@ -462,10 +489,10 @@ void screen_system_menu(menu_item_t *item)
     list.width = 128;
     list.height = 53;
     list.color = GLCD_BLACK;
-    list.font = alterebro15;
-    list.line_space = 1;
+    list.font = SMfont;
+    list.line_space = 2;
     list.line_top_margin = 1;
-    list.line_bottom_margin = 0;
+    list.line_bottom_margin = 1;
     list.text_left_margin = 2;
 
     // popup
@@ -473,31 +500,20 @@ void screen_system_menu(menu_item_t *item)
     popup.x = 0;
     popup.y = 0;
     popup.width = DISPLAY_WIDTH;
-    popup.height = DISPLAY_HEIGHT - 1;
-    popup.font = alterebro15;
-
-    // graph
-    graph_t graph;
-    graph.x = 0;
-    graph.y = 18;
-    graph.color = GLCD_BLACK;
-    graph.font = alterebro24;
-    graph.min = item->data.min;
-    graph.max = item->data.max;
-    graph.value = item->data.value;
-    graph.unit = "dB";
-    graph.type = GRAPH_TYPE_LINEAR;
+    popup.height = DISPLAY_HEIGHT;
+    popup.font = SMfont;
 
     switch (item->desc->type)
     {
         case MENU_LIST:
         case MENU_SELECT:
+       
             list.hover = item->data.hover;
             list.selected = item->data.selected;
             list.count = item->data.list_count;
             list.list = item->data.list;
             widget_listbox(display, &list);
-            last_item = item;
+            if ((last_item->desc->id != TEMPO_ID)||(item->desc->id == SYSTEM_ID)||(item->desc->id == BYPASS_ID)) last_item = item;
             break;
 
         case MENU_CONFIRM:
@@ -507,12 +523,33 @@ void screen_system_menu(menu_item_t *item)
             if (item->desc->type == MENU_CANCEL) popup.type = CANCEL_ONLY;
             else if (item->desc->type == MENU_OK) popup.type = OK_ONLY;
             else popup.type = YES_NO;
-            popup.title = item->desc->name;
+            popup.title = item->data.popup_header;
             popup.content = item->data.popup_content;
             popup.button_selected = item->data.hover;
             widget_popup(display, &popup);
             break;
 
+        case MENU_TOGGLE:
+            if (item->desc->parent_id == PROFILES_ID ||  item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP)
+            {    
+                popup.type = YES_NO;
+                popup.title = item->data.popup_header;
+                popup.content = item->data.popup_content;
+                popup.button_selected = item->data.hover;
+                widget_popup(display, &popup);
+            }
+            else 
+            {
+                list.hover = last_item->data.hover;
+                list.selected = last_item->data.selected;
+                list.count = last_item->data.list_count;
+                list.list = last_item->data.list;
+                widget_listbox(display, &list);
+            }
+            break;
+
+        case MENU_VOL:
+        case MENU_SET:
         case MENU_NONE:
         case MENU_RETURN:
             list.hover = last_item->data.hover;
@@ -520,30 +557,6 @@ void screen_system_menu(menu_item_t *item)
             list.count = last_item->data.list_count;
             list.list = last_item->data.list;
             widget_listbox(display, &list);
-            break;
-
-        case MENU_ON_OFF:
-        case MENU_YES_NO:
-        case MENU_BYP_PROC:
-            strcpy(item->name, item->desc->name);
-
-            if (item->desc->type == MENU_ON_OFF)
-                strcat(item->name, (item->data.hover ? " ON" : "OFF"));
-            else if (item->desc->type == MENU_YES_NO)
-                strcat(item->name, (item->data.hover ? "YES" : " NO"));
-            else if (item->desc->type == MENU_BYP_PROC)
-                strcat(item->name, (item->data.hover ? "BYP" : "PROC"));
-
-            list.hover = last_item->data.hover;
-            list.selected = last_item->data.selected;
-            list.count = last_item->data.list_count;
-            list.list = last_item->data.list;
-            widget_listbox(display, &list);
-            break;
-
-        case MENU_GRAPH:
-            widget_graph(display, &graph);
-            screen_footer(DISPLAY_TOOL_SYSTEM, "Click to return", NULL);
             break;
     }
 }

@@ -74,23 +74,29 @@ void naveg_ui_connection(uint8_t status);
 // adds the control to end of the controls list
 void naveg_add_control(control_t *control);
 // removes the control from controls list
-void naveg_remove_control(int32_t effect_instance, const char *symbol);
+void naveg_remove_control(uint8_t hw_id);
 // increment the control value
 void naveg_inc_control(uint8_t display);
 // decrement the control value
 void naveg_dec_control(uint8_t display);
 // sets the control value
-void naveg_set_control(int32_t effect_instance, const char *symbol, float value);
+void naveg_set_control(uint8_t hw_id, float value);
 // gets the control value
-float naveg_get_control(int32_t effect_instance, const char *symbol);
-// request the next control of the display
-void naveg_next_control(uint8_t display);
+float naveg_get_control(uint8_t hw_id);
 // change the foot value
 void naveg_foot_change(uint8_t foot);
+// request the next control of the display
+void naveg_next_control(uint8_t display);
 // toggle between control and tool
 void naveg_toggle_tool(uint8_t tool, uint8_t display);
 // returns if display is in tool mode
 uint8_t naveg_is_tool_mode(uint8_t display);
+//toggle / set master volume 
+void naveg_master_volume(uint8_t set);
+//increments the mater volume
+void naveg_set_master_volume(uint8_t set);
+//returns if current state is master volume
+uint8_t naveg_is_master_vol(void);
 // stores the banks list
 void naveg_set_banks(bp_list_t *bp_list);
 // returns the banks list
@@ -114,8 +120,19 @@ void naveg_update(void);
 int naveg_need_update(void);
 uint8_t naveg_dialog(const char *msg);
 uint8_t naveg_ui_status(void);
-void naveg_settings_refresh(void);
+void naveg_set_index(uint8_t update, uint8_t display, uint8_t new_index, uint8_t new_index_count);
+//refreshes screen with current menu item
+void naveg_settings_refresh(uint8_t display_id);
+//returns if tap tempo enabled 
+uint8_t naveg_tap_tempo_status(uint8_t id);
+//updates all items in a menu
+void naveg_menu_refresh(uint8_t display_id);
+//updates a specific item in a menu
+void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value);
 
+void naveg_bypass_refresh(uint8_t bypass_1, uint8_t bypass_2, uint8_t quick_bypass);
+
+void naveg_set_acceleration(uint8_t display_id);
 
 /*
 ************************************************************************************************************************

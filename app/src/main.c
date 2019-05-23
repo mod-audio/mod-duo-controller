@@ -101,6 +101,7 @@ static void control_add_cb(proto_t *proto);
 static void control_rm_cb(proto_t *proto);
 static void control_set_cb(proto_t *proto);
 static void control_get_cb(proto_t *proto);
+static void control_set_index_cb(proto_t *proto);
 static void initial_state_cb(proto_t *proto);
 static void bank_config_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
@@ -275,8 +276,13 @@ static void actuators_task(void *pvParameters)
                     naveg_enter(id);
                 }
                 if (BUTTON_HOLD(status))
-                {
-                    naveg_toggle_tool(id, id);
+                {   
+                    if (id == DISPLAY_TOOL_TUNER)
+                    {
+                        if (!naveg_is_tool_mode(DISPLAY_TOOL_SYSTEM)) naveg_toggle_tool(id, id);
+                    }
+                    else naveg_toggle_tool(id, id);
+                    
                 }
                 if (ENCODER_TURNED_CW(status))
                 {
@@ -362,6 +368,7 @@ static void setup_task(void *pvParameters)
     protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
     protocol_add_command(CONTROL_SET_CMD, control_set_cb);
     protocol_add_command(CONTROL_GET_CMD, control_get_cb);
+    protocol_add_command(CONTROL_INDEX_SET, control_set_index_cb);
     protocol_add_command(INITIAL_STATE_CMD, initial_state_cb);
     protocol_add_command(BANK_CONFIG_CMD, bank_config_cb);
     protocol_add_command(TUNER_CMD, tuner_cb);
@@ -461,6 +468,7 @@ static void gui_connection_cb(proto_t *proto)
 static void control_add_cb(proto_t *proto)
 {
     control_t *control = data_parse_control(proto->list);
+
     naveg_add_control(control);
 
     protocol_response("resp 0", proto);
@@ -469,26 +477,46 @@ static void control_add_cb(proto_t *proto)
 static void control_rm_cb(proto_t *proto)
 {
     g_ui_communication_started = 1;
-    naveg_remove_control(atoi(proto->list[1]), proto->list[2]);
+    
+    naveg_remove_control(atoi(proto->list[1]));
+
+    uint8_t i;
+    for (i = 2; i < TOTAL_ACTUATORS + 1; i++)
+    {
+    	if (atoi(proto->list[i]) != 0)
+    	{
+ 			naveg_remove_control(atoi(proto->list[i]));
+    	}
+    	else break;
+    }
+    
     protocol_response("resp 0", proto);
 }
 
 static void control_set_cb(proto_t *proto)
 {
-    naveg_set_control(atoi(proto->list[1]), proto->list[2], atof(proto->list[3]));
+
+    naveg_set_control(atoi(proto->list[1]), atof(proto->list[2]));
     protocol_response("resp 0", proto);
 }
 
 static void control_get_cb(proto_t *proto)
 {
     float value;
-    value = naveg_get_control(atoi(proto->list[1]), proto->list[2]);
+    value = naveg_get_control(atoi(proto->list[1]));
 
     char resp[32];
     strcpy(resp, "resp 0 ");
 
     float_to_str(value, &resp[strlen(resp)], 8, 3);
     protocol_response(resp, proto);
+}
+
+static void control_set_index_cb(proto_t *proto)
+{
+    //index_set <updatevalues> <encoder hardware_id> <control index> <index_count>
+    naveg_set_index(1, atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]));
+    protocol_response("resp 0", proto);
 }
 
 static void initial_state_cb(proto_t *proto)
@@ -501,11 +529,8 @@ static void initial_state_cb(proto_t *proto)
 static void bank_config_cb(proto_t *proto)
 {
     bank_config_t bank_func;
-    bank_func.hardware_type = atoi(proto->list[1]);
-    bank_func.hardware_id = atoi(proto->list[2]);
-    bank_func.actuator_type = atoi(proto->list[3]);
-    bank_func.actuator_id = atoi(proto->list[4]);
-    bank_func.function = atoi(proto->list[5]);
+    bank_func.hw_id = atoi(proto->list[1]);
+    bank_func.function = atoi(proto->list[2]);
     naveg_bank_config(&bank_func);
     protocol_response("resp 0", proto);
 }
