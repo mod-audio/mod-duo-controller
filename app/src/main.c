@@ -59,7 +59,7 @@
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
 #define TASK_NAME(name)     ((const signed char * const) (name))
 
-#define ACTUATORS_QUEUE_SIZE    5
+#define ACTUATORS_QUEUE_SIZE    10
 
 
 /*
@@ -71,7 +71,7 @@
 static xQueueHandle g_actuators_queue;
 static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
 static uint8_t g_ui_communication_started;
-
+static uint8_t g_protocol_bussy = 0;
 
 /*
 ************************************************************************************************************************
@@ -107,7 +107,9 @@ static void bank_config_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
 static void restore_cb(proto_t *proto);
-
+static void boot_cb(proto_t *proto);
+static void menu_item_changed_cb(proto_t *proto);
+static void pedalboard_clear_cb(proto_t *proto);
 
 /*
 ************************************************************************************************************************
@@ -194,7 +196,7 @@ static void procotol_task(void *pvParameters)
     while (1)
     {
         uint32_t msg_size;
-
+        g_protocol_bussy = 0;
         // blocks until receive a new message
         ringbuff_t *rb = comm_webgui_read();
         msg_size = ringbuff_read_until(rb, g_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE, 0);
@@ -202,6 +204,8 @@ static void procotol_task(void *pvParameters)
         // parses the message
         if (msg_size > 0)
         {
+            //if parsing messages block the actuator messages. 
+            g_protocol_bussy = 1;
             msg_t msg;
             msg.sender_id = 0;
             msg.data = (char *) g_msg_buffer;
@@ -251,6 +255,11 @@ static void actuators_task(void *pvParameters)
 
     while (1)
     {
+        if (g_protocol_bussy)
+        {
+            if (!naveg_dialog_status()) return;
+        }  
+
         portBASE_TYPE xStatus;
 
         // take the actuator from queue
@@ -299,9 +308,15 @@ static void actuators_task(void *pvParameters)
             // footswitches
             else if (type == BUTTON)
             {
-                if (BUTTON_PRESSED(status))
+               if (BUTTON_PRESSED(status))
                 {
-                    naveg_foot_change(id);
+                    naveg_foot_change(id, 1);
+                }
+                
+                if (BUTTON_RELEASED(status))
+                {
+                    //trigger LED 
+                    naveg_foot_change(id, 0);
                 }
             }
 
@@ -352,7 +367,7 @@ static void setup_task(void *pvParameters)
         actuator_set_event(hardware_actuators(ENCODER0 + i), actuators_cb);
         actuator_enable_event(hardware_actuators(ENCODER0 + i), EV_ALL_ENCODER_EVENTS);
         actuator_set_event(hardware_actuators(FOOTSWITCH0 + i), actuators_cb);
-        actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_BUTTON_PRESSED);
+        actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_ALL_BUTTON_EVENTS);
     }
 
     // protocol definitions
@@ -374,6 +389,9 @@ static void setup_task(void *pvParameters)
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
     protocol_add_command(RESTORE_CMD, restore_cb);
+    protocol_add_command(BOOT_HMI_CMD, boot_cb);
+    protocol_add_command(MENU_ITEM_CHANGE, menu_item_changed_cb);
+    protocol_add_command(CLEAR_PEDALBOARD, pedalboard_clear_cb);
 
     // init the navigation
     naveg_init();
@@ -483,11 +501,11 @@ static void control_rm_cb(proto_t *proto)
     uint8_t i;
     for (i = 2; i < TOTAL_ACTUATORS + 1; i++)
     {
-    	if (atoi(proto->list[i]) != 0)
-    	{
- 			naveg_remove_control(atoi(proto->list[i]));
-    	}
-    	else break;
+        if ((proto->list[i]) != NULL)
+        {
+            naveg_remove_control(atoi(proto->list[i]));
+        }
+        else break;
     }
     
     protocol_response("resp 0", proto);
@@ -548,11 +566,59 @@ static void resp_cb(proto_t *proto)
 
 static void restore_cb(proto_t *proto)
 {
+    //clear all screens 
+    screen_clear(DISPLAY_LEFT);
+    screen_clear(DISPLAY_RIGHT);
+
     cli_restore(RESTORE_INIT);
     protocol_response("resp 0", proto);
 }
 
+static void boot_cb(proto_t *proto)
+{
+    //set the display brightness 
+    system_update_menu_value(DISPLAY_BRIGHTNESS_ID, atoi(proto->list[1]));
 
+    //set the quick bypass link
+    system_update_menu_value(QUICK_BYPASS_ID, atoi(proto->list[2]));
+
+    //set the tuner mute state 
+    system_update_menu_value(TUNER_MUTE_ID, atoi(proto->list[3]));
+
+    //set the current user profile 
+    system_update_menu_value(PROFILES_ID, atoi(proto->list[4]));
+
+    protocol_response("resp 0", proto);
+}
+
+static void menu_item_changed_cb(proto_t *proto)
+{
+    naveg_menu_item_changed_cb(atoi(proto->list[1]), atoi(proto->list[2]));
+    
+    uint8_t i;
+    for (i = 3; i < ((AMOUNT_OF_MENU_VARS+1) * 2); i+=2)
+    {
+        if (atoi(proto->list[i]) != 0)
+        {
+            naveg_menu_item_changed_cb(atoi(proto->list[i]), atoi(proto->list[i+1]));
+        }
+        else break;
+    }
+
+    protocol_response("resp 0", proto);
+}
+
+static void  pedalboard_clear_cb(proto_t *proto)
+{
+    //clear controls
+    uint8_t i;
+    for (i = 0; i < TOTAL_ACTUATORS; i++)
+    {
+        naveg_remove_control(i);
+    }
+
+    protocol_response("resp 0", proto);
+}
 /*
 ************************************************************************************************************************
 *           ERRORS CALLBACKS

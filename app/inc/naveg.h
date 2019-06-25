@@ -84,7 +84,7 @@ void naveg_set_control(uint8_t hw_id, float value);
 // gets the control value
 float naveg_get_control(uint8_t hw_id);
 // change the foot value
-void naveg_foot_change(uint8_t foot);
+void naveg_foot_change(uint8_t foot, uint8_t pressed);
 // request the next control of the display
 void naveg_next_control(uint8_t display);
 // toggle between control and tool
@@ -128,11 +128,13 @@ uint8_t naveg_tap_tempo_status(uint8_t id);
 //updates all items in a menu
 void naveg_menu_refresh(uint8_t display_id);
 //updates a specific item in a menu
-void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value);
+void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float min, float max);
 
 void naveg_bypass_refresh(uint8_t bypass_1, uint8_t bypass_2, uint8_t quick_bypass);
 
-void naveg_set_acceleration(uint8_t display_id);
+void naveg_menu_item_changed_cb(uint8_t item_ID, uint8_t value);
+
+uint8_t naveg_dialog_status(void);
 
 /*
 ************************************************************************************************************************

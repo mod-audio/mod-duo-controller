@@ -13,11 +13,6 @@
 #include "hardware.h"
 #include <string.h>
 
-
-//TODO, TESTING PLEASE REMOVE ME LATER
-#include "led.h"
-//#include "hardware.h"
-
 /*
 ************************************************************************************************************************
 *           LOCAL DEFINES
@@ -351,14 +346,14 @@ void screen_tool(uint8_t tool, uint8_t display_id)
 
         case DISPLAY_TOOL_NAVIG:
             bp_list = naveg_get_banks();
-            if (bp_list && bp_list->selected == 0)
+           /* if (bp_list && bp_list->selected == 0)
                 bp_list->selected = 1;
             //if we already have a bank selected we enter that bank automaticly 
             else {
                 bp_list->hover = bp_list->selected; 
                 naveg_enter(1);
                 return;
-                 }
+                 }*/
             screen_bp_list("BANKS", bp_list);
             break;
     }
@@ -438,22 +433,25 @@ void screen_system_menu(menu_item_t *item)
     if (!naveg_is_tool_mode(DISPLAY_TOOL_SYSTEM))
         return;
 
-    static menu_item_t *last_item;
+    static menu_item_t *last_item = NULL;
 
     glcd_t *display;
     if (item->desc->id == ROOT_ID)
-    {    
+    {
         display = hardware_glcds(DISPLAY_TOOL_SYSTEM);
     }
-    else if (item->desc->id == TUNER_ID) return;
+    else if (item->desc->id == TUNER_ID)
+    {
+        return;
+    }
     else
     {
-      display = hardware_glcds(1);  
+        display = hardware_glcds(1);
     }
 
     // clear screen
     glcd_clear(display, GLCD_WHITE);
-  
+
     // draws the title
     textbox_t title_box;
     title_box.color = GLCD_BLACK;
@@ -467,14 +465,19 @@ void screen_system_menu(menu_item_t *item)
     title_box.width = 0;
     title_box.align = ALIGN_CENTER_TOP;
     title_box.text = item->name;
+
     if ((item->desc->type == MENU_NONE) || (item->desc->type == MENU_TOGGLE))
     {
-        title_box.text = last_item->name;
-        if (title_box.text[strlen(item->name) - 1] == ']') title_box.text = last_item->desc->name; 
+        if (last_item)
+        {
+            title_box.text = last_item->name;
+            if (title_box.text[strlen(item->name) - 1] == ']')
+                title_box.text = last_item->desc->name;
+        }
     }
     else if (title_box.text[strlen(item->name) - 1] == ']')
-    {   
-       title_box.text = item->desc->name;
+    {
+        title_box.text = item->desc->name;
     }
     widget_textbox(display, &title_box);
 
@@ -502,27 +505,29 @@ void screen_system_menu(menu_item_t *item)
     popup.width = DISPLAY_WIDTH;
     popup.height = DISPLAY_HEIGHT;
     popup.font = SMfont;
-
     switch (item->desc->type)
     {
         case MENU_LIST:
         case MENU_SELECT:
-       
             list.hover = item->data.hover;
             list.selected = item->data.selected;
             list.count = item->data.list_count;
             list.list = item->data.list;
             widget_listbox(display, &list);
-            if ((last_item->desc->id != TEMPO_ID)||(item->desc->id == SYSTEM_ID)||(item->desc->id == BYPASS_ID)) last_item = item;
+            if ((last_item && last_item->desc->id != TEMPO_ID) || item->desc->id == SYSTEM_ID || item->desc->id == BYPASS_ID)
+                last_item = item;
             break;
 
         case MENU_CONFIRM:
         case MENU_CONFIRM2:
         case MENU_CANCEL:
         case MENU_OK:
-            if (item->desc->type == MENU_CANCEL) popup.type = CANCEL_ONLY;
-            else if (item->desc->type == MENU_OK) popup.type = OK_ONLY;
-            else popup.type = YES_NO;
+            if (item->desc->type == MENU_CANCEL)
+                popup.type = CANCEL_ONLY;
+            else if (item->desc->type == MENU_OK)
+                popup.type = OK_ONLY;
+            else
+                popup.type = YES_NO;
             popup.title = item->data.popup_header;
             popup.content = item->data.popup_content;
             popup.button_selected = item->data.hover;
@@ -531,14 +536,14 @@ void screen_system_menu(menu_item_t *item)
 
         case MENU_TOGGLE:
             if (item->desc->parent_id == PROFILES_ID ||  item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP)
-            {    
+            {
                 popup.type = YES_NO;
                 popup.title = item->data.popup_header;
                 popup.content = item->data.popup_content;
                 popup.button_selected = item->data.hover;
                 widget_popup(display, &popup);
             }
-            else 
+            else if (last_item)
             {
                 list.hover = last_item->data.hover;
                 list.selected = last_item->data.selected;
@@ -552,11 +557,14 @@ void screen_system_menu(menu_item_t *item)
         case MENU_SET:
         case MENU_NONE:
         case MENU_RETURN:
-            list.hover = last_item->data.hover;
-            list.selected = last_item->data.selected;
-            list.count = last_item->data.list_count;
-            list.list = last_item->data.list;
-            widget_listbox(display, &list);
+            if (last_item)
+            {
+                list.hover = last_item->data.hover;
+                list.selected = last_item->data.selected;
+                list.count = last_item->data.list_count;
+                list.list = last_item->data.list;
+                widget_listbox(display, &list);
+            }
             break;
     }
 }
@@ -583,5 +591,6 @@ void screen_tuner_input(uint8_t input)
 
 void screen_image(uint8_t display, const uint8_t *image)
 {
-    glcd_draw_image(hardware_glcds(display), 0, 0, image, GLCD_BLACK);
+    glcd_t *display_img = hardware_glcds(display);
+    glcd_draw_image(display_img, 0, 0, image, GLCD_BLACK);
 }

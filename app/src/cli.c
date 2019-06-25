@@ -212,6 +212,7 @@ static void serial_cb(serial_t *serial)
 
 static void write_msg(const char *msg)
 {
+    glcd_clear(hardware_glcds(1), GLCD_WHITE);
     glcd_clear(hardware_glcds(0), GLCD_WHITE);
     textbox_t msg_box;
     msg_box.color = GLCD_BLACK;
@@ -418,6 +419,11 @@ uint8_t cli_restore(uint8_t action)
 {
     if (action == RESTORE_INIT)
     {
+
+        //clear all screens 
+        screen_clear(DISPLAY_LEFT);
+        screen_clear(DISPLAY_RIGHT);
+
         // remove all controls
         uint8_t j = 0;
         for (j=0; j < TOTAL_ACTUATORS; j++)
@@ -426,7 +432,7 @@ uint8_t cli_restore(uint8_t action)
         }
 
         // disable system menu
-        naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, DISPLAY_TOOL_SYSTEM);
+        //naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, DISPLAY_TOOL_SYSTEM);
 
         // clear screens
         uint8_t i;

@@ -53,9 +53,10 @@ typedef struct CONTROL_T {
     char *label, *unit;
     uint8_t properties;
     float value, minimum, maximum;
-    int16_t step, steps;
+    int32_t step, steps;
     uint8_t scale_points_count;
     scale_point_t **scale_points;
+    uint8_t scroll_dir;
 } control_t;
 
 typedef struct BP_LIST_T {
@@ -84,7 +85,7 @@ typedef struct MENU_DATA_T {
     const char *popup_content;
 
     // FIXME: need to be improved, not all menu items should have this vars (wasting memory)
-    int16_t min, max, value, step;
+    float min, max, value, step;
 } menu_data_t;
 
 typedef struct MENU_ITEM_T {

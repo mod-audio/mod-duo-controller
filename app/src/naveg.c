@@ -15,6 +15,7 @@
 #include "comm.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
+#include "actuator.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +37,7 @@ enum {BANKS_LIST, PEDALBOARD_LIST};
 #define MAX_CHARS_MENU_NAME     (128/4)
 #define MAX_TOOLS               5
 
+#define DIALOG_MAX_SEM_COUNT   1
 /*
 ************************************************************************************************************************
 *           LOCAL CONSTANTS
@@ -93,7 +95,7 @@ static uint8_t g_initialized, g_ui_connected;
 static void (*g_update_cb)(void *data, int event);
 static void *g_update_data;
 static xSemaphoreHandle g_dialog_sem;
-
+static uint8_t dialog_active = 0;
 
 /*
 ************************************************************************************************************************
@@ -141,10 +143,26 @@ static int tool_is_on(uint8_t tool)
     return g_tool[tool].state;
 }
 
+static int get_display_by_id(uint8_t id, uint8_t type)
+{
+
+    if (type == FOOT)
+    {
+        if (id >= 2)
+            return 1;
+        else
+            return 0;
+    }
+    //encoder
+    return id;
+}
+
 static void display_disable_all_tools(uint8_t display)
 {
     int i;
-    if (tool_is_on(DISPLAY_TOOL_TUNER)) comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+    if (tool_is_on(DISPLAY_TOOL_TUNER)) 
+        comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+    
     for (i = 0; i < MAX_TOOLS; i++)
     {
         if (g_tool[i].display == display)
@@ -168,13 +186,16 @@ void draw_all_foots(uint8_t display)
 {
     uint8_t i;
     uint8_t foot = 0;
-    if (display == 1) foot = 2;
+    if (display == 1)
+        foot = 2;
 
     for (i = 0; i < 2; i++)
     {
         // checks the function assigned to foot and update the footer
-        if (g_foots[foot + i]) foot_control_add(g_foots[foot + i]);
-        else screen_footer(foot + i, NULL, NULL);
+        if (g_foots[foot + i])
+            foot_control_add(g_foots[foot + i]);
+        else
+            screen_footer(foot + i, NULL, NULL);
     }
 }
 
@@ -230,14 +251,13 @@ static void step_to_value(control_t *control)
 // control assigned to display
 static void display_control_add(control_t *control)
 {
-    uint8_t display;
+    if (control->hw_id >= ENCODERS_COUNT) return;
 
-    if (control->hw_id > ENCODERS_COUNT) return;
-
-    display = control->hw_id;
+    uint8_t display = control->hw_id;
 
     // checks if is already a control assigned in this display and remove it
-    if (g_controls[display]) data_free_control(g_controls[display]);
+    if (g_controls[display])
+        data_free_control(g_controls[display]);
 
     // assign the new control
     g_controls[display] = control;
@@ -268,6 +288,7 @@ static void display_control_add(control_t *control)
         case CONTROL_PROP_SCALE_POINTS:
             control->step = 0;
             uint8_t i;
+            control->scroll_dir = 1;
             for (i = 0; i < control->scale_points_count; i++)
             {
                 if (control->value == control->scale_points[i]->value)
@@ -296,10 +317,10 @@ static void display_control_add(control_t *control)
 // control removed from display
 static void display_control_rm(uint8_t hw_id)
 {
-   uint8_t display;
-   display = hw_id;
+    uint8_t display;
+    display = hw_id;
 
-    if (hw_id > ENCODERS_COUNT) return; 
+    if (hw_id > ENCODERS_COUNT) return;
 
     control_t *control = g_controls[display];
 
@@ -307,25 +328,14 @@ static void display_control_rm(uint8_t hw_id)
     {
         data_free_control(control);
         g_controls[display] = NULL;
-        if (!display_has_tool_enabled(display)) screen_control(display, NULL);
+        if (!display_has_tool_enabled(display))
+            screen_control(display, NULL);
         return;
     }
-    else if (!display_has_tool_enabled(display)) screen_control(display, NULL);
-    
-    //if remove all controls, not implemented atm TODO
-    /*for (display = 0; display < SLOTS_COUNT; display++)
+    else if (!display_has_tool_enabled(display))
     {
-        control = g_controls[display];
-
-        if (control->hw_id == hw_id)
-        {
-            data_free_control(control);
-            g_controls[display] = NULL;
-
-            if (!display_has_tool_enabled(display)) screen_control(display, NULL);
-        }
-    }*/
-
+        screen_control(display, NULL);
+    }
 }
 
 // control assigned to foot
@@ -524,19 +534,21 @@ static void foot_control_rm(uint8_t hw_id)
     }
 }
 
-static void control_set(uint8_t display, control_t *control)
+static void control_set(uint8_t id, control_t *control)
 {
-    uint32_t delta, now;
+    uint32_t now, delta;
 
     switch (control->properties)
     {
         case CONTROL_PROP_LINEAR:
         case CONTROL_PROP_INTEGER:
         case CONTROL_PROP_LOGARITHMIC:
-
-            // update the screen
-            if (!display_has_tool_enabled(display))
-                screen_control(display, control);
+            if (control->hw_id < ENCODERS_COUNT)
+            {
+                // update the screen
+                if (!display_has_tool_enabled(id))
+                    screen_control(id, control);
+            }
             break;
 
         case CONTROL_PROP_ENUMERATION:
@@ -544,10 +556,10 @@ static void control_set(uint8_t display, control_t *control)
             if (control->hw_id < ENCODERS_COUNT)
             {
                 // update the screen
-                if (!display_has_tool_enabled(display))
-                    screen_control(display, control);
+                if (!display_has_tool_enabled(id))
+                    screen_control(id, control);
             }
-            else
+            else if ((ENCODERS_COUNT <= control->hw_id) && ( control->hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT))
             {
                 // increments the step
                 control->step++;
@@ -555,8 +567,8 @@ static void control_set(uint8_t display, control_t *control)
 
                 // updates the value and the screen
                 control->value = control->scale_points[control->step]->value;
-                if (!display_has_tool_enabled(display))
-                    screen_footer(control->hw_id, control->label, control->scale_points[control->step]->label);
+                if (!display_has_tool_enabled(get_display_by_id(id, FOOT)))
+                    screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[control->step]->label);
             }
             break;
 
@@ -570,7 +582,6 @@ static void control_set(uint8_t display, control_t *control)
             break;
 
         case CONTROL_PROP_TRIGGER:
-            control->value = 1;
 
             // to update the footer and screen
             foot_control_add(control);
@@ -584,7 +595,7 @@ static void control_set(uint8_t display, control_t *control)
             if (g_tap_tempo[control->hw_id - ENCODERS_COUNT].state == TT_COUNTING)
             {
                 // checks if delta almost suits maximum allowed value
-                if ((delta > g_tap_tempo[control->hw_id- ENCODERS_COUNT].max) &&
+                if ((delta > g_tap_tempo[control->hw_id - ENCODERS_COUNT].max) &&
                     ((delta - TAP_TEMPO_MAXVAL_OVERFLOW) < g_tap_tempo[control->hw_id - ENCODERS_COUNT].max))
                 {
                     // sets delta to maxvalue if just slightly over, instead of doing nothing
@@ -643,12 +654,16 @@ static void parse_banks_list(void *data, menu_item_t *item)
     char **list = data;
     uint32_t count = strarr_length(list) - 2;
 
+    // workaround freeze when opening menu
+    delay_ms(20);
+
     // free the current banks list
     if (g_banks) data_free_banks_list(g_banks);
 
     // parses the list
     g_banks = data_parse_banks_list(&list[2], count);
-    if (g_banks) g_banks->selected = g_current_bank;
+    if (g_banks) 
+        g_banks->selected = g_current_bank;
     naveg_set_banks(g_banks);
 }
 
@@ -671,6 +686,9 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
     (void) item;
     char **list = data;
     uint32_t count = strarr_length(list) - 2;
+
+    // workaround freeze when opening menu
+    delay_ms(20);
 
     // free the navigation pedalboads list
     if (g_naveg_pedalboards && (!g_selected_pedalboards || g_selected_pedalboards != g_naveg_pedalboards))
@@ -747,10 +765,12 @@ static void bp_enter(void)
     {
         tool_off(DISPLAY_TOOL_NAVIG);
         tool_on(DISPLAY_TOOL_SYSTEM, 0);
+        tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, 1);
         screen_system_menu(g_current_item);
     }
 
-    if (!g_banks) return;
+    if (!g_banks)
+        return;
 
     if (g_bp_state == BANKS_LIST)
     {
@@ -787,7 +807,7 @@ static void bp_enter(void)
             // updates selected bank and pedalboard
             g_banks->selected = g_banks->hover;
             g_naveg_pedalboards->selected = g_naveg_pedalboards->hover;
-            g_bp_first=0; 
+            g_bp_first=0;
 
             // request to GUI load the pedalboard
             send_load_pedalboard(g_banks->selected , g_naveg_pedalboards->uids[g_naveg_pedalboards->selected]);
@@ -795,8 +815,11 @@ static void bp_enter(void)
             // if select a pedalboard in other bank free the old pedalboards list
             if (g_current_bank != g_banks->selected)
             {
-                if (g_selected_pedalboards) data_free_pedalboards_list(g_selected_pedalboards);
-                g_selected_pedalboards = NULL;
+                if (g_selected_pedalboards)
+                {
+                    data_free_pedalboards_list(g_selected_pedalboards);
+                    g_selected_pedalboards = NULL;
+                }
             }
 
             // stores the current bank and pedalboard
@@ -808,10 +831,14 @@ static void bp_enter(void)
             bp_list = g_naveg_pedalboards;
 
             // if has a valid pedalboards list update the screens
-            if (g_selected_pedalboards) bank_config_footer();
+            if (g_selected_pedalboards)
+                bank_config_footer();
         }
     }
-    else return;
+    else
+    {
+        return;
+    }
 
     screen_bp_list(title, bp_list);
 }
@@ -867,9 +894,9 @@ static void bp_down(void)
 static void menu_enter(uint8_t display_id)
 {
     uint8_t i;
-    node_t *node = display_id ? g_current_menu : g_current_main_menu;
-    menu_item_t *item = display_id ? g_current_item : g_current_main_item;
-    
+    node_t *node = (display_id || dialog_active) ? g_current_menu : g_current_main_menu;
+    menu_item_t *item = (display_id || dialog_active) ? g_current_item : g_current_main_item;
+
     if (item->desc->type == MENU_LIST || item->desc->type == MENU_SELECT)
     {
         // locates the clicked item
@@ -878,7 +905,6 @@ static void menu_enter(uint8_t display_id)
 
         // gets the menu item
         item = node->data;
-
         // checks if is 'back to previous'
         if (item->desc->type == MENU_RETURN)
         {
@@ -888,13 +914,18 @@ static void menu_enter(uint8_t display_id)
             node = node->parent->parent;
             item = node->data;
         }
+        //extra check if we need to switch back to non-ui connected mode on the current-pb and banks menu
+        else if (((item->desc->id == BANKS_ID) || (item->desc->id == PEDALBOARD_ID)) && (!naveg_ui_status()))
+        {
+            item->desc->type = ((item->desc->id == PEDALBOARD_ID) ? MENU_LIST : MENU_NONE);
+        }
 
         // updates the current item
         if ((item->desc->type != MENU_TOGGLE) && (item->desc->type != MENU_NONE)) g_current_item = node->data;
         // updates these 3 specific toggle items (toggle items with pop-ups)
-        if (item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP) g_current_item = node->data;        
+        if (item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP) g_current_item = node->data;
     }
-    else if (item->desc->type == MENU_CONFIRM || item->desc->type == MENU_CANCEL || item->desc->type == MENU_OK || 
+    else if (item->desc->type == MENU_CONFIRM || item->desc->type == MENU_CANCEL || item->desc->type == MENU_OK ||
             item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP)
     {
         // calls the action callback
@@ -905,11 +936,11 @@ static void menu_enter(uint8_t display_id)
         {
             if (naveg_ui_status())
             {
-                //change menu type to menu_ok to display pop-up 
+                //change menu type to menu_ok to display pop-up
                 item->desc->type = MENU_OK;
                 g_current_item = item;
             }
-            else 
+            else
             {
                 //reset the menu type to its original state
                 item->desc->type = ((item->desc->id == PEDALBOARD_ID) ? MENU_LIST : MENU_NONE);
@@ -929,7 +960,6 @@ static void menu_enter(uint8_t display_id)
     {
         if (!tool_is_on(DISPLAY_TOOL_TUNER))
         {
-            tool_off(DISPLAY_TOOL_SYSTEM_SUBMENU);
             naveg_toggle_tool(DISPLAY_TOOL_TUNER, 1);
             return;
         }
@@ -949,10 +979,10 @@ static void menu_enter(uint8_t display_id)
         // changes the current menu
         g_current_menu = node;
 
-        // initialize the counter 
+        // initialize the counter
         item->data.list_count = 0;
 
-        // adds the menu lines 
+        // adds the menu lines
         for (node = node->first_child; node; node = node->next)
         {
             menu_item_t *item_child = node->data;
@@ -963,11 +993,11 @@ static void menu_enter(uint8_t display_id)
                 {
                     //update the value with menu_ev_none
                    if (item_child->desc->action_cb) item_child->desc->action_cb(item_child, MENU_EV_NONE);
-                } 
+                }
             item->data.list[item->data.list_count++] = item_child->name;
         }
 
-        //prevent toggling of these items. 
+        //prevent toggling of these items.
         if ((item->desc->id != TEMPO_ID) && (item->desc->id != BYPASS_ID))
         {
             // calls the action callback
@@ -976,20 +1006,25 @@ static void menu_enter(uint8_t display_id)
     }
     else if (item->desc->type == MENU_CONFIRM ||item->desc->type == MENU_OK || item->desc->parent_id == PROFILES_ID ||  item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP)
     {
-        // highlights the default button
-        item->data.hover = 1;
+        if (item->desc->type == MENU_OK)
+        {
+            // highlights the default button
+            item->data.hover = 0;
 
-        // defines the buttons count
-        item->data.list_count = 2;
+            // defines the buttons count
+            item->data.list_count = 1;
+        }
+        else
+        {
+            // highlights the default button
+            item->data.hover = 1;
+
+            // defines the buttons count
+            item->data.list_count = 2;
+        }
 
         // default popup content value
         item->data.popup_content = NULL;
-
-        if ((item->desc->id == VERSIONS_ID+2) || (item->desc->id == DEVICE_ID+2))
-        {
-            if ((item->desc->action_cb)) item->desc->action_cb(item, MENU_EV_ENTER);
-        }
-
         // locates the popup menu
         i = 0;
         while (g_menu_popups[i].popup_content)
@@ -1016,7 +1051,7 @@ static void menu_enter(uint8_t display_id)
                 else if (item->desc->id == PROFILES_ID+5)
                 {
                     item->data.popup_content = g_menu_popups[i].popup_content;
-                    
+
                     //add the to be saved profile char to the header of the popup
                     char *profile_char;
 
@@ -1031,7 +1066,7 @@ static void menu_enter(uint8_t display_id)
                     strcpy(str3, txt);
                     strcat(str3, profile_char);
                     item->data.popup_header = (str3);
-                    
+
                 }
                 //cv toggle popups
                 else if ((item->desc->id == EXP_CV_INP) || (item->desc->id == HP_CV_OUTP))
@@ -1045,14 +1080,14 @@ static void menu_enter(uint8_t display_id)
                     {
                         item->data.popup_content = g_menu_popups[i + 1].popup_content;
                         item->data.popup_header = g_menu_popups[i + 1].popup_header;
-                    } 
+                    }
                 }
                 //other popups
-                else if ((item->desc->id != VERSIONS_ID+2) || (item->desc->id != DEVICE_ID+2))
+                else
                 {
                     item->data.popup_content = g_menu_popups[i].popup_content;
                     item->data.popup_header = g_menu_popups[i].popup_header;
-                } 
+                }
 
                 break;
             }
@@ -1088,7 +1123,10 @@ static void menu_enter(uint8_t display_id)
         }
 
         // calls the action callback
-        if ((item->desc->action_cb) && (item->desc->id != BANKS_ID))item->desc->action_cb(item, MENU_EV_ENTER);
+        if ((item->desc->action_cb) && (item->desc->id != BANKS_ID))
+        {
+            item->desc->action_cb(item, MENU_EV_ENTER);
+        }
     }
     else if (item->desc->type == MENU_NONE)
     {
@@ -1096,7 +1134,7 @@ static void menu_enter(uint8_t display_id)
         if (g_current_item->desc->type == MENU_SELECT)
         {
             // deselects all items
-            for (i = 1; i < g_current_item->data.list_count; i++)
+            for (i = 0; i < g_current_item->data.list_count; i++)
                 deselect_item(g_current_item->data.list[i]);
 
             // selects the current item
@@ -1104,10 +1142,11 @@ static void menu_enter(uint8_t display_id)
         }
 
         // calls the action callback
-        if (item->desc->action_cb) item->desc->action_cb(item, MENU_EV_ENTER);
+        if (item->desc->action_cb)
+            item->desc->action_cb(item, MENU_EV_ENTER);
 
         if (display_id)
-        {   
+        {
             item = g_current_menu->data;
             g_current_item = item;
         }
@@ -1121,24 +1160,29 @@ static void menu_enter(uint8_t display_id)
             {
                 toggle = 1;
                 // calls the action callback
-                if ((item->desc->action_cb) && (item->desc->type != MENU_SET)) item->desc->action_cb(item, MENU_EV_ENTER);
+                if ((item->desc->action_cb) && (item->desc->type != MENU_SET))
+                    item->desc->action_cb(item, MENU_EV_ENTER);
             }
-            else 
+            else
             {
                 toggle = 0;
-                if (item->desc->type == MENU_VOL) system_save_gains_cb(item, MENU_EV_ENTER);
-                else item->desc->action_cb(item, MENU_EV_ENTER);
-                //resets the menu node 
+                if (item->desc->type == MENU_VOL)
+                    system_save_gains_cb(item, MENU_EV_ENTER);
+                else
+                    item->desc->action_cb(item, MENU_EV_ENTER);
+                //resets the menu node
                 item = g_current_menu->data;
                 g_current_item = item;
             }
         }
     }
 
+    if (item->desc->parent_id == DEVICE_ID && item->desc->action_cb)
+        item->desc->action_cb(item, MENU_EV_ENTER);
+
     if (tool_is_on(DISPLAY_TOOL_SYSTEM) && !tool_is_on(DISPLAY_TOOL_NAVIG))
     {
         screen_system_menu(item);
-
         g_update_cb = NULL;
         g_update_data = NULL;
         if (item->desc->need_update)
@@ -1150,6 +1194,7 @@ static void menu_enter(uint8_t display_id)
 
     if (item->desc->type == MENU_CONFIRM2)
     {
+        dialog_active = 0;
         portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
         xSemaphoreGiveFromISR(g_dialog_sem, &xHigherPriorityTaskWoken);
     }
@@ -1157,17 +1202,20 @@ static void menu_enter(uint8_t display_id)
 
 static void menu_up(uint8_t display_id)
 {
-    menu_item_t *item = display_id ? g_current_item : g_current_main_item;
+    menu_item_t *item = (display_id) ? g_current_item : g_current_main_item;
 
-    if ((item->desc->type == MENU_VOL) || (item->desc->type == MENU_SET))  
+    if ((item->desc->type == MENU_VOL) || (item->desc->type == MENU_SET))
     {
-        item->data.value -= item->data.step;
-        if (item->data.value < item->data.min)
+        //substract one, if we reach the limit, value becomes the limit
+        if ((item->data.value -= (item->data.step)) < item->data.min)
+        {
             item->data.value = item->data.min;
+        }
     }
     else
     {
-        if (item->data.hover > 0) item->data.hover--;
+        if (item->data.hover > 0)
+            item->data.hover--;
     }
 
     if (item->desc->action_cb)
@@ -1179,17 +1227,20 @@ static void menu_up(uint8_t display_id)
 
 static void menu_down(uint8_t display_id)
 {
-    menu_item_t *item = display_id ? g_current_item : g_current_main_item;
+    menu_item_t *item = (display_id) ? g_current_item : g_current_main_item;
 
-    if ((item->desc->type == MENU_VOL) || (item->desc->type == MENU_SET))  
+    if ((item->desc->type == MENU_VOL) || (item->desc->type == MENU_SET))
     {
-        item->data.value += item->data.step;
-        if (item->data.value > item->data.max)
+        //up one, if we reach the limit, value becomes the limit
+        if ((item->data.value += (item->data.step)) > item->data.max)
+        {
             item->data.value = item->data.max;
+        }
     }
     else
     {
-        if (item->data.hover < (item->data.list_count - 1)) item->data.hover++;
+        if (item->data.hover < (item->data.list_count - 1))
+            item->data.hover++;
     }
 
     if (item->desc->action_cb)
@@ -1197,6 +1248,7 @@ static void menu_down(uint8_t display_id)
 
     screen_system_menu(item);
 }
+
 
 static void tuner_enter(void)
 {
@@ -1252,7 +1304,8 @@ static void reset_menu_hover(node_t *menu_node)
     for (node = menu_node->first_child; node; node = node->next)
     {
         menu_item_t *item = node->data;
-        if (item->desc->type == MENU_LIST || item->desc->type == MENU_SELECT) item->data.hover = 0;
+        if (item->desc->type == MENU_LIST || item->desc->type == MENU_SELECT) 
+            item->data.hover = 0;
         reset_menu_hover(node);
     }
 }
@@ -1573,6 +1626,7 @@ void naveg_add_control(control_t *control)
     }
     else
     {
+        control->scroll_dir = 2;
         foot_control_add(control);     
     }
 }
@@ -1597,13 +1651,20 @@ void naveg_inc_control(uint8_t display)
 
     if ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS))
     {
+        //check/sets the direction
+        if (control->scroll_dir == 0)
+        {
+            control->scroll_dir = 1;
+            control_set(display, control);
+            return;
+        }
         // increments the step
         if (control->step < (control->steps - 1))
             control->step++;
         else
             return;
     }
-    else 
+    else
     {
         // increments the step
         if (control->step < (control->steps - 1))
@@ -1630,6 +1691,13 @@ void naveg_dec_control(uint8_t display)
     
     if ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS))
     {
+        //check/sets the direction
+        if (control->scroll_dir != 0)
+        {
+            control->scroll_dir = 0;
+            control_set(display, control);
+            return;
+        }
         // decrements the step
         if (control->step > 0)
             control->step--;
@@ -1656,21 +1724,209 @@ void naveg_set_control(uint8_t hw_id, float value)
     if (!g_initialized) return;
 
 
-    uint8_t display;
-    control_t *control;
+    uint8_t id;
+    control_t *control = NULL;
 
-    control = search_control(hw_id, &display);
+    //encoder
+    if (hw_id < ENCODERS_COUNT)
+    {
+        control = g_controls[hw_id];
+        id = hw_id;
+    }
+    //button
+    else if (hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT)
+    {
+        control = g_foots[hw_id - ENCODERS_COUNT];
+        id = hw_id - ENCODERS_COUNT;
+    }
 
     if (control)
     {
         control->value = value;
-        if (value < control->minimum) control->value = control->minimum;
-        if (value > control->maximum) control->value = control->maximum;
-        control_set(display, control);
+        if (value < control->minimum)
+            control->value = control->minimum;
+        if (value > control->maximum)
+            control->value = control->maximum;
 
         // updates the step value
         control->step =
             (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
+
+
+        //encoder
+        if (hw_id < ENCODERS_COUNT)
+        {
+            screen_control(id, control);
+        }
+        //button
+        else if (hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT)
+        {
+            // default state of led blink (no blink)
+            led_blink(hardware_leds(control->hw_id), 0, 0);
+
+            uint8_t i;
+            switch (control->properties)
+            {
+            // toggled specification: http://lv2plug.in/ns/lv2core/#toggled
+            case CONTROL_PROP_TOGGLED:
+                // updates the led
+                if (control->value <= 0)
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BLACK);
+                else
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TOGGLED_COLOR);
+
+                // if is in tool mode break
+                if (display_has_tool_enabled(get_display_by_id(control->hw_id - ENCODERS_COUNT, FOOT)))
+                    break;
+
+                // updates the footer
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
+                             (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT));
+                break;
+
+            // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
+            case CONTROL_PROP_TRIGGER:
+                // updates the led
+                //check if its assigned to a trigger and if the button is released
+                if (!control->scroll_dir)
+                {
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BLACK);
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR); //TRIGGER_COLOR
+                    return;
+                }
+                else if (control->scroll_dir == 2)
+                {
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
+                }
+                else
+                {
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BLACK);
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_PRESSED_COLOR);
+                }
+
+                // updates the led
+
+                // if is in tool mode break
+                if (display_has_tool_enabled(get_display_by_id(control->hw_id - ENCODERS_COUNT, FOOT)))
+                    break;
+
+                // updates the footer (a getto fix here, the screen.c file did not regognize the NULL pointer so it did not allign the text properly, TODO fix this)
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, BYPASS_ON_FOOTER_TEXT);
+                break;
+
+            case CONTROL_PROP_TAP_TEMPO:
+                // defines the led color
+                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TAP_TEMPO_COLOR);
+
+                // convert the time unit
+                uint16_t time_ms = (uint16_t)(convert_to_ms(control->unit, control->value) + 0.5);
+
+                // setup the led blink
+                if (time_ms > TAP_TEMPO_TIME_ON)
+                {
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TAP_TEMPO_COLOR);
+                     led_blink(hardware_leds(control->hw_id - ENCODERS_COUNT), TAP_TEMPO_TIME_ON, time_ms - TAP_TEMPO_TIME_ON);
+                }
+                else
+                {
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TAP_TEMPO_COLOR);
+                    led_blink(hardware_leds(control->hw_id - ENCODERS_COUNT), time_ms / 2, time_ms / 2);
+                }
+
+                // calculates the maximum tap tempo value
+                if (g_tap_tempo[control->hw_id - ENCODERS_COUNT].state == TT_INIT)
+                {
+                    uint32_t max;
+
+                    // time unit (ms, s)
+                    if (strcmp(control->unit, "ms") == 0 || strcmp(control->unit, "s") == 0)
+                    {
+                        max = (uint32_t)(convert_to_ms(control->unit, control->maximum) + 0.5);
+                        //makes sure we enforce a proper timeout
+                        if (max > TAP_TEMPO_DEFAULT_TIMEOUT)
+                            max = TAP_TEMPO_DEFAULT_TIMEOUT;
+                    }
+                    // frequency unit (bpm, Hz)
+                    else
+                    {
+                        //prevent division by 0 case
+                        if (control->minimum == 0)
+                            max = TAP_TEMPO_DEFAULT_TIMEOUT;
+                        else
+                            max = (uint32_t)(convert_to_ms(control->unit, control->minimum) + 0.5);
+                        //makes sure we enforce a proper timeout
+                        if (max > TAP_TEMPO_DEFAULT_TIMEOUT)
+                            max = TAP_TEMPO_DEFAULT_TIMEOUT;
+                    }
+
+                    g_tap_tempo[control->hw_id - ENCODERS_COUNT].max = max;
+                    g_tap_tempo[control->hw_id - ENCODERS_COUNT].state = TT_COUNTING;
+                }
+
+                // if is in tool mode break
+                if (display_has_tool_enabled(get_display_by_id(control->hw_id - ENCODERS_COUNT, FOOT)))
+                    break;
+
+                // footer text composition
+                char value_txt[32];
+
+                //if unit=ms or unit=bpm -> use 0 decimal points
+                if (strcasecmp(control->unit, "ms") == 0 || strcasecmp(control->unit, "bpm") == 0)
+                    i = int_to_str(control->value, value_txt, sizeof(value_txt), 0);
+                //if unit=s or unit=hz or unit=something else-> use 2 decimal points
+                else
+                    i = float_to_str(control->value, value_txt, sizeof(value_txt), 2);
+
+                //add space to footer
+                value_txt[i++] = ' ';
+                strcpy(&value_txt[i], control->unit);
+
+                // updates the footer
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, value_txt);
+                break;
+
+            case CONTROL_PROP_BYPASS:
+                // updates the led
+                if (control->value <= 0)
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BYPASS_COLOR);
+                else
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BLACK);
+
+                // if is in tool mode break
+                if (display_has_tool_enabled(get_display_by_id(control->hw_id - ENCODERS_COUNT, FOOT)))
+                    break;
+
+                // updates the footer
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
+                             (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
+                break;
+
+            case CONTROL_PROP_ENUMERATION:
+            case CONTROL_PROP_SCALE_POINTS:
+                // updates the led
+                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+
+                // locates the current value
+                control->step = 0;
+                for (i = 0; i < control->scale_points_count; i++)
+                {
+                    if (control->value == control->scale_points[i]->value)
+                    {
+                        control->step = i;
+                        break;
+                    }
+                }
+                control->steps = control->scale_points_count;
+
+                // if is in tool mode break
+                if (display_has_tool_enabled(get_display_by_id(i, FOOT)))
+                    break;
+
+                // updates the footer
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[i]->label);
+                break;
+            }
+        }
     }
 }
 
@@ -1708,12 +1964,17 @@ void naveg_next_control(uint8_t display)
     comm_webgui_send(buffer, i);
 }
 
-void naveg_foot_change(uint8_t foot)
+void naveg_foot_change(uint8_t foot, uint8_t pressed)
 {
     if (!g_initialized) return;
 
     // checks the foot id
     if (foot >= FOOTSWITCHES_COUNT) return;
+
+    if (display_has_tool_enabled(get_display_by_id(foot, FOOT))) return;
+
+    //detect a release action which we dont use right now for all actuator modes (only trigger)
+    if ((!pressed) && (g_foots[foot]->properties != CONTROL_PROP_TRIGGER)) return;
 
     // checks if the foot is used like bank function
     uint8_t bank_func_idx = bank_config_check(foot);
@@ -1726,18 +1987,16 @@ void naveg_foot_change(uint8_t foot)
     // checks if there is assigned control
     if (g_foots[foot] == NULL) return;
 
-    // send the foot value
+    g_foots[foot]->scroll_dir = pressed;
+
     control_set(foot, g_foots[foot]);
+    
 }
 
 
 void naveg_toggle_tool(uint8_t tool, uint8_t display)
 {
     if (!g_initialized) return;
-
-    //if in menu, do NOT load the tuner because of the 2 display menu
-    if ((tool_is_on(DISPLAY_TOOL_SYSTEM_SUBMENU)) && (tool == DISPLAY_TOOL_TUNER))return; 
-
     static uint8_t banks_loaded = 0;
     // clears the display
     screen_clear(display);
@@ -1801,11 +2060,13 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             case DISPLAY_TOOL_TUNER:
                 comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
                 tool_off(DISPLAY_TOOL_TUNER);
+
                 if (tool_is_on(DISPLAY_TOOL_SYSTEM))
                 {
-                    tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, 1);
-                    return;
-                }
+                   tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, 1); 
+                   return;
+                } 
+                
                 break;
         }
 
@@ -1942,13 +2203,13 @@ bp_list_t *naveg_get_pedalboards(void)
 
 void naveg_enter(uint8_t display)
 {
-    if (!g_initialized) return;
+    if ((!g_initialized)&&(g_update_cb)) return;
 
     if (display_has_tool_enabled(display))
     {
         if (display == 0)
         {
-            if (tool_is_on(DISPLAY_TOOL_TUNER))
+            if (tool_is_on(DISPLAY_TOOL_TUNER) || dialog_active)
             {
                 menu_enter(display);
             }
@@ -1964,8 +2225,8 @@ void naveg_enter(uint8_t display)
             else if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_enter();
             else if (tool_is_on(DISPLAY_TOOL_SYSTEM_SUBMENU))
             {
-                if ((g_current_menu != g_menu) && (g_current_item->desc->id != ROOT_ID))  menu_enter(display);  
-            } 
+                if ((g_current_menu != g_menu) && (g_current_item->desc->id != ROOT_ID))  menu_enter(display);
+            }
         }
     }
 }
@@ -1973,7 +2234,6 @@ void naveg_enter(uint8_t display)
 void naveg_up(uint8_t display)
 {
     if (!g_initialized) return;
-
     if (display_has_tool_enabled(display))
     {
         if (display == 0)
@@ -1987,15 +2247,16 @@ void naveg_up(uint8_t display)
                     menu_up(display);
                     menu_enter(display);
             }
-            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) 
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM))
             {
-                if ((g_current_menu == g_menu) || (g_current_item->desc->id == ROOT_ID))
+
+                if (((g_current_menu == g_menu) || (g_current_item->desc->id == ROOT_ID)) && (dialog_active != 1))
                 {
                     g_current_main_menu = g_current_menu;
                     g_current_main_item = g_current_item;
                 }
                 menu_up(display);
-                menu_enter(display);
+                if (dialog_active != 1) menu_enter(display);
             }
         }
         else if (display == 1)
@@ -2005,7 +2266,7 @@ void naveg_up(uint8_t display)
             {
                 if ((g_current_menu != g_menu) || (g_current_item->desc->id != ROOT_ID)) menu_up(display);
             }
-        } 
+        }
     }
 }
 
@@ -2016,7 +2277,7 @@ void naveg_down(uint8_t display)
     if (display_has_tool_enabled(display))
     {
         if (display == 0)
-        {  
+        {
             if ( (tool_is_on(DISPLAY_TOOL_TUNER)) || (tool_is_on(DISPLAY_TOOL_NAVIG)) )
             {
                     naveg_toggle_tool((tool_is_on(DISPLAY_TOOL_TUNER) ? DISPLAY_TOOL_TUNER : DISPLAY_TOOL_NAVIG), display);
@@ -2026,21 +2287,21 @@ void naveg_down(uint8_t display)
                     menu_down(display);
                     menu_enter(display);
             }
-            else if (tool_is_on(DISPLAY_TOOL_SYSTEM)) 
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM))
             {
-                if ((g_current_menu == g_menu) || (g_current_item->desc->id == ROOT_ID))
+                if (((g_current_menu == g_menu) || (g_current_item->desc->id == ROOT_ID)) && (dialog_active != 1))
                 {
                     g_current_main_menu = g_current_menu;
                     g_current_main_item = g_current_item;
                 }
                 menu_down(display);
-                menu_enter(display);
+                if (dialog_active != 1) menu_enter(display);
             }
         }
         else if (display == 1)
         {
             if (tool_is_on(DISPLAY_TOOL_NAVIG)) bp_down();
-            else if (tool_is_on(DISPLAY_TOOL_SYSTEM_SUBMENU)) 
+            else if (tool_is_on(DISPLAY_TOOL_SYSTEM_SUBMENU))
             {
                 if ((g_current_menu != g_menu) || (g_current_item->desc->id != ROOT_ID)) menu_down(display);
             }
@@ -2055,8 +2316,8 @@ void naveg_reset_menu(void)
     g_current_menu = g_menu;
     g_current_item = g_menu->first_child->data;
     g_current_main_menu = g_menu;
-    g_current_item = g_menu->first_child->data;
-    reset_menu_hover(g_menu);;
+    g_current_main_item = g_menu->first_child->data;
+    reset_menu_hover(g_menu);
 }
 
 int naveg_need_update(void)
@@ -2075,9 +2336,9 @@ void naveg_update(void)
 
 uint8_t naveg_dialog(const char *msg)
 {
-    static node_t *dummy_menu;
-    static menu_desc_t desc = {NULL, MENU_CONFIRM2, -2, -2, NULL, 0};
-
+    static node_t *dummy_menu = NULL;
+    static menu_desc_t desc = {NULL, MENU_CONFIRM2, DIALOG_ID, DIALOG_ID, NULL, 0};
+    
     if (!dummy_menu)
     {
         menu_item_t *item;
@@ -2087,25 +2348,53 @@ uint8_t naveg_dialog(const char *msg)
         item->data.list_count = 2;
         item->data.list = NULL;
         item->data.popup_content = msg;
+        item->data.popup_header = "selftest";
         item->desc = &desc;
         item->name = NULL;
         dummy_menu = node_create(item);
     }
 
-    tool_on(DISPLAY_TOOL_SYSTEM, 0);
+    display_disable_all_tools(DISPLAY_LEFT);
+    tool_on(DISPLAY_TOOL_SYSTEM, DISPLAY_LEFT);
+    tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, DISPLAY_RIGHT);
     g_current_menu = dummy_menu;
     g_current_item = dummy_menu->data;
     screen_system_menu(g_current_item);
 
-    xSemaphoreTake(g_dialog_sem, portMAX_DELAY);
+    dialog_active = 1;
+    if (xSemaphoreTake(g_dialog_sem, portMAX_DELAY) == pdTRUE)
+    {
+        dialog_active = 0;
+        display_disable_all_tools(DISPLAY_LEFT);
+        display_disable_all_tools(DISPLAY_RIGHT);
 
-    naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, DISPLAY_TOOL_SYSTEM);
-    return g_current_item->data.hover;
+        g_update_cb = NULL;
+        g_update_data = NULL;
+
+        g_current_main_menu = g_menu;
+        g_current_main_item = g_menu->first_child->data;
+        reset_menu_hover(g_menu);
+
+        screen_clear(DISPLAY_RIGHT);
+
+        return g_current_item->data.hover;
+    }
+    //we can never get here, portMAX_DELAY means wait indefinatly I'm adding this to remove a compiler warning
+    else
+    {
+        //ERROR
+        return -1; 
+    }
 }
 
 uint8_t naveg_ui_status(void)
 {
     return g_ui_connected;
+}
+
+uint8_t naveg_dialog_status(void)
+{
+    return dialog_active;
 }
 
 void naveg_set_index(uint8_t update, uint8_t display, uint8_t new_index, uint8_t new_index_count)
@@ -2119,7 +2408,7 @@ void naveg_set_index(uint8_t update, uint8_t display, uint8_t new_index, uint8_t
         index_count[display] = new_index_count;
     }
 
-    if (g_controls[display]) 
+    if ((g_controls[display]) && !display_has_tool_enabled(display))
     {
         screen_controls_index(display, index[display], index_count[display]);
     }
@@ -2135,8 +2424,9 @@ uint8_t naveg_tap_tempo_status(uint8_t id)
 
 void naveg_settings_refresh(uint8_t display_id)
 {
-    display_id ? screen_system_menu(g_current_item) : screen_system_menu(g_current_main_item); 
+    display_id ? screen_system_menu(g_current_item) : screen_system_menu(g_current_main_item);
 }
+
 
 void naveg_menu_refresh(uint8_t display_id)
 {
@@ -2151,11 +2441,11 @@ void naveg_menu_refresh(uint8_t display_id)
         // calls the action callback
         if ((item->desc->action_cb)) item->desc->action_cb(item, MENU_EV_NONE);
     }
-    naveg_settings_refresh(display_id); 
+    naveg_settings_refresh(display_id);
 }
 
-//the menu refresh is to slow for the gains so this one is added that only updates the set value. 
-void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value)
+//the menu refresh is to slow for the gains so this one is added that only updates the set value.
+void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float min, float max)
 {
     node_t *node = display_id ? g_current_menu : g_current_main_menu;
 
@@ -2171,79 +2461,52 @@ void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value)
             item->data.value = value;
 
             char str_buf[8];
-            float_to_str(value, str_buf, sizeof(str_buf), 1); 
+            float value_bfr = MAP(value, min, max, 0, 100);
+            int_to_str(value_bfr, str_buf, sizeof(str_buf), 0);
             strcpy(item->name, item->desc->name);
             uint8_t q;
             uint8_t value_size = strlen(str_buf);
             uint8_t name_size = strlen(item->name);
-            for (q = 0; q < (31 - name_size - value_size - 2); q++)
+            for (q = 0; q < (31 - name_size - value_size - 1); q++)
             {
-                strcat(item->name, " ");  
+                strcat(item->name, " ");
             }
             strcat(item->name, str_buf);
-            strcat(item->name, "DB");
-        } 
+            strcat(item->name, "%");
+        }
     }
 }
 
-void naveg_bypass_refresh(uint8_t bypass_1, uint8_t bypass_2, uint8_t quick_bypass)
+void naveg_menu_item_changed_cb(uint8_t item_ID, uint8_t value)
 {
-    node_t *node = g_current_menu;
+    //set value in system.c
+    system_update_menu_value(item_ID, value);
 
-    //updates all items in a menu
-    for (node = node->first_child; node; node = node->next)
+    //are we inside the menu? if so we need to update
+    if (tool_is_on(DISPLAY_TOOL_SYSTEM))
     {
-        // gets the menu item
-        menu_item_t *item = node->data;
+        //menu update for left or right? or both? 
 
-        //if normal bypass
-        if ((item->desc->id - (BYPASS_ID + 1)) == 0)
+        //if left menu item, no need to change right
+        if((item_ID == TUNER_ID) || (item_ID == TEMPO_ID))
         {
-            item->data.value = bypass_1;
+            naveg_menu_refresh(DISPLAY_LEFT);
+            return;
         }
-        else if ((item->desc->id - (BYPASS_ID + 1)) == 1)
+        
+        //otherwise update right for sure
+        else 
         {
-            item->data.value = bypass_2;
-        }
-        //if bypass 1 and 2
-        else if ((item->desc->id - (BYPASS_ID + 1)) == 2)
-        {
-            if (bypass_1 && bypass_2) item->data.value = 1;
-            else item->data.value = 0;
-        }
+            naveg_menu_refresh(DISPLAY_RIGHT);
 
-        //copy bypass txt
-        strcpy(item->name, item->desc->name);
-        uint8_t q;
-        uint8_t value_size = 3;
-        uint8_t name_size = strlen(item->name);
-    
-        //add spaces
-        for (q = 0; q < (31 - name_size - value_size); q++)
-        {
-            strcat(item->name, " ");  
-        }
-
-        //if bypass select add the channels, else add [X] or  [ ]
-        if (item->desc->id == BP_SELECT_ID)
-        {
-            char channel_value[4];
-            switch (quick_bypass)
+            //for bypass, left might change as well, we update just in case
+            if (((item_ID - BYPASS_ID) < 10) && ((item_ID - BYPASS_ID) > 0) )
             {
-                case 0:
-                        strcpy(channel_value, "  1");
-                    break;
-                case 1:
-                        strcpy(channel_value, "  2");
-                    break;
-                case 2:
-                        strcpy(channel_value, "1&2");
-                    break;
+               naveg_menu_refresh(DISPLAY_LEFT); 
             }
-            strcat(item->name, channel_value);
-        }
-        else strcat(item->name, ((item->data.value)? "[X]" : "[ ]"));
+        } 
     }
-    
-    naveg_settings_refresh(DISPLAY_RIGHT); 
+
+    //when we are not in the menu, did we change the master volume link?
+        //TODO update the master volume link widget
 }

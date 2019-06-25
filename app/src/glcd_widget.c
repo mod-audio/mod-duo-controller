@@ -719,7 +719,7 @@ void widget_popup(glcd_t *display, popup_t *popup)
     content.left_margin = 0;
     content.right_margin = 0;
     content.font = popup->font;
-    content.x = popup->x + 2;
+    content.x = popup->x + 4;
     content.y = popup->y + popup->font[FONT_HEIGHT] + 3;
     content.width = popup->width - 4;
     content.height = ((popup->font[FONT_HEIGHT]+1) * 8); // FIXME: need be relative to popup height

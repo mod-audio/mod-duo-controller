@@ -26,8 +26,6 @@
 */
 
 static char g_back_to_bank[] = {"< Back to bank list"};
-//static char g_back_to_settings[] = {"< Back to SETTINGS"};
-
 
 /*
 ************************************************************************************************************************
@@ -85,26 +83,28 @@ control_t *data_parse_control(char **data)
     uint8_t properties_mask = 0;
     
     // checks if all data was received
-    if (len >= min_params)
-    {
-        control = (control_t *) MALLOC(sizeof(control_t));
-        if (!control) goto error;
+    if (len < min_params)
+        return NULL;
 
-        // fills the control struct
-        control->hw_id = atoi(data[1]);
-        control->label = str_duplicate(data[2]);
-        properties_mask = atoi(data[3]);
-        control->unit = str_duplicate(data[4]);
-        control->value = atof(data[5]);
-        control->maximum = atof(data[6]);
-        control->minimum = atof(data[7]);
-        control->steps = atoi(data[8]);
-        control->scale_points_count = 0;
-        control->scale_points = NULL;
+    control = (control_t *) MALLOC(sizeof(control_t));
+    if (!control)
+        goto error;
 
-        // checks the memory allocation 
-        if (!control->label || !control->unit) goto error;
-    }
+    // fills the control struct
+    control->hw_id = atoi(data[1]);
+    control->label = str_duplicate(data[2]);
+    properties_mask = atoi(data[3]);
+    control->unit = str_duplicate(data[4]);
+    control->value = atof(data[5]);
+    control->maximum = atof(data[6]);
+    control->minimum = atof(data[7]);
+    control->steps = atoi(data[8]);
+    control->scale_points_count = 0;
+    control->scale_points = NULL;
+
+    // checks the memory allocation
+    if (!control->label || !control->unit)
+        goto error;
 
     control->properties = 0;
     if (CONTROL_PROP_ENUMERATION & properties_mask)
@@ -195,8 +195,8 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
     bp_list->hover = 0;
     bp_list->selected = 0;
     bp_list->count = list_count;
-    bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count ));
-    bp_list->uids = (char **) MALLOC(sizeof(char *) * (list_count ));
+    bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count + 1));
+    bp_list->uids = (char **) MALLOC(sizeof(char *) * (list_count + 1));
 
     // checks memory allocation
     if (!bp_list->names || !bp_list->uids) goto error;
@@ -204,7 +204,7 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
     uint32_t i = 0, j = 0;
 
     // initializes the pointers
-    for (i = 0; i < (list_count ); i++)
+    for (i = 0; i < (list_count + 1); i++)
     {
         bp_list->names[i] = NULL;
         bp_list->uids[i] = NULL;
@@ -216,7 +216,7 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
 
     // fills the bp_list struct
     i = 0;
-    while (list_data[i])
+    while (list_data[i] && j < list_count)
     {
         bp_list->names[j] = str_duplicate(list_data[i + 0]);
         bp_list->uids[j] = str_duplicate(list_data[i + 1]);

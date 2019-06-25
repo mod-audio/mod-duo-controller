@@ -36,6 +36,7 @@ enum {NOT_LOGGED, LOGGED_ON_SYSTEM, LOGGED_ON_RESTORE};
 ************************************************************************************************************************
 */
 
+#define LINE_BUFFER_SIZE    32
 
 /*
 ************************************************************************************************************************
@@ -68,7 +69,7 @@ enum {NOT_LOGGED, LOGGED_ON_SYSTEM, LOGGED_ON_RESTORE};
 void cli_init(void);
 // process received data
 void cli_process(void);
-// execute a single command and return its response if asked for
+// execute a single command and return its response if asked for (maximum LINE_BUFFER_SIZE+1 bytes)
 const char* cli_command(const char *command, uint8_t response_action);
 // execute systemctl command and return its status if any
 const char* cli_systemctl(const char *command, const char *service);

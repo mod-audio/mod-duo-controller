@@ -29,7 +29,8 @@
 typedef enum {ALIGN_LEFT_TOP, ALIGN_LEFT_MIDDLE, ALIGN_LEFT_BOTTOM,
               ALIGN_CENTER_TOP,ALIGN_CENTER_MIDDLE, ALIGN_CENTER_BOTTOM,
               ALIGN_RIGHT_TOP, ALIGN_RIGHT_MIDDLE, ALIGN_RIGHT_BOTTOM,
-              ALIGN_NONE_NONE, ALIGN_LEFT_NONE, ALIGN_RIGHT_NONE, ALIGN_CENTER_NONE} align_t;
+              ALIGN_NONE_NONE, ALIGN_LEFT_NONE, ALIGN_RIGHT_NONE, ALIGN_CENTER_NONE,
+              ALIGN_LCENTER_BOTTOM, ALIGN_RCENTER_BOTTOM, ALIGN_LRIGHT_BOTTOM, ALIGN_RLEFT_BOTTOM} align_t;
 
 typedef enum {TEXT_SINGLE_LINE, TEXT_MULTI_LINES} text_mode_t;
 
@@ -68,6 +69,8 @@ typedef struct LISTBOX_T {
     const uint8_t *font;
     uint8_t line_space, line_top_margin, line_bottom_margin;
     uint8_t text_left_margin;
+    uint8_t direction;
+    const char *name;
 } listbox_t;
 
 typedef struct GRAPH_T {

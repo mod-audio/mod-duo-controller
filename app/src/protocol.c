@@ -103,7 +103,7 @@ static int is_wildcard(const char *str)
 void protocol_parse(msg_t *msg)
 {
     uint32_t i, j;
-    int32_t index;
+    int32_t index = NOT_FOUND;
     proto_t proto;
 
     proto.list = strarr_split(msg->data);
