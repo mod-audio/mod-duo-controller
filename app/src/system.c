@@ -80,6 +80,7 @@ char *option_disabled = "[ ]";
 ************************************************************************************************************************
 */
 
+static uint8_t g_comm_protocol_bussy = 0;
 float g_gains_volumes[5] = {};
 uint8_t g_q_bypass = 0;
 uint8_t g_bypass[4] = {};
@@ -153,6 +154,8 @@ void add_chars_to_menu_name(menu_item_t *item, char *chars_to_add)
 //TODO CHECK IF WE CAN USE DYNAMIC MEMORY HERE
 void set_item_value(char *command, uint8_t value)
 {
+    if (g_comm_protocol_bussy) return;
+
     uint8_t i;
     char buffer[50];
 
@@ -280,6 +283,10 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
 *           GLOBAL FUNCTIONS
 ************************************************************************************************************************
 */
+void system_lock_comm_serial(uint8_t bussy)
+{
+    g_comm_protocol_bussy = bussy;
+}
 
 uint8_t system_get_current_profile(void)
 {
@@ -814,7 +821,8 @@ void system_tempo_cb (void *arg, int event)
 
     if (event == MENU_EV_ENTER)
     {
-        set_item_value(TEMPO_SET_CMD, item->data.value);
+        //we can only change tempo when its generated internaly 
+        if (g_MIDI_clk_src == 0)set_item_value(TEMPO_SET_CMD, item->data.value);
     }
     else if (event == MENU_EV_NONE)
     {
@@ -827,15 +835,24 @@ void system_tempo_cb (void *arg, int event)
     //scrolling up/down
     else 
     {
-        //HMI changes the item, resync
-        g_beats_per_minute = item->data.value;
-        //let mod-ui know
-        set_item_value(TEMPO_SET_CMD, g_beats_per_minute);
+        //we can only change tempo when its generated internaly 
+        if (g_MIDI_clk_src == 0)
+        {
+            //HMI changes the item, resync
+            g_beats_per_minute = item->data.value;
+            //let mod-ui know
+            set_item_value(TEMPO_SET_CMD, g_beats_per_minute);
+        }
+        else 
+        {
+            item->data.value = g_beats_per_minute;
+        }
     }
 
     char str_bfr[8] = {};
     int_to_str(g_beats_per_minute, str_bfr, 4, 0);
     strcat(str_bfr, " BPM");
+    add_chars_to_menu_name(item, str_bfr);
     add_chars_to_menu_name(item, str_bfr);
 }
 

@@ -151,3 +151,9 @@ void comm_webgui_wait_response(void)
     g_webgui_blocked = 1;
     while (g_webgui_blocked);
 }
+
+//clear the ringbuffer
+void comm_webgui_clear(void)
+{
+    ringbuff_flush(g_webgui_rx_rb);
+}

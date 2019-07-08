@@ -71,7 +71,7 @@
 
 static void *g_actuators_pointers[MAX_ACTUATORS];
 static uint8_t g_actuators_count = 0;
-
+static uint8_t acceleration = 1;
 
 /*
 *********************************************************************************************************
@@ -461,10 +461,12 @@ void actuators_clock(void)
                         }
                     }
                 }
-
                 // --- rotary processing ---
                 // encoder algorithm from PaulStoffregen
                 // https://github.com/PaulStoffregen/Encoder
+                static uint8_t acceleration_count = 0;
+                static uint8_t firsttick = 0;
+
                 uint8_t seq = encoder->state & 3;
 
                 seq |= READ_PIN(encoder->port_chA, encoder->pin_chA) ? 4 : 0;
@@ -472,35 +474,79 @@ void actuators_clock(void)
 
                 switch (seq)
                 {
+                    // these ones are sent quite often during normal operation
                     case 0: case 5: case 10: case 15:
                         break;
+
+                    // 1 step up
                     case 1: case 7: case 8: case 14:
+                        if (encoder->counter > 0) // this fixes inverting direction
+                            encoder->counter = 0;
                         encoder->counter--;
                         break;
+
+                    // 1 step down
                     case 2: case 4: case 11: case 13:
+                        if (encoder->counter < 0) // this fixes inverting direction
+                            encoder->counter = 0;
                         encoder->counter++;
                         break;
+
+                    // 2 steps up
                     case 3: case 12:
                         encoder->counter -= 2;
                         break;
-                    default:
+
+                    // 2 steps down
+                    case 6: case 9:
                         encoder->counter += 2;
                         break;
+
+                    // default should never trigger (because math)
+                    default:
+                        continue;
                 }
 
                  encoder->state = (seq >> 2);
 
+                 if (firsttick)
+                     acceleration_count++;
+
                 // checks the steps
                 if (ABS(encoder->counter) >= encoder->steps)
                 {
+                    static uint8_t ticks_count = 0;
+                    firsttick = 1;
+                    if (acceleration_count < 100)
+                    {
+                        ticks_count++;
+                        if (ticks_count > ENCODER_ACCEL_STEP_3)
+                            acceleration = 7;
+                        else if (ticks_count > ENCODER_ACCEL_STEP_2)
+                            acceleration = 5;
+                        else if (ticks_count > ENCODER_ACCEL_STEP_1)
+                            acceleration = 3;
+                        else
+                            acceleration = 1;
+                    }
+                    else
+                    {
+                        acceleration_count = 0;
+                        firsttick = 0;
+                        ticks_count = 0;
+                        acceleration = 1;
+                    }
+
                     // update flags
                     CLR_FLAG(encoder->status, EV_ENCODER_TURNED_CW);
                     CLR_FLAG(encoder->status, EV_ENCODER_TURNED_ACW);
                     SET_FLAG(encoder->status, EV_ENCODER_TURNED);
 
                     // set the direction flag
-                    if (encoder->counter > 0) SET_FLAG(encoder->status, EV_ENCODER_TURNED_CW);
-                    else SET_FLAG(encoder->status, EV_ENCODER_TURNED_ACW);
+                    if (encoder->counter > 0)
+                        SET_FLAG(encoder->status, EV_ENCODER_TURNED_CW);
+                    else
+                        SET_FLAG(encoder->status, EV_ENCODER_TURNED_ACW);
 
                     event(encoder, EV_ENCODER_TURNED | EV_ENCODER_TURNED_CW | EV_ENCODER_TURNED_ACW);
 

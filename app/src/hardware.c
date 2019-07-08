@@ -320,6 +320,11 @@ void hardware_setup(void)
     #endif
 }
 
+void hardware_eneble_serial_interupt(uint8_t serial_port)
+{
+    serial_enable_interupt(&g_serial[serial_port]);
+}
+
 glcd_t *hardware_glcds(uint8_t glcd_id)
 {
     if (glcd_id >= GLCD_COUNT) return NULL;

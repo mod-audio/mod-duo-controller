@@ -522,10 +522,13 @@ void screen_system_menu(menu_item_t *item)
         case MENU_CONFIRM2:
         case MENU_CANCEL:
         case MENU_OK:
+        case MENU_MESSAGE:
             if (item->desc->type == MENU_CANCEL)
                 popup.type = CANCEL_ONLY;
             else if (item->desc->type == MENU_OK)
                 popup.type = OK_ONLY;
+            else if (item->desc->type == MENU_MESSAGE)
+                popup.type = EMPTY_POPUP;
             else
                 popup.type = YES_NO;
             popup.title = item->data.popup_header;

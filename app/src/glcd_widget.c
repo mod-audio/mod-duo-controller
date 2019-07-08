@@ -9,7 +9,7 @@
 #include "utils.h"
 
 #include <math.h>
-
+#include <string.h>
 
 /*
 ************************************************************************************************************************
@@ -767,6 +767,10 @@ void widget_popup(glcd_t *display, popup_t *popup)
             if (popup->button_selected == 1)
                 glcd_rect_invert(display, button_x+1, button_y-1, button_w-2, button_h);
             break;
+ 
+        case EMPTY_POPUP:
+        //we dont have a button
+        break;
     }
     glcd_hline(display, 0, DISPLAY_HEIGHT-1, DISPLAY_WIDTH, GLCD_BLACK);
 }

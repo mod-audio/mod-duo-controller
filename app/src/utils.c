@@ -8,10 +8,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
-
+#include <stdio.h>
 #include "utils.h"
 #include "FreeRTOS.h"
-
+#include "cli.h"
 
 /*
 ************************************************************************************************************************
@@ -593,6 +593,17 @@ void ringbuff_flush(ringbuff_t *rb)
         rb->tail = 0;
     }
 }
+
+void ringbuff_free(ringbuff_t *rb)
+{
+    if (rb)
+    {
+        rb->head = 0;
+        rb->tail = 0;
+        rb->buffer = NULL;
+    }
+}
+
 
 uint32_t ringbuff_count(ringbuff_t *rb, uint8_t byte)
 {

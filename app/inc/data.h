@@ -24,7 +24,7 @@
 ************************************************************************************************************************
 */
 typedef enum {MENU_NONE, MENU_RETURN, MENU_LIST, MENU_SELECT, MENU_CONFIRM, MENU_CANCEL, MENU_TOGGLE, MENU_CONFIRM2, 
-                MENU_OK, MENU_VOL, MENU_SET} menu_types_t;
+                MENU_OK, MENU_VOL, MENU_SET, MENU_MESSAGE} menu_types_t;
 
 enum {MENU_EV_ENTER, MENU_EV_UP, MENU_EV_DOWN, MENU_EV_NONE};
 

@@ -36,7 +36,7 @@ typedef enum {TEXT_SINGLE_LINE, TEXT_MULTI_LINES} text_mode_t;
 
 typedef enum {GRAPH_TYPE_LINEAR, GRAPH_TYPE_LOG, GRAPH_TYPE_V, GRAPH_TYPE_A} graph_type_t;
 
-typedef enum {OK_ONLY, OK_CANCEL, CANCEL_ONLY, YES_NO} popup_type_t;
+typedef enum {OK_ONLY, OK_CANCEL, CANCEL_ONLY, YES_NO, EMPTY_POPUP} popup_type_t;
 
 
 /*

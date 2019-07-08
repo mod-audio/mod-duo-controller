@@ -74,7 +74,8 @@ void comm_webgui_set_response_cb(void (*resp_cb)(void *data, menu_item_t *item),
 void comm_webgui_response_cb(void *data);
 // blocks the execution until the webgui response be received
 void comm_webgui_wait_response(void);
-
+// clear the data in the buffer
+void comm_webgui_clear(void);
 
 /*
 ************************************************************************************************************************

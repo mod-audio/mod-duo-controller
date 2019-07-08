@@ -258,6 +258,8 @@ void serial_init(serial_t *serial)
             break;
     }
 
+    //keeping the compiler happy 
+    (void) irq;
 
     // UART Configuration structure variable
     UART_CFG_Type UARTConfigStruct;
@@ -298,21 +300,6 @@ void serial_init(serial_t *serial)
     // Initialize FIFO for UART peripheral
     UART_FIFOConfig(uart, &UARTFIFOConfigStruct);
 
-    // Enable UART Transmit
-    UART_TxCmd(uart, ENABLE);
-
-    // Enable UART Rx interrupt
-    UART_IntConfig(uart, UART_INTCFG_RBR, ENABLE);
-
-    // Enable UART line status interrupt
-    UART_IntConfig(uart, UART_INTCFG_RLS, ENABLE);
-
-    // set priority
-    NVIC_SetPriority(irq, serial->priority);
-
-    // Enable Interrupt for UART channel
-    NVIC_EnableIRQ(irq);
-
     // creates ring buffers
     serial->rx_buffer = ringbuff_create(serial->rx_buffer_size + 1);
     serial->tx_buffer = ringbuff_create(serial->tx_buffer_size + 1);
@@ -328,6 +315,57 @@ void serial_init(serial_t *serial)
 
     // stores a pointer to serial object
     g_serial_instances[serial->uart_id] = serial;
+}
+
+void serial_enable_interupt(serial_t *serial)
+{
+    LPC_UART_TypeDef *uart;
+    IRQn_Type irq;
+
+    switch (serial->uart_id)
+        {
+            case 0:
+                uart = UART0;
+                irq = UART0_IRQn;
+                break;
+
+            case 1:
+                uart = UART1;
+                irq = UART1_IRQn;
+                break;
+
+            case 2:
+                uart = UART2;
+                irq = UART2_IRQn;
+                break;
+
+            case 3:
+                uart = UART3;
+                irq = UART3_IRQn;
+                break;
+            default:
+                uart = UART0;
+                irq = UART0_IRQn;
+                break;
+    }
+
+    ringbuff_flush(serial->rx_buffer);
+    ringbuff_flush(serial->tx_buffer);
+
+    // Enable UART Transmit
+    UART_TxCmd(uart, ENABLE);
+
+    // Enable UART Rx interrupt
+    UART_IntConfig(uart, UART_INTCFG_RBR, ENABLE);
+
+    // Enable UART line status interrupt
+    UART_IntConfig(uart, UART_INTCFG_RLS, ENABLE);
+
+    // set priority
+    NVIC_SetPriority(irq, serial->priority);
+
+    // Enable Interrupt for UART channel
+    NVIC_EnableIRQ(irq);
 }
 
 uint32_t serial_send(uint8_t uart_id, const uint8_t *data, uint32_t data_size)

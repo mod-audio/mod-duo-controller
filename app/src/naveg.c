@@ -24,6 +24,9 @@
 #include <float.h>
 
 
+//reset actuator queue
+void reset_queue(void);
+
 /*
 ************************************************************************************************************************
 *           LOCAL DEFINES
@@ -86,7 +89,7 @@ struct TOOL_T {
 
 static control_t *g_controls[ENCODERS_COUNT], *g_foots[FOOTSWITCHES_COUNT];
 static bp_list_t *g_banks, *g_naveg_pedalboards, *g_selected_pedalboards;
-static uint8_t g_bp_state, g_current_bank, g_current_pedalboard, g_bp_first;
+static uint8_t g_bp_state, g_current_pedalboard, g_bp_first, g_pb_selected;
 static node_t *g_menu, *g_current_menu, *g_current_main_menu;
 static menu_item_t *g_current_item, *g_current_main_item;
 static uint8_t g_max_items_list;
@@ -96,7 +99,11 @@ static void (*g_update_cb)(void *data, int event);
 static void *g_update_data;
 static xSemaphoreHandle g_dialog_sem;
 static uint8_t dialog_active = 0;
+static int8_t g_current_bank;
 
+
+// only enabled after "boot" command received
+bool g_should_wait_for_webgui = false;
 /*
 ************************************************************************************************************************
 *           LOCAL FUNCTION PROTOTYPES
@@ -645,6 +652,12 @@ static void control_set(uint8_t id, control_t *control)
 
     // send the data to GUI
     comm_webgui_send(buffer, i);
+
+
+    //wait for a response from mod-ui
+    if (g_should_wait_for_webgui) {
+        comm_webgui_wait_response();
+    }
 }
 
 
@@ -809,6 +822,8 @@ static void bp_enter(void)
             g_naveg_pedalboards->selected = g_naveg_pedalboards->hover;
             g_bp_first=0;
 
+            g_pb_selected = 1;
+
             // request to GUI load the pedalboard
             send_load_pedalboard(g_banks->selected , g_naveg_pedalboards->uids[g_naveg_pedalboards->selected]);
 
@@ -937,7 +952,7 @@ static void menu_enter(uint8_t display_id)
             if (naveg_ui_status())
             {
                 //change menu type to menu_ok to display pop-up
-                item->desc->type = MENU_OK;
+                item->desc->type = MENU_MESSAGE;
                 g_current_item = item;
             }
             else
@@ -970,7 +985,7 @@ static void menu_enter(uint8_t display_id)
     // FIXME: that's dirty, so dirty...
     if ((item->desc->id == PEDALBOARD_ID) || (item->desc->id == BANKS_ID))
     {
-        if (naveg_ui_status()) item->desc->type = MENU_OK;
+        if (naveg_ui_status()) item->desc->type = MENU_MESSAGE;
     }
 
     // checks the selected item
@@ -1013,6 +1028,14 @@ static void menu_enter(uint8_t display_id)
 
             // defines the buttons count
             item->data.list_count = 1;
+        }
+        else if (item->desc->type == MENU_MESSAGE)
+        {
+            // highlights the default button
+            item->data.hover = 0;
+
+            // defines the buttons count
+            item->data.list_count = 0;
         }
         else
         {
@@ -1472,6 +1495,7 @@ void naveg_init(void)
     g_selected_pedalboards = NULL;
     g_current_pedalboard = 1;
     g_bp_state = BANKS_LIST;
+    g_pb_selected = 0;
 
     // initializes the bank functions
     for (i = 0; i < BANK_FUNC_AMOUNT; i++)
@@ -1513,6 +1537,9 @@ void naveg_init(void)
     g_initialized = 1;
 
     vSemaphoreCreateBinary(g_dialog_sem);
+    // vSemaphoreCreateBinary is created as available which makes
+    // first xSemaphoreTake pass even if semaphore has not been given
+    // http://sourceforge.net/p/freertos/discussion/382005/thread/04bfabb9
     xSemaphoreTake(g_dialog_sem, 0);
 }
 
@@ -2035,6 +2062,17 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             g_current_main_item = g_current_item;
             menu_enter(0);
         }
+
+        //if we are entering banks
+        if (tool == DISPLAY_TOOL_NAVIG)
+        {
+            //if we have a bank selected
+            if ((g_current_bank != -1) && g_pb_selected && (g_banks->hover != 0))
+            {
+                g_banks->hover = g_current_bank;
+                bp_enter();
+            }
+        }
     }
     // changes the display to control mode
     else
@@ -2069,6 +2107,9 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 
                 break;
         }
+
+        //clear previous commands in the buffer
+        comm_webgui_clear();
 
         control_t *control = g_controls[display];
 
@@ -2209,6 +2250,9 @@ void naveg_enter(uint8_t display)
     {
         if (display == 0)
         {
+            //we dont use this knob in dialog mode
+            if (dialog_active) return;
+
             if (tool_is_on(DISPLAY_TOOL_TUNER) || dialog_active)
             {
                 menu_enter(display);
@@ -2238,6 +2282,9 @@ void naveg_up(uint8_t display)
     {
         if (display == 0)
         {
+            //we dont use this knob in dialog mode
+            if (dialog_active) return;
+
             if ( (tool_is_on(DISPLAY_TOOL_TUNER)) || (tool_is_on(DISPLAY_TOOL_NAVIG)) )
             {
                     naveg_toggle_tool((tool_is_on(DISPLAY_TOOL_TUNER) ? DISPLAY_TOOL_TUNER : DISPLAY_TOOL_NAVIG), display);
@@ -2278,6 +2325,9 @@ void naveg_down(uint8_t display)
     {
         if (display == 0)
         {
+            //we dont use this knob in dialog mode
+            if (dialog_active) return;
+
             if ( (tool_is_on(DISPLAY_TOOL_TUNER)) || (tool_is_on(DISPLAY_TOOL_NAVIG)) )
             {
                     naveg_toggle_tool((tool_is_on(DISPLAY_TOOL_TUNER) ? DISPLAY_TOOL_TUNER : DISPLAY_TOOL_NAVIG), display);

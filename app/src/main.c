@@ -68,7 +68,7 @@
 ************************************************************************************************************************
 */
 
-static xQueueHandle g_actuators_queue;
+static volatile xQueueHandle g_actuators_queue;
 static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
 static uint8_t g_ui_communication_started;
 static uint8_t g_protocol_bussy = 0;
@@ -163,6 +163,11 @@ void serial_error(uint8_t uart_id, uint32_t error)
 // this callback is called from a ISR
 static void actuators_cb(void *actuator)
 {
+    if (g_protocol_bussy)
+    {
+        if (!naveg_dialog_status()) return;
+    }
+
     static uint8_t i, info[ACTUATORS_QUEUE_SIZE][3];
 
     // does a copy of actuator id and status
@@ -197,6 +202,7 @@ static void procotol_task(void *pvParameters)
     {
         uint32_t msg_size;
         g_protocol_bussy = 0;
+        system_lock_comm_serial(g_protocol_bussy);
         // blocks until receive a new message
         ringbuff_t *rb = comm_webgui_read();
         msg_size = ringbuff_read_until(rb, g_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE, 0);
@@ -206,6 +212,7 @@ static void procotol_task(void *pvParameters)
         {
             //if parsing messages block the actuator messages. 
             g_protocol_bussy = 1;
+            system_lock_comm_serial(g_protocol_bussy);
             msg_t msg;
             msg.sender_id = 0;
             msg.data = (char *) g_msg_buffer;
@@ -331,6 +338,8 @@ static void cli_task(void *pvParameters)
 
     hardware_coreboard_power(COREBOARD_INIT);
 
+    hardware_eneble_serial_interupt(CLI_SERIAL);
+
     while (1)
     {
         cli_process();
@@ -407,6 +416,11 @@ static void setup_task(void *pvParameters)
 ************************************************************************************************************************
 */
 
+void reset_queue(void)
+{
+    xQueueReset(g_actuators_queue);
+}
+
 static void ping_cb(proto_t *proto)
 {
     g_ui_communication_started = 1;
@@ -475,19 +489,36 @@ static void glcd_draw_cb(proto_t *proto)
 
 static void gui_connection_cb(proto_t *proto)
 {
+    //lock actuators
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
+    //clear the buffer so we dont send any messages
+    comm_webgui_clear();
+
     if (strcmp(proto->list[0], GUI_CONNECTED_CMD) == 0)
         naveg_ui_connection(UI_CONNECTED);
     else
         naveg_ui_connection(UI_DISCONNECTED);
+
+    //we are done supposedly closing the menu, we can unlock the actuators
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
 
     protocol_response("resp 0", proto);
 }
 
 static void control_add_cb(proto_t *proto)
 {
+    //lock actuators
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
+
     control_t *control = data_parse_control(proto->list);
 
     naveg_add_control(control);
+
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
 
     protocol_response("resp 0", proto);
 }
@@ -513,9 +544,15 @@ static void control_rm_cb(proto_t *proto)
 
 static void control_set_cb(proto_t *proto)
 {
+    //lock actuators
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
 
     naveg_set_control(atoi(proto->list[1]), atof(proto->list[2]));
     protocol_response("resp 0", proto);
+
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
 }
 
 static void control_get_cb(proto_t *proto)
@@ -532,9 +569,16 @@ static void control_get_cb(proto_t *proto)
 
 static void control_set_index_cb(proto_t *proto)
 {
+    //lock actuators
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
+
     //index_set <updatevalues> <encoder hardware_id> <control index> <index_count>
     naveg_set_index(1, atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]));
     protocol_response("resp 0", proto);
+
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
 }
 
 static void initial_state_cb(proto_t *proto)
@@ -576,6 +620,8 @@ static void restore_cb(proto_t *proto)
 
 static void boot_cb(proto_t *proto)
 {
+    g_should_wait_for_webgui = true;
+    
     //set the display brightness 
     system_update_menu_value(DISPLAY_BRIGHTNESS_ID, atoi(proto->list[1]));
 
@@ -629,7 +675,7 @@ static void  pedalboard_clear_cb(proto_t *proto)
 
 void HardFault_Handler(void)
 {
-    led_set_color(hardware_leds(0), CYAN);
+    led_set_color(hardware_leds(0), MAGENTA);
     while (1);
 }
 
@@ -650,7 +696,7 @@ void UsageFault_Handler(void)
 
 void vApplicationMallocFailedHook(void)
 {
-    led_set_color(hardware_leds(1), CYAN);
+    led_set_color(hardware_leds(1), MAGENTA);
     while (1);
 }
 

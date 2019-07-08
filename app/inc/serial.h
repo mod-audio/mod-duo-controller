@@ -91,6 +91,7 @@ typedef struct SERIAL_T {
 */
 
 void serial_init(serial_t *serial);
+void serial_enable_interupt(serial_t *serial);
 uint32_t serial_send(uint8_t uart_id, const uint8_t *data, uint32_t data_size);
 uint32_t serial_read(uint8_t uart_id, uint8_t *data, uint32_t data_size);
 uint32_t serial_read_until(uint8_t uart_id, uint8_t *data, uint32_t data_size, uint8_t token);
