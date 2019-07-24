@@ -762,8 +762,6 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
     // send the data to GUI
     comm_webgui_send(buffer, i);
 
-led_set_color(hardware_leds(1), GREEN);
-
     // waits the pedalboard loaded message to be received
     comm_webgui_wait_response();
 }
@@ -1395,7 +1393,7 @@ static void bank_config_update(uint8_t bank_func_idx)
                     // the minimum value is 1 because the option 0 is 'back to banks list'
                     else g_current_pedalboard = 1;
                 }
-                led_set_color(hardware_leds(1), RED);
+                
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
@@ -1403,8 +1401,6 @@ static void bank_config_update(uint8_t bank_func_idx)
             }
             break;
     }
-
-    led_set_color(hardware_leds(1), BLUE);
 
     // updates the footers
     bank_config_footer();
