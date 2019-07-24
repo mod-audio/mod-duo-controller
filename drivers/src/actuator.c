@@ -507,7 +507,7 @@ void actuators_clock(void)
                         continue;
                 }
 
-                 encoder->state = (seq >> 2);
+                encoder->state = (seq >> 2);
 
                  if (firsttick)
                      acceleration_count++;
@@ -552,7 +552,6 @@ void actuators_clock(void)
 
                     encoder->counter = 0;
                 }
-                break;
         }
     }
 }

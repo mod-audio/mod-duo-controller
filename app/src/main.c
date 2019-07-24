@@ -166,7 +166,7 @@ static void actuators_cb(void *actuator)
     if (g_protocol_bussy)
     {
         if (!naveg_dialog_status()) return;
-    }
+    }  
 
     static uint8_t i, info[ACTUATORS_QUEUE_SIZE][3];
 
@@ -194,9 +194,12 @@ static void actuators_cb(void *actuator)
 ************************************************************************************************************************
 */
 
+
 static void procotol_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
+
+    hardware_eneble_serial_interupt(WEBGUI_SERIAL);
 
     while (1)
     {
@@ -206,7 +209,6 @@ static void procotol_task(void *pvParameters)
         // blocks until receive a new message
         ringbuff_t *rb = comm_webgui_read();
         msg_size = ringbuff_read_until(rb, g_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE, 0);
-
         // parses the message
         if (msg_size > 0)
         {
@@ -262,10 +264,6 @@ static void actuators_task(void *pvParameters)
 
     while (1)
     {
-        if (g_protocol_bussy)
-        {
-            if (!naveg_dialog_status()) return;
-        }  
 
         portBASE_TYPE xStatus;
 

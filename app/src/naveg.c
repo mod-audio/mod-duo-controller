@@ -155,10 +155,7 @@ static int get_display_by_id(uint8_t id, uint8_t type)
 
     if (type == FOOT)
     {
-        if (id >= 2)
-            return 1;
-        else
-            return 0;
+    	return id;
     }
     //encoder
     return id;
@@ -351,7 +348,7 @@ static void foot_control_add(control_t *control)
     uint8_t i;
 
     // checks if the actuator is used like bank function
-    if (bank_config_check(control->hw_id))
+    if (bank_config_check(control->hw_id - ENCODERS_COUNT))
     {
         data_free_control(control);
         return;
@@ -764,6 +761,8 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
 
     // send the data to GUI
     comm_webgui_send(buffer, i);
+
+led_set_color(hardware_leds(1), GREEN);
 
     // waits the pedalboard loaded message to be received
     comm_webgui_wait_response();
@@ -1339,7 +1338,7 @@ static uint8_t bank_config_check(uint8_t foot)
 
     for (i = 1; i < BANK_FUNC_AMOUNT; i++)
     {
-        if (g_bank_functions[i].hw_id == foot &&
+        if (g_bank_functions[i].hw_id - ENCODERS_COUNT == foot &&
             g_bank_functions[i].function != BANK_FUNC_NONE)
         {
             return i;
@@ -1378,7 +1377,7 @@ static void bank_config_update(uint8_t bank_func_idx)
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank - 1, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
 
@@ -1396,14 +1395,16 @@ static void bank_config_update(uint8_t bank_func_idx)
                     // the minimum value is 1 because the option 0 is 'back to banks list'
                     else g_current_pedalboard = 1;
                 }
-
+                led_set_color(hardware_leds(1), RED);
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank - 1, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
     }
+
+    led_set_color(hardware_leds(1), BLUE);
 
     // updates the footers
     bank_config_footer();
@@ -1436,7 +1437,7 @@ static void bank_config_footer(void)
         {
             case BANK_FUNC_TRUE_BYPASS:
                 bypass = 0; // FIX: get true bypass state
-                led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), bypass ? BLACK : TRUE_BYPASS_COLOR);
+                led_set_color(hardware_leds(bank_conf->hw_id -  ENCODERS_COUNT), bypass ? BLACK : TRUE_BYPASS_COLOR);
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
                 screen_footer(bank_conf->hw_id- ENCODERS_COUNT, TRUE_BYPASS_FOOTER_TEXT,
@@ -1704,6 +1705,8 @@ void naveg_inc_control(uint8_t display)
 
     // applies the control value
     control_set(display, control);
+
+
 }
 
 void naveg_dec_control(uint8_t display)
@@ -2005,11 +2008,12 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
 
     // checks if the foot is used like bank function
     uint8_t bank_func_idx = bank_config_check(foot);
+
     if (bank_func_idx)
     {
         bank_config_update(bank_func_idx);
         return;
-    }
+    }        
 
     // checks if there is assigned control
     if (g_foots[foot] == NULL) return;
@@ -2017,7 +2021,6 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
     g_foots[foot]->scroll_dir = pressed;
 
     control_set(foot, g_foots[foot]);
-    
 }
 
 
@@ -2171,7 +2174,7 @@ void naveg_bank_config(bank_config_t *bank_conf)
     if (bank_conf->function >= BANK_FUNC_AMOUNT) return;
 
     // checks the actuator type and actuator id
-    if (bank_conf->hw_id > SLOTS_COUNT) return;
+    if (bank_conf->hw_id > ENCODERS_COUNT + FOOTSWITCHES_COUNT) return;
 
     uint8_t i;
     for (i = 1; i < BANK_FUNC_AMOUNT; i++)

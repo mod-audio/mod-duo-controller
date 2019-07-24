@@ -272,7 +272,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define LOAD_SNAPSHOT_COMMAND         "sl %i"
 //clear a snapshot <snapshot_id>
 #define CLEAR_SNAPSHOT_COMMAND        "ss_c"
-//the HMI is ready to boot <current_page> <display_brightness>
+//the HMI is ready to boot
 #define BOOT_HMI_CMD                  "boot %i %i %s ..."
 //get input cv bias
 #define CV_BIAS_GET_CMD               "g_cvb"
@@ -297,6 +297,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CONTROL_PROP_TOGGLED        32
 #define CONTROL_PROP_LOGARITHMIC    64
 #define CONTROL_PROP_INTEGER        128
+#define CONTROL_PROP_REVERSE_ENUM   256
+
 
 //// Banks functions definition
 #define BANK_FUNC_NONE              0

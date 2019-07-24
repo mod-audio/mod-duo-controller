@@ -51,7 +51,7 @@ typedef struct SCALE_POINT_T {
 typedef struct CONTROL_T {
     uint8_t hw_id;
     char *label, *unit;
-    uint8_t properties;
+    uint16_t properties;
     float value, minimum, maximum;
     int32_t step, steps;
     uint8_t scale_points_count;

@@ -123,7 +123,9 @@ control_t *data_parse_control(char **data)
         control->properties = CONTROL_PROP_LOGARITHMIC;
     else if (CONTROL_PROP_INTEGER & properties_mask)
         control->properties = CONTROL_PROP_INTEGER;
-
+    else if (CONTROL_PROP_REVERSE_ENUM & properties_mask)
+        control->properties = CONTROL_PROP_REVERSE_ENUM;
+    
     // checks if has scale points
     uint8_t i = 0;
     if (len >= (min_params+1) && (control->properties == CONTROL_PROP_ENUMERATION ||
