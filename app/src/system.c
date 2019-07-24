@@ -193,14 +193,14 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
         if (!dir)
         {
             float_to_str(item->data.value, value, 8, 1);
-            cli_command("mod-amixer in 0 xvol ", CLI_CACHE_ONLY);
+            cli_command("mod-amixer in 0 dvol ", CLI_CACHE_ONLY);
             cli_command(value, CLI_DISCARD_RESPONSE);
         }
         //DAC (output)
         else
         {
             float_to_str(item->data.value, value, 8, 1);
-            cli_command("mod-amixer out 0 xvol ", CLI_CACHE_ONLY);
+            cli_command("mod-amixer out 0 dvol ", CLI_CACHE_ONLY);
             cli_command(value, CLI_DISCARD_RESPONSE);
         }
     }
@@ -210,7 +210,7 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
         {
             cli_command("mod-amixer ", CLI_CACHE_ONLY);
             cli_command(source, CLI_CACHE_ONLY);
-            cli_command(" xvol", CLI_CACHE_ONLY);
+            cli_command(" dvol", CLI_CACHE_ONLY);
             response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
 
             char str[LINE_BUFFER_SIZE+1];
@@ -244,7 +244,7 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
             float_to_str(item->data.value, value, 8, 1);
             cli_command("mod-amixer ", CLI_CACHE_ONLY);
             cli_command(source, CLI_CACHE_ONLY);
-            cli_command(" xvol ", CLI_CACHE_ONLY);
+            cli_command(" dvol ", CLI_CACHE_ONLY);
             cli_command(value, CLI_DISCARD_RESPONSE);
         }
     }
@@ -537,14 +537,14 @@ void system_volume_cb(void *arg, int event)
             case IN1_VOLUME:
                 source = "in 1";
                 min = 0;
-                max = 78.0;
+                max = 102.0;
                 step = 1.0;
                 break;
 
             case IN2_VOLUME:
                 source = "in 2";
                 min = 0.0;
-                max = 78.0;
+                max = 102.0;
                 step = 1.0;
                 break;
 
@@ -621,7 +621,7 @@ void system_sl_in_cb (void *arg, int event)
         if (g_sl_in == 1)
         {
             float_to_str(g_gains_volumes[IN1_VOLUME - VOLUME_ID], value_bfr, 8, 1);
-            cli_command("mod-amixer in 0 xvol ", CLI_CACHE_ONLY);
+            cli_command("mod-amixer in 0 dvol ", CLI_CACHE_ONLY);
             cli_command(value_bfr, CLI_DISCARD_RESPONSE);
             //keep everything in sync
             g_gains_volumes[IN2_VOLUME - VOLUME_ID] = g_gains_volumes[IN1_VOLUME - VOLUME_ID];
@@ -654,7 +654,7 @@ void system_sl_out_cb (void *arg, int event)
             //also set the gains to the same value
             char value_bfr[8] = {};
             float_to_str(g_gains_volumes[OUT1_VOLUME - VOLUME_ID], value_bfr, 8, 1);
-            cli_command("mod-amixer out 0 xvol ", CLI_CACHE_ONLY);
+            cli_command("mod-amixer out 0 dvol ", CLI_CACHE_ONLY);
             cli_command(value_bfr, CLI_DISCARD_RESPONSE);
             //keep everything in sync
             g_gains_volumes[OUT2_VOLUME - VOLUME_ID] = g_gains_volumes[OUT1_VOLUME - VOLUME_ID];
