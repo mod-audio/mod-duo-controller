@@ -2280,7 +2280,6 @@ void naveg_enter(uint8_t display)
             }
             else if (g_current_item->desc->parent_id == ROOT_ID)
             {
-                led_set_color(hardware_leds(1), RED);
                 // calls the action callback
                 if ((g_current_item->desc->action_cb)) g_current_item->desc->action_cb(g_current_item, MENU_EV_ENTER);
             }
