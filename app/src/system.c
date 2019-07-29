@@ -21,7 +21,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-
+#include "led.h"
 /*
 ************************************************************************************************************************
 *           LOCAL DEFINES
@@ -97,6 +97,7 @@ uint8_t g_MIDI_clk_src = 0;
 uint8_t g_play_status = 0;
 uint8_t g_tuner_mute = 0;
 uint8_t g_display_brightness = 2;
+uint8_t g_footswitch_navigation = 0;
 
 /*
 ************************************************************************************************************************
@@ -578,12 +579,31 @@ void system_volume_cb(void *arg, int event)
 
 void system_banks_cb(void *arg, int event)
 {
-    UNUSED_PARAM(arg);
+    menu_item_t *item = arg;
 
     if (event == MENU_EV_ENTER)
     {
-        naveg_toggle_tool(DISPLAY_TOOL_NAVIG, 1);
+        //trigger footswitch navigation
+        if (naveg_tool_is_on(DISPLAY_TOOL_NAVIG))
+        {   
+            if (g_footswitch_navigation == 0) g_footswitch_navigation= 1;
+            else g_footswitch_navigation = 0;
+            set_item_value(FOOT_NAVIG_CMD, g_footswitch_navigation);
+        }
+        
+        //just enter banks menu
+        else 
+        {
+            naveg_toggle_tool(DISPLAY_TOOL_NAVIG, 1);
+        }
     }
+
+    char str_bfr[31] = {};
+    strcpy(str_bfr,"FOOT NAV ");
+    strcat(str_bfr,(g_footswitch_navigation ? option_enabled : option_disabled));
+    add_chars_to_menu_name(item, str_bfr);
+
+    if ((event == MENU_EV_ENTER) && naveg_tool_is_on(DISPLAY_TOOL_NAVIG)) naveg_menu_refresh(DISPLAY_LEFT);
 }
 
 void system_display_cb(void *arg, int event)

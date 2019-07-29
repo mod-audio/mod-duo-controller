@@ -59,7 +59,7 @@
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
 #define TASK_NAME(name)     ((const signed char * const) (name))
 
-#define ACTUATORS_QUEUE_SIZE    10
+#define ACTUATORS_QUEUE_SIZE    5
 
 
 /*
@@ -335,8 +335,6 @@ static void cli_task(void *pvParameters)
     UNUSED_PARAM(pvParameters);
 
     hardware_coreboard_power(COREBOARD_INIT);
-
-    hardware_eneble_serial_interupt(CLI_SERIAL);
 
     while (1)
     {

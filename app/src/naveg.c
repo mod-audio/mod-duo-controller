@@ -933,9 +933,21 @@ static void menu_enter(uint8_t display_id)
         }
 
         // updates the current item
-        if ((item->desc->type != MENU_TOGGLE) && (item->desc->type != MENU_NONE)) g_current_item = node->data;
-        // updates these 3 specific toggle items (toggle items with pop-ups)
-        if (item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP) g_current_item = node->data;
+        if (((item->desc->type != MENU_TOGGLE) && (item->desc->type != MENU_NONE)) || item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP )
+        {
+            g_current_item = node->data;
+
+            if (item->desc->id == BANKS_ID || item->desc->id == TUNER_ID)
+            {
+                g_current_main_item = node->data;
+            }
+            else 
+            {
+                g_current_main_item = node->parent->data;
+            }
+        }
+        //// updates these 3 specific toggle items (toggle items with pop-ups)
+        //if (item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP) g_current_item = node->data;
     }
     else if (item->desc->type == MENU_CONFIRM || item->desc->type == MENU_CANCEL || item->desc->type == MENU_OK ||
             item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP)
@@ -1001,7 +1013,7 @@ static void menu_enter(uint8_t display_id)
 
             //all the menu items that have a value that needs to be updated when enterign the menu
             if ((item_child->desc->type == MENU_SET) || (item_child->desc->type == MENU_TOGGLE) || (item_child->desc->type == MENU_VOL) ||
-                (item_child->desc->id == TEMPO_ID) || (item_child->desc->id == TUNER_ID) || (item_child->desc->id == BYPASS_ID) )
+                (item_child->desc->id == TEMPO_ID) || (item_child->desc->id == TUNER_ID) || (item_child->desc->id == BYPASS_ID) || (item_child->desc->id == BANKS_ID))
                 {
                     //update the value with menu_ev_none
                    if (item_child->desc->action_cb) item_child->desc->action_cb(item_child, MENU_EV_NONE);
@@ -1010,7 +1022,7 @@ static void menu_enter(uint8_t display_id)
         }
 
         //prevent toggling of these items.
-        if ((item->desc->id != TEMPO_ID) && (item->desc->id != BYPASS_ID))
+        if ((item->desc->id != TEMPO_ID) && (item->desc->id != BYPASS_ID) && (item->desc->id != BANKS_ID))
         {
             // calls the action callback
             if ((item->desc->action_cb)) item->desc->action_cb(item, MENU_EV_ENTER);
@@ -1367,7 +1379,7 @@ static void bank_config_update(uint8_t bank_func_idx)
                 {
                     // if previous pedalboard function is not being used, does circular selection
                     // the minimum value is 1 because the option 0 is 'back to banks list'
-                    if (g_bank_functions[BANK_FUNC_PEDALBOARD_PREV].function == BANK_FUNC_NONE) g_current_pedalboard = 1;
+                    if (g_bank_functions[BANK_FUNC_PEDALBOARD_PREV].function == BANK_FUNC_NONE) g_current_pedalboard = 0;
                     // if previous pedalboard function is being used, stops on maximum value
                     else g_current_pedalboard = g_selected_pedalboards->count - 1;
                 }
@@ -1375,7 +1387,7 @@ static void bank_config_update(uint8_t bank_func_idx)
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank - 1, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
 
@@ -1391,13 +1403,13 @@ static void bank_config_update(uint8_t bank_func_idx)
                         g_current_pedalboard = g_selected_pedalboards->count - 1;
                     // if next pedalboard function is being used, stops on minimum value
                     // the minimum value is 1 because the option 0 is 'back to banks list'
-                    else g_current_pedalboard = 1;
+                    else g_current_pedalboard = 0;
                 }
-                
+
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank - 1, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
     }
@@ -2148,6 +2160,12 @@ uint8_t naveg_is_tool_mode(uint8_t display)
     return display_has_tool_enabled(display);
 }
 
+uint8_t naveg_tool_is_on(uint8_t tool)
+{
+    return tool_is_on(tool);
+}
+
+
 void naveg_set_banks(bp_list_t *bp_list)
 {
     if (!g_initialized) return;
@@ -2181,9 +2199,9 @@ void naveg_bank_config(bank_config_t *bank_conf)
             bank_conf->hw_id != g_bank_functions[i].hw_id)
         {
             // updates the screen and led
-            led_set_color(hardware_leds(g_bank_functions[i].hw_id), BLACK);
+            led_set_color(hardware_leds(g_bank_functions[i].hw_id - ENCODERS_COUNT), BLACK);
             if (!display_has_tool_enabled(g_bank_functions[i].hw_id))
-                screen_footer(g_bank_functions[i].hw_id, NULL, NULL);
+                screen_footer(g_bank_functions[i].hw_id - ENCODERS_COUNT, NULL, NULL);
 
             // removes the function
             g_bank_functions[i].function = BANK_FUNC_NONE;
@@ -2201,9 +2219,9 @@ void naveg_bank_config(bank_config_t *bank_conf)
             // if the new function is none, updates the screen and led
             if (bank_conf->function == BANK_FUNC_NONE)
             {
-                led_set_color(hardware_leds(bank_conf->hw_id), BLACK);
+                led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), BLACK);
                 if (!display_has_tool_enabled(bank_conf->hw_id))
-                    screen_footer(bank_conf->hw_id, NULL, NULL);
+                    screen_footer(bank_conf->hw_id - ENCODERS_COUNT, NULL, NULL);
 
                 // checks if has control assigned in this foot
                 // if yes, updates the footer screen
@@ -2256,8 +2274,13 @@ void naveg_enter(uint8_t display)
             {
                 menu_enter(display);
             }
-            else if ((g_current_item->desc->id == TEMPO_ID) || (g_current_item->desc->id == BYPASS_ID))
+            else if (tool_is_on(DISPLAY_TOOL_NAVIG))
             {
+                system_banks_cb(g_current_main_item, MENU_EV_ENTER);
+            }
+            else if (g_current_item->desc->parent_id == ROOT_ID)
+            {
+                led_set_color(hardware_leds(1), RED);
                 // calls the action callback
                 if ((g_current_item->desc->action_cb)) g_current_item->desc->action_cb(g_current_item, MENU_EV_ENTER);
             }
@@ -2537,7 +2560,7 @@ void naveg_menu_item_changed_cb(uint8_t item_ID, uint8_t value)
         //menu update for left or right? or both? 
 
         //if left menu item, no need to change right
-        if((item_ID == TUNER_ID) || (item_ID == TEMPO_ID))
+        if((item_ID == TUNER_ID) || (item_ID == TEMPO_ID) || (item_ID == BANKS_ID))
         {
             naveg_menu_refresh(DISPLAY_LEFT);
             return;

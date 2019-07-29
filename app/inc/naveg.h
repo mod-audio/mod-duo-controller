@@ -137,6 +137,7 @@ void naveg_menu_item_changed_cb(uint8_t item_ID, uint8_t value);
 
 uint8_t naveg_dialog_status(void);
 
+uint8_t naveg_tool_is_on(uint8_t tool);
 /*
 ************************************************************************************************************************
 *           CONFIGURATION ERRORS

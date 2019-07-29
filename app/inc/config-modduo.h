@@ -286,6 +286,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define MENU_ITEM_CHANGE              "mc %i %i ..."
 //clear both snapshots and controls 
 #define CLEAR_PEDALBOARD              "pb_cl"
+//enable footswitch bank navigation
+#define FOOT_NAVIG_CMD                "fn %i"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0
@@ -400,7 +402,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 #define SYSTEM_MENU     \
     {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                       , 0},  \
-    {"BANKS",                           MENU_NONE,      BANKS_ID,           ROOT_ID,        system_banks_cb            , 0},  \
+    {"BANKS",                           MENU_SET,       BANKS_ID,           ROOT_ID,        system_banks_cb            , 0},  \
     {"CURRENT PEDALBOARD",              MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                       , 0},  \
     {"SAVE STATE",                      MENU_CONFIRM,   PEDALBOARD_SAVE_ID, PEDALBOARD_ID,  system_pedalboard_cb       , 0},  \
     {"RESET STATE",                     MENU_CONFIRM,   PEDALBOARD_RESET_ID,PEDALBOARD_ID,  system_pedalboard_cb       , 0},  \

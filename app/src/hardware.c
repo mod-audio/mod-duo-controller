@@ -318,6 +318,8 @@ void hardware_setup(void)
     #endif
     serial_init(&g_serial[3]);
     #endif
+
+    hardware_eneble_serial_interupt(CLI_SERIAL);
 }
 
 void hardware_eneble_serial_interupt(uint8_t serial_port)
