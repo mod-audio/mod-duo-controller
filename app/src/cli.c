@@ -460,6 +460,8 @@ uint8_t cli_restore(uint8_t action)
             BUTTON_PRESSED(actuator_get_status(knob)))
         {
             // force entering on restore mode using debug
+            //if boot step 1, force interupt without delay
+            //TODO: make modduo and modduo EMMC compatible 
             g_cli.boot_step = 0;
             g_cli.debug = 1;
             g_cli.status = LOGGED_ON_RESTORE;

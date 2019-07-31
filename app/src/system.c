@@ -369,9 +369,13 @@ void system_update_menu_value(uint8_t item_ID, uint8_t value)
             g_display_brightness = value;
             hardware_glcd_brightness(g_display_brightness); 
         break;
+        case FOOTSWITCH_NAV_ID: 
+            g_footswitch_navigation = value;
+        break;
         default:
             return;
         break;
+        
     }
 }
 
