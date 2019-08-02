@@ -662,7 +662,7 @@ static void parse_banks_list(void *data, menu_item_t *item)
 {
     (void) item;
     char **list = data;
-    uint32_t count = strarr_length(list) - 2;
+    uint32_t count = strarr_length(list);
 
     // workaround freeze when opening menu
     delay_ms(20);
@@ -937,7 +937,7 @@ static void menu_enter(uint8_t display_id)
         {
             g_current_item = node->data;
 
-            if (item->desc->id == BANKS_ID || item->desc->id == TUNER_ID)
+            if ((item->desc->id == BANKS_ID && (!naveg_ui_status())) || item->desc->id == TUNER_ID)
             {
                 g_current_main_item = node->data;
             }
@@ -1028,7 +1028,7 @@ static void menu_enter(uint8_t display_id)
             if ((item->desc->action_cb)) item->desc->action_cb(item, MENU_EV_ENTER);
         }
     }
-    else if (item->desc->type == MENU_CONFIRM ||item->desc->type == MENU_OK || item->desc->parent_id == PROFILES_ID ||  item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP)
+    else if (item->desc->type == MENU_CONFIRM ||item->desc->type == MENU_OK || item->desc->parent_id == PROFILES_ID ||  item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP || item->desc->type == MENU_MESSAGE)
     {
         if (item->desc->type == MENU_OK)
         {
@@ -1273,6 +1273,8 @@ static void menu_down(uint8_t display_id)
     {
         if (item->data.hover < (item->data.list_count - 1))
             item->data.hover++;
+
+                        
     }
 
     if (item->desc->action_cb)
@@ -1375,7 +1377,7 @@ static void bank_config_update(uint8_t bank_func_idx)
             {
                 g_current_pedalboard++;
 
-                if (g_current_pedalboard == g_selected_pedalboards->count)
+                if (g_current_pedalboard >= g_selected_pedalboards->count)
                 {
                     // if previous pedalboard function is not being used, does circular selection
                     // the minimum value is 1 because the option 0 is 'back to banks list'
@@ -1387,7 +1389,7 @@ static void bank_config_update(uint8_t bank_func_idx)
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank - 1, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
 
@@ -1396,20 +1398,20 @@ static void bank_config_update(uint8_t bank_func_idx)
             {
                 g_current_pedalboard--;
 
-                if (g_current_pedalboard == 0)
+                if (g_current_pedalboard <= 1)
                 {
                     // if next pedalboard function is not being used, does circular selection
                     if (g_bank_functions[BANK_FUNC_PEDALBOARD_NEXT].function == BANK_FUNC_NONE)
                         g_current_pedalboard = g_selected_pedalboards->count - 1;
                     // if next pedalboard function is being used, stops on minimum value
                     // the minimum value is 1 because the option 0 is 'back to banks list'
-                    else g_current_pedalboard = 0;
+                    else g_current_pedalboard = 1;
                 }
 
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank - 1, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
             }
             break;
     }
@@ -1574,7 +1576,7 @@ void naveg_initial_state(char *bank_uid, char *pedalboard_uid, char **pedalboard
     }
 
     // sets the bank index
-    uint8_t bank_id = atoi(bank_uid) + 1;
+    uint8_t bank_id = atoi(bank_uid);
     g_current_bank = bank_id;
     if (g_banks)
     {
@@ -1613,6 +1615,8 @@ void naveg_ui_connection(uint8_t status)
     if (status == UI_CONNECTED)
     {
         g_ui_connected = 1;
+        //turn of footswitch navigation internal value
+        system_update_menu_value(BANKS_ID, 0);
     }
     else
     {
@@ -2267,16 +2271,14 @@ void naveg_enter(uint8_t display)
     {
         if (display == 0)
         {
-            //we dont use this knob in dialog mode
-            if (dialog_active) return;
-
             if (tool_is_on(DISPLAY_TOOL_TUNER) || dialog_active)
             {
                 menu_enter(display);
             }
             else if (tool_is_on(DISPLAY_TOOL_NAVIG))
             {
-                system_banks_cb(g_current_main_item, MENU_EV_ENTER);
+                if (!naveg_ui_status())
+                    system_banks_cb(g_current_main_item, MENU_EV_ENTER);
             }
             else if (g_current_item->desc->parent_id == ROOT_ID)
             {
@@ -2317,7 +2319,6 @@ void naveg_up(uint8_t display)
             }
             else if (tool_is_on(DISPLAY_TOOL_SYSTEM))
             {
-
                 if (((g_current_menu == g_menu) || (g_current_item->desc->id == ROOT_ID)) && (dialog_active != 1))
                 {
                     g_current_main_menu = g_current_menu;

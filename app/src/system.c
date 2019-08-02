@@ -589,13 +589,17 @@ void system_banks_cb(void *arg, int event)
         //trigger footswitch navigation
         if (naveg_tool_is_on(DISPLAY_TOOL_NAVIG))
         {   
-            if (g_footswitch_navigation == 0) g_footswitch_navigation= 1;
+            if (!naveg_ui_status())
+            {
+                if (g_footswitch_navigation == 0) g_footswitch_navigation= 1;
+                else g_footswitch_navigation = 0;
+                set_item_value(FOOT_NAVIG_CMD, g_footswitch_navigation);
+            }
             else g_footswitch_navigation = 0;
-            set_item_value(FOOT_NAVIG_CMD, g_footswitch_navigation);
         }
         
         //just enter banks menu
-        else 
+        else if (!naveg_ui_status())
         {
             naveg_toggle_tool(DISPLAY_TOOL_NAVIG, 1);
         }

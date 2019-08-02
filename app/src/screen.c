@@ -269,6 +269,8 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
 {
     if (display_id > FOOTSWITCHES_COUNT) return;
 
+    if (naveg_is_tool_mode(display_id)) return;
+
     glcd_t *display = hardware_glcds(display_id);
 
     // horizontal footer line
@@ -310,7 +312,12 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
     footer.top_margin = 0;
     footer.bottom_margin = 0;
     footer.left_margin = 0;
-    footer.width = (value == NULL ? DISPLAY_WIDTH : FOOTER_NAME_WIDTH);
+    if ((value[0] == '+') || (value[0] == '-'))
+    {
+        //bigger width when going through banks
+        footer.width = 120; 
+    }
+    else footer.width = (value == NULL ? DISPLAY_WIDTH : FOOTER_NAME_WIDTH);
     footer.right_margin = 0;
     footer.text = name;
     footer.y = 52;
@@ -479,7 +486,6 @@ void screen_system_menu(menu_item_t *item)
         }
         else if (title_box.text[strlen(item->name) - 1] == ']')
         {
-            led_set_color(hardware_leds(1), RED);
             title_box.text = item->desc->name;
         }
         widget_textbox(display, &title_box);
