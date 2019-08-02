@@ -2428,11 +2428,14 @@ uint8_t naveg_dialog(const char *msg)
     display_disable_all_tools(DISPLAY_LEFT);
     tool_on(DISPLAY_TOOL_SYSTEM, DISPLAY_LEFT);
     tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, DISPLAY_RIGHT);
+
     g_current_menu = dummy_menu;
     g_current_item = dummy_menu->data;
+
     screen_system_menu(g_current_item);
 
     dialog_active = 1;
+
     if (xSemaphoreTake(g_dialog_sem, portMAX_DELAY) == pdTRUE)
     {
         dialog_active = 0;

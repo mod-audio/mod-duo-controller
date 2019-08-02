@@ -466,20 +466,24 @@ void screen_system_menu(menu_item_t *item)
     title_box.align = ALIGN_CENTER_TOP;
     title_box.text = item->name;
 
-    if ((item->desc->type == MENU_NONE) || (item->desc->type == MENU_TOGGLE))
+    if (item->desc->type != MENU_CONFIRM2)
     {
-        if (last_item)
+        if ((item->desc->type == MENU_NONE) || (item->desc->type == MENU_TOGGLE))
         {
-            title_box.text = last_item->name;
-            if (title_box.text[strlen(item->name) - 1] == ']')
-                title_box.text = last_item->desc->name;
+            if (last_item)
+            {
+                title_box.text = last_item->name;
+                if (title_box.text[strlen(item->name) - 1] == ']')
+                    title_box.text = last_item->desc->name;
+            }
         }
+        else if (title_box.text[strlen(item->name) - 1] == ']')
+        {
+            led_set_color(hardware_leds(1), RED);
+            title_box.text = item->desc->name;
+        }
+        widget_textbox(display, &title_box);
     }
-    else if (title_box.text[strlen(item->name) - 1] == ']')
-    {
-        title_box.text = item->desc->name;
-    }
-    widget_textbox(display, &title_box);
 
     // title line separator
     glcd_hline(display, 0, 9, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
@@ -505,6 +509,7 @@ void screen_system_menu(menu_item_t *item)
     popup.width = DISPLAY_WIDTH;
     popup.height = DISPLAY_HEIGHT;
     popup.font = SMfont;
+
     switch (item->desc->type)
     {
         case MENU_LIST:
