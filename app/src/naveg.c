@@ -1798,7 +1798,10 @@ void naveg_set_control(uint8_t hw_id, float value)
         //encoder
         if (hw_id < ENCODERS_COUNT)
         {
-            screen_control(id, control);
+            if (!display_has_tool_enabled(hw_id))
+            {
+                screen_control(id, control);
+            }
         }
         //button
         else if (hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT)
@@ -2082,7 +2085,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         if (tool == DISPLAY_TOOL_NAVIG)
         {
             //if we have a bank selected
-            if ((g_current_bank != -1) && g_pb_selected && (g_banks->hover != 0))
+            if ((g_current_bank != -1) && !naveg_ui_status())
             {
                 g_banks->hover = g_current_bank;
                 bp_enter();
@@ -2572,7 +2575,10 @@ void naveg_menu_item_changed_cb(uint8_t item_ID, uint8_t value)
         //otherwise update right for sure
         else 
         {
-            naveg_menu_refresh(DISPLAY_RIGHT);
+            if (!tool_is_on(DISPLAY_TOOL_TUNER))
+            {
+                naveg_menu_refresh(DISPLAY_RIGHT);
+            }
 
             //for bypass, left might change as well, we update just in case
             if (((item_ID - BYPASS_ID) < 10) && ((item_ID - BYPASS_ID) > 0) )
