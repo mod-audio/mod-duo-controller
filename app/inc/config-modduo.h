@@ -439,9 +439,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"SEND MIDI CLOCK",                 MENU_TOGGLE,    MIDI_CLK_SEND,      MIDI_ID,        system_midi_send_cb        , 0},  \
     {"SNAPSHOT NAV MIDI CHAN",          MENU_SET,       MIDI_SNAPSHOT,      MIDI_ID,        system_ss_prog_change_cb   , 0},  \
     {"PEDALBOARD NAV MIDI CHN",         MENU_SET,       MIDI_PEDALBOARD,    MIDI_ID,        system_pb_prog_change_cb   , 0},  \
-    {"BLUETOOTH",                       MENU_LIST,      BLUETOOTH_ID,       SYSTEM_ID,      system_bluetooth_cb        , 0},  \
+    {"BLUETOOTH",                       MENU_LIST,      BLUETOOTH_ID,       SYSTEM_ID,      system_bluetooth_cb        , 1},  \
     {"< BACK TO SYSTEM",                MENU_RETURN,    BLUETOOTH_ID+1,     BLUETOOTH_ID,   NULL                       , 0},  \
-    {"ENABLE DISCOVERY",                MENU_OK,        BLUETOOTH_DISCO_ID, BLUETOOTH_ID,   system_bluetooth_cb        , 0},  \
+    {"ENABLE DISCOVERY",                MENU_OK,        BLUETOOTH_DISCO_ID, BLUETOOTH_ID,   system_bluetooth_cb        , 1},  \
     {"STATUS:",                         MENU_NONE,      BLUETOOTH_ID+3,     BLUETOOTH_ID,   NULL                       , 0},  \
     {"NAME:",                           MENU_NONE,      BLUETOOTH_ID+4,     BLUETOOTH_ID,   NULL                       , 0},  \
     {"ADDRESS:",                        MENU_NONE,      BLUETOOTH_ID+5,     BLUETOOTH_ID,   NULL                       , 0},  \

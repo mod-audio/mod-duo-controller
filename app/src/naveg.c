@@ -932,22 +932,10 @@ static void menu_enter(uint8_t display_id)
             item->desc->type = ((item->desc->id == PEDALBOARD_ID) ? MENU_LIST : MENU_NONE);
         }
 
-        // updates the current item
-        if (((item->desc->type != MENU_TOGGLE) && (item->desc->type != MENU_NONE)) || item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP )
-        {
-            g_current_item = node->data;
-
-            if ((item->desc->id == BANKS_ID && (!naveg_ui_status())) || item->desc->id == TUNER_ID)
-            {
-                g_current_main_item = node->data;
-            }
-            else 
-            {
-                g_current_main_item = node->parent->data;
-            }
-        }
-        //// updates these 3 specific toggle items (toggle items with pop-ups)
-        //if (item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP) g_current_item = node->data;
+ 		// updates the current item
+       	if ((item->desc->type != MENU_TOGGLE) && (item->desc->type != MENU_NONE)) g_current_item = node->data;
+       	// updates this specific toggle items (toggle items with pop-ups)
+        if (item->desc->parent_id == PROFILES_ID) g_current_item = node->data;
     }
     else if (item->desc->type == MENU_CONFIRM || item->desc->type == MENU_CANCEL || item->desc->type == MENU_OK ||
             item->desc->parent_id == PROFILES_ID || item->desc->id == EXP_CV_INP || item->desc->id == HP_CV_OUTP)
@@ -1032,6 +1020,12 @@ static void menu_enter(uint8_t display_id)
     {
         if (item->desc->type == MENU_OK)
         {
+    	    //if bleutooth activate right away
+            if (item->desc->id == BLUETOOTH_DISCO_ID)
+            {
+                item->desc->action_cb(item, MENU_EV_ENTER);
+            }
+            
             // highlights the default button
             item->data.hover = 0;
 
