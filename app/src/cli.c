@@ -473,6 +473,12 @@ uint8_t cli_restore(uint8_t action)
             // send new line to force interrupt
             cli_command(NULL, CLI_RETRIEVE_RESPONSE);
 
+            // send new line to force interrupt
+            cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+
+            // send new line to force interrupt
+            cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+
         }
     }
 

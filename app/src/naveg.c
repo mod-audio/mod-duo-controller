@@ -1989,8 +1989,6 @@ void naveg_next_control(uint8_t display)
     // if is in tool mode return
     if (display_has_tool_enabled(display)) return;
 
-    //naveg_remove_control(display); 
-
     char buffer[128];
     uint8_t i;
 
