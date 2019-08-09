@@ -54,7 +54,7 @@ CFLAGS += -Wa,-adhlns=$(addprefix $(OUT_DIR)/, $(notdir $(addsuffix .lst, $(base
 CFLAGS += -MMD -MP -MF $(OUT_DIR)/dep/$(@F).d
 CFLAGS += -I. $(patsubst %,-I%,$(INC))
 CFLAGS += -D$(CPU_SERIE)
-CFLAGS += -O3
+CFLAGS += -O2
 
 
 # Linker flags
