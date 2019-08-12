@@ -89,7 +89,7 @@ struct TOOL_T {
 
 static control_t *g_controls[ENCODERS_COUNT], *g_foots[FOOTSWITCHES_COUNT];
 static bp_list_t *g_banks, *g_naveg_pedalboards, *g_selected_pedalboards;
-static uint8_t g_bp_state, g_current_pedalboard, g_bp_first, g_pb_selected;
+static uint8_t g_bp_state, g_current_pedalboard, g_pb_selected;
 static node_t *g_menu, *g_current_menu, *g_current_main_menu;
 static menu_item_t *g_current_item, *g_current_main_item;
 static uint8_t g_max_items_list;
@@ -792,7 +792,6 @@ static void bp_enter(void)
         g_naveg_pedalboards->hover = 0;
         bp_list = g_naveg_pedalboards;
         title = g_banks->names[g_banks->hover];
-        g_bp_first = 1;
 
         // sets the selected pedalboard out of range (initial state)
         g_naveg_pedalboards->selected = g_naveg_pedalboards->count;
@@ -817,7 +816,6 @@ static void bp_enter(void)
             // updates selected bank and pedalboard
             g_banks->selected = g_banks->hover;
             g_naveg_pedalboards->selected = g_naveg_pedalboards->hover;
-            g_bp_first=0;
 
             g_pb_selected = 1;
 
@@ -2236,7 +2234,7 @@ void naveg_bank_config(bank_config_t *bank_conf)
 
     // checks if has pedalboards navigation functions and set the pointer to pedalboards list
     if ((bank_conf->function == BANK_FUNC_PEDALBOARD_NEXT ||
-        bank_conf->function == BANK_FUNC_PEDALBOARD_PREV) && g_bp_first == 0)
+        bank_conf->function == BANK_FUNC_PEDALBOARD_PREV))
     {
         g_selected_pedalboards = g_naveg_pedalboards;
     }
