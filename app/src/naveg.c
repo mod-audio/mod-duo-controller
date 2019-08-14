@@ -243,6 +243,7 @@ static void step_to_value(control_t *control)
             control->value = control->minimum * pow(control->maximum / control->minimum, p_step);
             break;
 
+        case CONTROL_PROP_REVERSE_ENUM:
         case CONTROL_PROP_ENUMERATION:
         case CONTROL_PROP_SCALE_POINTS:
             control->value = control->scale_points[control->step]->value;
@@ -289,6 +290,7 @@ static void display_control_add(control_t *control)
                 (control->steps - 1) * log(control->value / control->minimum) / log(control->maximum / control->minimum);
             break;
 
+        case CONTROL_PROP_REVERSE_ENUM:
         case CONTROL_PROP_ENUMERATION:
         case CONTROL_PROP_SCALE_POINTS:
             control->step = 0;
@@ -476,6 +478,7 @@ static void foot_control_add(control_t *control)
                          (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
             break;
 
+        case CONTROL_PROP_REVERSE_ENUM:
         case CONTROL_PROP_ENUMERATION:
         case CONTROL_PROP_SCALE_POINTS:
             // updates the led
@@ -556,6 +559,7 @@ static void control_set(uint8_t id, control_t *control)
             }
             break;
 
+        case CONTROL_PROP_REVERSE_ENUM:
         case CONTROL_PROP_ENUMERATION:
         case CONTROL_PROP_SCALE_POINTS:
             if (control->hw_id < ENCODERS_COUNT)
@@ -566,9 +570,19 @@ static void control_set(uint8_t id, control_t *control)
             }
             else if ((ENCODERS_COUNT <= control->hw_id) && ( control->hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT))
             {
-                // increments the step
-                control->step++;
-                if (control->step >= control->scale_points_count) control->step = 0;
+                if (control->properties != CONTROL_PROP_REVERSE_ENUM)
+                {
+                    // increments the step
+                    control->step++;
+                    if (control->step >= control->scale_points_count) control->step = 0;
+                }
+                else 
+                {
+                    // decrements the step
+                    control->step--;
+                    if (control->step <= control->minimum) control->step = control->scale_points_count;
+                }
+
 
                 // updates the value and the screen
                 control->value = control->scale_points[control->step]->value;
@@ -1695,7 +1709,7 @@ void naveg_inc_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
 
-    if ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS))
+    if  ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM))
     {
         //check/sets the direction
         if (control->scroll_dir == 0)
@@ -1737,7 +1751,7 @@ void naveg_dec_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
     
-    if ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS))
+    if  ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM))
     {
         //check/sets the direction
         if (control->scroll_dir != 0)
@@ -1952,6 +1966,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                              (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
                 break;
 
+            case CONTROL_PROP_REVERSE_ENUM:
             case CONTROL_PROP_ENUMERATION:
             case CONTROL_PROP_SCALE_POINTS:
                 // updates the led

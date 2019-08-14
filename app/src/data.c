@@ -81,7 +81,7 @@ control_t *data_parse_control(char **data)
     uint32_t len = strarr_length(data);
     const uint32_t min_params = 9;
     uint16_t properties_mask = 0;
-    
+
     // checks if all data was received
     if (len < min_params)
         return NULL;
@@ -107,7 +107,9 @@ control_t *data_parse_control(char **data)
         goto error;
 
     control->properties = 0;
-    if (CONTROL_PROP_ENUMERATION & properties_mask)
+    if (CONTROL_PROP_REVERSE_ENUM & properties_mask)
+        control->properties = CONTROL_PROP_REVERSE_ENUM;
+    else if (CONTROL_PROP_ENUMERATION & properties_mask)
         control->properties = CONTROL_PROP_ENUMERATION;
     else if (CONTROL_PROP_SCALE_POINTS & properties_mask)
         control->properties = CONTROL_PROP_SCALE_POINTS;
@@ -123,13 +125,11 @@ control_t *data_parse_control(char **data)
         control->properties = CONTROL_PROP_LOGARITHMIC;
     else if (CONTROL_PROP_INTEGER & properties_mask)
         control->properties = CONTROL_PROP_INTEGER;
-    else if (CONTROL_PROP_REVERSE_ENUM & properties_mask)
-        control->properties = CONTROL_PROP_REVERSE_ENUM;
-    
+
     // checks if has scale points
     uint8_t i = 0;
     if (len >= (min_params+1) && (control->properties == CONTROL_PROP_ENUMERATION ||
-        control->properties == CONTROL_PROP_SCALE_POINTS))
+        control->properties == CONTROL_PROP_SCALE_POINTS || control->properties == CONTROL_PROP_REVERSE_ENUM))
     {
         control->scale_points_count = atoi(data[min_params]);
         if (control->scale_points_count == 0) return control;
@@ -155,7 +155,6 @@ control_t *data_parse_control(char **data)
 error:
     data_free_control(control);
     return NULL;
-
 }
 
 void data_free_control(control_t *control)
