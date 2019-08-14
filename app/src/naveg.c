@@ -1711,13 +1711,6 @@ void naveg_inc_control(uint8_t display)
 
     if  ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM))
     {
-        //check/sets the direction
-        if (control->scroll_dir == 0)
-        {
-            control->scroll_dir = 1;
-            control_set(display, control);
-            return;
-        }
         // increments the step
         if (control->step < (control->steps - 1))
             control->step++;
@@ -1753,13 +1746,6 @@ void naveg_dec_control(uint8_t display)
     
     if  ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM))
     {
-        //check/sets the direction
-        if (control->scroll_dir != 0)
-        {
-            control->scroll_dir = 0;
-            control_set(display, control);
-            return;
-        }
         // decrements the step
         if (control->step > 0)
             control->step--;
