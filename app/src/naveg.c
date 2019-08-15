@@ -531,6 +531,9 @@ static void foot_control_rm(uint8_t hw_id)
             // check if foot isn't being used to bank function
             if (! bank_config_check(i))
             {
+                // default state of led blink (no blink)
+                led_blink(hardware_leds(i), 0, 0);
+
                 // turn off the led
                 led_set_color(hardware_leds(i), BLACK);
 
@@ -1463,6 +1466,9 @@ static void bank_config_footer(void)
         bank_conf = &g_bank_functions[i];
         color_t color;
 
+        // default state of led blink (no blink)
+        led_blink(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), 0, 0);
+
         switch (bank_conf->function)
         {
             case BANK_FUNC_TRUE_BYPASS:
@@ -1813,7 +1819,7 @@ void naveg_set_control(uint8_t hw_id, float value)
         else if (hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT)
         {
             // default state of led blink (no blink)
-            led_blink(hardware_leds(control->hw_id), 0, 0);
+            led_blink(hardware_leds(control->hw_id - ENCODERS_COUNT), 0, 0);
 
             uint8_t i;
             switch (control->properties)
@@ -2210,6 +2216,9 @@ void naveg_bank_config(bank_config_t *bank_conf)
             bank_conf->function == g_bank_functions[i].function &&
             bank_conf->hw_id != g_bank_functions[i].hw_id)
         {
+            // default state of led blink (no blink)
+            led_blink(hardware_leds(g_bank_functions[i].hw_id - ENCODERS_COUNT), 0, 0);
+
             // updates the screen and led
             led_set_color(hardware_leds(g_bank_functions[i].hw_id - ENCODERS_COUNT), BLACK);
             if (!display_has_tool_enabled(g_bank_functions[i].hw_id))
@@ -2231,6 +2240,9 @@ void naveg_bank_config(bank_config_t *bank_conf)
             // if the new function is none, updates the screen and led
             if (bank_conf->function == BANK_FUNC_NONE)
             {
+                // default state of led blink (no blink)
+                led_blink(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), 0, 0);
+
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), BLACK);
                 if (!display_has_tool_enabled(bank_conf->hw_id))
                     screen_footer(bank_conf->hw_id - ENCODERS_COUNT, NULL, NULL);
