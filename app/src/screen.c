@@ -445,8 +445,14 @@ void screen_system_menu(menu_item_t *item)
     }
     else
     {
-        display = hardware_glcds(1);
+        display = hardware_glcds(DISPLAY_RIGHT);
     }
+
+    //we dont display a menu on the right screen when we are in the banks.
+    if ((display == hardware_glcds(DISPLAY_RIGHT)) && (naveg_tool_is_on(DISPLAY_TOOL_NAVIG)))
+    {
+        return;
+    } 
 
     // clear screen
     glcd_clear(display, GLCD_WHITE);
