@@ -195,7 +195,7 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
 
     bp_list->hover = 0;
     bp_list->selected = 0;
-    bp_list->count = list_count;
+    bp_list->count = list_count - 1;
     bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count + 1));
     bp_list->uids = (char **) MALLOC(sizeof(char *) * (list_count + 1));
 
