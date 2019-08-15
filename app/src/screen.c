@@ -22,6 +22,7 @@
 #define FOOTER_NAME_WIDTH       ((DISPLAY_WIDTH * 50)/100)
 #define FOOTER_VALUE_WIDTH      (DISPLAY_WIDTH - FOOTER_NAME_WIDTH)
 
+enum {BANKS_LIST, PEDALBOARD_LIST};
 
 /*
 ************************************************************************************************************************
@@ -353,7 +354,15 @@ void screen_tool(uint8_t tool, uint8_t display_id)
 
         case DISPLAY_TOOL_NAVIG:
             bp_list = naveg_get_banks();
-            screen_bp_list("BANKS", bp_list);
+
+            if (naveg_banks_mode_pb() == BANKS_LIST)
+            {
+                screen_bp_list("BANKS", bp_list);
+            }
+            else 
+            {
+                screen_bp_list(naveg_get_current_pb_name(), bp_list);
+            }
             break;
     }
 }

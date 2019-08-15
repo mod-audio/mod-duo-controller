@@ -834,10 +834,11 @@ static void bp_enter(void)
         {
             // updates selected bank and pedalboard
             g_banks->selected = g_banks->hover;
-            g_naveg_pedalboards->selected = g_naveg_pedalboards->hover;
-            g_bp_first=0;
 
+            g_bp_first=0;
             g_pb_selected = 1;
+
+            g_naveg_pedalboards->selected = g_naveg_pedalboards->hover; 
 
             // request to GUI load the pedalboard
             send_load_pedalboard(g_banks->selected , g_naveg_pedalboards->uids[g_naveg_pedalboards->selected]);
@@ -2096,7 +2097,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         if (tool == DISPLAY_TOOL_NAVIG)
         {
             //if we have a bank selected
-            if ((g_current_bank != -1) && !naveg_ui_status())
+            if ((g_current_bank != -1) && !naveg_ui_status() && g_bp_state == BANKS_LIST )
             {
                 g_banks->hover = g_current_bank;
                 bp_enter();
@@ -2195,7 +2196,7 @@ bp_list_t *naveg_get_banks(void)
 {
     if (!g_initialized) return NULL;
 
-    return g_banks;
+    return (g_bp_state == BANKS_LIST) ? g_banks : g_naveg_pedalboards;
 }
 
 void naveg_bank_config(bank_config_t *bank_conf)
@@ -2328,7 +2329,10 @@ void naveg_up(uint8_t display)
             //we dont use this knob in dialog mode
             if (dialog_active) return;
 
-            if ( (tool_is_on(DISPLAY_TOOL_TUNER)) || (tool_is_on(DISPLAY_TOOL_NAVIG)) )
+            //this is the top item, we cant go more up
+            if (tool_is_on(DISPLAY_TOOL_NAVIG)) return;
+
+            if (tool_is_on(DISPLAY_TOOL_TUNER))
             {
                     naveg_toggle_tool((tool_is_on(DISPLAY_TOOL_TUNER) ? DISPLAY_TOOL_TUNER : DISPLAY_TOOL_NAVIG), display);
                     tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, 1);
@@ -2345,7 +2349,7 @@ void naveg_up(uint8_t display)
                     g_current_main_item = g_current_item;
                 }
                 menu_up(display);
-                if (dialog_active != 1) menu_enter(display);
+                if ((dialog_active != 1) || tool_is_on(DISPLAY_TOOL_NAVIG)) menu_enter(display);
             }
         }
         else if (display == 1)
@@ -2492,6 +2496,11 @@ uint8_t naveg_dialog_status(void)
     return dialog_active;
 }
 
+char* naveg_get_current_pb_name(void)
+{
+    return g_banks->names[g_banks->hover];
+}
+
 void naveg_set_index(uint8_t update, uint8_t display, uint8_t new_index, uint8_t new_index_count)
 {
     static uint8_t index[ENCODERS_COUNT] = {};
@@ -2515,6 +2524,11 @@ uint8_t naveg_tap_tempo_status(uint8_t id)
 {
     if (g_tap_tempo[id].state == TT_INIT) return 0;
     else return 1;
+}
+
+uint8_t naveg_banks_mode_pb(void)
+{
+    return g_bp_state;
 }
 
 void naveg_settings_refresh(uint8_t display_id)

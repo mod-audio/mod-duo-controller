@@ -603,7 +603,7 @@ void system_banks_cb(void *arg, int event)
         }
         
         //just enter banks menu
-        else if (!naveg_ui_status())
+        else if ((!naveg_ui_status()) && !naveg_tool_is_on(DISPLAY_TOOL_NAVIG))
         {
             naveg_toggle_tool(DISPLAY_TOOL_NAVIG, 1);
         }
