@@ -560,6 +560,9 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // defines how much time wait for console response (in milliseconds)
 #define CLI_RESPONSE_TIMEOUT        500
 
+//volume message timeout in a multiple of 500us
+#define VOL_MESSAGE_TIMEOUT         200
+
 //// Dynamic menory allocation
 // defines the heap size (in bytes)
 #define RTOS_HEAP_SIZE  (32 * 1024)

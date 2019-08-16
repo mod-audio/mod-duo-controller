@@ -181,10 +181,13 @@ void set_item_value(char *command, uint8_t value)
 
 static void volume(menu_item_t *item, int event, const char *source, float min, float max, float step)
 {
+	static uint32_t last_message_time = 0; 
     char value[8] = {};
     static const char *response = NULL;
     cli_command(NULL, CLI_DISCARD_RESPONSE);
     uint8_t dir = (source[0] == 'i') ? 0 : 1;
+
+    uint32_t message_time = hardware_timestamp();
 
     if (((event == MENU_EV_UP) || (event == MENU_EV_DOWN)) && (dir ? g_sl_out : g_sl_in) && (item->desc->id != HP_VOLUME))
     {
@@ -192,16 +195,26 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
         //PGA (input)
         if (!dir)
         {
-            float_to_str(item->data.value, value, 8, 1);
-            cli_command("mod-amixer in 0 dvol ", CLI_CACHE_ONLY);
-            cli_command(value, CLI_DISCARD_RESPONSE);
+        	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
+        	{
+            	float_to_str(item->data.value, value, 8, 1);
+            	cli_command("mod-amixer in 0 dvol ", CLI_CACHE_ONLY);
+            	cli_command(value, CLI_DISCARD_RESPONSE);
+
+            	last_message_time = message_time;
+        	}
         }
         //DAC (output)
         else
         {
-            float_to_str(item->data.value, value, 8, 1);
-            cli_command("mod-amixer out 0 dvol ", CLI_CACHE_ONLY);
-            cli_command(value, CLI_DISCARD_RESPONSE);
+        	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
+        	{
+            	float_to_str(item->data.value, value, 8, 1);
+            	cli_command("mod-amixer out 0 dvol ", CLI_CACHE_ONLY);
+            	cli_command(value, CLI_DISCARD_RESPONSE);
+            	
+            	last_message_time = message_time;
+        	}
         }
     }
     else
@@ -241,11 +254,16 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
         }
         else if ((event == MENU_EV_UP) ||(event == MENU_EV_DOWN))
         {
-            float_to_str(item->data.value, value, 8, 1);
-            cli_command("mod-amixer ", CLI_CACHE_ONLY);
-            cli_command(source, CLI_CACHE_ONLY);
-            cli_command(" dvol ", CLI_CACHE_ONLY);
-            cli_command(value, CLI_DISCARD_RESPONSE);
+        	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
+        	{
+            	float_to_str(item->data.value, value, 8, 1);
+            	cli_command("mod-amixer ", CLI_CACHE_ONLY);
+            	cli_command(source, CLI_CACHE_ONLY);
+            	cli_command(" dvol ", CLI_CACHE_ONLY);
+            	cli_command(value, CLI_DISCARD_RESPONSE);
+
+            	last_message_time = message_time;
+            }
         }
     }
 
