@@ -675,6 +675,35 @@ static void control_set(uint8_t id, control_t *control)
     }
 }
 
+static void parse_control_page(void *data, menu_item_t *item)
+{
+	(void) item;
+	char **list = data;
+
+    control_t *control = data_parse_control(list);
+
+    naveg_add_control(control);
+}
+
+static void request_control_page(uint8_t dir)
+{
+    // sets the response callback
+    comm_webgui_set_response_cb(parse_control_page, NULL);
+
+    char buffer[128];
+    uint8_t i;
+
+    i = copy_command(buffer, CONTROL_SET_CMD); 
+
+    // insert the direction on buffer
+    i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
+
+    // sends the data to GUI
+    comm_webgui_send(buffer, i);
+
+    // waits the banks list be received
+    comm_webgui_wait_response();
+}
 
 static void parse_banks_list(void *data, menu_item_t *item)
 {
@@ -1721,8 +1750,16 @@ void naveg_inc_control(uint8_t display)
         // increments the step
         if (control->step < (control->steps - 1))
             control->step++;
+        //we are at the end of our list ask for more data
         else
-            return;
+        {
+        	//request new data, a new control we be assigned after
+        	request_control_page(1);
+
+        	//since a new control is assigned we can return
+        	return;
+        }
+        	
     }
     else
     {
@@ -1737,8 +1774,6 @@ void naveg_inc_control(uint8_t display)
 
     // applies the control value
     control_set(display, control);
-
-
 }
 
 void naveg_dec_control(uint8_t display)
@@ -1756,8 +1791,15 @@ void naveg_dec_control(uint8_t display)
         // decrements the step
         if (control->step > 0)
             control->step--;
+        //we are at the end of our list ask for more data
         else
-            return;
+        {
+        	//request new data, a new control we be assigned after
+        	request_control_page(0);
+
+        	//since a new control is assigned we can return
+        	return;
+        }
     }
     else
     {
