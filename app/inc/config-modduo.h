@@ -168,7 +168,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // initial_state <current_bank_uid> <current_pedalboard_uid> [current_pedalboards_list]
 #define INITIAL_STATE_CMD             "is %s %s ..."
 // banks
-#define BANKS_CMD                     "banks"
+#define BANKS_CMD                     "banks %i"
 // bank_config <hw_id> <function>
 #define BANK_CONFIG_CMD               "bank_config %i %i"
 // pedalboards <bank_uid>
