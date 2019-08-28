@@ -1862,7 +1862,7 @@ void naveg_inc_control(uint8_t display)
     if  ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM))
     {
         // increments the step
-        if (control->step < (control->steps - 1))
+        if (control->step < (control->steps - 2))
             control->step++;
         //we are at the end of our list ask for more data
         else
@@ -1903,7 +1903,7 @@ void naveg_dec_control(uint8_t display)
     if  ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM))
     {
         // decrements the step
-        if (control->step > 0)
+        if (control->step > 1)
             control->step--;
         //we are at the end of our list ask for more data
         else
