@@ -695,8 +695,12 @@ static void request_control_page(control_t *control, uint8_t dir)
 
     i = copy_command(buffer, CONTROL_PAGE_CMD); 
 
-   // insert the hw_id on buffer
+    // insert the hw_id on buffer
     i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
+
+    //add a space
+    strcat(buffer, " ");
+    i++;
 
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
