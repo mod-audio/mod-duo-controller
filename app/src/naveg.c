@@ -630,6 +630,12 @@ static void request_banks_list(uint8_t dir)
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
 
+    // inserts one space
+    buffer[i++] = ' ';
+
+    // insert the current hover on buffer
+    i += int_to_str(g_banks->hover, &buffer[i], sizeof(buffer) - i, 0);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
@@ -668,7 +674,7 @@ static void request_pedalboards_list(const char *bank_uid)
 
     i = copy_command((char *)buffer, PEDALBOARDS_CMD);
 
-    // insert the direction on buffer (2 means no up or down, default (first page request))
+    // insert the direction on buffer
     i += int_to_str(0, &buffer[i], sizeof(buffer) - i, 0);
 
     // inserts one space
@@ -705,6 +711,12 @@ static void request_next_pedalboards_page(uint8_t dir, const char *bank_uid)
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
 
+    // inserts one space
+    buffer[i++] = ' ';
+
+    // insert the current hover on buffer
+    i += int_to_str(g_naveg_pedalboards->hover, &buffer[i], sizeof(buffer) - i, 0);
+    
     // inserts one space
     buffer[i++] = ' ';
 
@@ -1025,36 +1037,57 @@ static void bp_up(void)
 
     if (g_bp_state == BANKS_LIST)
     {
-        if (g_banks->hover > 0)
-        {
+    	//if we are nearing the final 3 items of the page, and we already have the end of the page in memory, or if we just need to go down
+    	if((g_banks->hover < 3) && (g_banks->page_min == 0)) 
+    	{
         	//we still have banks in our list
          	g_banks->hover--;
 
          	bp_list = g_banks;
         	title = "BANKS";
-        }
-        //we need to request a new page
-        else
-        {
-        	request_next_bank_page(0);
-        }
+    	}
+    	else if (g_banks->hover < g_banks->page_min + 3)
+    	{
+    		//request new page
+    		request_next_bank_page(0);
+    	}
+    	else 
+    	{
+        	//we still have banks in our list
+         	g_banks->hover--;
+
+         	bp_list = g_banks;
+        	title = "BANKS";
+    	}
     }
     else if (g_bp_state == PEDALBOARD_LIST)
     {
-        if (g_naveg_pedalboards->hover > 0)
-        {
+    	//need a 3 here because of the amount of items thats above it in the menu
+    	//we pass 3 items before the final page item, we display 3 items before
+
+    	//if we are nearing the final 3 items of the page, and we already have the end of the page in memory, or if we just need to go down
+    	if((g_naveg_pedalboards->hover < 3) && (g_naveg_pedalboards->page_min == 0)) 
+    	{
+    		//go down till the end
+    		//we still have items in our list
+         	g_naveg_pedalboards->hover--;
+
+         	bp_list = g_naveg_pedalboards;
+        	title = g_banks->names[g_banks->hover];
+    	}
+    	else if (g_naveg_pedalboards->hover < g_naveg_pedalboards->page_min + 3)
+    	{
+    		//request new page
+    		request_next_pedalboards_page(0, g_banks->uids[g_banks->hover]);
+    	}
+    	else 
+    	{
         	//we still have items in our list
          	g_naveg_pedalboards->hover--;
 
          	bp_list = g_naveg_pedalboards;
         	title = g_banks->names[g_banks->hover];
-        }
-        //we need to request a new page
-        else
-        {
-        	request_next_pedalboards_page(0, g_banks->uids[g_banks->hover]);
-        }
-
+    	}
 
     }
     else return;
@@ -1071,37 +1104,58 @@ static void bp_down(void)
 
     if (g_bp_state == BANKS_LIST)
     {
-        if (g_banks->hover < (g_banks->count - 1))
-        {
+
+    	//if we are nearing the final 3 items of the page, and we already have the end of the page in memory, or if we just need to go down
+    	if((g_banks->hover < (g_banks->count - 4)) && (g_banks->page_min == (g_banks->count - 1))) 
+    	{
         	//we still have banks in our list
-      	 	g_banks->hover++;
+         	g_banks->hover++;
 
-      	 	bp_list = g_banks;
+         	bp_list = g_banks;
         	title = "BANKS";
-        }
-        //we need to request a new page
-        else
-        {
-            request_next_bank_page(1);
-        }
+    	}
+    	else if (g_banks->hover < g_banks->page_min + 3)
+    	{
+    		//request new page
+    		request_next_bank_page(1);
+    	}
+    	else 
+    	{
+        	//we still have banks in our list
+         	g_banks->hover++;
 
-
+         	bp_list = g_banks;
+        	title = "BANKS";
+    	}
     }
     else if (g_bp_state == PEDALBOARD_LIST)
     {
-        if (g_naveg_pedalboards->hover < (g_naveg_pedalboards->count - 1))
-        {
-        	//we still have pedalboards in our list
+   		//need a 3 here because of the amount of items thats above it in the menu
+    	//we pass 3 items before the final page item, we display 3 items before
+
+    	//if we are nearing the final 3 items of the page, and we already have the end of the page in memory, or if we just need to go down
+    	if((g_naveg_pedalboards->hover < (g_naveg_pedalboards->count - 4)) && (g_naveg_pedalboards->page_max == g_naveg_pedalboards->count)) 
+    	{
+    		//go up till the end
+    		//we still have items in our list
          	g_naveg_pedalboards->hover++;
 
          	bp_list = g_naveg_pedalboards;
         	title = g_banks->names[g_banks->hover];
-        }
-        //we need to request a new page
-        else
-        {
-            request_next_pedalboards_page(1, g_banks->uids[g_banks->hover]);
-        }
+    	}
+    	else if (g_naveg_pedalboards->hover < g_naveg_pedalboards->page_min + 3)
+    	{
+    		//request new page
+    		request_next_pedalboards_page(1, g_banks->uids[g_banks->hover]);
+    	}
+    	else 
+    	{
+        	//we still have items in our list
+         	g_naveg_pedalboards->hover++;
+
+         	bp_list = g_naveg_pedalboards;
+        	title = g_banks->names[g_banks->hover];
+    	}
     }
     else return;
 
