@@ -683,6 +683,13 @@ static void parse_control_page(void *data, menu_item_t *item)
     control_t *control = data_parse_control(list);
 
     naveg_add_control(control);
+
+    //if encoder, redraw the index
+    if (control->hw_id < ENCODERS_COUNT)
+    {
+    	//draw index, no need to update so no data
+    	naveg_set_index(0, control->hw_id, 0, 0);
+    }
 }
 
 static void request_control_page(control_t *control, uint8_t dir)
