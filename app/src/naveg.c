@@ -553,7 +553,7 @@ static void parse_control_page(void *data, menu_item_t *item)
 	(void) item;
 	char **list = data;
 
-    control_t *control = data_parse_control(list);
+    control_t *control = data_parse_control(list[1]);
 
     naveg_add_control(control);
 
