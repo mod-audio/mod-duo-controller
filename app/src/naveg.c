@@ -578,9 +578,8 @@ static void request_control_page(control_t *control, uint8_t dir)
     // insert the hw_id on buffer
     i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
 
-    //add a space
-    strcat(buffer, " ");
-    i++;
+    // inserts one space
+    buffer[i++] = ' ';
 
     //bitmask for the page direction and wrap around
 	uint8_t bitmask = 0;
@@ -702,6 +701,9 @@ static void request_next_pedalboards_page(uint8_t dir, const char *bank_uid)
 
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
+
+    // inserts one space
+    buffer[i++] = ' ';
 
     // copy the bank uid
     const char *p = bank_uid;

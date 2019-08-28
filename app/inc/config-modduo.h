@@ -167,12 +167,12 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CONTROL_INDEX_SET             "si %i %i %i"
 // initial_state <current_bank_uid> <current_pedalboard_uid> [current_pedalboards_list]
 #define INITIAL_STATE_CMD             "is %s %s ..."
-// banks
+// banks <direction>
 #define BANKS_CMD                     "banks %i"
 // bank_config <hw_id> <function>
 #define BANK_CONFIG_CMD               "bank_config %i %i"
 // pedalboards <bank_uid>
-#define PEDALBOARDS_CMD               "pedalboards %s"
+#define PEDALBOARDS_CMD               "pedalboards %i %s"
 // pedalboard <bank_id> <pedalboard_uid>
 #define PEDALBOARD_CMD                "pb %i %s"
 // pedalboard_reset
