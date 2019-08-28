@@ -669,7 +669,7 @@ static void request_pedalboards_list(const char *bank_uid)
     i = copy_command((char *)buffer, PEDALBOARDS_CMD);
 
     // insert the direction on buffer (2 means no up or down, default (first page request))
-    i += int_to_str(2, &buffer[i], sizeof(buffer) - i, 0);
+    i += int_to_str(0, &buffer[i], sizeof(buffer) - i, 0);
 
     // copy the bank uid
     const char *p = bank_uid;
@@ -2262,7 +2262,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         {
             case DISPLAY_TOOL_NAVIG:
                 // initial state to banks/pedalboards navigation
-                if (!banks_loaded) request_banks_list(2);
+                if (!banks_loaded) request_banks_list(0);
                 banks_loaded = 1;
                 tool_off(DISPLAY_TOOL_SYSTEM_SUBMENU);
                 display = 1;
