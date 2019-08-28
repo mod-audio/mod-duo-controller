@@ -602,6 +602,9 @@ static void parse_banks_list(void *data, menu_item_t *item)
     char **list = data;
     uint32_t count = strarr_length(list);
 
+    g_banks->page_min = (atoi(list[2]));
+    g_banks->page_min = (atoi(list[3]));  
+
     // workaround freeze when opening menu
     delay_ms(20);
 
@@ -609,7 +612,7 @@ static void parse_banks_list(void *data, menu_item_t *item)
     if (g_banks) data_free_banks_list(g_banks);
 
     // parses the list
-    g_banks = data_parse_banks_list(&list[2], count);
+    g_banks = data_parse_banks_list(&list[4], count);
     if (g_banks) 
         g_banks->selected = g_current_bank;
     naveg_set_banks(g_banks);
@@ -656,6 +659,9 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
     char **list = data;
     uint32_t count = strarr_length(list) - 2;
 
+    g_naveg_pedalboards->page_min = (atoi(list[2]));
+    g_naveg_pedalboards->page_min = (atoi(list[3])); 
+
     // workaround freeze when opening menu
     delay_ms(20);
 
@@ -664,7 +670,7 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
         data_free_pedalboards_list(g_naveg_pedalboards);
 
     // parses the list
-    g_naveg_pedalboards = data_parse_pedalboards_list(&list[2], count);
+    g_naveg_pedalboards = data_parse_pedalboards_list(&list[4], count);
 }
 
 static void request_pedalboards_list(const char *bank_uid)
