@@ -588,7 +588,7 @@ static void request_control_page(control_t *control, uint8_t dir)
 	if (control->hw_id >= ENCODERS_COUNT) bitmask |= LIST_WRAP_AROUND;
 
     // insert the direction on buffer
-    i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
+    i += int_to_str(bitmask, &buffer[i], sizeof(buffer) - i, 0);
 
     // sends the data to GUI
     comm_webgui_send(buffer, i);
