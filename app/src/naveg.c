@@ -23,6 +23,9 @@
 #include <math.h>
 #include <float.h>
 
+#define LIST_PAGE_UP      	 (1 << 1)
+#define LIST_WRAP_AROUND	 (1 << 2)
+
 
 //reset actuator queue
 void reset_queue(void);
@@ -545,136 +548,6 @@ static void foot_control_rm(uint8_t hw_id)
     }
 }
 
-static void control_set(uint8_t id, control_t *control)
-{
-    uint32_t now, delta;
-
-    switch (control->properties)
-    {
-        case CONTROL_PROP_LINEAR:
-        case CONTROL_PROP_INTEGER:
-        case CONTROL_PROP_LOGARITHMIC:
-            if (control->hw_id < ENCODERS_COUNT)
-            {
-                // update the screen
-                if (!display_has_tool_enabled(id))
-                    screen_control(id, control);
-            }
-            break;
-
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
-            if (control->hw_id < ENCODERS_COUNT)
-            {
-                // update the screen
-                if (!display_has_tool_enabled(id))
-                    screen_control(id, control);
-            }
-            else if ((ENCODERS_COUNT <= control->hw_id) && ( control->hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT))
-            {
-                if (control->properties != CONTROL_PROP_REVERSE_ENUM)
-                {
-                    // increments the step
-                    control->step++;
-                    if (control->step >= control->scale_points_count) control->step = 0;
-                }
-                else 
-                {
-                    // decrements the step
-                    control->step--;
-                    if (control->step <= control->minimum) control->step = control->scale_points_count - 1;
-                }
-
-
-                // updates the value and the screen
-                control->value = control->scale_points[control->step]->value;
-                if (!display_has_tool_enabled(get_display_by_id(id, FOOT)))
-                    screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[control->step]->label);
-            }
-            break;
-
-        case CONTROL_PROP_TOGGLED:
-        case CONTROL_PROP_BYPASS:
-            if (control->value > 0) control->value = 0;
-            else control->value = 1;
-
-            // to update the footer and screen
-            foot_control_add(control);
-            break;
-
-        case CONTROL_PROP_TRIGGER:
-
-            // to update the footer and screen
-            foot_control_add(control);
-            break;
-
-        case CONTROL_PROP_TAP_TEMPO:
-            now = hardware_timestamp();
-            delta = now - g_tap_tempo[control->hw_id - ENCODERS_COUNT].time;
-            g_tap_tempo[control->hw_id - ENCODERS_COUNT].time = now;
-
-            if (g_tap_tempo[control->hw_id - ENCODERS_COUNT].state == TT_COUNTING)
-            {
-                // checks if delta almost suits maximum allowed value
-                if ((delta > g_tap_tempo[control->hw_id - ENCODERS_COUNT].max) &&
-                    ((delta - TAP_TEMPO_MAXVAL_OVERFLOW) < g_tap_tempo[control->hw_id - ENCODERS_COUNT].max))
-                {
-                    // sets delta to maxvalue if just slightly over, instead of doing nothing
-                    delta = g_tap_tempo[control->hw_id - ENCODERS_COUNT].max;
-                }
-
-                // checks the tap tempo timeout
-                if (delta <= g_tap_tempo[control->hw_id - ENCODERS_COUNT].max)
-                {
-                    //get current value of tap tempo in ms
-                    float currentTapVal = convert_to_ms(control->unit, control->value);
-                    //check if it should be added to running average
-                    if (abs(currentTapVal - delta) < TAP_TEMPO_TAP_HYSTERESIS)
-                    {
-                        // converts and update the tap tempo value
-                        control->value = (2*(control->value) + convert_from_ms(control->unit, delta)) / 3;
-                    }
-                    else
-                    {
-                        // converts and update the tap tempo value
-                        control->value = convert_from_ms(control->unit, delta);
-                    }
-
-                    // checks the values bounds
-                    if (control->value > control->maximum) control->value = control->maximum;
-                    if (control->value < control->minimum) control->value = control->minimum;
-
-                    // updates the foot
-                    foot_control_add(control);
-                }
-            }
-            break;
-    }
-
-    char buffer[128];
-    uint8_t i;
-
-    i = copy_command(buffer, CONTROL_SET_CMD);
-
-    // insert the hw_id on buffer
-    i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
-    buffer[i++] = ' ';
-
-    // insert the value on buffer
-    i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
-    buffer[i] = 0;
-
-    // send the data to GUI
-    comm_webgui_send(buffer, i);
-
-
-    //wait for a response from mod-ui
-    if (g_should_wait_for_webgui) {
-        comm_webgui_wait_response();
-    }
-}
-
 static void parse_control_page(void *data, menu_item_t *item)
 {
 	(void) item;
@@ -708,6 +581,11 @@ static void request_control_page(control_t *control, uint8_t dir)
     //add a space
     strcat(buffer, " ");
     i++;
+
+    //bitmask for the page direction and wrap around
+	uint8_t bitmask = 0;
+	if (dir) bitmask |= LIST_PAGE_UP;
+	if (control->hw_id >= ENCODERS_COUNT) bitmask |= LIST_WRAP_AROUND;
 
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
@@ -891,6 +769,155 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
 
     // waits the pedalboard loaded message to be received
     comm_webgui_wait_response();
+}
+
+static void control_set(uint8_t id, control_t *control)
+{
+    uint32_t now, delta;
+
+    switch (control->properties)
+    {
+        case CONTROL_PROP_LINEAR:
+        case CONTROL_PROP_INTEGER:
+        case CONTROL_PROP_LOGARITHMIC:
+            if (control->hw_id < ENCODERS_COUNT)
+            {
+                // update the screen
+                if (!display_has_tool_enabled(id))
+                    screen_control(id, control);
+            }
+            break;
+
+        case CONTROL_PROP_REVERSE_ENUM:
+        case CONTROL_PROP_ENUMERATION:
+        case CONTROL_PROP_SCALE_POINTS:
+        	//encoder (pagination is done in the increment / decrement functions)
+            if (control->hw_id < ENCODERS_COUNT)
+            {
+                // update the screen
+                if (!display_has_tool_enabled(id))
+                    screen_control(id, control);
+            }
+            //footswitch (need to check for pages here)
+            else if ((ENCODERS_COUNT <= control->hw_id) && ( control->hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT))
+            {
+                if (control->properties != CONTROL_PROP_REVERSE_ENUM)
+                {
+        			// increments the step
+        			if (control->step < (control->steps - 1))
+        			    control->step++;
+        			//we need to request a new page
+        			else 
+        			{
+        				//request new data, a new control we be assigned after
+        				request_control_page(control, 1);
+
+        				//since a new control is assigned we can return
+        				return;
+        			}
+                }
+                else 
+                {
+        			// decrements the step
+        			if (control->step > 0)
+        			    control->step--;
+        			//we are at the end of our list ask for more data
+        			else
+        			{
+        			    //request new data, a new control we be assigned after
+        			    request_control_page(control, 0);
+	
+	        	    	//since a new control is assigned we can return
+        	    		return;
+                	}
+               	}
+
+
+                // updates the value and the screen
+                control->value = control->scale_points[control->step]->value;
+                if (!display_has_tool_enabled(get_display_by_id(id, FOOT)))
+                    screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[control->step]->label);
+            }
+            break;
+
+        case CONTROL_PROP_TOGGLED:
+        case CONTROL_PROP_BYPASS:
+            if (control->value > 0) control->value = 0;
+            else control->value = 1;
+
+            // to update the footer and screen
+            foot_control_add(control);
+            break;
+
+        case CONTROL_PROP_TRIGGER:
+
+            // to update the footer and screen
+            foot_control_add(control);
+            break;
+
+        case CONTROL_PROP_TAP_TEMPO:
+            now = hardware_timestamp();
+            delta = now - g_tap_tempo[control->hw_id - ENCODERS_COUNT].time;
+            g_tap_tempo[control->hw_id - ENCODERS_COUNT].time = now;
+
+            if (g_tap_tempo[control->hw_id - ENCODERS_COUNT].state == TT_COUNTING)
+            {
+                // checks if delta almost suits maximum allowed value
+                if ((delta > g_tap_tempo[control->hw_id - ENCODERS_COUNT].max) &&
+                    ((delta - TAP_TEMPO_MAXVAL_OVERFLOW) < g_tap_tempo[control->hw_id - ENCODERS_COUNT].max))
+                {
+                    // sets delta to maxvalue if just slightly over, instead of doing nothing
+                    delta = g_tap_tempo[control->hw_id - ENCODERS_COUNT].max;
+                }
+
+                // checks the tap tempo timeout
+                if (delta <= g_tap_tempo[control->hw_id - ENCODERS_COUNT].max)
+                {
+                    //get current value of tap tempo in ms
+                    float currentTapVal = convert_to_ms(control->unit, control->value);
+                    //check if it should be added to running average
+                    if (abs(currentTapVal - delta) < TAP_TEMPO_TAP_HYSTERESIS)
+                    {
+                        // converts and update the tap tempo value
+                        control->value = (2*(control->value) + convert_from_ms(control->unit, delta)) / 3;
+                    }
+                    else
+                    {
+                        // converts and update the tap tempo value
+                        control->value = convert_from_ms(control->unit, delta);
+                    }
+
+                    // checks the values bounds
+                    if (control->value > control->maximum) control->value = control->maximum;
+                    if (control->value < control->minimum) control->value = control->minimum;
+
+                    // updates the foot
+                    foot_control_add(control);
+                }
+            }
+            break;
+    }
+
+    char buffer[128];
+    uint8_t i;
+
+    i = copy_command(buffer, CONTROL_SET_CMD);
+
+    // insert the hw_id on buffer
+    i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
+    buffer[i++] = ' ';
+
+    // insert the value on buffer
+    i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
+    buffer[i] = 0;
+
+    // send the data to GUI
+    comm_webgui_send(buffer, i);
+
+    //wait for a response from mod-ui
+    if (g_should_wait_for_webgui) {
+        comm_webgui_wait_response();
+    }
 }
 
 static void bp_enter(void)
