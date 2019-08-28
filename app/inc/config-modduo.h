@@ -288,8 +288,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CLEAR_PEDALBOARD              "pb_cl"
 //enable footswitch bank navigation
 #define FOOT_NAVIG_CMD                "fn %i"
-//next control page
-#define CONTROL_PAGE_CMD              "ncp %i"
+//next control page <hw_id> <up/down>
+#define CONTROL_PAGE_CMD              "ncp %i %i"
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0

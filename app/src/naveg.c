@@ -685,7 +685,7 @@ static void parse_control_page(void *data, menu_item_t *item)
     naveg_add_control(control);
 }
 
-static void request_control_page(uint8_t dir)
+static void request_control_page(control_t *control, uint8_t dir)
 {
     // sets the response callback
     comm_webgui_set_response_cb(parse_control_page, NULL);
@@ -694,6 +694,9 @@ static void request_control_page(uint8_t dir)
     uint8_t i;
 
     i = copy_command(buffer, CONTROL_PAGE_CMD); 
+
+   // insert the hw_id on buffer
+    i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
 
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
@@ -1865,7 +1868,7 @@ void naveg_inc_control(uint8_t display)
         else
         {
         	//request new data, a new control we be assigned after
-        	request_control_page(1);
+        	request_control_page(control, 1);
 
         	//since a new control is assigned we can return
         	return;
@@ -1906,7 +1909,7 @@ void naveg_dec_control(uint8_t display)
         else
         {
         	//request new data, a new control we be assigned after
-        	request_control_page(0);
+        	request_control_page(control, 0);
 
         	//since a new control is assigned we can return
         	return;
