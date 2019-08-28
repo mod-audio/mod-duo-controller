@@ -602,9 +602,6 @@ static void parse_banks_list(void *data, menu_item_t *item)
     char **list = data;
     uint32_t count = strarr_length(list);
 
-    g_banks->page_min = (atoi(list[2]));
-    g_banks->page_max = (atoi(list[3]));  
-
     // workaround freeze when opening menu
     delay_ms(20);
 
@@ -613,8 +610,12 @@ static void parse_banks_list(void *data, menu_item_t *item)
 
     // parses the list
     g_banks = data_parse_banks_list(&list[4], count);
-    if (g_banks) 
+    if (g_banks)
+    {
+        g_banks->page_min = (atoi(list[2]));
+        g_banks->page_max = (atoi(list[3]));
         g_banks->selected = g_current_bank;
+    }
     naveg_set_banks(g_banks);
 }
 
