@@ -603,7 +603,7 @@ static void parse_banks_list(void *data, menu_item_t *item)
     uint32_t count = strarr_length(list);
 
     g_banks->page_min = (atoi(list[2]));
-    g_banks->page_min = (atoi(list[3]));  
+    g_banks->page_max = (atoi(list[3]));  
 
     // workaround freeze when opening menu
     delay_ms(20);
@@ -660,7 +660,7 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
     uint32_t count = strarr_length(list) - 2;
 
     g_naveg_pedalboards->page_min = (atoi(list[2]));
-    g_naveg_pedalboards->page_min = (atoi(list[3])); 
+    g_naveg_pedalboards->page_max = (atoi(list[3])); 
 
     // workaround freeze when opening menu
     delay_ms(20);
