@@ -671,6 +671,9 @@ static void request_pedalboards_list(const char *bank_uid)
     // insert the direction on buffer (2 means no up or down, default (first page request))
     i += int_to_str(0, &buffer[i], sizeof(buffer) - i, 0);
 
+    // inserts one space
+    buffer[i++] = ' ';
+
     // copy the bank uid
     const char *p = bank_uid;
     while (*p)
