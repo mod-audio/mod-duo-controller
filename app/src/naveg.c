@@ -600,7 +600,7 @@ static void parse_banks_list(void *data, menu_item_t *item)
 {
     (void) item;
     char **list = data;
-    uint32_t count = strarr_length(list);
+    uint32_t count = strarr_length(&list[5]);
 
     // workaround freeze when opening menu
     delay_ms(20);
@@ -610,6 +610,7 @@ static void parse_banks_list(void *data, menu_item_t *item)
 
     // parses the list
     g_banks = data_parse_banks_list(&list[5], count);
+
     if (g_banks)
     {
     	g_banks->menu_max = (atoi(list[2]));
@@ -617,6 +618,7 @@ static void parse_banks_list(void *data, menu_item_t *item)
         g_banks->page_max = (atoi(list[4]));
         g_banks->selected = g_current_bank;
     }
+
     naveg_set_banks(g_banks);
 }
 
@@ -2442,7 +2444,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             menu_enter(0);
         }
 
-        //if we are entering banks
+     /*   //if we are entering banks
         if (tool == DISPLAY_TOOL_NAVIG)
         {
             //if we have a bank selected
@@ -2451,7 +2453,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 g_banks->hover = g_current_bank;
                 bp_enter();
             }
-        }
+        }*/
     }
     // changes the display to control mode
     else
