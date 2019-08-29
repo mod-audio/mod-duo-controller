@@ -1071,7 +1071,7 @@ static void bp_up(void)
     	else if (g_banks->page_max == g_banks->count)
     	{
     		//are we back at the middle? request new page
-    		if (g_banks->hover == (g_banks->page_min + 2))
+    		if (g_banks->hover == (g_banks->page_min + 3))
     		{
     			//request new page
     			request_next_bank_page(0);
@@ -1116,7 +1116,7 @@ static void bp_up(void)
     	else if (g_naveg_pedalboards->page_max == g_naveg_pedalboards->count)
     	{
     		 //are we back at the middle? request new page
-    		if (g_banks->hover == (g_banks->page_min + 2))
+    		if (g_banks->hover == (g_banks->page_min + 3))
     		{
     			//request new page
     			request_next_pedalboards_page(0, g_banks->uids[g_banks->selected]);

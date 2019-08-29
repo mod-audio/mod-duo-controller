@@ -171,7 +171,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define BANKS_CMD                     "banks %i %i"
 // bank_config <hw_id> <function>
 #define BANK_CONFIG_CMD               "bank_config %i %i"
-// pedalboards <up/down page> <current pedalboard id> <bank_uid>
+// pedalboards <up/down page> <current page index> <bank_uid>
 #define PEDALBOARDS_CMD               "pedalboards %i %i %s"
 // pedalboard <bank_id> <pedalboard_uid>
 #define PEDALBOARD_CMD                "pb %i %s"
