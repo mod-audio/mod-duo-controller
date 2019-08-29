@@ -664,11 +664,7 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
 {
     (void) item;
     char **list = data;
-    uint32_t count = strarr_length(list) - 2;
-
-    g_naveg_pedalboards->menu_max = (atoi(list[2]));
-    g_naveg_pedalboards->page_min = (atoi(list[3]));
-    g_naveg_pedalboards->page_max = (atoi(list[4])); 
+    uint32_t count = strarr_length(&list[5]);
 
     // workaround freeze when opening menu
     delay_ms(20);
@@ -679,6 +675,16 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
 
     // parses the list
     g_naveg_pedalboards = data_parse_pedalboards_list(&list[5], count);
+
+    if (g_naveg_pedalboards)
+    {
+    	g_naveg_pedalboards->menu_max = (atoi(list[2]));
+    	g_naveg_pedalboards->page_min = (atoi(list[3]));
+    	g_naveg_pedalboards->page_max = (atoi(list[4])); 
+    }
+
+    led_set_color(hardware_leds(1), GREEN);
+    delay_ms(200);
 }
 
 static void request_pedalboards_list(const char *bank_uid)
@@ -690,6 +696,13 @@ static void request_pedalboards_list(const char *bank_uid)
 
     // insert the direction on buffer
     i += int_to_str(2, &buffer[i], sizeof(buffer) - i, 0);
+
+    // inserts one space
+    buffer[i++] = ' ';
+
+    //TODO CHANGE ME LATER
+    // insert the direction on buffer
+    i += int_to_str(0, &buffer[i], sizeof(buffer) - i, 0);
 
     // inserts one space
     buffer[i++] = ' ';
@@ -1123,7 +1136,7 @@ static void bp_up(void)
     		if (g_banks->hover == (g_banks->page_min + 3))
     		{
     			//request new page
-    			request_next_pedalboards_page(0, g_banks->uids[g_banks->selected]);
+    			request_next_pedalboards_page(0, g_banks->uids[g_banks->hover]);
     		}	
     		//we are not at the middle again, just go up
     		else 
@@ -1138,7 +1151,7 @@ static void bp_up(void)
     	else 
     	{
     		//request new page
-    		request_next_pedalboards_page(0, g_banks->uids[g_banks->selected]);
+    		request_next_pedalboards_page(0, g_banks->uids[g_banks->hover]);
     	}
 
     }
@@ -1225,7 +1238,7 @@ static void bp_down(void)
     		if (g_naveg_pedalboards->hover == (g_naveg_pedalboards->page_min + 3))
     		{
     			//request new page
-    			request_next_pedalboards_page(1, g_banks->uids[g_banks->selected]);
+    			request_next_pedalboards_page(1, g_banks->uids[g_banks->hover]);
     		}	
     		//we are not at the middle again, just go up
     		else 
@@ -1241,7 +1254,7 @@ static void bp_down(void)
     	else 
     	{
     		//request new page
-    		request_next_pedalboards_page(1, g_banks->uids[g_banks->selected]);
+    		request_next_pedalboards_page(1, g_banks->uids[g_banks->hover]);
     	}
     }
     else return;
