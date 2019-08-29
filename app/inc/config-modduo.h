@@ -166,7 +166,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // control_index_set <hw_id> <current_index> <total_index>
 #define CONTROL_INDEX_SET             "si %i %i %i"
 // initial_state <current_bank_uid> <current_pedalboard_uid> [current_pedalboards_list]
-#define INITIAL_STATE_CMD             "is %s %s ..."
+#define INITIAL_STATE_CMD             "is %i %i %i %s %s ..."
 // banks <direction> <current banks hover id>
 #define BANKS_CMD                     "banks %i %i"
 // bank_config <hw_id> <function>
