@@ -62,7 +62,7 @@ typedef struct CONTROL_T {
 typedef struct BP_LIST_T {
     char **names, **uids;
     uint8_t count, hover, selected;
-    uint8_t page_min, page_max;
+    uint8_t page_min, page_max, menu_max;
 } bp_list_t;
 
 typedef struct BANK_CONFIG_T {

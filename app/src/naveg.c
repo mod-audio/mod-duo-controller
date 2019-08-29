@@ -609,11 +609,12 @@ static void parse_banks_list(void *data, menu_item_t *item)
     if (g_banks) data_free_banks_list(g_banks);
 
     // parses the list
-    g_banks = data_parse_banks_list(&list[4], count);
+    g_banks = data_parse_banks_list(&list[5], count);
     if (g_banks)
     {
-        g_banks->page_min = (atoi(list[2]));
-        g_banks->page_max = (atoi(list[3]));
+    	g_banks->menu_max = (atoi(list[2]));
+        g_banks->page_min = (atoi(list[3]));
+        g_banks->page_max = (atoi(list[4]));
         g_banks->selected = g_current_bank;
     }
     naveg_set_banks(g_banks);
@@ -663,8 +664,9 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
     char **list = data;
     uint32_t count = strarr_length(list) - 2;
 
-    g_naveg_pedalboards->page_min = (atoi(list[2]));
-    g_naveg_pedalboards->page_max = (atoi(list[3])); 
+    g_naveg_pedalboards->menu_max = (atoi(list[2]));
+    g_naveg_pedalboards->page_min = (atoi(list[3]));
+    g_naveg_pedalboards->page_max = (atoi(list[4])); 
 
     // workaround freeze when opening menu
     delay_ms(20);
@@ -674,7 +676,7 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
         data_free_pedalboards_list(g_naveg_pedalboards);
 
     // parses the list
-    g_naveg_pedalboards = data_parse_pedalboards_list(&list[4], count);
+    g_naveg_pedalboards = data_parse_pedalboards_list(&list[5], count);
 }
 
 static void request_pedalboards_list(const char *bank_uid)
@@ -1068,7 +1070,7 @@ static void bp_up(void)
     		}
     	}
     	//are we comming from the bottom of the menu?
-    	else if (g_banks->page_max == g_banks->count)
+    	else if (g_banks->page_max == g_banks->menu_max)
     	{
     		//are we back at the middle? request new page
     		if (g_banks->hover == (g_banks->page_min + 3))
@@ -1113,7 +1115,7 @@ static void bp_up(void)
         	}
     	}
     	//are we comming from the bottom of the menu?
-    	else if (g_naveg_pedalboards->page_max == g_naveg_pedalboards->count)
+    	else if (g_naveg_pedalboards->page_max == g_naveg_pedalboards->menu_max)
     	{
     		 //are we back at the middle? request new page
     		if (g_banks->hover == (g_banks->page_min + 3))
@@ -1153,7 +1155,7 @@ static void bp_down(void)
     if (g_bp_state == BANKS_LIST)
     {
     	//are we reaching the bottom of the menu?
-    	if(g_banks->page_max == g_banks->count) 
+    	if(g_banks->page_max == g_banks->menu_max) 
     	{
     		//check if we are not already at the end
     		if (g_banks->hover == g_banks->page_max)
@@ -1197,7 +1199,7 @@ static void bp_down(void)
     else if (g_bp_state == PEDALBOARD_LIST)
     {
     	//are we reaching the bottom of the menu?
-    	if(g_naveg_pedalboards->page_max == g_naveg_pedalboards->count) 
+    	if(g_naveg_pedalboards->page_max == g_naveg_pedalboards->menu_max) 
     	{
     		//go up till the end
     		//check if we are not already at the end
