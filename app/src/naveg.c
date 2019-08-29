@@ -687,7 +687,7 @@ static void request_pedalboards_list(const char *bank_uid)
     i = copy_command((char *)buffer, PEDALBOARDS_CMD);
 
     // insert the direction on buffer
-    i += int_to_str(0, &buffer[i], sizeof(buffer) - i, 0);
+    i += int_to_str(2, &buffer[i], sizeof(buffer) - i, 0);
 
     // inserts one space
     buffer[i++] = ' ';
