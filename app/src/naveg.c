@@ -25,6 +25,7 @@
 
 #define LIST_PAGE_UP      	 (1 << 1)
 #define LIST_WRAP_AROUND	 (1 << 2)
+#define LIST_INITIAL_REQ	 (1 << 3)
 
 
 //reset actuator queue
@@ -731,7 +732,14 @@ static void request_next_pedalboards_page(uint8_t dir, uint8_t bank_uid, uint8_t
     i = copy_command((char *)buffer, PEDALBOARDS_CMD);
 
 	uint8_t code = 0;
-	if (dir) code |= LIST_PAGE_UP;
+	if (dir == 1)
+	{
+	 	code |= LIST_PAGE_UP;
+	}
+	else if (dir == 2)
+	{
+		code |= LIST_INITIAL_REQ;
+	}
 	if (wrap_around) code |= LIST_WRAP_AROUND;
 
     // insert the direction on buffer
@@ -1751,7 +1759,7 @@ static void bank_config_update(uint8_t bank_func_idx)
             if (g_selected_pedalboards)
             {
             	//check if we are reaching the max of the page
-            	if (g_current_pedalboard == g_selected_pedalboards->page_min)
+            	if (g_current_pedalboard <= g_selected_pedalboards->page_min + 3)
             	{
             		//we do not request a new page when there is none
             		if (g_selected_pedalboards->page_min != 0)
@@ -1768,6 +1776,7 @@ static void bank_config_update(uint8_t bank_func_idx)
             				request_next_pedalboards_page(0, atoi(g_banks->uids[g_current_bank]), 1);
             			}
             		}
+            		//if we weap around
             		else if (g_bank_functions[BANK_FUNC_PEDALBOARD_NEXT].function == BANK_FUNC_NONE)
             		{
             			request_next_pedalboards_page(0, atoi(g_banks->uids[g_current_bank]), 1);
@@ -1840,7 +1849,7 @@ static void bank_config_footer(void)
                 break;
 
             case BANK_FUNC_PEDALBOARD_NEXT:
-                if (g_current_pedalboard == (g_selected_pedalboards->count - 1)) color = BLACK;
+                if (g_current_pedalboard == (g_selected_pedalboards->menu_max - 1)) color = BLACK;
                 else color = PEDALBOARD_NEXT_COLOR;
 
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
