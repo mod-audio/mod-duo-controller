@@ -756,7 +756,7 @@ static void request_next_pedalboards_page(uint8_t dir, uint8_t bank_uid, uint8_t
     else
     {
         // insert the current pb on buffer
-    	i += int_to_str(g_current_pedalboard, &buffer[i], sizeof(buffer) - i, 0);	
+    	i += int_to_str(g_current_pedalboard ,&buffer[i], sizeof(buffer) - i, 0);	
     }
 
     uint8_t prev_hover = g_naveg_pedalboards->hover;
@@ -1258,6 +1258,8 @@ static void bp_down(void)
     screen_bp_list(title, bp_list);
 }
 
+
+
 static void menu_enter(uint8_t display_id)
 {
     uint8_t i;
@@ -1722,28 +1724,25 @@ static void bank_config_update(uint8_t bank_func_idx)
         case BANK_FUNC_PEDALBOARD_NEXT:
             if (g_selected_pedalboards)
             {
-            	//check if we are reaching the max of the page
-            	if (g_current_pedalboard >= g_selected_pedalboards->page_max - 3)
+            	//check if we need to request a new page
+            	if (g_current_pedalboard >= g_selected_pedalboards->page_max)
             	{
             		//we do not request a new page when there is none
             		if (g_selected_pedalboards->page_max != g_selected_pedalboards->menu_max)
            			{
-            			//if so we loop around
+            			//wrap control?
             			if (g_bank_functions[BANK_FUNC_PEDALBOARD_PREV].function == BANK_FUNC_NONE)
             			{
             				request_next_pedalboards_page(1, g_current_bank, 1, 1);
+            				g_selected_pedalboards = g_naveg_pedalboards;
+            				g_current_pedalboard=0;
             			}
             			else
             			{
             				request_next_pedalboards_page(1, g_current_bank, 0, 1);
+            				g_selected_pedalboards = g_naveg_pedalboards;
+            				g_current_pedalboard = g_naveg_pedalboards->page_min + 4;
             			}
-
-            			g_current_pedalboard++;
-            		}
-            		else if (g_bank_functions[BANK_FUNC_PEDALBOARD_PREV].function == BANK_FUNC_NONE)
-            		{
-            			request_next_pedalboards_page(1, g_current_bank, 1, 1);
-            			g_current_pedalboard=0;
             		}
             	}
             	else 
@@ -1754,7 +1753,7 @@ static void bank_config_update(uint8_t bank_func_idx)
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank,  g_naveg_pedalboards->uids[g_selected_pedalboards->selected -1 - g_naveg_pedalboards->page_min]);
             }
             break;
 
@@ -1763,54 +1762,46 @@ static void bank_config_update(uint8_t bank_func_idx)
             if (g_selected_pedalboards)
             {
             	//check if we are reaching the max of the page
-            	if (g_current_pedalboard <= g_selected_pedalboards->page_min + 3)
+            	if (g_current_pedalboard <= g_selected_pedalboards->page_min + 1)
             	{
             		//we do not request a new page when there is none
-            		if (g_selected_pedalboards->page_min != 0)
+            		if (g_selected_pedalboards->page_min != 1)
             		{
-            			//if so we loop around
-            			if (g_bank_functions[BANK_FUNC_PEDALBOARD_NEXT].function == BANK_FUNC_NONE)
+            			//wrap control?
+            			if (g_bank_functions[BANK_FUNC_PEDALBOARD_PREV].function == BANK_FUNC_NONE)
             			{
             				request_next_pedalboards_page(0, g_current_bank, 1, 1);
+            				g_selected_pedalboards = g_naveg_pedalboards;
+            				g_current_pedalboard = g_naveg_pedalboards->page_max;
             			}
             			else
             			{
             				request_next_pedalboards_page(0, g_current_bank, 0, 1);
+            				g_selected_pedalboards = g_naveg_pedalboards;
+            				g_current_pedalboard = g_naveg_pedalboards->page_min + 4;
             			}
+            		}
+            	}
+            	//just go to the end
+            	else
+            	{
+            		//last pb is 1, 0 is back to banks list
+            		if (g_current_pedalboard > 1)
+            		{
             			g_current_pedalboard--;
             		}
-            		//if we weap around
-            		else if (g_bank_functions[BANK_FUNC_PEDALBOARD_NEXT].function == BANK_FUNC_NONE)
-            		{
-            			request_next_pedalboards_page(0, g_current_bank, 1, 1);
-            			g_current_pedalboard=g_selected_pedalboards->page_max - 1;
-            		}
-            		//just go to the end
-            		else
-            		{
-            			//last pb is 1, 0 is back to banks list
-            			if (g_current_pedalboard != 1)
-            			{
-            				g_current_pedalboard--;
-            			}
-            		}
             	}
-            	else 
-            	{
-            		g_current_pedalboard--;
-            	}
-                
-
+              
                 g_selected_pedalboards->selected = g_current_pedalboard;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank, g_selected_pedalboards->uids[g_selected_pedalboards->selected]);
+                    send_load_pedalboard(g_current_bank,  g_naveg_pedalboards->uids[g_selected_pedalboards->selected -1 - g_naveg_pedalboards->page_min]);
             }
             break;
     }
 
     //we need to update these
-    g_force_update_pedalboard=1;
+    //g_force_update_pedalboard=1;
 
     // updates the footers
     bank_config_footer();
@@ -1840,7 +1831,7 @@ static void bank_config_footer(void)
 			g_force_update_pedalboard = 0;
 		}
     }
-    else pedalboard_name = g_selected_pedalboards->names[g_selected_pedalboards->selected];
+    else pedalboard_name = g_selected_pedalboards->names[g_selected_pedalboards->selected - g_naveg_pedalboards->page_min];
 
     // updates all footer screen with bank functions
     uint8_t i;
@@ -1865,7 +1856,7 @@ static void bank_config_footer(void)
                 break;
 
             case BANK_FUNC_PEDALBOARD_NEXT:
-                if (g_current_pedalboard == (g_selected_pedalboards->menu_max - 1)) color = BLACK;
+                if (g_current_pedalboard == (g_naveg_pedalboards->menu_max)) color = BLACK;
                 else color = PEDALBOARD_NEXT_COLOR;
 
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
