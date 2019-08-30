@@ -1180,7 +1180,7 @@ static void bp_down(void)
     	else 
     	{
     		//are we back at the middle? request new page
-    		if (g_banks->hover >= (g_banks->page_max - 3))
+    		if (g_banks->hover >= (g_banks->page_max - 4))
     		{
 
     			g_banks->hover++;
@@ -1205,7 +1205,6 @@ static void bp_down(void)
     	//are we reaching the bottom of the menu?
     	if(g_naveg_pedalboards->page_max == g_naveg_pedalboards->menu_max) 
     	{
-    		//go up till the end
     		//check if we are not already at the end
     		if (g_naveg_pedalboards->hover == g_naveg_pedalboards->page_max)
     		{
