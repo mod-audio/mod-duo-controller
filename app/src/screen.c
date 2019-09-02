@@ -13,6 +13,7 @@
 #include "hardware.h"
 #include <string.h>
 
+
 /*
 ************************************************************************************************************************
 *           LOCAL DEFINES
@@ -407,7 +408,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
         list_box.height = 53;
         list_box.color = GLCD_BLACK;
         list_box.hover = list->hover - list->page_min;
-        list_box.selected = list->selected;
+        list_box.selected = list->selected - list->page_min;
         list_box.count = count;
         list_box.list = list->names;
         list_box.font = SMfont;
