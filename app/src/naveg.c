@@ -1147,15 +1147,6 @@ static void bp_up(void)
     }
     else return;
 
-    uint8_t i = 0;
-    char buffer[128];
-    memset(buffer, 0, sizeof buffer);
-    // insert the direction on buffer
-    i += int_to_str(g_naveg_pedalboards->hover, &buffer[i], sizeof(buffer) - i, 0);
-    buffer[i++] = ' ';
-    i += int_to_str(g_naveg_pedalboards->selected, &buffer[i], sizeof(buffer) - i, 0);
-    comm_webgui_send(buffer, i);
-
     screen_bp_list(title, bp_list);
 }
 
@@ -1253,15 +1244,6 @@ static void bp_down(void)
     	}
     }
     else return;
-
-    uint8_t i = 0;
-    char buffer[128];
-    memset(buffer, 0, sizeof buffer);
-    // insert the direction on buffer
-    i += int_to_str(g_naveg_pedalboards->hover, &buffer[i], sizeof(buffer) - i, 0);
-    buffer[i++] = ' ';
-    i += int_to_str(g_naveg_pedalboards->selected, &buffer[i], sizeof(buffer) - i, 0);
-    comm_webgui_send(buffer, i);
 
     screen_bp_list(title, bp_list);
 }
