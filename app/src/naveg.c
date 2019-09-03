@@ -747,7 +747,7 @@ static void request_pedalboards(uint8_t dir, uint8_t bank_uid, uint8_t wrap_arou
     else
     {
         // insert the current pb on buffer
-    	//i += int_to_str(g_naveg_pedalboards->selected ,&buffer[i], sizeof(buffer) - i, 0);	
+    	i += int_to_str(g_naveg_pedalboards->selected ,&buffer[i], sizeof(buffer) - i, 0);	
     }
 
     // inserts one space
@@ -1753,6 +1753,11 @@ static void bank_config_update(uint8_t bank_func_idx)
             	if (g_current_pedalboard <= g_naveg_pedalboards->page_min + 1)
             	{
             		//we do not request a new page when there is none
+            		if (g_current_pedalboard == 1)
+            		{
+            			return;
+            		}
+
             		if (g_naveg_pedalboards->page_min != 1)
             		{
             			//wrap control?
