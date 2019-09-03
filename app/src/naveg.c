@@ -736,7 +736,7 @@ static void request_pedalboards(uint8_t dir, uint8_t bank_uid, uint8_t wrap_arou
     if (dir == 2)
    	{
 		// insert the current hover on buffer
-    	i += int_to_str(1, &buffer[i], sizeof(buffer) - i, 0);
+    	i += int_to_str(0, &buffer[i], sizeof(buffer) - i, 0);
    	} 
     else if (!foot_nav)
     {
@@ -747,7 +747,7 @@ static void request_pedalboards(uint8_t dir, uint8_t bank_uid, uint8_t wrap_arou
     else
     {
         // insert the current pb on buffer
-    	i += int_to_str(g_naveg_pedalboards->selected ,&buffer[i], sizeof(buffer) - i, 0);	
+    	//i += int_to_str(g_naveg_pedalboards->selected ,&buffer[i], sizeof(buffer) - i, 0);	
     }
 
     // inserts one space
@@ -763,8 +763,8 @@ static void request_pedalboards(uint8_t dir, uint8_t bank_uid, uint8_t wrap_arou
 
     if (g_naveg_pedalboards)
     {
-    	prev_selected = g_naveg_pedalboards->hover;
-    	prev_hover = g_naveg_pedalboards->selected;
+    	prev_selected = g_naveg_pedalboards->selected;
+    	prev_hover = g_naveg_pedalboards->hover;
     }
 
     // sends the data to GUI
@@ -805,7 +805,7 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
     buffer[i++] = ' ';
 
     // copy the pedalboard uid
-    if (!pedalboard_uid) return;
+    if (!pedalboard_uid) pedalboard_uid = "0";
 
     const char *p = pedalboard_uid;
     while (*p)
@@ -1000,6 +1000,7 @@ static void bp_enter(void)
         title = g_banks->names[g_banks->hover - g_banks->page_min];
         g_bp_first = 1;
         g_current_bank = g_banks->hover - g_banks->page_min;
+        g_banks->selected = g_current_bank;
 
         // sets the selected pedalboard out of range (initial state)
         g_naveg_pedalboards->selected = g_naveg_pedalboards->count;
@@ -1029,24 +1030,14 @@ static void bp_enter(void)
             g_naveg_pedalboards->selected = g_naveg_pedalboards->hover; 
 
             // request to GUI load the pedalboard
-            send_load_pedalboard(g_banks->selected , g_naveg_pedalboards->uids[g_naveg_pedalboards->hover - g_naveg_pedalboards->page_min - 1]);
-
-            // if select a pedalboard in other bank free the old pedalboards list
-            if (g_current_bank != g_banks->selected)
-            {
-                if (g_naveg_pedalboards)
-                {
-                    data_free_pedalboards_list(g_naveg_pedalboards);
-                    g_naveg_pedalboards = NULL;
-                }
-            }
+            send_load_pedalboard(g_banks->selected , g_naveg_pedalboards->uids[g_naveg_pedalboards->selected - g_naveg_pedalboards->page_min - 1]);
 
             // stores the current bank and pedalboard
             g_current_bank = g_banks->selected;
             g_current_pedalboard = g_naveg_pedalboards->selected;
 
             // sets the variables to update the screen
-            title = g_banks->names[g_banks->hover];
+            title = g_banks->names[g_banks->hover - g_banks->page_min];
             bp_list = g_naveg_pedalboards;
 
             // if has a valid pedalboards list update the screens
@@ -1128,7 +1119,7 @@ static void bp_up(void)
          		g_naveg_pedalboards->hover--;
 
          		bp_list = g_naveg_pedalboards;
-        		title = g_banks->names[g_banks->hover];
+        		title = g_banks->names[g_banks->hover - g_banks->page_min];
         	}
     	}
     	//are we comming from the bottom of the menu?
@@ -1137,10 +1128,10 @@ static void bp_up(void)
     		if (g_naveg_pedalboards->hover <= (g_naveg_pedalboards->page_min + 3))
     		{
     			g_naveg_pedalboards->hover--;
-        		title = g_banks->names[g_banks->hover];
+        		title = g_banks->names[g_banks->hover - g_banks->page_min];
 
     			//request new page
-    			request_pedalboards(0, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]), 0, 0);
+    			request_pedalboards(0, atoi(g_banks->uids[g_banks->hover]), 0, 0);
     		}	
     		//we are not at the middle again, just go up
     		else 
@@ -1149,12 +1140,21 @@ static void bp_up(void)
          		g_naveg_pedalboards->hover--;
 
          		bp_list = g_naveg_pedalboards;
-        		title = g_banks->names[g_banks->hover];
+        		title = g_banks->names[g_banks->hover - g_banks->page_min];
     		}
     	}
 
     }
     else return;
+
+    uint8_t i = 0;
+    char buffer[128];
+    memset(buffer, 0, sizeof buffer);
+    // insert the direction on buffer
+    i += int_to_str(g_naveg_pedalboards->hover, &buffer[i], sizeof(buffer) - i, 0);
+    buffer[i++] = ' ';
+    i += int_to_str(g_naveg_pedalboards->selected, &buffer[i], sizeof(buffer) - i, 0);
+    comm_webgui_send(buffer, i);
 
     screen_bp_list(title, bp_list);
 }
@@ -1172,7 +1172,8 @@ static void bp_down(void)
     	if(g_banks->page_max == g_banks->menu_max) 
     	{
     		//check if we are not already at the end
-    		if (g_banks->hover >= g_banks->page_max -1)
+    		//-2 because of 1 index offset and 1 item thats back to banks
+    		if (g_banks->hover >= g_banks->page_max -2)
     		{
     			return;
     		}
@@ -1225,7 +1226,7 @@ static void bp_down(void)
          		g_naveg_pedalboards->hover++;
 
          		bp_list = g_naveg_pedalboards;
-        		title = g_banks->names[g_banks->hover];
+        		title = g_banks->names[g_banks->hover - g_banks->page_min];
     		}
     	}
     	//are we comming from the top of the menu?
@@ -1235,10 +1236,10 @@ static void bp_down(void)
     		if (g_naveg_pedalboards->hover >= (g_naveg_pedalboards->page_max - 4))
     		{
     			g_naveg_pedalboards->hover++;
-        		title = g_banks->names[g_banks->hover];
+        		title = g_banks->names[g_banks->hover - g_banks->page_min];
 
     			//request new page
-    			request_pedalboards(1, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]), 0, 0);
+    			request_pedalboards(1, atoi(g_banks->uids[g_banks->hover]), 0, 0);
     		}	
     		//we are not at the middle again, just go up
     		else 
@@ -1247,11 +1248,20 @@ static void bp_down(void)
          		g_naveg_pedalboards->hover++;
 
          		bp_list = g_naveg_pedalboards;
-        		title = g_banks->names[g_banks->hover];
+        		title = g_banks->names[g_banks->hover - g_banks->page_min];
     		}
     	}
     }
     else return;
+
+    uint8_t i = 0;
+    char buffer[128];
+    memset(buffer, 0, sizeof buffer);
+    // insert the direction on buffer
+    i += int_to_str(g_naveg_pedalboards->hover, &buffer[i], sizeof(buffer) - i, 0);
+    buffer[i++] = ' ';
+    i += int_to_str(g_naveg_pedalboards->selected, &buffer[i], sizeof(buffer) - i, 0);
+    comm_webgui_send(buffer, i);
 
     screen_bp_list(title, bp_list);
 }
