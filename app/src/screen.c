@@ -13,6 +13,7 @@
 #include "hardware.h"
 #include <string.h>
 
+
 /*
 ************************************************************************************************************************
 *           LOCAL DEFINES
@@ -369,6 +370,9 @@ void screen_tool(uint8_t tool, uint8_t display_id)
 
 void screen_bp_list(const char *title, bp_list_t *list)
 {
+    if (!naveg_is_tool_mode(DISPLAY_RIGHT))
+        return; 
+
     listbox_t list_box;
     textbox_t title_box;
 
@@ -403,8 +407,8 @@ void screen_bp_list(const char *title, bp_list_t *list)
         list_box.width = 128;
         list_box.height = 53;
         list_box.color = GLCD_BLACK;
-        list_box.hover = list->hover;
-        list_box.selected = list->selected;
+        list_box.hover = list->hover - list->page_min;
+        list_box.selected = list->selected - list->page_min;
         list_box.count = count;
         list_box.list = list->names;
         list_box.font = SMfont;

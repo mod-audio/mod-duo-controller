@@ -580,7 +580,7 @@ static void control_set_index_cb(proto_t *proto)
 static void initial_state_cb(proto_t *proto)
 {
     g_ui_communication_started = 1;
-    naveg_initial_state(proto->list[1], proto->list[2], &(proto->list[3]));
+    naveg_initial_state(atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]), proto->list[4], proto->list[5], &(proto->list[6]));
     protocol_response("resp 0", proto);
 }
 

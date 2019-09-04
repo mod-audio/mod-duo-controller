@@ -211,10 +211,6 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
         bp_list->uids[i] = NULL;
     }
 
-    // first line is 'back to banks list'
-    //bp_list->names[0] = g_back_to_settings;
-    //bp_list->uids[0] = NULL;
-
     // fills the bp_list struct
     i = 0;
     while (list_data[i] && j < list_count)
@@ -262,7 +258,7 @@ void data_free_banks_list(bp_list_t *bp_list)
     return;
 }
 
-bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
+bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count, uint8_t bottom_page)
 {
     if (!list_data || list_count == 0 || (list_count % 2)) return NULL;
 
@@ -273,7 +269,7 @@ bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
     if (!bp_list) goto error;
 
     bp_list->hover = 0;
-    bp_list->selected = 1;
+    bp_list->selected = 0;
     bp_list->count = list_count;
     bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count + 1));
     bp_list->uids = (char **) MALLOC(sizeof(char *) * (list_count + 1));
@@ -281,7 +277,7 @@ bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
     // checks memory allocation
     if (!bp_list->names || !bp_list->uids) goto error;
 
-    uint32_t i = 0, j = 1;
+    uint32_t i = 0, j = 0;
 
     // initializes the pointers
     for (i = 0; i < (list_count + 1); i++)
@@ -290,9 +286,15 @@ bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
         bp_list->uids[i] = NULL;
     }
 
-    // first line is 'back to banks list'
-    bp_list->names[0] = g_back_to_bank;
-    bp_list->uids[0] = NULL;
+
+    if (bottom_page == 1)
+    {
+        // first line is 'back to banks list'
+        bp_list->names[0] = g_back_to_bank;
+        bp_list->uids[0] = NULL;  
+
+        j = 1;  
+    }
 
     // fills the bp_list struct
     i = 0;
