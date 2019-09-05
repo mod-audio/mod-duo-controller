@@ -61,7 +61,7 @@ typedef struct CONTROL_T {
 
 typedef struct BP_LIST_T {
     char **names, **uids;
-    uint8_t count, hover, selected;
+    uint8_t hover, selected;
     uint8_t page_min, page_max, menu_max;
 } bp_list_t;
 
@@ -125,7 +125,7 @@ control_t * data_parse_control(char **data);
 void data_free_control(control_t *control);
 bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count);
 void data_free_banks_list(bp_list_t *bp_list);
-bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count, uint8_t bottom_page);
+bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count);
 void data_free_pedalboards_list(bp_list_t *bp_list);
 
 

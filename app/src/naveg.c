@@ -110,7 +110,6 @@ static xSemaphoreHandle g_dialog_sem;
 static uint8_t dialog_active = 0;
 static int8_t g_current_bank;
 static uint8_t g_force_update_pedalboard = 0;
-static uint8_t g_requesting_pedalboard_page = 0;
 
 
 // only enabled after "boot" command received
@@ -607,7 +606,7 @@ static void parse_banks_list(void *data, menu_item_t *item)
 {
     (void) item;
     char **list = data;
-    uint32_t count = strarr_length(&list[5]);
+    uint16_t count = strarr_length(&list[5]);
 
     // workaround freeze when opening menu
     delay_ms(20);
@@ -637,6 +636,44 @@ static void request_banks_list(uint8_t dir)
     comm_webgui_set_response_cb(parse_banks_list, NULL);
 
     char buffer[128];
+    memset(buffer, 0, sizeof(buffer));
+    uint8_t i;
+
+    i = copy_command(buffer, BANKS_CMD); 
+
+    // insert the direction on buffer
+    i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
+
+    // inserts one space
+    buffer[i++] = ' ';
+
+    //insert current bank, because first time we are entering the menu
+    i += int_to_str(g_current_bank, &buffer[i], sizeof(buffer) - i, 0);
+
+    // sends the data to GUI
+    comm_webgui_send(buffer, i);
+
+    // waits the banks list be received
+    comm_webgui_wait_response();
+
+    g_banks->hover = g_current_bank;
+    g_banks->selected = g_current_bank;
+}
+
+//requested from the bp_up / bp_down functions when we reach the end of a page
+static void request_next_bank_page(uint8_t dir)
+{
+	//we need to save our current hover and selected here, the parsing function will discard those
+	uint8_t prev_hover = g_banks->hover;
+	uint8_t prev_selected = g_banks->selected;
+
+	//request the banks as usual
+	g_bp_state = BANKS_LIST;
+
+    // sets the response callback
+    comm_webgui_set_response_cb(parse_banks_list, NULL);
+
+    char buffer[128];
     memset(buffer, 0, sizeof buffer);
     uint8_t i;
 
@@ -648,7 +685,6 @@ static void request_banks_list(uint8_t dir)
     // inserts one space
     buffer[i++] = ' ';
 
-    // insert the current hover on buffer
     i += int_to_str(g_banks->hover, &buffer[i], sizeof(buffer) - i, 0);
 
     // sends the data to GUI
@@ -656,24 +692,10 @@ static void request_banks_list(uint8_t dir)
 
     // waits the banks list be received
     comm_webgui_wait_response();
-}
-
-//requested from the bp_up / bp_down functions when we reach the end of a page
-static void request_next_bank_page(uint8_t dir)
-{
-	//we need to save our current hover and selected here, the parsing function will discard those
-	uint8_t prev_hover = g_banks->hover;
-	uint8_t prev_selected = g_banks->selected;
-
-	//request the banks as usual
-	request_banks_list(dir);
 
 	//restore our previous hover / selected bank
 	g_banks->hover = prev_hover;
 	g_banks->selected = prev_selected;
-
-	//display the new list
-	screen_tool(DISPLAY_TOOL_NAVIG, DISPLAY_RIGHT);
 }
 
 //called from the request functions and the naveg_initail_state
@@ -690,15 +712,8 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
     if (g_naveg_pedalboards)
         data_free_pedalboards_list(g_naveg_pedalboards);
 
-    uint8_t bottom_page = 0;
-    //if we are at the bottom of the page
-    if (atoi(list[3]) == 0)
-    {
-    	bottom_page = 1;
-    }
-
     // parses the list
-    g_naveg_pedalboards = data_parse_pedalboards_list(&list[5], count, bottom_page);
+    g_naveg_pedalboards = data_parse_pedalboards_list(&list[5], count);
 
     if (g_naveg_pedalboards)
     {
@@ -711,15 +726,9 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
 //requested when clicked on a back
 static void request_pedalboards(uint8_t dir, uint8_t bank_uid)
 {
-    bp_list_t *bp_list;
-    const char *title; 
-
 	uint8_t i;
     char buffer[128];
     memset(buffer, 0, sizeof buffer);
-
-    //we need to sync after this, make 0
-    g_requesting_pedalboard_page = 0;
 
     // sets the response callback
     comm_webgui_set_response_cb(parse_pedalboards_list, NULL);
@@ -759,8 +768,8 @@ static void request_pedalboards(uint8_t dir, uint8_t bank_uid)
 
     buffer[i++] = 0;
 
-	uint8_t prev_selected = 1;
-	uint8_t prev_hover = 1;
+	uint8_t prev_selected = g_current_pedalboard;
+	uint8_t prev_hover = g_current_pedalboard;
 
     if (g_naveg_pedalboards)
     {
@@ -776,29 +785,9 @@ static void request_pedalboards(uint8_t dir, uint8_t bank_uid)
 
     if (g_naveg_pedalboards)
     {
-    	//if we are in the bank of the pedalboard
-    	if (g_current_bank == g_banks->selected)
-    	{
-    		g_naveg_pedalboards->selected = prev_selected;
-    	}
-    	//put out of bounds
-    	else 
-    	{
-    		g_naveg_pedalboards->selected = g_naveg_pedalboards->count;
-    	}
-    	
+    	g_naveg_pedalboards->selected = prev_selected;
     	g_naveg_pedalboards->hover = prev_hover;
     }
-
-    //update the list on the screen
-    bp_list = g_naveg_pedalboards;
-    if (g_banks)
-    {
-    	title = g_banks->names[g_banks->hover];	
-    }
-    else title = 0;
-
-    screen_bp_list(title, bp_list);
 }
 
 static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
@@ -1003,23 +992,25 @@ static void bp_enter(void)
 
     if (g_bp_state == BANKS_LIST)
     {
+    	//index is relevent in our array so - page_min
         request_pedalboards(PAGE_DIR_INIT, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
 
         // if reach here, received the pedalboards list
         g_bp_state = PEDALBOARD_LIST;
         bp_list = g_naveg_pedalboards;
+        //index is relevent in our array so - page_min
         title = g_banks->names[g_banks->hover - g_banks->page_min];
+
         g_bp_first = 1;
-        g_current_bank = g_banks->hover - g_banks->page_min;
-        g_banks->selected = g_current_bank;
 
         // sets the selected pedalboard out of range (initial state)
-        g_naveg_pedalboards->selected = g_naveg_pedalboards->count;
+        g_naveg_pedalboards->selected = g_naveg_pedalboards->menu_max;
 
         // defines the selected pedalboard
-        if (g_banks->selected == g_banks->hover)
+        if (g_current_bank == g_banks->hover)
         {
             g_naveg_pedalboards->selected = g_current_pedalboard;
+            g_naveg_pedalboards->hover = g_current_pedalboard;
         }
     }
     else if (g_bp_state == PEDALBOARD_LIST)
@@ -1035,13 +1026,13 @@ static void bp_enter(void)
         {
             // updates selected bank and pedalboard
             g_banks->selected = g_banks->hover;
+			g_naveg_pedalboards->selected = g_naveg_pedalboards->hover; 
 
             g_bp_first=0;
-            g_pb_footswitches = 1;
-
-            g_naveg_pedalboards->selected = g_naveg_pedalboards->hover; 
+            g_pb_footswitches = 1; 
 
             // request to GUI load the pedalboard
+            //index is relevant in the array so - page_min, also the HMI array is always shifted right 1 because of back to banks, correct here
             send_load_pedalboard(g_banks->selected , g_naveg_pedalboards->uids[g_naveg_pedalboards->selected - g_naveg_pedalboards->page_min - 1]);
 
             // if select a pedalboard in other bank free the old pedalboards list
@@ -1051,6 +1042,8 @@ static void bp_enter(void)
                 {
                     data_free_pedalboards_list(g_footswitch_pedalboards);
                     g_footswitch_pedalboards = NULL;
+                    //needs to be re-requested in the footswitch function
+                    g_force_update_pedalboard = 1;
                 }
             }
 
@@ -1061,10 +1054,6 @@ static void bp_enter(void)
             // sets the variables to update the screen
             title = g_banks->names[g_banks->hover - g_banks->page_min];
             bp_list = g_naveg_pedalboards;
-
-            // if has a valid pedalboards list update the screens
-            if (g_footswitch_pedalboards)
-                bank_config_footer();
         }
     }
     else
@@ -1088,10 +1077,7 @@ static void bp_up(void)
     	if(g_banks->page_min == 0) 
     	{
     		//check if we are not already at the end
-    		if (g_banks->hover == g_banks->page_min)
-    		{
-    			return;
-    		}
+    		if (g_banks->hover == 0) return;
     		else 
     		{
         		//we still have banks in our list
@@ -1104,7 +1090,7 @@ static void bp_up(void)
     	//are we comming from the bottom of the menu?
     	else
     	{
-    		//are we back at the middle? request new page
+    		//we always keep 3 items in front of us, if not request new page
     		if (g_banks->hover <= (g_banks->page_min + 3))
     		{
     			g_banks->hover--;
@@ -1113,12 +1099,10 @@ static void bp_up(void)
     			//request new page
     			request_next_bank_page(PAGE_DIR_DOWN);
     		}	
-    		//we are not at the middle again, just go up
+    		//we have items, just go up
     		else 
     		{
-        		//we still have banks in our list
          		g_banks->hover--;
-
          		bp_list = g_banks;
         		title = "BANKS";
     		}
@@ -1130,42 +1114,34 @@ static void bp_up(void)
     	if(g_naveg_pedalboards->page_min == 0) 
     	{
     		//check if we are not already at the end
-    		if (g_naveg_pedalboards->hover == 0)
-    		{
-    			return;
-    		}
+    		if (g_naveg_pedalboards->hover == 0) return;
     		else 
     		{
     			//go down till the end
     			//we still have items in our list
          		g_naveg_pedalboards->hover--;
-
          		bp_list = g_naveg_pedalboards;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
         	}
     	}
-    	//are we comming from the bottom of the menu?
     	else
     	{
-    		if (g_naveg_pedalboards->hover <= (g_naveg_pedalboards->page_min + 3))
+    		//we always keep 3 items in front of us, if not request new page, we add 4 because the bottom item is always "> back to banks" and we dont show that here
+    		if (g_naveg_pedalboards->hover <= (g_naveg_pedalboards->page_min + 4))
     		{
     			g_naveg_pedalboards->hover--;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
-
     			//request new page
     			request_pedalboards(PAGE_DIR_DOWN, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
     		}	
-    		//we are not at the middle again, just go up
+    		//we have items, just go up
     		else 
     		{
-    			//we still have items in our list
          		g_naveg_pedalboards->hover--;
-
          		bp_list = g_naveg_pedalboards;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
     		}
     	}
-
     }
     else return;
 
@@ -1185,38 +1161,29 @@ static void bp_down(void)
     	if(g_banks->page_max == g_banks->menu_max) 
     	{
     		//check if we are not already at the end
-    		if (g_banks->hover >= g_banks->page_max -1)
-    		{
-    			return;
-    		}
+    		if (g_banks->hover >= g_banks->menu_max -1) return;
     		else 
     		{
         		//we still have banks in our list
          		g_banks->hover++;
-
          		bp_list = g_banks;
         		title = "BANKS";
     		}
     	}
-    	//are we comming from the top of the menu?
     	else 
     	{
-    		//are we back at the middle? request new page
+    		//we always keep 3 items in front of us, if not request new page
     		if (g_banks->hover >= (g_banks->page_max - 4))
     		{
-
     			g_banks->hover++;
         		title = "BANKS";
-
     			//request new page
     			request_next_bank_page(PAGE_DIR_UP);
     		}	
-    		//we are not at the middle again, just go up
+    		//we have items, just go down
     		else 
     		{
-        		//we still have banks in our list
          		g_banks->hover++;
-
          		bp_list = g_banks;
         		title = "BANKS";
     		}
@@ -1227,38 +1194,30 @@ static void bp_down(void)
     	//are we reaching the bottom of the menu?
     	if(g_naveg_pedalboards->page_max == g_naveg_pedalboards->menu_max) 
     	{
-    		//check if we are not already at the end
-    		if (g_naveg_pedalboards->hover == g_naveg_pedalboards->page_max)
-    		{
-    			return;
-    		}
+    		//check if we are not already at the end, we dont need so substract by one, since the "> back to banks" item is added on parsing
+    		if (g_naveg_pedalboards->hover == g_naveg_pedalboards->menu_max) return;
     		else 
     		{
     			//we still have items in our list
          		g_naveg_pedalboards->hover++;
-
          		bp_list = g_naveg_pedalboards;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
     		}
     	}
-    	//are we comming from the top of the menu?
     	else 
     	{
-    		//are we back at the middle? request new page
-    		if (g_naveg_pedalboards->hover >= (g_naveg_pedalboards->page_max - 4))
+    		//we always keep 3 items in front of us, if not request new page, we need to substract by 5, since the "> back to banks" item is added on parsing 
+    		if (g_naveg_pedalboards->hover >= (g_naveg_pedalboards->page_max - 5))
     		{
     			g_naveg_pedalboards->hover++;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
-
     			//request new page
     			request_pedalboards(PAGE_DIR_UP, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
     		}	
-    		//we are not at the middle again, just go up
+    		//we have items, just go down
     		else 
     		{
-    			//we still have items in our list
          		g_naveg_pedalboards->hover++;
-
          		bp_list = g_naveg_pedalboards;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
     		}
@@ -1714,7 +1673,7 @@ static void parse_footswitch_pedalboards_list(void *data, menu_item_t *item)
     delay_ms(20);
 
     // parses the list
-    g_footswitch_pedalboards = data_parse_pedalboards_list(&list[5], count, 0);
+    g_footswitch_pedalboards = data_parse_pedalboards_list(&list[5], count);
 
     g_footswitch_pedalboards->menu_max = (atoi(list[2]));
     g_footswitch_pedalboards->page_min = (atoi(list[3]));
@@ -1726,9 +1685,6 @@ static void request_footswitch_pedalboards(uint8_t dir)
 	uint8_t i;
 	char buffer[128];
 	memset(buffer, 0, sizeof buffer);
-
-	//so we dont re-sync the pedalboards now
-    g_requesting_pedalboard_page = 1;
 
 	// sets the response callback
 	comm_webgui_set_response_cb(parse_footswitch_pedalboards_list, NULL);
@@ -1746,7 +1702,7 @@ static void request_footswitch_pedalboards(uint8_t dir)
 	buffer[i++] = ' ';
 
 	// insert the current hover on buffer
-	i += int_to_str(g_footswitch_pedalboards->selected, &buffer[i], sizeof(buffer) - i, 0);
+	i += int_to_str(g_current_pedalboard, &buffer[i], sizeof(buffer) - i, 0);
 
 	// inserts one space
 	buffer[i++] = ' ';
@@ -1791,10 +1747,6 @@ static void bank_config_update(uint8_t bank_func_idx)
 
     switch (g_bank_functions[i].function)
     {
-        case BANK_FUNC_TRUE_BYPASS:
-            // TODO: toggle true bypass
-            break;
-
         case BANK_FUNC_PEDALBOARD_NEXT:
             if (g_footswitch_pedalboards)
             {
@@ -1802,10 +1754,7 @@ static void bank_config_update(uint8_t bank_func_idx)
             	if (g_current_pedalboard >= g_footswitch_pedalboards->page_max - 1)
             	{
             		//we do not request a new page when there is none
-            		if (g_current_pedalboard == g_footswitch_pedalboards->menu_max - 1)
-            		{
-            			return;
-            		}
+            		if (g_current_pedalboard == g_footswitch_pedalboards->menu_max - 1) return;
             		else
            			{
  						g_current_pedalboard++;
@@ -1813,16 +1762,10 @@ static void bank_config_update(uint8_t bank_func_idx)
             			request_footswitch_pedalboards(PAGE_DIR_UP);
             		}
             	}
-            	else 
-            	{
-            		g_current_pedalboard++;
-            	}
-
-                g_footswitch_pedalboards->selected = g_current_pedalboard;
-                g_naveg_pedalboards->selected = g_current_pedalboard;
+            	else g_current_pedalboard++;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank,  g_footswitch_pedalboards->uids[g_footswitch_pedalboards->selected -1 - g_footswitch_pedalboards->page_min]);
+                    send_load_pedalboard(g_current_bank,  g_footswitch_pedalboards->uids[g_current_pedalboard - g_footswitch_pedalboards->page_min]);
             }
             break;
 
@@ -1830,13 +1773,10 @@ static void bank_config_update(uint8_t bank_func_idx)
             if (g_footswitch_pedalboards)
             {            
 				//check if we are reaching the max of the page
-            	if (g_current_pedalboard <= g_footswitch_pedalboards->page_min + ((g_footswitch_pedalboards->uids[0])? 0 : 1))
+            	if (g_current_pedalboard <= g_footswitch_pedalboards->page_min + 1)
             	{
             		//we do not request a new page when there is none
-            		if (g_current_pedalboard == ((g_footswitch_pedalboards->uids[0])? 0 : 1))
-            		{
-            			return;
-            		}
+            		if (g_current_pedalboard ==  1) return;
             		else
             		{
             			g_current_pedalboard--;
@@ -1845,19 +1785,10 @@ static void bank_config_update(uint8_t bank_func_idx)
             		}
             	}
             	//just go to the end
-            	else
-            	{
-            		//last pb is 1, 0 is back to banks list
-            		if (g_current_pedalboard != ((g_footswitch_pedalboards->uids[0])? 0 : 1))
-            		{
-            			g_current_pedalboard--;
-            		}
-            	}
-              
-                g_footswitch_pedalboards->selected = g_current_pedalboard;
+            	else g_current_pedalboard--;
 
                 if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank,  g_footswitch_pedalboards->uids[g_footswitch_pedalboards->selected -1 - g_footswitch_pedalboards->page_min]);
+                    send_load_pedalboard(g_current_bank,  g_footswitch_pedalboards->uids[g_current_pedalboard - g_footswitch_pedalboards->page_min]);
             }
             break;
     }
@@ -1881,24 +1812,19 @@ static void bank_config_footer(void)
 {
     uint8_t bypass;
 
-
-
     char *pedalboard_name = NULL;
     if (!g_footswitch_pedalboards)
     {
 		if (g_force_update_pedalboard) 
 		{
 			g_footswitch_pedalboards = g_naveg_pedalboards;
-			if ((!g_footswitch_pedalboards->uids[0]) && g_footswitch_pedalboards->selected == 0) g_footswitch_pedalboards->selected++;
-			pedalboard_name = g_footswitch_pedalboards->names[g_footswitch_pedalboards->selected - g_footswitch_pedalboards->page_min];
+			//index is relevant thats why - page_min, also +1 since we add "> back to banks" on parsing the data
+			pedalboard_name = g_footswitch_pedalboards->names[g_current_pedalboard- g_footswitch_pedalboards->page_min + 1];
 			g_force_update_pedalboard = 0;
 		}
     }
-    else 
-    {
-    	if ((!g_footswitch_pedalboards->uids[0]) && g_footswitch_pedalboards->selected == 0) g_footswitch_pedalboards->selected++;
-    	pedalboard_name = g_footswitch_pedalboards->names[g_footswitch_pedalboards->selected - g_footswitch_pedalboards->page_min];
-    }
+    //index is relevant thats why - page_min, also +1 since we add "> back to banks" on parsing the data
+    else pedalboard_name = g_footswitch_pedalboards->names[g_current_pedalboard- g_footswitch_pedalboards->page_min + 1];
 
     // updates all footer screen with bank functions
     uint8_t i;
@@ -1972,9 +1898,7 @@ void naveg_init(void)
     g_banks = NULL;
     g_naveg_pedalboards = NULL;
     g_footswitch_pedalboards = NULL;
-    g_current_pedalboard = 1;
     g_bp_state = BANKS_LIST;
-    g_pb_footswitches = 0;
 
     // initializes the bank functions
     for (i = 0; i < BANK_FUNC_AMOUNT; i++)
@@ -2064,7 +1988,7 @@ void naveg_initial_state(uint8_t max_menu, uint8_t page_min, uint8_t page_max, c
 
     // parses the list
     g_footswitch_pedalboards = NULL;
-    g_naveg_pedalboards = data_parse_pedalboards_list(pedalboards_list, strarr_length(pedalboards_list), (page_min == 0)? 1 : 0);
+    g_naveg_pedalboards = data_parse_pedalboards_list(pedalboards_list, strarr_length(pedalboards_list));
 
     if (!g_naveg_pedalboards) return;
 
@@ -2074,7 +1998,7 @@ void naveg_initial_state(uint8_t max_menu, uint8_t page_min, uint8_t page_max, c
 
     // locates the selected pedalboard index
     uint8_t i;
-    for (i = 0; i < g_naveg_pedalboards->count; i++)
+    for (i = 0; i < g_naveg_pedalboards->page_max; i++)
     {
         if (strcmp(g_naveg_pedalboards->uids[i], pedalboard_uid) == 0)
         {
@@ -2082,6 +2006,13 @@ void naveg_initial_state(uint8_t max_menu, uint8_t page_min, uint8_t page_max, c
             g_naveg_pedalboards->hover = i;
             g_current_pedalboard = i;
             break;
+        }
+        else
+        {   
+        	//set out of bounds, however set current pedalboard with the right offset
+        	g_naveg_pedalboards->selected = i;
+            g_naveg_pedalboards->hover = i;
+        	g_current_pedalboard = atoi(pedalboard_uid) + 1;
         }
     }
 
@@ -2667,9 +2598,7 @@ bp_list_t *naveg_get_banks(void)
 
 void naveg_bank_config(bank_config_t *bank_conf)
 {
-	//return; 
-
-    if (!g_initialized) return;
+	 if (!g_initialized) return;
 
     // checks the function number
     if (bank_conf->function >= BANK_FUNC_AMOUNT) return;
@@ -2728,13 +2657,13 @@ void naveg_bank_config(bank_config_t *bank_conf)
     if (bank_conf->function != BANK_FUNC_NONE)
         memcpy(&g_bank_functions[bank_conf->function], bank_conf, sizeof(bank_config_t));
 
-    // checks if has pedalboards navigation functions and set the pointer to pedalboards list
+/*    // checks if has pedalboards navigation functions and set the pointer to pedalboards list
     if ((bank_conf->function == BANK_FUNC_PEDALBOARD_NEXT ||
-        bank_conf->function == BANK_FUNC_PEDALBOARD_PREV) && g_bp_first == 0 && g_requesting_pedalboard_page == 0)
+        bank_conf->function == BANK_FUNC_PEDALBOARD_PREV) && g_bp_first == 0)
     {
         g_footswitch_pedalboards = g_naveg_pedalboards;
     }
-
+*/
     bank_config_footer();
 }
 
