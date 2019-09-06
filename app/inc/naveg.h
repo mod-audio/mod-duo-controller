@@ -139,8 +139,6 @@ uint8_t naveg_dialog_status(void);
 
 uint8_t naveg_tool_is_on(uint8_t tool);
 
-void naveg_force_update_pedalboard(uint8_t update);
-
 uint8_t naveg_banks_mode_pb(void);
 
 char* naveg_get_current_pb_name(void);

@@ -354,6 +354,25 @@ char *str_duplicate(const char *str)
     return copy;
 }
 
+// handy function to make a copy of a C-string array (char**)
+char** str_array_duplicate(char** list, uint16_t count)
+{
+    if (!list)
+        return NULL;
+    
+    char** ret = MALLOC((count+1)*sizeof(char*));
+    
+    // out of memory
+    if (!ret)
+        return NULL;
+    
+    for (size_t i=0; i<count; ++i)
+        ret[i] = strdup(list[i]);
+    
+    ret[count] = NULL;
+    return ret;
+}
+
 void delay_us(volatile uint32_t time)
 {
     register uint32_t _time asm ("r0");

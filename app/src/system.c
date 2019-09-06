@@ -612,9 +612,6 @@ void system_banks_cb(void *arg, int event)
                 if (g_footswitch_navigation == 0) g_footswitch_navigation= 1;
                 else g_footswitch_navigation = 0;
 
-                if (g_footswitch_navigation == 1) naveg_force_update_pedalboard(1);
-                else naveg_force_update_pedalboard(0);
-
                 set_item_value(FOOT_NAVIG_CMD, g_footswitch_navigation);
             }
             else g_footswitch_navigation = 0;

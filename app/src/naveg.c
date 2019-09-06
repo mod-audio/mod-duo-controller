@@ -97,7 +97,7 @@ struct TOOL_T {
 */
 
 static control_t *g_controls[ENCODERS_COUNT], *g_foots[FOOTSWITCHES_COUNT];
-static bp_list_t *g_banks, *g_naveg_pedalboards, *g_footswitch_pedalboards;
+static bp_list_t *g_banks, *g_naveg_pedalboards, g_footswitch_pedalboards;
 static uint8_t g_bp_state, g_current_pedalboard, g_bp_first, g_pb_footswitches;
 static node_t *g_menu, *g_current_menu, *g_current_main_menu;
 static menu_item_t *g_current_item, *g_current_main_item;
@@ -110,6 +110,7 @@ static xSemaphoreHandle g_dialog_sem;
 static uint8_t dialog_active = 0;
 static int8_t g_current_bank;
 static uint8_t g_force_update_pedalboard = 0;
+static const  bp_list_t empty_list;
 
 
 // only enabled after "boot" command received
@@ -577,7 +578,7 @@ static void request_control_page(control_t *control, uint8_t dir)
     comm_webgui_set_response_cb(parse_control_page, NULL);
 
     char buffer[20];
-    memset(buffer, 0, 20);
+    memset(buffer, 0, sizeof buffer);
     uint8_t i;
 
     i = copy_command(buffer, CONTROL_PAGE_CMD); 
@@ -675,7 +676,7 @@ static void request_next_bank_page(uint8_t dir)
     comm_webgui_set_response_cb(parse_banks_list, NULL);
 
     char buffer[20];
-    memset(buffer, 0, 20);
+    memset(buffer, 0, sizeof buffer);
     uint8_t i;
 
     i = copy_command(buffer, BANKS_CMD); 
@@ -729,7 +730,7 @@ static void request_pedalboards(uint8_t dir, uint8_t bank_uid)
 {
 	uint8_t i;
 	char buffer[20];
-	memset(buffer, 0, 20);
+	memset(buffer, 0, sizeof buffer);
 
     // sets the response callback
     comm_webgui_set_response_cb(parse_pedalboards_list, NULL);
@@ -791,7 +792,7 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
 {
     uint8_t i;
     char buffer[20];
-    memset(buffer, 0, 20);
+    memset(buffer, 0, sizeof buffer);
 
     i = copy_command((char *)buffer, PEDALBOARD_CMD);
 
@@ -801,14 +802,14 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
     // inserts one space
     buffer[i++] = ' ';
 
+	const char *p = pedalboard_uid;
     // copy the pedalboard uidf
-    if (!pedalboard_uid) 
+    if (!*p) 
    	{
    		buffer[i++] = '0';
    	}
    	else
    	{
-		const char *p = pedalboard_uid;
 		while (*p)
 		{
 		    buffer[i++] = *p;
@@ -1002,7 +1003,7 @@ static void bp_enter(void)
         bp_list = g_naveg_pedalboards;
         //index is relevent in our array so - page_min
         title = g_banks->names[g_banks->hover - g_banks->page_min];
-        g_banks->selected = g_banks->hover;
+        //g_banks->selected = g_banks->hover;
 
         g_bp_first = 1;
 
@@ -1031,20 +1032,11 @@ static void bp_enter(void)
             send_load_pedalboard(atoi(g_banks->uids[g_banks->selected - g_banks->page_min]), g_naveg_pedalboards->uids[g_naveg_pedalboards->hover - g_naveg_pedalboards->page_min - 1]);
 
             g_current_pedalboard = g_naveg_pedalboards->hover;
-/*
-            // if select a pedalboard in other bank free the old pedalboards list
-            if (g_current_bank != g_banks->selected)
-            {
-                if (g_footswitch_pedalboards)
-                {
-                    data_free_pedalboards_list(g_footswitch_pedalboards);
-                    g_footswitch_pedalboards = NULL;
-                    //needs to be re-requested in the footswitch function
-                    g_force_update_pedalboard = 1;
-                }
-            }
-*/
+
+            g_force_update_pedalboard = 1;
+
             // stores the current bank and pedalboard
+            g_banks->selected = g_banks->hover;
             g_current_bank = g_banks->selected;
 
             // sets the variables to update the screen
@@ -1058,7 +1050,7 @@ static void bp_enter(void)
     }
 
     //check if we need to display the selected item or out of bounds
-    if (g_current_bank == g_banks->selected)
+    if (g_current_bank == g_banks->hover)
     	g_naveg_pedalboards->selected = g_current_pedalboard;
     else 
     	g_naveg_pedalboards->selected = g_naveg_pedalboards->menu_max + 1;
@@ -1674,19 +1666,28 @@ static void parse_footswitch_pedalboards_list(void *data, menu_item_t *item)
     delay_ms(20);
 
     // parses the list
-    g_footswitch_pedalboards = data_parse_pedalboards_list(&list[5], count);
+    bp_list_t *pb_list_bfr = data_parse_pedalboards_list(&list[5], count);
 
-    g_footswitch_pedalboards->menu_max = (atoi(list[2]));
-    g_footswitch_pedalboards->page_min = (atoi(list[3]));
-    g_footswitch_pedalboards->page_max = (atoi(list[4])); 
+    if (pb_list_bfr)
+    {
+    	g_footswitch_pedalboards = empty_list;
+    	memcpy(&g_footswitch_pedalboards, pb_list_bfr, sizeof(bp_list_t));
+    	g_footswitch_pedalboards.names = str_array_duplicate(pb_list_bfr->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+    	g_footswitch_pedalboards.uids  = str_array_duplicate(pb_list_bfr->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+    }
+
+    g_footswitch_pedalboards.menu_max = (atoi(list[2]));
+    g_footswitch_pedalboards.page_min = (atoi(list[3]));
+    g_footswitch_pedalboards.page_max = (atoi(list[4])); 
+
+    data_free_pedalboards_list(pb_list_bfr);
 }
 
 static void request_footswitch_pedalboards(uint8_t dir)
 {
 	uint8_t i;
-	//char buffer[128];
-	//memset(buffer, 0, sizeof buffer);
-	char * buffer = (char *) MALLOC(128 * sizeof(char));
+	char buffer[20];
+	memset(buffer, 0, sizeof buffer);
 
 	// sets the response callback
 	comm_webgui_set_response_cb(parse_footswitch_pedalboards_list, NULL);
@@ -1719,8 +1720,6 @@ static void request_footswitch_pedalboards(uint8_t dir)
 
     // waits the pedalboards list be received
     comm_webgui_wait_response();
-
-    FREE(buffer);
 }
 
 static uint8_t bank_config_check(uint8_t foot)
@@ -1741,20 +1740,20 @@ static uint8_t bank_config_check(uint8_t foot)
 
 static void bank_config_update(uint8_t bank_func_idx)
 {
-    uint8_t i = bank_func_idx, current_pedalboard;
-
-    current_pedalboard = g_current_pedalboard;
+    uint8_t i = bank_func_idx;
 
     switch (g_bank_functions[i].function)
     {
         case BANK_FUNC_PEDALBOARD_NEXT:
-            if (g_footswitch_pedalboards)
-            {
             	//check if we need to request a new page
-            	if (g_current_pedalboard >= g_footswitch_pedalboards->page_max - 1)
+            	if (g_current_pedalboard >= g_footswitch_pedalboards.page_max - 1)
             	{
             		//we do not request a new page when there is none
-            		if (g_current_pedalboard == g_footswitch_pedalboards->menu_max - 1) return;
+            		if (g_footswitch_pedalboards.page_max == g_footswitch_pedalboards.menu_max)
+            		{
+            			if (g_current_pedalboard == g_footswitch_pedalboards.menu_max) return;
+            			else g_current_pedalboard++;
+            		}
             		else
            			{
  						g_current_pedalboard++;
@@ -1763,19 +1762,21 @@ static void bank_config_update(uint8_t bank_func_idx)
             	}
             	else g_current_pedalboard++;
 
-                if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank,  g_footswitch_pedalboards->uids[g_current_pedalboard - g_footswitch_pedalboards->page_min]);
-            }
+                send_load_pedalboard(g_current_bank, g_footswitch_pedalboards.uids[g_current_pedalboard - g_footswitch_pedalboards.page_min - 1]);
+
             break;
 
-        case BANK_FUNC_PEDALBOARD_PREV:
-            if (g_footswitch_pedalboards)
-            {            
+        case BANK_FUNC_PEDALBOARD_PREV:           
 				//check if we are reaching the max of the page
-            	if (g_current_pedalboard <= g_footswitch_pedalboards->page_min + 1)
+            	if (g_current_pedalboard <= g_footswitch_pedalboards.page_min + 2)
             	{
-            		//we do not request a new page when there is none
-            		if (g_current_pedalboard ==  1) return;
+            		if (g_footswitch_pedalboards.page_min == 0)
+            		{
+            			//we do not request a new page when there is none
+            			if (g_current_pedalboard ==  1) return;
+            			else g_current_pedalboard--;
+            		}
+
             		else
             		{
             			g_current_pedalboard--;
@@ -1785,14 +1786,10 @@ static void bank_config_update(uint8_t bank_func_idx)
             	//just go to the end
             	else g_current_pedalboard--;
 
-                if (current_pedalboard != g_current_pedalboard)
-                    send_load_pedalboard(g_current_bank,  g_footswitch_pedalboards->uids[g_current_pedalboard - g_footswitch_pedalboards->page_min]);
-            }
+                send_load_pedalboard(g_current_bank, g_footswitch_pedalboards.uids[g_current_pedalboard - g_footswitch_pedalboards.page_min - 1]);
+            
             break;
     }
-
-    // updates the footers
-    bank_config_footer();
 }
 
 static void bank_config_footer(void)
@@ -1800,18 +1797,26 @@ static void bank_config_footer(void)
     uint8_t bypass;
 
     char *pedalboard_name = NULL;
-    if (!g_footswitch_pedalboards)
-    {
+
 		if (g_force_update_pedalboard) 
 		{
-			g_footswitch_pedalboards = g_naveg_pedalboards;
-			//index is relevant thats why - page_min, also +1 since we add "> back to banks" on parsing the data
-			pedalboard_name = g_footswitch_pedalboards->names[g_current_pedalboard- g_footswitch_pedalboards->page_min + 1];
+			//also put as footswitch pedalboards
+			if (g_naveg_pedalboards)
+			{
+				g_footswitch_pedalboards = empty_list;
+				memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
+				g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+				g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+			}
+
+			//index is relevant thats why - page_min
+			pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
 			g_force_update_pedalboard = 0;
 		}
-    }
-    //index is relevant thats why - page_min, also +1 since we add "> back to banks" on parsing the data
-    else pedalboard_name = g_footswitch_pedalboards->names[g_current_pedalboard- g_footswitch_pedalboards->page_min + 1];
+    
+    //index is relevant thats why - page_min
+    //else 
+    	pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
 
     // updates all footer screen with bank functions
     uint8_t i;
@@ -1836,7 +1841,7 @@ static void bank_config_footer(void)
                 break;
 
             case BANK_FUNC_PEDALBOARD_NEXT:
-                if (g_current_pedalboard == (g_footswitch_pedalboards->menu_max - 1)) color = BLACK;
+                if (g_current_pedalboard == (g_footswitch_pedalboards.menu_max)) color = BLACK;
                 else color = PEDALBOARD_NEXT_COLOR;
 
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
@@ -1846,7 +1851,7 @@ static void bank_config_footer(void)
                 break;
 
             case BANK_FUNC_PEDALBOARD_PREV:
-                if (g_current_pedalboard == ((g_footswitch_pedalboards->uids[0])? 0 : 1)) color = BLACK;
+                if (g_current_pedalboard == 1) color = BLACK;
                 else color = PEDALBOARD_PREV_COLOR;
 
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
@@ -1884,7 +1889,6 @@ void naveg_init(void)
 
     g_banks = NULL;
     g_naveg_pedalboards = NULL;
-    g_footswitch_pedalboards = NULL;
     g_bp_state = BANKS_LIST;
 
     // initializes the bank functions
@@ -1971,10 +1975,8 @@ void naveg_initial_state(uint8_t max_menu, uint8_t page_min, uint8_t page_max, c
 
     // checks and free the navigation pedalboads list
     if (g_naveg_pedalboards) data_free_pedalboards_list(g_naveg_pedalboards);
-    if (g_footswitch_pedalboards) data_free_pedalboards_list(g_footswitch_pedalboards);
 
     // parses the list
-    g_footswitch_pedalboards = NULL;
     g_naveg_pedalboards = data_parse_pedalboards_list(pedalboards_list, strarr_length(pedalboards_list));
 
     if (!g_naveg_pedalboards) return;
@@ -1989,20 +1991,32 @@ void naveg_initial_state(uint8_t max_menu, uint8_t page_min, uint8_t page_max, c
     {
         if (strcmp(g_naveg_pedalboards->uids[i], pedalboard_uid) == 0)
         {
-            g_naveg_pedalboards->hover = i;
-            g_current_pedalboard = i;
+            g_naveg_pedalboards->hover = i + 1;
+            g_current_pedalboard = i + 1;
             break;
         }
-        else
+        /*else
         {   
         	//set out of bounds, however set current pedalboard with the right offset
             g_naveg_pedalboards->hover = i;
         	g_current_pedalboard = atoi(pedalboard_uid) + 1;
-        }
+        }*/
+    }
+
+    if (g_current_pedalboard == 0)
+    {
+    	g_current_pedalboard = 1;
+    	g_naveg_pedalboards->hover = 1;
     }
 
     //also put as footswitch pedalboards
-    g_footswitch_pedalboards = g_naveg_pedalboards;
+    if (g_naveg_pedalboards)
+    {
+    	g_footswitch_pedalboards = empty_list;
+    	memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
+    	g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+    	g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+    }
 }
 
 void naveg_ui_connection(uint8_t status)
@@ -2024,7 +2038,6 @@ void naveg_ui_connection(uint8_t status)
         if (g_naveg_pedalboards) data_free_pedalboards_list(g_naveg_pedalboards);
         g_banks = NULL;
         g_naveg_pedalboards = NULL;
-        g_footswitch_pedalboards = NULL;
     }
 
 
@@ -2650,9 +2663,16 @@ void naveg_bank_config(bank_config_t *bank_conf)
     if ((bank_conf->function == BANK_FUNC_PEDALBOARD_NEXT ||
         bank_conf->function == BANK_FUNC_PEDALBOARD_PREV) && g_bp_first == 0)
     {
-        g_footswitch_pedalboards = g_naveg_pedalboards;
-    }
-*/
+        //also put as footswitch pedalboards
+    	if (g_naveg_pedalboards)
+    	{
+    		g_footswitch_pedalboards = empty_list;
+    		memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
+    		g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+    		g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+    	}
+    }*/
+
     bank_config_footer();
 }
 
@@ -2920,11 +2940,6 @@ uint8_t naveg_banks_mode_pb(void)
 void naveg_settings_refresh(uint8_t display_id)
 {
     display_id ? screen_system_menu(g_current_item) : screen_system_menu(g_current_main_item);
-}
-
-void naveg_force_update_pedalboard(uint8_t update)
-{
-	g_force_update_pedalboard = update;
 }
 
 void naveg_menu_refresh(uint8_t display_id)
