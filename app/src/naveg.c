@@ -1003,8 +1003,6 @@ static void bp_enter(void)
         bp_list = g_naveg_pedalboards;
         //index is relevent in our array so - page_min
         title = g_banks->names[g_banks->hover - g_banks->page_min];
-        //g_banks->selected = g_banks->hover;
-
         g_bp_first = 1;
 
         // defines the selected pedalboard
@@ -1813,10 +1811,8 @@ static void bank_config_footer(void)
 			pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
 			g_force_update_pedalboard = 0;
 		}
-    
     //index is relevant thats why - page_min
-    //else 
-    	pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
+    else pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
 
     // updates all footer screen with bank functions
     uint8_t i;
@@ -1995,12 +1991,6 @@ void naveg_initial_state(uint8_t max_menu, uint8_t page_min, uint8_t page_max, c
             g_current_pedalboard = i + 1;
             break;
         }
-        /*else
-        {   
-        	//set out of bounds, however set current pedalboard with the right offset
-            g_naveg_pedalboards->hover = i;
-        	g_current_pedalboard = atoi(pedalboard_uid) + 1;
-        }*/
     }
 
     if (g_current_pedalboard == 0)
@@ -2658,20 +2648,6 @@ void naveg_bank_config(bank_config_t *bank_conf)
     // copies the bank function struct
     if (bank_conf->function != BANK_FUNC_NONE)
         memcpy(&g_bank_functions[bank_conf->function], bank_conf, sizeof(bank_config_t));
-
-/*    // checks if has pedalboards navigation functions and set the pointer to pedalboards list
-    if ((bank_conf->function == BANK_FUNC_PEDALBOARD_NEXT ||
-        bank_conf->function == BANK_FUNC_PEDALBOARD_PREV) && g_bp_first == 0)
-    {
-        //also put as footswitch pedalboards
-    	if (g_naveg_pedalboards)
-    	{
-    		g_footswitch_pedalboards = empty_list;
-    		memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
-    		g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
-    		g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
-    	}
-    }*/
 
     bank_config_footer();
 }
