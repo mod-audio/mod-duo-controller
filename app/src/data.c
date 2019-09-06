@@ -236,11 +236,11 @@ void data_free_banks_list(bp_list_t *bp_list)
     if (!bp_list) return;
 
     uint32_t i;
-    uint8_t count = (bp_list->page_max - bp_list->page_min);
+    uint8_t count = (bp_list->page_max - bp_list->page_min + 1);
 
     if (bp_list->names)
     {
-        for (i = 1; i < count; i++)
+        for (i = 0; i < count; i++)
             FREE(bp_list->names[i]);
 
         FREE(bp_list->names);
@@ -248,7 +248,7 @@ void data_free_banks_list(bp_list_t *bp_list)
 
     if (bp_list->uids)
     {
-        for (i = 1; i < count; i++)
+        for (i = 0; i < count; i++)
             FREE(bp_list->uids[i]);
 
         FREE(bp_list->uids);
@@ -315,7 +315,7 @@ void data_free_pedalboards_list(bp_list_t *bp_list)
     if (!bp_list) return;
 
     uint32_t i;
-    uint8_t count = (bp_list->page_max - bp_list->page_min);
+    uint8_t count = (bp_list->page_max - bp_list->page_min + 1);
 
     if (bp_list->names)
     {

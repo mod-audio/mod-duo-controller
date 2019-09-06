@@ -576,7 +576,8 @@ static void request_control_page(control_t *control, uint8_t dir)
     // sets the response callback
     comm_webgui_set_response_cb(parse_control_page, NULL);
 
-    char buffer[128];
+    //char buffer[128];
+    char * buffer = (char *) MALLOC(128 * sizeof(char));
     uint8_t i;
 
     i = copy_command(buffer, CONTROL_PAGE_CMD); 
@@ -600,6 +601,8 @@ static void request_control_page(control_t *control, uint8_t dir)
 
     // waits the banks list be received
     comm_webgui_wait_response();
+
+    FREE(buffer);
 }
 
 static void parse_banks_list(void *data, menu_item_t *item)
@@ -635,8 +638,9 @@ static void request_banks_list(uint8_t dir)
     // sets the response callback
     comm_webgui_set_response_cb(parse_banks_list, NULL);
 
-    char buffer[128];
-    memset(buffer, 0, sizeof(buffer));
+    //char buffer[128];
+    //memset(buffer, 0, sizeof(buffer));
+    char * buffer = (char *) MALLOC(128 * sizeof(char));
     uint8_t i;
 
     i = copy_command(buffer, BANKS_CMD); 
@@ -658,6 +662,8 @@ static void request_banks_list(uint8_t dir)
 
     g_banks->hover = g_current_bank;
     g_banks->selected = g_current_bank;
+
+    FREE(buffer);
 }
 
 //requested from the bp_up / bp_down functions when we reach the end of a page
@@ -673,8 +679,9 @@ static void request_next_bank_page(uint8_t dir)
     // sets the response callback
     comm_webgui_set_response_cb(parse_banks_list, NULL);
 
-    char buffer[128];
-    memset(buffer, 0, sizeof buffer);
+    //char buffer[128];
+    //memset(buffer, 0, sizeof buffer);
+    char * buffer = (char *) MALLOC(128 * sizeof(char));
     uint8_t i;
 
     i = copy_command(buffer, BANKS_CMD); 
@@ -696,6 +703,8 @@ static void request_next_bank_page(uint8_t dir)
 	//restore our previous hover / selected bank
 	g_banks->hover = prev_hover;
 	g_banks->selected = prev_selected;
+
+	FREE(buffer);
 }
 
 //called from the request functions and the naveg_initail_state
@@ -727,8 +736,10 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
 static void request_pedalboards(uint8_t dir, uint8_t bank_uid)
 {
 	uint8_t i;
-    char buffer[128];
-    memset(buffer, 0, sizeof buffer);
+	char * buffer = (char *) MALLOC(128 * sizeof(char));
+
+    //char buffer[128];
+    //memset(buffer, 0, sizeof buffer);
 
     // sets the response callback
     comm_webgui_set_response_cb(parse_pedalboards_list, NULL);
@@ -788,13 +799,16 @@ static void request_pedalboards(uint8_t dir, uint8_t bank_uid)
     	g_naveg_pedalboards->selected = prev_selected;
     	g_naveg_pedalboards->hover = prev_hover;
     }
+
+    FREE(buffer);
 }
 
 static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
 {
     uint8_t i;
-    char buffer[128];
-    memset(buffer, 0, sizeof buffer);
+    //char buffer[128];
+    //memset(buffer, 0, sizeof buffer);
+    char * buffer = (char *) MALLOC(128 * sizeof(char));
 
     i = copy_command((char *)buffer, PEDALBOARD_CMD);
 
@@ -823,6 +837,8 @@ static void send_load_pedalboard(uint8_t bank_id, const char *pedalboard_uid)
 
     // waits the pedalboard loaded message to be received
     comm_webgui_wait_response();
+
+    FREE(buffer);
 }
 
 static void control_set(uint8_t id, control_t *control)
@@ -1661,7 +1677,6 @@ static void reset_menu_hover(node_t *menu_node)
     }
 }
 
-//called from the request functions and the naveg_initail_state
 static void parse_footswitch_pedalboards_list(void *data, menu_item_t *item)
 {
     (void) item;
@@ -1683,8 +1698,9 @@ static void parse_footswitch_pedalboards_list(void *data, menu_item_t *item)
 static void request_footswitch_pedalboards(uint8_t dir)
 {
 	uint8_t i;
-	char buffer[128];
-	memset(buffer, 0, sizeof buffer);
+	//char buffer[128];
+	//memset(buffer, 0, sizeof buffer);
+	char * buffer = (char *) MALLOC(128 * sizeof(char));
 
 	// sets the response callback
 	comm_webgui_set_response_cb(parse_footswitch_pedalboards_list, NULL);
@@ -1721,6 +1737,8 @@ static void request_footswitch_pedalboards(uint8_t dir)
     comm_webgui_wait_response();
 
     g_footswitch_pedalboards->selected = prev_selected;
+
+    FREE(buffer);
 }
 
 static uint8_t bank_config_check(uint8_t foot)
@@ -2406,7 +2424,8 @@ void naveg_next_control(uint8_t display)
     // if is in tool mode return
     if (display_has_tool_enabled(display)) return;
 
-    char buffer[128];
+    //char buffer[128];
+    char * buffer = (char *) MALLOC(128 * sizeof(char));
     uint8_t i;
 
     i = copy_command(buffer, CONTROL_NEXT_CMD);
@@ -2416,6 +2435,8 @@ void naveg_next_control(uint8_t display)
     buffer[i] = 0;
 
     comm_webgui_send(buffer, i);
+
+    FREE(buffer);
 }
 
 void naveg_foot_change(uint8_t foot, uint8_t pressed)
@@ -2580,7 +2601,6 @@ uint8_t naveg_tool_is_on(uint8_t tool)
 {
     return tool_is_on(tool);
 }
-
 
 void naveg_set_banks(bp_list_t *bp_list)
 {
