@@ -747,7 +747,7 @@ static void request_pedalboards(uint8_t dir, uint16_t bank_uid)
     // inserts one space
     buffer[i++] = ' ';
 
-    if (dir == 2)
+    if ((dir == 2) && (g_current_bank != g_banks->hover))
    	{
 		// insert the current hover on buffer
     	i += int_to_str(0, &buffer[i], sizeof(buffer) - i, 0);
@@ -979,7 +979,6 @@ static void control_set(uint8_t id, control_t *control)
 
 static void bp_enter(void)
 {
-    bp_list_t *bp_list;
     const char *title;
 
     if (naveg_ui_status())
@@ -995,25 +994,18 @@ static void bp_enter(void)
 
     if (g_bp_state == BANKS_LIST)
     {
+        //make sure that we request the right page if we have a selected pedalboard
+        if (g_current_bank == g_banks->hover)
+            g_naveg_pedalboards->hover = g_current_pedalboard;
+
     	//index is relevent in our array so - page_min
         request_pedalboards(PAGE_DIR_INIT, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
 
         // if reach here, received the pedalboards list
         g_bp_state = PEDALBOARD_LIST;
-        bp_list = g_naveg_pedalboards;
         //index is relevent in our array so - page_min
         title = g_banks->names[g_banks->hover - g_banks->page_min];
         g_bp_first = 1;
-
-        // defines the selected pedalboard
-        if (g_current_bank == g_banks->hover)
-        {
-            g_naveg_pedalboards->hover = g_current_pedalboard;
-        }
-        else 
-        {
-            g_naveg_pedalboards->hover = 0;
-        }
     }
     else if (g_bp_state == PEDALBOARD_LIST)
     {
@@ -1021,7 +1013,6 @@ static void bp_enter(void)
         if (g_naveg_pedalboards->hover == 0)
         {
             g_bp_state = BANKS_LIST;
-            bp_list = g_banks;
             title = "BANKS";
         }
         else
@@ -1043,7 +1034,6 @@ static void bp_enter(void)
 
             // sets the variables to update the screen
             title = g_banks->names[g_banks->hover - g_banks->page_min];
-            bp_list = g_naveg_pedalboards;
         }
     }
     else
@@ -1053,11 +1043,17 @@ static void bp_enter(void)
 
     //check if we need to display the selected item or out of bounds
     if (g_current_bank == g_banks->hover)
-    	g_naveg_pedalboards->selected = g_current_pedalboard;
+    {
+        g_naveg_pedalboards->selected = g_current_pedalboard;
+        g_naveg_pedalboards->hover = g_current_pedalboard;
+    }
     else 
-    	g_naveg_pedalboards->selected = g_naveg_pedalboards->menu_max + 1;
+    {
+        g_naveg_pedalboards->selected = g_naveg_pedalboards->menu_max + 1;
+        g_naveg_pedalboards->hover = 0;
+    }
 
-    screen_bp_list(title, bp_list);
+    screen_bp_list(title, (g_bp_state == PEDALBOARD_LIST)? g_naveg_pedalboards : g_banks);
 }
 
 static void bp_up(void)
@@ -1988,6 +1984,7 @@ void naveg_initial_state(uint16_t max_menu, uint16_t page_min, uint16_t page_max
     g_current_pedalboard = atoi(pedalboard_uid) + 1;
 
     g_naveg_pedalboards->hover = g_current_pedalboard;
+    g_naveg_pedalboards->selected = g_current_pedalboard;
 
     //also put as footswitch pedalboards
     if (g_naveg_pedalboards)
