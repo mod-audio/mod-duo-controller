@@ -1090,6 +1090,8 @@ static void bp_up(void)
 
     			//request new page
     			request_next_bank_page(PAGE_DIR_DOWN);
+
+                bp_list = g_banks;
     		}	
     		//we have items, just go up
     		else 
@@ -1125,6 +1127,8 @@ static void bp_up(void)
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
     			//request new page
     			request_pedalboards(PAGE_DIR_DOWN, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
+
+                bp_list = g_naveg_pedalboards;
     		}	
     		//we have items, just go up
     		else 
@@ -1171,6 +1175,8 @@ static void bp_down(void)
         		title = "BANKS";
     			//request new page
     			request_next_bank_page(PAGE_DIR_UP);
+
+                bp_list = g_banks;
     		}	
     		//we have items, just go down
     		else 
@@ -1205,6 +1211,8 @@ static void bp_down(void)
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
     			//request new page
     			request_pedalboards(PAGE_DIR_UP, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
+
+                bp_list = g_naveg_pedalboards;
     		}	
     		//we have items, just go down
     		else 
