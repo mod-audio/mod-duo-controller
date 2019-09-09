@@ -69,7 +69,7 @@ bool g_should_wait_for_webgui;
 // initialize the navigation nodes and structs
 void naveg_init(void);
 // sets the initial state of banks/pedalboards navigation
-void naveg_initial_state(uint8_t max_menu, uint8_t page_min, uint8_t page_max, char *bank_uid, char *pedalboard_uid, char **pedalboards_list);
+void naveg_initial_state(uint16_t max_menu, uint16_t page_min, uint16_t page_max, char *bank_uid, char *pedalboard_uid, char **pedalboards_list);
 // tells to navigation core the UI status
 void naveg_ui_connection(uint8_t status);
 // adds the control to end of the controls list
