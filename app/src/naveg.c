@@ -996,7 +996,7 @@ static void bp_enter(void)
     if (g_bp_state == BANKS_LIST)
     {
     	//index is relevent in our array so - page_min
-        request_pedalboards(PAGE_DIR_INIT, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
+        request_pedalboards(PAGE_DIR_INIT, atol(g_banks->uids[g_banks->hover - g_banks->page_min]));
 
         // if reach here, received the pedalboards list
         g_bp_state = PEDALBOARD_LIST;
@@ -1009,6 +1009,10 @@ static void bp_enter(void)
         if (g_current_bank == g_banks->hover)
         {
             g_naveg_pedalboards->hover = g_current_pedalboard;
+        }
+        else 
+        {
+            g_naveg_pedalboards->hover = 0;
         }
     }
     else if (g_bp_state == PEDALBOARD_LIST)
@@ -1027,7 +1031,7 @@ static void bp_enter(void)
 
             // request to GUI load the pedalboard
             //index is relevant in the array so - page_min, also the HMI array is always shifted right 1 because of back to banks, correct here
-            send_load_pedalboard(atoi(g_banks->uids[g_banks->selected - g_banks->page_min]), g_naveg_pedalboards->uids[g_naveg_pedalboards->hover - g_naveg_pedalboards->page_min - 1]);
+            send_load_pedalboard(atol(g_banks->uids[g_banks->selected - g_banks->page_min]), g_naveg_pedalboards->uids[g_naveg_pedalboards->hover - g_naveg_pedalboards->page_min - 1]);
 
             g_current_pedalboard = g_naveg_pedalboards->hover;
 
