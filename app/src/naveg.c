@@ -1121,7 +1121,7 @@ static void bp_up(void)
     	else
     	{
     		//we always keep 3 items in front of us, if not request new page, we add 4 because the bottom item is always "> back to banks" and we dont show that here
-    		if (g_naveg_pedalboards->hover <= (g_naveg_pedalboards->page_min + 4))
+    		if (g_naveg_pedalboards->hover <= (g_naveg_pedalboards->page_min + 5))
     		{
     			g_naveg_pedalboards->hover--;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
@@ -1205,13 +1205,13 @@ static void bp_down(void)
     	else 
     	{
     		//we always keep 3 items in front of us, if not request new page, we need to substract by 5, since the "> back to banks" item is added on parsing 
-    		if (g_naveg_pedalboards->hover >= (g_naveg_pedalboards->page_max - 5))
+    		if (g_naveg_pedalboards->hover >= (g_naveg_pedalboards->page_max - 4))
     		{
-    			g_naveg_pedalboards->hover++;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
     			//request new page
     			request_pedalboards(PAGE_DIR_UP, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
 
+                g_naveg_pedalboards->hover++;
                 bp_list = g_naveg_pedalboards;
     		}	
     		//we have items, just go down
