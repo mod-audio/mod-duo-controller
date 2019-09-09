@@ -109,7 +109,7 @@ static void *g_update_data;
 static xSemaphoreHandle g_dialog_sem;
 static uint8_t dialog_active = 0;
 static int16_t g_current_bank;
-static uint8_t g_force_update_pedalboard = 0;
+static uint8_t g_force_update_pedalboard = 1;
 static const  bp_list_t empty_list;
 
 
@@ -1985,23 +1985,9 @@ void naveg_initial_state(uint16_t max_menu, uint16_t page_min, uint16_t page_max
     g_naveg_pedalboards->page_max = page_max;
     g_naveg_pedalboards->menu_max = max_menu;
 
-    // locates the selected pedalboard index
-    uint16_t i;
-    for (i = 0; i < g_naveg_pedalboards->page_max; i++)
-    {
-        if (strcmp(g_naveg_pedalboards->uids[i], pedalboard_uid) == 0)
-        {
-            g_naveg_pedalboards->hover = i + 1;
-            g_current_pedalboard = i + 1;
-            break;
-        }
-    }
+    g_current_pedalboard = atoi(pedalboard_uid) + 1;
 
-    if (g_current_pedalboard == 0)
-    {
-    	g_current_pedalboard = 1;
-    	g_naveg_pedalboards->hover = 1;
-    }
+    g_naveg_pedalboards->hover = g_current_pedalboard;
 
     //also put as footswitch pedalboards
     if (g_naveg_pedalboards)
