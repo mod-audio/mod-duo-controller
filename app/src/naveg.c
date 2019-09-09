@@ -621,9 +621,9 @@ static void parse_banks_list(void *data, menu_item_t *item)
 
     if (g_banks)
     {
-    	g_banks->menu_max = (atol(list[2]));
-        g_banks->page_min = (atol(list[3]));
-        g_banks->page_max = (atol(list[4]));
+    	g_banks->menu_max = (atoi(list[2]));
+        g_banks->page_min = (atoi(list[3]));
+        g_banks->page_max = (atoi(list[4]));
     }
 
     naveg_set_banks(g_banks);
@@ -719,9 +719,9 @@ static void parse_pedalboards_list(void *data, menu_item_t *item)
 
     if (g_naveg_pedalboards)
     {
-    	g_naveg_pedalboards->menu_max = (atol(list[2]));
-    	g_naveg_pedalboards->page_min = (atol(list[3]));
-    	g_naveg_pedalboards->page_max = (atol(list[4])); 
+    	g_naveg_pedalboards->menu_max = (atoi(list[2]));
+    	g_naveg_pedalboards->page_min = (atoi(list[3]));
+    	g_naveg_pedalboards->page_max = (atoi(list[4])); 
     }
 }
 
@@ -996,7 +996,7 @@ static void bp_enter(void)
     if (g_bp_state == BANKS_LIST)
     {
     	//index is relevent in our array so - page_min
-        request_pedalboards(PAGE_DIR_INIT, atol(g_banks->uids[g_banks->hover - g_banks->page_min]));
+        request_pedalboards(PAGE_DIR_INIT, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
 
         // if reach here, received the pedalboards list
         g_bp_state = PEDALBOARD_LIST;
@@ -1031,7 +1031,7 @@ static void bp_enter(void)
 
             // request to GUI load the pedalboard
             //index is relevant in the array so - page_min, also the HMI array is always shifted right 1 because of back to banks, correct here
-            send_load_pedalboard(atol(g_banks->uids[g_banks->selected - g_banks->page_min]), g_naveg_pedalboards->uids[g_naveg_pedalboards->hover - g_naveg_pedalboards->page_min - 1]);
+            send_load_pedalboard(atoi(g_banks->uids[g_banks->selected - g_banks->page_min]), g_naveg_pedalboards->uids[g_naveg_pedalboards->hover - g_naveg_pedalboards->page_min - 1]);
 
             g_current_pedalboard = g_naveg_pedalboards->hover;
 
@@ -1128,7 +1128,7 @@ static void bp_up(void)
     			g_naveg_pedalboards->hover--;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
     			//request new page
-    			request_pedalboards(PAGE_DIR_DOWN, atol(g_banks->uids[g_banks->hover - g_banks->page_min]));
+    			request_pedalboards(PAGE_DIR_DOWN, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
     		}	
     		//we have items, just go up
     		else 
@@ -1208,7 +1208,7 @@ static void bp_down(void)
     			g_naveg_pedalboards->hover++;
         		title = g_banks->names[g_banks->hover - g_banks->page_min];
     			//request new page
-    			request_pedalboards(PAGE_DIR_UP, atol(g_banks->uids[g_banks->hover - g_banks->page_min]));
+    			request_pedalboards(PAGE_DIR_UP, atoi(g_banks->uids[g_banks->hover - g_banks->page_min]));
     		}	
     		//we have items, just go down
     		else 
@@ -1965,7 +1965,7 @@ void naveg_initial_state(uint16_t max_menu, uint16_t page_min, uint16_t page_max
     }
 
     // sets the bank index
-    uint16_t bank_id = atol(bank_uid);
+    uint16_t bank_id = atoi(bank_uid);
     g_current_bank = bank_id;
     if (g_banks)
     {
