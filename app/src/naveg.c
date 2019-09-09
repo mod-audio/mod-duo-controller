@@ -2487,7 +2487,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             menu_enter(0);
         }
 
-     /*   //if we are entering banks
+        //if we are entering banks
         if (tool == DISPLAY_TOOL_NAVIG)
         {
             //if we have a bank selected
@@ -2496,7 +2496,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 g_banks->hover = g_current_bank;
                 bp_enter();
             }
-        }*/
+        }
     }
     // changes the display to control mode
     else
