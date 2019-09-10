@@ -2453,6 +2453,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 banks_loaded = 1;
                 tool_off(DISPLAY_TOOL_SYSTEM_SUBMENU);
                 display = 1;
+                g_bp_state = BANKS_LIST;
                 break;
             case DISPLAY_TOOL_TUNER:
                 display_disable_all_tools(display);
@@ -2476,17 +2477,6 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             g_current_main_menu = g_current_menu;
             g_current_main_item = g_current_item;
             menu_enter(0);
-        }
-
-        //if we are entering banks
-        if (tool == DISPLAY_TOOL_NAVIG)
-        {
-            //if we have a bank selected
-            if ((g_current_bank != -1) && !naveg_ui_status() && g_bp_state == BANKS_LIST )
-            {
-                g_banks->hover = g_current_bank;
-                bp_enter();
-            }
         }
     }
     // changes the display to control mode
@@ -2982,7 +2972,7 @@ void naveg_menu_item_changed_cb(uint8_t item_ID, uint8_t value)
         //otherwise update right for sure
         else 
         {
-            if (!tool_is_on(DISPLAY_TOOL_TUNER))
+            if (!tool_is_on(DISPLAY_TOOL_TUNER) && !tool_is_on(DISPLAY_TOOL_NAVIG))
             {
                 naveg_menu_refresh(DISPLAY_RIGHT);
             }
