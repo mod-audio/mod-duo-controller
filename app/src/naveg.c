@@ -339,6 +339,12 @@ static void display_control_rm(uint8_t hw_id)
 
     if (hw_id > ENCODERS_COUNT) return;
 
+    if (!g_controls[display])
+    {
+        if (!display_has_tool_enabled(display)) screen_control(display, NULL);
+        return;
+    }
+
     control_t *control = g_controls[display];
 
     if (control)
@@ -520,7 +526,7 @@ static void foot_control_rm(uint8_t hw_id)
 {
     uint8_t i;
 
-    //if (hw_id < ENCODERS_COUNT) return; 
+    if (hw_id < ENCODERS_COUNT) return;
 
     for (i = 0; i < FOOTSWITCHES_COUNT; i++)
     {
@@ -818,6 +824,9 @@ static void send_load_pedalboard(uint16_t bank_id, const char *pedalboard_uid)
 	}
     buffer[i] = 0;
 
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
+
     // sets the response callback
     comm_webgui_set_response_cb(NULL, NULL);
 
@@ -826,6 +835,9 @@ static void send_load_pedalboard(uint16_t bank_id, const char *pedalboard_uid)
 
     // waits the pedalboard loaded message to be received
     comm_webgui_wait_response();
+
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
 }
 
 static void control_set(uint8_t id, control_t *control)
@@ -1677,6 +1689,7 @@ static void parse_footswitch_pedalboards_list(void *data, menu_item_t *item)
     if (pb_list_bfr)
     {
     	g_footswitch_pedalboards = empty_list;
+        memset(&g_footswitch_pedalboards, 0, sizeof g_footswitch_pedalboards);
     	memcpy(&g_footswitch_pedalboards, pb_list_bfr, sizeof(bp_list_t));
     	g_footswitch_pedalboards.names = str_array_duplicate(pb_list_bfr->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
     	g_footswitch_pedalboards.uids  = str_array_duplicate(pb_list_bfr->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
@@ -1721,11 +1734,21 @@ static void request_footswitch_pedalboards(uint8_t dir)
 
     buffer[i++] = 0;
 
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
+
+    //clear the buffer if we are getting controls at this moment
+    comm_webgui_clear();
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
     comm_webgui_wait_response();
+
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
+    comm_webgui_clear();
 }
 
 static uint8_t bank_config_check(uint8_t foot)
@@ -1786,6 +1809,7 @@ static void bank_config_update(uint8_t bank_func_idx)
             		else
             		{
             			g_current_pedalboard--;
+
             			request_footswitch_pedalboards(PAGE_DIR_DOWN);
             		}
             	}

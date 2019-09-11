@@ -71,7 +71,6 @@
 static volatile xQueueHandle g_actuators_queue;
 static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
 static uint8_t g_ui_communication_started;
-static uint8_t g_protocol_bussy = 0;
 
 /*
 ************************************************************************************************************************
@@ -515,7 +514,7 @@ static void control_add_cb(proto_t *proto)
 
     g_protocol_bussy = 0;
     system_lock_comm_serial(g_protocol_bussy);
-
+    comm_webgui_clear();
     protocol_response("resp 0", proto);
 }
 
@@ -586,11 +585,17 @@ static void initial_state_cb(proto_t *proto)
 
 static void bank_config_cb(proto_t *proto)
 {
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
+
     bank_config_t bank_func;
     bank_func.hw_id = atoi(proto->list[1]);
     bank_func.function = atoi(proto->list[2]);
     naveg_bank_config(&bank_func);
     protocol_response("resp 0", proto);
+
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
 }
 
 static void tuner_cb(proto_t *proto)
@@ -635,6 +640,9 @@ static void boot_cb(proto_t *proto)
 
 static void menu_item_changed_cb(proto_t *proto)
 {
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
+
     naveg_menu_item_changed_cb(atoi(proto->list[1]), atoi(proto->list[2]));
     
     uint8_t i;
@@ -648,10 +656,16 @@ static void menu_item_changed_cb(proto_t *proto)
     }
 
     protocol_response("resp 0", proto);
+
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
 }
 
 static void  pedalboard_clear_cb(proto_t *proto)
 {
+    g_protocol_bussy = 1;
+    system_lock_comm_serial(g_protocol_bussy);
+
     //clear controls
     uint8_t i;
     for (i = 0; i < TOTAL_ACTUATORS; i++)
@@ -660,6 +674,10 @@ static void  pedalboard_clear_cb(proto_t *proto)
     }
 
     protocol_response("resp 0", proto);
+
+    g_protocol_bussy = 0;
+    system_lock_comm_serial(g_protocol_bussy);
+    comm_webgui_clear();
 }
 /*
 ************************************************************************************************************************
