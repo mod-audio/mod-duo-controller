@@ -573,8 +573,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #include "FreeRTOS.h"
 #define MALLOC(n)       pvPortMalloc(n)
 #define FREE(pv)        vPortFree(pv)
-
-
+    
 ////////////////////////////////////////////////////////////////
 ////// DON'T CHANGE THIS DEFINES
 

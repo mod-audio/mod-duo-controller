@@ -110,11 +110,10 @@ static xSemaphoreHandle g_dialog_sem;
 static uint8_t dialog_active = 0;
 static int16_t g_current_bank;
 static uint8_t g_force_update_pedalboard = 1;
-static const  bp_list_t empty_list;
-
 
 // only enabled after "boot" command received
 bool g_should_wait_for_webgui = false;
+
 /*
 ************************************************************************************************************************
 *           LOCAL FUNCTION PROTOTYPES
@@ -761,7 +760,7 @@ static void request_pedalboards(uint8_t dir, uint16_t bank_uid)
     else
     {
     	// insert the current hover on buffer
-    	i += int_to_str(g_naveg_pedalboards->hover, &buffer[i], sizeof(buffer) - i, 0);
+    	i += int_to_str(g_naveg_pedalboards->hover - 1, &buffer[i], sizeof(buffer) - i, 0);
     }
 
     // inserts one space
@@ -824,8 +823,8 @@ static void send_load_pedalboard(uint16_t bank_id, const char *pedalboard_uid)
 	}
     buffer[i] = 0;
 
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
 
     // sets the response callback
     comm_webgui_set_response_cb(NULL, NULL);
@@ -836,8 +835,8 @@ static void send_load_pedalboard(uint16_t bank_id, const char *pedalboard_uid)
     // waits the pedalboard loaded message to be received
     comm_webgui_wait_response();
 
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void control_set(uint8_t id, control_t *control)
@@ -1688,8 +1687,6 @@ static void parse_footswitch_pedalboards_list(void *data, menu_item_t *item)
 
     if (pb_list_bfr)
     {
-    	g_footswitch_pedalboards = empty_list;
-        memset(&g_footswitch_pedalboards, 0, sizeof g_footswitch_pedalboards);
     	memcpy(&g_footswitch_pedalboards, pb_list_bfr, sizeof(bp_list_t));
     	g_footswitch_pedalboards.names = str_array_duplicate(pb_list_bfr->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
     	g_footswitch_pedalboards.uids  = str_array_duplicate(pb_list_bfr->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
@@ -1734,11 +1731,8 @@ static void request_footswitch_pedalboards(uint8_t dir)
 
     buffer[i++] = 0;
 
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
-
-    //clear the buffer if we are getting controls at this moment
-    comm_webgui_clear();
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
 
     // sends the data to GUI
     comm_webgui_send(buffer, i);
@@ -1746,9 +1740,8 @@ static void request_footswitch_pedalboards(uint8_t dir)
     // waits the pedalboards list be received
     comm_webgui_wait_response();
 
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
-    comm_webgui_clear();
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static uint8_t bank_config_check(uint8_t foot)
@@ -1833,7 +1826,6 @@ static void bank_config_footer(void)
 			//also put as footswitch pedalboards
 			if (g_naveg_pedalboards)
 			{
-				g_footswitch_pedalboards = empty_list;
 				memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
 				g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
 				g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
@@ -2021,7 +2013,6 @@ void naveg_initial_state(uint16_t max_menu, uint16_t page_min, uint16_t page_max
     //also put as footswitch pedalboards
     if (g_naveg_pedalboards)
     {
-    	g_footswitch_pedalboards = empty_list;
     	memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
     	g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
     	g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));

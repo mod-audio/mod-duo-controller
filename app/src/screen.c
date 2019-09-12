@@ -54,7 +54,6 @@ enum {BANKS_LIST, PEDALBOARD_LIST};
 
 static tuner_t g_tuner = {0, NULL, 0, 1};
 
-
 /*
 ************************************************************************************************************************
 *           LOCAL FUNCTION PROTOTYPES

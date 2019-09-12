@@ -162,7 +162,7 @@ void serial_error(uint8_t uart_id, uint32_t error)
 // this callback is called from a ISR
 static void actuators_cb(void *actuator)
 {
-    if (g_protocol_bussy)
+    if (g_protocol_busy)
     {
         if (!naveg_dialog_status()) return;
     }  
@@ -203,8 +203,8 @@ static void procotol_task(void *pvParameters)
     while (1)
     {
         uint32_t msg_size;
-        g_protocol_bussy = 0;
-        system_lock_comm_serial(g_protocol_bussy);
+        g_protocol_busy = false;
+        system_lock_comm_serial(g_protocol_busy);
         // blocks until receive a new message
         ringbuff_t *rb = comm_webgui_read();
         msg_size = ringbuff_read_until(rb, g_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE, 0);
@@ -212,8 +212,8 @@ static void procotol_task(void *pvParameters)
         if (msg_size > 0)
         {
             //if parsing messages block the actuator messages. 
-            g_protocol_bussy = 1;
-            system_lock_comm_serial(g_protocol_bussy);
+            g_protocol_busy = true;
+            system_lock_comm_serial(g_protocol_busy);
             msg_t msg;
             msg.sender_id = 0;
             msg.data = (char *) g_msg_buffer;
@@ -419,6 +419,7 @@ void reset_queue(void)
 static void ping_cb(proto_t *proto)
 {
     g_ui_communication_started = 1;
+    g_protocol_busy = false;
     protocol_response("resp 0", proto);
 }
 
@@ -485,8 +486,8 @@ static void glcd_draw_cb(proto_t *proto)
 static void gui_connection_cb(proto_t *proto)
 {
     //lock actuators
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
     //clear the buffer so we dont send any messages
     comm_webgui_clear();
 
@@ -496,8 +497,8 @@ static void gui_connection_cb(proto_t *proto)
         naveg_ui_connection(UI_DISCONNECTED);
 
     //we are done supposedly closing the menu, we can unlock the actuators
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     protocol_response("resp 0", proto);
 }
@@ -505,16 +506,15 @@ static void gui_connection_cb(proto_t *proto)
 static void control_add_cb(proto_t *proto)
 {
     //lock actuators
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
 
     control_t *control = data_parse_control(proto->list);
 
     naveg_add_control(control);
 
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
-    comm_webgui_clear();
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
     protocol_response("resp 0", proto);
 }
 
@@ -540,14 +540,14 @@ static void control_rm_cb(proto_t *proto)
 static void control_set_cb(proto_t *proto)
 {
     //lock actuators
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
 
     naveg_set_control(atoi(proto->list[1]), atof(proto->list[2]));
     protocol_response("resp 0", proto);
 
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void control_get_cb(proto_t *proto)
@@ -565,15 +565,15 @@ static void control_get_cb(proto_t *proto)
 static void control_set_index_cb(proto_t *proto)
 {
     //lock actuators
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
 
     //index_set <updatevalues> <encoder hardware_id> <control index> <index_count>
     naveg_set_index(1, atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]));
     protocol_response("resp 0", proto);
 
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void initial_state_cb(proto_t *proto)
@@ -585,8 +585,8 @@ static void initial_state_cb(proto_t *proto)
 
 static void bank_config_cb(proto_t *proto)
 {
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
 
     bank_config_t bank_func;
     bank_func.hw_id = atoi(proto->list[1]);
@@ -594,8 +594,8 @@ static void bank_config_cb(proto_t *proto)
     naveg_bank_config(&bank_func);
     protocol_response("resp 0", proto);
 
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void tuner_cb(proto_t *proto)
@@ -640,8 +640,8 @@ static void boot_cb(proto_t *proto)
 
 static void menu_item_changed_cb(proto_t *proto)
 {
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
 
     naveg_menu_item_changed_cb(atoi(proto->list[1]), atoi(proto->list[2]));
     
@@ -657,14 +657,14 @@ static void menu_item_changed_cb(proto_t *proto)
 
     protocol_response("resp 0", proto);
 
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void  pedalboard_clear_cb(proto_t *proto)
 {
-    g_protocol_bussy = 1;
-    system_lock_comm_serial(g_protocol_bussy);
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
 
     //clear controls
     uint8_t i;
@@ -675,9 +675,8 @@ static void  pedalboard_clear_cb(proto_t *proto)
 
     protocol_response("resp 0", proto);
 
-    g_protocol_bussy = 0;
-    system_lock_comm_serial(g_protocol_bussy);
-    comm_webgui_clear();
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 /*
 ************************************************************************************************************************

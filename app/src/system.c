@@ -301,9 +301,9 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
 *           GLOBAL FUNCTIONS
 ************************************************************************************************************************
 */
-void system_lock_comm_serial(uint8_t bussy)
+void system_lock_comm_serial(bool busy)
 {
-    g_comm_protocol_bussy = bussy;
+    g_comm_protocol_bussy = busy;
 }
 
 uint8_t system_get_current_profile(void)

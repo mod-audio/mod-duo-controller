@@ -17,6 +17,7 @@
 
 #include <stdint.h>
 #include "data.h"
+#include <stdbool.h>
 
 /*
 ************************************************************************************************************************
@@ -60,7 +61,7 @@
 */
 
 // system menu callbacks
-void system_lock_comm_serial(uint8_t bussy);
+void system_lock_comm_serial(bool busy);
 void system_update_menu_value(uint8_t item_ID, uint8_t value);
 uint8_t system_get_current_profile(void);
 void system_true_bypass_cb(void *arg, int event);
