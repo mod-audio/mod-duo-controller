@@ -791,7 +791,7 @@ uint16_t str_to_hex(const char *str, uint8_t *array, uint16_t array_size)
 {
     if (!str || !array) return 0;
 
-    uint8_t i, num[2];
+    uint8_t i, num[2] = { 0, 0 };
     uint16_t count = 0;
     const char *pstr = str;
 

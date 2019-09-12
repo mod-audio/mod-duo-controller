@@ -10,6 +10,7 @@
 #include "utils.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 
 /*
@@ -187,41 +188,35 @@ bp_list_t *data_parse_banks_list(char **list_data, uint32_t list_count)
 {
     if (!list_data || list_count == 0 || (list_count % 2)) return NULL;
 
-    list_count = (list_count / 2) ;
+    list_count = (list_count / 2);
 
-    // creates a array of bank
+    // create an array of banks
     bp_list_t *bp_list = (bp_list_t *) MALLOC(sizeof(bp_list_t));
     if (!bp_list) goto error;
 
-    bp_list->hover = 0;
-    bp_list->selected = 0;
-    bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count + 1));
-    bp_list->uids = (char **) MALLOC(sizeof(char *) * (list_count + 1));
+    // clear allocated memory
+    memset(bp_list, 0, sizeof(bp_list_t));
 
-    // checks memory allocation
+    // allocate string arrays
+    const size_t list_size = sizeof(char *) * (list_count + 1);
+
+    if ((bp_list->names = (char **) MALLOC(list_size)))
+        memset(bp_list->names, 0, list_size);
+
+    if ((bp_list->uids = (char **) MALLOC(list_size)))
+        memset(bp_list->uids, 0, list_size);
+
+    // check memory allocation
     if (!bp_list->names || !bp_list->uids) goto error;
 
-    uint32_t i = 0, j = 0;
-
-    // initializes the pointers
-    for (i = 0; i < (list_count + 1); i++)
-    {
-        bp_list->names[i] = NULL;
-        bp_list->uids[i] = NULL;
-    }
-
-    // fills the bp_list struct
-    i = 0;
-    while (list_data[i] && j < list_count)
+    // fill the bp_list struct
+    for (uint32_t i = 0, j = 0; list_data[i] && j < list_count; i += 2, j++)
     {
         bp_list->names[j] = str_duplicate(list_data[i + 0]);
         bp_list->uids[j] = str_duplicate(list_data[i + 1]);
 
-        // checks memory allocation
+        // check memory allocation
         if (!bp_list->names[j] || !bp_list->uids[j]) goto error;
-
-        i += 2;
-        j++;
     }
 
     return bp_list;
@@ -236,11 +231,10 @@ void data_free_banks_list(bp_list_t *bp_list)
     if (!bp_list) return;
 
     uint32_t i;
-    uint8_t count = (bp_list->page_max - bp_list->page_min + 1);
 
     if (bp_list->names)
     {
-        for (i = 0; i < count; i++)
+        for (i = 0; bp_list->names[i]; i++)
             FREE(bp_list->names[i]);
 
         FREE(bp_list->names);
@@ -248,7 +242,7 @@ void data_free_banks_list(bp_list_t *bp_list)
 
     if (bp_list->uids)
     {
-        for (i = 0; i < count; i++)
+        for (i = 0; bp_list->uids[i]; i++)
             FREE(bp_list->uids[i]);
 
         FREE(bp_list->uids);
@@ -264,43 +258,37 @@ bp_list_t *data_parse_pedalboards_list(char **list_data, uint32_t list_count)
 
     list_count = (list_count / 2) + 1;
 
-    // creates a array of bank
+    // create an array of banks
     bp_list_t *bp_list = (bp_list_t *) MALLOC(sizeof(bp_list_t));
     if (!bp_list) goto error;
 
-    bp_list->hover = 0;
-    bp_list->selected = 0;
-    bp_list->names = (char **) MALLOC(sizeof(char *) * (list_count + 1));
-    bp_list->uids = (char **) MALLOC(sizeof(char *) * (list_count + 1));
+    // clear allocated memory
+    memset(bp_list, 0, sizeof(bp_list_t));
 
-    // checks memory allocation
+    // allocate string arrays
+    const size_t list_size = sizeof(char *) * (list_count + 1);
+
+    if ((bp_list->names = (char **) MALLOC(list_size)))
+        memset(bp_list->names, 0, list_size);
+
+    if ((bp_list->uids = (char **) MALLOC(list_size)))
+        memset(bp_list->uids, 0, list_size);
+
+    // check memory allocation
     if (!bp_list->names || !bp_list->uids) goto error;
-
-    uint32_t i = 0, j = 1;
-
-    // initializes the pointers
-    for (i = 0; i < (list_count + 1); i++)
-    {
-        bp_list->names[i] = NULL;
-        bp_list->uids[i] = NULL;
-    }
 
     // first line is 'back to banks list'
     bp_list->names[0] = g_back_to_bank;
-    bp_list->uids[0] = NULL;  
+    bp_list->uids[0] = NULL;
 
-    // fills the bp_list struct
-    i = 0;
-    while (list_data[i])
+    // fill the bp_list struct
+    for (uint32_t i = 0, j = 1; list_data[i] && j < list_count; i += 2, j++)
     {
         bp_list->names[j] = str_duplicate(list_data[i + 0]);
         bp_list->uids[j] = str_duplicate(list_data[i + 1]);
 
-        // checks memory allocation
+        // check memory allocation
         if (!bp_list->names[j] || !bp_list->uids[j]) goto error;
-
-        i += 2;
-        j++;
     }
 
     return bp_list;
@@ -315,11 +303,10 @@ void data_free_pedalboards_list(bp_list_t *bp_list)
     if (!bp_list) return;
 
     uint32_t i;
-    uint8_t count = (bp_list->page_max - bp_list->page_min + 1);
 
     if (bp_list->names)
     {
-        for (i = 1; i < count; i++)
+        for (i = 1; bp_list->names[i]; i++)
             FREE(bp_list->names[i]);
 
         FREE(bp_list->names);
@@ -327,7 +314,7 @@ void data_free_pedalboards_list(bp_list_t *bp_list)
 
     if (bp_list->uids)
     {
-        for (i = 1; i < count; i++)
+        for (i = 1; bp_list->uids[i]; i++)
             FREE(bp_list->uids[i]);
 
         FREE(bp_list->uids);
