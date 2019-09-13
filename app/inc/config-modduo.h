@@ -469,7 +469,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 //POPUP DEFINES
 //PROFILE POPUP TXT
-#define PROFILE_POPUP_LOAD_TXT    "The device is about to load a\nnew profile. Continue?."
+#define PROFILE_POPUP_LOAD_TXT    "The device is about to load a\nnew profile. Continue?"
 #define PROFILE_POPUP_RELOAD_TXT  "Reload active user profile?\nThis will discard any unsaved\nchanges."
 #define EXP_CV_POPUP_TXT          "The device is about to switch\ninput modes. To avoid damage,\ndisconnect all devices from\nthe CV/EXP port. Continue?"
 #define HP_CV_POPUP_TXT           "The device is about to switch\noutput modes. To avoid damage,\ndisconnect all devices from\nthe CV/HP port. Continue?"
