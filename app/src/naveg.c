@@ -1417,6 +1417,8 @@ static void menu_enter(uint8_t display_id)
                     //add the to be saved profile char to the header of the popup
                     char *profile_char;
 
+                    item->data.value = system_get_current_profile();
+
                     if (item->data.value ==1) profile_char = "A";
                     else if (item->data.value ==2) profile_char = "B";
                     else if (item->data.value ==3) profile_char = "C";

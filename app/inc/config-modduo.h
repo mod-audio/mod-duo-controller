@@ -469,7 +469,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 //POPUP DEFINES
 //PROFILE POPUP TXT
-#define PROFILE_POPUP_LOAD_TXT    "The device is about to load a\nnew profile. To avoid damage,\ndisconnect all devices from\nthe CV/EXP and CV/HP ports.\nContinue?."
+#define PROFILE_POPUP_LOAD_TXT    "The device is about to load a\nnew profile. Continue?."
 #define PROFILE_POPUP_RELOAD_TXT  "Reload active user profile?\nThis will discard any unsaved\nchanges."
 #define EXP_CV_POPUP_TXT          "The device is about to switch\ninput modes. To avoid damage,\ndisconnect all devices from\nthe CV/EXP port. Continue?"
 #define HP_CV_POPUP_TXT           "The device is about to switch\noutput modes. To avoid damage,\ndisconnect all devices from\nthe CV/HP port. Continue?"
@@ -485,7 +485,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {PROFILES_ID+2, "Load user profile B", PROFILE_POPUP_LOAD_TXT}, \
     {PROFILES_ID+3, "Load user profile C", PROFILE_POPUP_LOAD_TXT}, \
     {PROFILES_ID+4, "Load user profile D", PROFILE_POPUP_LOAD_TXT}, \
-    {PROFILES_ID+5, "Overwrite user profile", "Overwrite active user profile?"}, \
+    {PROFILES_ID+5, "Overwrite user profile ", "Overwrite active user profile?"}, \
     {PROFILES_ID+6, "Reload user profile A", PROFILE_POPUP_RELOAD_TXT}, \
     {PROFILES_ID+7, "Reload user profile B", PROFILE_POPUP_RELOAD_TXT}, \
     {PROFILES_ID+8, "Reload user profile C", PROFILE_POPUP_RELOAD_TXT}, \
@@ -573,7 +573,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #include "FreeRTOS.h"
 #define MALLOC(n)       pvPortMalloc(n)
 #define FREE(pv)        vPortFree(pv)
-    
+
 ////////////////////////////////////////////////////////////////
 ////// DON'T CHANGE THIS DEFINES
 

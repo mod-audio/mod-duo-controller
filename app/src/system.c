@@ -1140,7 +1140,7 @@ void system_load_pro_cb(void *arg, int event)
     {
         //current profile is the ID (A=1, B=2, C=3, D=4)
         g_current_profile = item->desc->id - item->desc->parent_id;
-        item->data.value = g_current_profile;
+        item->data.value = 1;
 
         set_item_value(LOAD_PROFILE_CMD, g_current_profile);
     }
@@ -1150,9 +1150,14 @@ void system_load_pro_cb(void *arg, int event)
         if ((item->desc->id - item->desc->parent_id) == g_current_profile)
         {
             add_chars_to_menu_name(item, option_enabled);
+            item->data.value = 1;
         }
         //we dont want a [ ] behind every profile, so clear the name to just show the txt
-        else strcpy(item->name, item->desc->name);
+        else
+        { 
+            strcpy(item->name, item->desc->name);
+            item->data.value = 0;
+        }
     }
 
     //we do not need tu update anything, a profile_update command will be run that handles that. 
