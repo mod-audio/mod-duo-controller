@@ -423,12 +423,12 @@ void system_bluetooth_cb(void *arg, int event)
     if (event == MENU_EV_ENTER)
     {
         const char *response;
-        char resp[30];
+        char resp[60];
         if (item->desc->id == BLUETOOTH_ID)
         {
             response = cli_command("mod-bluetooth hmi", CLI_RETRIEVE_RESPONSE);
             
-            strcpy(resp, response);
+            strncpy(resp, response, sizeof(resp));
             char **items = strarr_split(resp, '\n');;
 
             if (items)
@@ -436,6 +436,8 @@ void system_bluetooth_cb(void *arg, int event)
                 update_status(item->data.list[2], items[0]);
                 update_status(item->data.list[3], items[1]);
                 update_status(item->data.list[4], items[2]);
+
+                FREE(items);
             }
         }
         else if (item->desc->id == BLUETOOTH_DISCO_ID)
