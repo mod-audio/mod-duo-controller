@@ -106,7 +106,7 @@ void protocol_parse(msg_t *msg)
     int32_t index = NOT_FOUND;
     proto_t proto;
 
-    proto.list = strarr_split(msg->data);
+    proto.list = strarr_split(msg->data, ' ');
     proto.list_count = strarr_length(proto.list);
     proto.response = NULL;
 
@@ -203,7 +203,7 @@ void protocol_add_command(const char *command, void (*callback)(proto_t *proto))
 
     char *cmd = str_duplicate(command);
     g_commands[g_command_count].command = cmd;
-    g_commands[g_command_count].list = strarr_split(cmd);
+    g_commands[g_command_count].list = strarr_split(cmd, ' ');
     g_commands[g_command_count].count = strarr_length(g_commands[g_command_count].list);
     g_commands[g_command_count].callback = callback;
     g_command_count++;

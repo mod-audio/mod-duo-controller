@@ -71,7 +71,7 @@ typedef struct RINGBUFF_T {
 // copy an command to buffer
 uint8_t copy_command(char *buffer, const char *command);
 // splits the string in each whitespace occurrence and returns a array of strings NULL terminated
-char** strarr_split(char *str);
+char** strarr_split(char *str, const char token);
 // returns the string array length
 uint32_t strarr_length(char** const str_array);
 // joins a string array in a single string

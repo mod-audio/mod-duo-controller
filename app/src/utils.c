@@ -131,11 +131,10 @@ uint8_t copy_command(char *buffer, const char *command)
     return i;
 }
 
-char** strarr_split(char *str)
+char** strarr_split(char *str, const char token)
 {
     uint32_t count;
     char *pstr, **list = NULL;
-    const char token = ' ';
     uint8_t quote = 0;
 
     if (!str) return list;
