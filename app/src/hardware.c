@@ -188,7 +188,7 @@ void hardware_setup(void)
     TIM_MATCHCFG_Type TIM_MatchConfigStruct ;
     // initialize timer 0, prescale count time of 10us
     TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
-    TIM_ConfigStruct.PrescaleValue = 10;
+    TIM_ConfigStruct.PrescaleValue = 5;
     // use channel 0, MR0
     TIM_MatchConfigStruct.MatchChannel = 0;
     // enable interrupt when MR0 matches the value in TC register
