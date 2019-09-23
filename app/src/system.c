@@ -89,7 +89,7 @@ uint8_t g_sl_out = 0;
 uint8_t g_sl_in = 0;
 uint8_t g_snapshot_prog_change = 0;
 uint8_t g_pedalboard_prog_change = 0;
-uint8_t g_beats_per_minute = 0;
+uint16_t g_beats_per_minute = 0;
 uint8_t g_beats_per_bar = 0;
 uint8_t g_MIDI_clk_send = 0;
 uint8_t g_MIDI_clk_src = 0;
@@ -883,7 +883,7 @@ void system_tempo_cb (void *arg, int event)
         //set the item value to the bpm since mod-ui is master
         item->data.value =  g_beats_per_minute;
         item->data.min = 20;
-        item->data.max = 220;
+        item->data.max = 280;
         item->data.step = 1;
     }
     //scrolling up/down
