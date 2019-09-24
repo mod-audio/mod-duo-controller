@@ -423,7 +423,7 @@ void system_bluetooth_cb(void *arg, int event)
     if (event == MENU_EV_ENTER)
     {
         const char *response;
-        char resp[60];
+        char resp[LINE_BUFFER_SIZE];
         if (item->desc->id == BLUETOOTH_ID)
         {
             response = cli_command("mod-bluetooth hmi", CLI_RETRIEVE_RESPONSE);
