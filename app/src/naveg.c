@@ -1033,7 +1033,7 @@ static void bp_enter(void)
 
             // request to GUI load the pedalboard
             //index is relevant in the array so - page_min, also the HMI array is always shifted right 1 because of back to banks, correct here
-            send_load_pedalboard(atoi(g_banks->uids[g_banks->selected - g_banks->page_min]), g_naveg_pedalboards->uids[g_naveg_pedalboards->hover - g_naveg_pedalboards->page_min - 1]);
+            send_load_pedalboard(atoi(g_banks->uids[g_banks->hover - g_banks->page_min]), g_naveg_pedalboards->uids[g_naveg_pedalboards->hover - g_naveg_pedalboards->page_min - 1]);
 
             g_current_pedalboard = g_naveg_pedalboards->hover;
 
