@@ -101,6 +101,8 @@ control_t *data_parse_control(char **data)
     control->minimum = atof(data[7]);
     control->steps = atoi(data[8]);
     control->scale_points_count = 0;
+    //pagination on by default
+    control->scale_points_flag = 1;
     control->scale_points = NULL;
 
     // checks the memory allocation
@@ -149,6 +151,8 @@ control_t *data_parse_control(char **data)
 
             if (!control->scale_points[i] || !control->scale_points[i]->label) goto error;
         }
+
+        control->scale_points_flag = atoi(data[10]);
     }
 
     return control;

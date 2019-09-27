@@ -54,7 +54,7 @@ typedef struct CONTROL_T {
     uint16_t properties;
     float value, minimum, maximum;
     int32_t step, steps;
-    uint8_t scale_points_count;
+    uint8_t scale_points_count, scale_points_flag;
     scale_point_t **scale_points;
     uint8_t scroll_dir;
 } control_t;

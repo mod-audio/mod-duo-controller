@@ -153,7 +153,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // ui_dis
 #define GUI_DISCONNECTED_CMD          "ui_dis"
 // control_add <hw_id> <label> <control_prop> <unit> <value> <max> <min> <steps> 
-//             [scale_point_count] {[scale_point1_label] [scale_point1_value]}...
+//             [scale_point_count] [scale_point_flag] {[scale_point1_label] [scale_point1_value]}...
 #define CONTROL_ADD_CMD               "a %i %s %i %s %f %f %f %i %i ..."
 // control_rm <hw_id>
 #define CONTROL_REMOVE_CMD            "rm %i ..."
