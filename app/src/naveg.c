@@ -2101,7 +2101,7 @@ void naveg_inc_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
 
-    if  ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM))
+    if  (((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM)) && control->scale_points_flag)
     {
         // increments the step
         if (control->step < (control->steps - 2))
@@ -2141,7 +2141,7 @@ void naveg_dec_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
     
-    if  ((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM))
+    if  (((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) || (control->properties == CONTROL_PROP_REVERSE_ENUM)) && control->scale_points_flag)
     {
         // decrements the step
         if (control->step > 1)
