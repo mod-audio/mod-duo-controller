@@ -875,7 +875,7 @@ static void control_set(uint8_t id, control_t *control)
         			if (control->step < (control->steps - 1))
         			    control->step++;
         			//we need to request a new page
-        			else 
+        			else if (control->scale_points_flag) 
         			{
         				//request new data, a new control we be assigned after
         				request_control_page(control, 1);
@@ -883,6 +883,7 @@ static void control_set(uint8_t id, control_t *control)
         				//since a new control is assigned we can return
         				return;
         			}
+                    else return;
                 }
                 else 
                 {
@@ -890,7 +891,7 @@ static void control_set(uint8_t id, control_t *control)
         			if (control->step > 0)
         			    control->step--;
         			//we are at the end of our list ask for more data
-        			else
+        			else if (control->scale_points_flag)
         			{
         			    //request new data, a new control we be assigned after
         			    request_control_page(control, 0);
@@ -898,6 +899,7 @@ static void control_set(uint8_t id, control_t *control)
 	        	    	//since a new control is assigned we can return
         	    		return;
                 	}
+                    else return;
                	}
 
 
