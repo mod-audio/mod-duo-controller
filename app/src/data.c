@@ -80,7 +80,7 @@ control_t *data_parse_control(char **data)
 {
     control_t *control = NULL;
     uint32_t len = strarr_length(data);
-    const uint32_t min_params = 9;
+    const uint32_t min_params = 10;
     uint16_t properties_mask = 0;
 
     // checks if all data was received
