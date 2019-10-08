@@ -906,7 +906,7 @@ static void control_set(uint8_t id, control_t *control)
         			if (control->step > 0)
         			    control->step--;
         			//we are at the end of our list ask for more data
-        			else if ((control->scale_points_flag & CONTROL_PAGINATED) | (control->scale_points_flag & CONTROL_WRAP_AROUND))
+        			else if ((control->scale_points_flag & CONTROL_PAGINATED) || (control->scale_points_flag & CONTROL_WRAP_AROUND))
         			{
         			    //request new data, a new control we be assigned after
         			    request_control_page(control, 0);
