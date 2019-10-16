@@ -2449,8 +2449,9 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
 
     if (display_has_tool_enabled(get_display_by_id(foot, FOOT))) return;
 
-    //detect a release action which we dont use right now for all actuator modes (only trigger)
-    if ((!pressed) && (g_foots[foot]->properties != CONTROL_PROP_TRIGGER)) return;
+    //detect a release action which we dont use right now for all actuator modes
+    if ((!pressed)) return; 
+    // && (g_foots[foot]->properties != CONTROL_PROP_TRIGGER)) return;
 
     // checks if the foot is used like bank function
     uint8_t bank_func_idx = bank_config_check(foot);
