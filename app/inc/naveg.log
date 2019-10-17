@@ -1,5 +1,0 @@
-Questionable use of curly braces in "enum {ui_disconnected,ui_connected}"
-    Error: undefined symbol in: "[ui_disconnected],ui_connected"
-Circuit: *
-
-Fatal Error: Multiple instances of "Bp_list_t"

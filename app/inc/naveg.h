@@ -133,7 +133,7 @@ void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float
 
 void naveg_bypass_refresh(uint8_t bypass_1, uint8_t bypass_2, uint8_t quick_bypass);
 
-void naveg_menu_item_changed_cb(uint8_t item_ID, uint8_t value);
+void naveg_menu_item_changed_cb(uint8_t item_ID, uint16_t value);
 
 uint8_t naveg_dialog_status(void);
 

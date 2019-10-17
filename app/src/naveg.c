@@ -2997,7 +2997,7 @@ void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float
     }
 }
 
-void naveg_menu_item_changed_cb(uint8_t item_ID, uint8_t value)
+void naveg_menu_item_changed_cb(uint8_t item_ID, uint16_t value)
 {
     //set value in system.c
     system_update_menu_value(item_ID, value);
