@@ -152,7 +152,7 @@ void add_chars_to_menu_name(menu_item_t *item, char *chars_to_add)
 }
 
 //TODO CHECK IF WE CAN USE DYNAMIC MEMORY HERE
-void set_item_value(char *command, uint8_t value)
+static void set_item_value(char *command, uint16_t value)
 {
     if (g_comm_protocol_bussy) return;
 
@@ -322,7 +322,7 @@ void system_save_gains_cb(void *arg, int event)
     }
 }
 
-void system_update_menu_value(uint8_t item_ID, uint8_t value)
+void system_update_menu_value(uint8_t item_ID, uint16_t value)
 {
     switch(item_ID)
     {
