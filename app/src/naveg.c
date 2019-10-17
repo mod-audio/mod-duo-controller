@@ -893,7 +893,7 @@ static void control_set(uint8_t id, control_t *control)
                             {
                                 control->step = 0;
                             }
-                        }        				}
+                        }
         				//we are at max and dont wrap around
         				else return; 
         			}
