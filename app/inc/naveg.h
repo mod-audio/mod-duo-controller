@@ -73,7 +73,7 @@ void naveg_initial_state(uint16_t max_menu, uint16_t page_min, uint16_t page_max
 // tells to navigation core the UI status
 void naveg_ui_connection(uint8_t status);
 // adds the control to end of the controls list
-void naveg_add_control(control_t *control);
+void naveg_add_control(control_t *control, uint8_t protocol);
 // removes the control from controls list
 void naveg_remove_control(uint8_t hw_id);
 // increment the control value

@@ -409,8 +409,11 @@ static void foot_control_add(control_t *control)
 
         // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
         case CONTROL_PROP_TRIGGER:
-            // updates the led
-            led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
+            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
+            else
+            {
+                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_PRESSED_COLOR);
+            }
 
             // if is in tool mode break
             if (display_has_tool_enabled(control->hw_id - ENCODERS_COUNT)) break;
@@ -499,8 +502,11 @@ static void foot_control_add(control_t *control)
         case CONTROL_PROP_REVERSE_ENUM:
         case CONTROL_PROP_ENUMERATION:
         case CONTROL_PROP_SCALE_POINTS:
-            // updates the led
-            led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+            else
+            {
+                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
+            }
 
             // locates the current value
             control->step = 0;
@@ -571,7 +577,7 @@ static void parse_control_page(void *data, menu_item_t *item)
 
     control_t *control = data_parse_control(&list[1]);
 
-    naveg_add_control(control);
+    naveg_add_control(control, 0);
 
     //if encoder, redraw the index
     if (control->hw_id < ENCODERS_COUNT)
@@ -873,6 +879,12 @@ static void control_set(uint8_t id, control_t *control)
             //footswitch (need to check for pages here)
             else if ((ENCODERS_COUNT <= control->hw_id) && ( control->hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT))
             {
+                if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+                else
+                {
+                    led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
+                }
+
                 if (control->properties != CONTROL_PROP_REVERSE_ENUM)
                 {
         			// increments the step
@@ -2089,7 +2101,7 @@ void naveg_ui_connection(uint8_t status)
 
 }
 
-void naveg_add_control(control_t *control)
+void naveg_add_control(control_t *control, uint8_t protocol)
 {
     if (!g_initialized) return;
     if (!control) return;
@@ -2103,7 +2115,8 @@ void naveg_add_control(control_t *control)
     }
     else
     {
-        control->scroll_dir = 2;
+        if (protocol) control->scroll_dir = 2;
+        else control->scroll_dir = 0;
         foot_control_add(control);     
     }
 }
@@ -2458,8 +2471,26 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
     if (display_has_tool_enabled(get_display_by_id(foot, FOOT))) return;
 
     //detect a release action which we dont use right now for all actuator modes
-    if ((!pressed)) return; 
-    // && (g_foots[foot]->properties != CONTROL_PROP_TRIGGER)) return;
+    if (!pressed)
+    {
+        if (g_foots[foot]->properties == CONTROL_PROP_TRIGGER)
+        {
+            led_set_color(hardware_leds(foot), BLACK);
+            led_set_color(hardware_leds(foot), TRIGGER_COLOR); //TRIGGER_COLOR
+        }
+        else if ((g_foots[foot]->properties == CONTROL_PROP_SCALE_POINTS) || (g_foots[foot]->properties == CONTROL_PROP_REVERSE_ENUM) || (g_foots[foot]->properties == CONTROL_PROP_ENUMERATION))
+        {
+            led_set_color(hardware_leds(foot), BLACK);
+            led_set_color(hardware_leds(foot), ENUMERATED_COLOR); //ENUMERATED_COLOR
+        }
+        else return;
+
+        //not used right now anymore, maybe in the future, TODO: rename to actuator flag
+        g_foots[foot]->scroll_dir = pressed;
+
+        //we dont actually preform an action here
+        return;
+    }
 
     // checks if the foot is used like bank function
     uint8_t bank_func_idx = bank_config_check(foot);

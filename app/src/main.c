@@ -511,7 +511,7 @@ static void control_add_cb(proto_t *proto)
 
     control_t *control = data_parse_control(proto->list);
 
-    naveg_add_control(control);
+    naveg_add_control(control, 1);
 
     g_protocol_busy = false;
     system_lock_comm_serial(g_protocol_busy);

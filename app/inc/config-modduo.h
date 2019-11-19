@@ -518,15 +518,16 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define AMOUNT_OF_MENU_VARS   13
 
 //// Foot functions leds colors
-#define TOGGLED_COLOR           GREEN
-#define TRIGGER_COLOR           GREEN
-#define TRIGGER_PRESSED_COLOR   YELLOW
-#define TAP_TEMPO_COLOR         GREEN
-#define ENUMERATED_COLOR        GREEN
-#define BYPASS_COLOR            RED
-#define TRUE_BYPASS_COLOR       WHITE
-#define PEDALBOARD_NEXT_COLOR   WHITE
-#define PEDALBOARD_PREV_COLOR   WHITE
+#define TOGGLED_COLOR               GREEN
+#define TRIGGER_COLOR               GREEN
+#define TRIGGER_PRESSED_COLOR       WHITE
+#define TAP_TEMPO_COLOR             GREEN
+#define ENUMERATED_COLOR            GREEN
+#define ENUMERIATION_PRESSED_COLOR  WHITE
+#define BYPASS_COLOR                RED
+#define TRUE_BYPASS_COLOR           WHITE
+#define PEDALBOARD_NEXT_COLOR       WHITE
+#define PEDALBOARD_PREV_COLOR       WHITE
 
 //// Tap Tempo
 // defines the time that the led will stay turned on (in milliseconds)
