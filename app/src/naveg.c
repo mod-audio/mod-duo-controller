@@ -210,9 +210,16 @@ void draw_all_foots(uint8_t display)
     {
         // checks the function assigned to foot and update the footer
         if (g_foots[foot + i])
+        {
+            //prevent toggling of pressed light
+            g_foots[foot + i]->scroll_dir = 2;
+
             foot_control_add(g_foots[foot + i]);
+        }
         else
+        {
             screen_footer(foot + i, NULL, NULL);
+        }
     }
 }
 
