@@ -197,7 +197,7 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
         {
         	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
         	{
-            	float_to_str(item->data.value, value, 8, 1);
+            	int_to_str(item->data.value, value, 8, 0);
             	cli_command("mod-amixer in 0 dvol ", CLI_CACHE_ONLY);
             	cli_command(value, CLI_DISCARD_RESPONSE);
 
@@ -209,7 +209,7 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
         {
         	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
         	{
-            	float_to_str(item->data.value, value, 8, 1);
+            	int_to_str(item->data.value, value, 8, 0);
             	cli_command("mod-amixer out 0 dvol ", CLI_CACHE_ONLY);
             	cli_command(value, CLI_DISCARD_RESPONSE);
             	
@@ -233,30 +233,13 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
             item->data.max = max;
             item->data.step = step;
 
-            int res = 0;  // Initialize result
-            int sign = 1;  // Initialize sign as positive
-            int i = 0;  // Initialize index of first digit
-
-            // If number is negative, then update sign
-            if (str[0] == '-')
-            {
-                sign = -1;
-                i++;  // Also update index of first digit
-            }
-
-            // Iterate through all digits and update the result
-            for (; str[i] != '.'; ++i)
-                res = res*10 + (int)str[i] - 48;
-
-            // Return result with sign
-            item->data.value = sign*res;
-
+            item->data.value = atoi(str);
         }
         else if ((event == MENU_EV_UP) ||(event == MENU_EV_DOWN))
         {
         	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
         	{
-            	float_to_str(item->data.value, value, 8, 1);
+            	int_to_str(item->data.value, value, 8, 0);
             	cli_command("mod-amixer ", CLI_CACHE_ONLY);
             	cli_command(source, CLI_CACHE_ONLY);
             	cli_command(" dvol ", CLI_CACHE_ONLY);
@@ -271,7 +254,7 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
     g_gains_volumes[item->desc->id - VOLUME_ID] = item->data.value;
 
     char str_bfr[8] = {};
-    float value_bfr = MAP(item->data.value, min, max, 0, 100);
+    int value_bfr = MAP(item->data.value, min, max, 0, 100);
     int_to_str(value_bfr, str_bfr, 8, 0);
     strcpy(item->name, item->desc->name);
     uint8_t q;
