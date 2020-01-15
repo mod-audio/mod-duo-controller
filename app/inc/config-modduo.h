@@ -388,6 +388,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define OUT1_VOLUME         VOLUME_ID+2
 #define OUT2_VOLUME         VOLUME_ID+3
 #define HP_VOLUME           VOLUME_ID+4
+#define HP_MONITOR          OUTP_ID+1
 #define STEREO_LINK_OUTP    OUTP_ID+3
 #define HP_CV_OUTP          OUTP_ID+2
 #define MASTER_VOL_LINK     OUTP_ID+4
@@ -435,6 +436,7 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"OUTPUT 1 VOLUME",                 MENU_VOL,       OUT1_VOLUME,        OUTP_ID,        system_volume_cb           , 0},  \
     {"OUTPUT 2 VOLUME",                 MENU_VOL,       OUT2_VOLUME,        OUTP_ID,        system_volume_cb           , 0},  \
     {"HEADPHONE VOLUME",                MENU_VOL,       HP_VOLUME,          OUTP_ID,        system_volume_cb           , 0},  \
+    {"DIRECT HEADPHONE MONITOR",        MENU_TOGGLE,    HP_MONITOR,         OUTP_ID,        system_hp_bypass_cb        , 0},  \
     {"SYNC & MIDI",                     MENU_LIST,      MIDI_ID,            SYSTEM_ID,      NULL                       , 0},  \
     {"< BACK TO SYSTEM",                MENU_RETURN,    MIDI_ID+1,          MIDI_ID,        NULL                       , 0},  \
     {"CLOCK SOURCE",                    MENU_TOGGLE,    MIDI_CLK_SOURCE,    MIDI_ID,        system_midi_src_cb         , 0},  \

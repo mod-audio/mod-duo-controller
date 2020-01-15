@@ -97,6 +97,7 @@ uint8_t g_play_status = 0;
 uint8_t g_tuner_mute = 0;
 uint8_t g_display_brightness = 2;
 uint8_t g_footswitch_navigation = 0;
+uint8_t g_hp_monitor = 0;
 
 /*
 ************************************************************************************************************************
@@ -731,6 +732,34 @@ void system_sl_out_cb (void *arg, int event)
     add_chars_to_menu_name(item, str_bfr);
 
     //gains can change because of this, update the whole menu
+    if (event == MENU_EV_ENTER) naveg_menu_refresh(DISPLAY_RIGHT);
+}
+
+void system_hp_bypass_cb (void *arg, int event)
+{
+    menu_item_t *item = arg;
+    char str_bfr[15] = {};
+
+    if (event == MENU_EV_ENTER)
+    {
+        if (g_hp_monitor == 0) g_hp_monitor = 1;
+        else g_hp_monitor = 0;
+
+       cli_command("mod-amixer hp byp toggle", CLI_DISCARD_RESPONSE);
+    }
+    else 
+    {
+        const char *response = cli_command("mod-amixer hp byp", CLI_RETRIEVE_RESPONSE);
+
+        g_hp_monitor = 0;
+        if (strcmp(response, "on") == 0)
+                g_hp_monitor = 1;
+    }
+
+    strcat(str_bfr,(g_hp_monitor ? "ON" : "OFF"));
+    add_chars_to_menu_name(item, str_bfr);
+
+    //this setting changes just 1 item
     if (event == MENU_EV_ENTER) naveg_menu_refresh(DISPLAY_RIGHT);
 }
 

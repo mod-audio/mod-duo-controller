@@ -83,6 +83,7 @@ void system_banks_cb(void *arg, int event);
 void system_display_cb(void *arg, int event);
 void system_sl_in_cb (void *arg, int event);
 void system_sl_out_cb (void *arg, int event);
+void system_hp_bypass_cb (void *arg, int event);
 void system_tuner_cb (void *arg, int event);
 void system_play_cb (void *arg, int event);
 void system_quick_bypass_cb (void *arg, int event);
