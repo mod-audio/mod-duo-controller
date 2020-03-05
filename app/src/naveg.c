@@ -2504,6 +2504,10 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
 
     if (bank_func_idx)
     {
+    	led_set_color(hardware_leds(foot), BLACK);
+        led_set_color(hardware_leds(foot), ENUMERATED_COLOR);
+        led_blink(hardware_leds(foot), 100, 100);        
+
         bank_config_update(bank_func_idx);
         return;
     }        
