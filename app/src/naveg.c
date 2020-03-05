@@ -1306,6 +1306,7 @@ static void menu_enter(uint8_t display_id)
             node = node->parent->parent;
             item = node->data;
         }
+
         //extra check if we need to switch back to non-ui connected mode on the current-pb and banks menu
         else if (((item->desc->id == BANKS_ID) || (item->desc->id == PEDALBOARD_ID)) && (!naveg_ui_status()))
         {
@@ -2504,9 +2505,18 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
 
     if (bank_func_idx)
     {
-    	led_set_color(hardware_leds(foot), BLACK);
-        led_set_color(hardware_leds(foot), ENUMERATED_COLOR);
-        led_blink(hardware_leds(foot), 100, 100);        
+        if ((g_current_pedalboard == (g_footswitch_pedalboards.menu_max) && (foot == 1)) ||
+            ((g_current_pedalboard == 1) && (foot == 0)))
+        {
+            led_blink(hardware_leds(foot), 0, 0);
+        }
+        else 
+        {
+            led_set_color(hardware_leds(foot), BLACK);
+            led_set_color(hardware_leds(foot), PEDALBOARD_LOADING_COLOR);
+            led_blink(hardware_leds(foot), 100, 100);        
+        }
+
 
         bank_config_update(bank_func_idx);
         return;
