@@ -1868,20 +1868,20 @@ static void bank_config_footer(void)
 
     char *pedalboard_name = NULL;
 
-		if (g_force_update_pedalboard) 
+	if (g_force_update_pedalboard) 
+	{
+		//also put as footswitch pedalboards
+		if (g_naveg_pedalboards)
 		{
-			//also put as footswitch pedalboards
-			if (g_naveg_pedalboards)
-			{
-				memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
-				g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
-				g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
-			}
-
-			//index is relevant thats why - page_min
-			pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
-			g_force_update_pedalboard = 0;
+			memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
+			g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+			g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
 		}
+
+		//index is relevant thats why - page_min
+		pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
+		g_force_update_pedalboard = 0;
+	}
     //index is relevant thats why - page_min
     else pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
 
@@ -1906,7 +1906,7 @@ static void bank_config_footer(void)
                	screen_footer(bank_conf->hw_id- ENCODERS_COUNT, TRUE_BYPASS_FOOTER_TEXT,
                             (bypass ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
                 break;
-
+            
             case BANK_FUNC_PEDALBOARD_NEXT:
                 if (g_current_pedalboard == (g_footswitch_pedalboards.menu_max)) color = BLACK;
                 else color = PEDALBOARD_NEXT_COLOR;
@@ -1915,6 +1915,10 @@ static void bank_config_footer(void)
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
                 screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT);
+                
+                //turn on footswitch navigation internal value
+                if (!naveg_ui_status()) system_update_menu_value(FOOTSWITCH_NAV_ID, 1);
+
                 break;
 
             case BANK_FUNC_PEDALBOARD_PREV:
@@ -1925,7 +1929,11 @@ static void bank_config_footer(void)
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
                 screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name , PEDALBOARD_PREV_FOOTER_TEXT);
-                break;
+                
+                //turn on footswitch navigation internal value
+                if (!naveg_ui_status()) system_update_menu_value(FOOTSWITCH_NAV_ID, 1);
+                
+                break; 
         }
     }
 }
@@ -2074,7 +2082,7 @@ void naveg_ui_connection(uint8_t status)
     {
         g_ui_connected = 1;
         //turn of footswitch navigation internal value
-        system_update_menu_value(BANKS_ID, 0);
+        system_update_menu_value(FOOTSWITCH_NAV_ID, 0);
     }
     else
     {
