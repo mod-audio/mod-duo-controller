@@ -220,7 +220,7 @@ void protocol_response(const char *response, proto_t *proto)
     if (proto->response_size >= sizeof(response_buffer))
         proto->response_size = sizeof(response_buffer) - 1;
 
-    strncpy(response_buffer, response, sizeof(response_buffer));
+    strncpy(response_buffer, response, sizeof(response_buffer)-1);
     response_buffer[proto->response_size] = 0;
 }
 

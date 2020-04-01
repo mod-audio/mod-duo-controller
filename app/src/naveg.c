@@ -988,7 +988,7 @@ static void control_set(uint8_t id, control_t *control)
                     //get current value of tap tempo in ms
                     float currentTapVal = convert_to_ms(control->unit, control->value);
                     //check if it should be added to running average
-                    if (abs(currentTapVal - delta) < TAP_TEMPO_TAP_HYSTERESIS)
+                    if (fabs(currentTapVal - delta) < TAP_TEMPO_TAP_HYSTERESIS)
                     {
                         // converts and update the tap tempo value
                         control->value = (2*(control->value) + convert_from_ms(control->unit, delta)) / 3;
