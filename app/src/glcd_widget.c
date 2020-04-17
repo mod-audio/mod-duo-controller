@@ -423,7 +423,7 @@ void widget_bar(glcd_t *display, bar_t *bar)
     NewRange = (NewMax - NewMin);
 
     NewValue = (((bar->step) * NewRange) / OldRange) + NewMin;
-    bar_possistion = ROUND(NewValue);
+    bar_possistion = ROUND(NewValue) - 2;
 
     //draw the square
     glcd_rect(display, bar->x+2, bar->y+10, bar->width, bar->height, GLCD_BLACK);
@@ -433,7 +433,7 @@ void widget_bar(glcd_t *display, bar_t *bar)
     if (bar_possistion > bar->width) bar_possistion = bar->width - 1;
 
     //color in the position area
-    glcd_rect_fill(display, (bar->x+4), (bar->y+12), bar_possistion-2, bar->height - 4, GLCD_BLACK);
+    glcd_rect_fill(display, (bar->x+4), (bar->y+12), bar_possistion, bar->height - 4, GLCD_BLACK);
 }
 
 void widget_toggle(glcd_t *display, toggle_t *toggle)
