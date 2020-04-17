@@ -214,8 +214,11 @@ void screen_encoder(uint8_t display_id, control_t *control)
         unit = (strcmp(control->unit, "none") == 0 ? NULL : control->unit);
         char *str_bfr = MALLOC(strlen(value_str)+strlen(unit)+3);
         strcpy(str_bfr, value_str);
-        strcat(str_bfr, " ");
-        strcat(str_bfr, unit);
+        if (unit)
+        {
+            strcat(str_bfr, " ");
+            strcat(str_bfr, unit);
+        }
         bar.label = str_bfr;
 
         widget_bar(display, &bar);
