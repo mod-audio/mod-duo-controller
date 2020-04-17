@@ -302,6 +302,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define CONTROL_PROP_LOGARITHMIC    64
 #define CONTROL_PROP_INTEGER        128
 #define CONTROL_PROP_REVERSE_ENUM   256
+#define CONTROL_PROP_MOMENTARY_SW   512
+
+//only used internal
+#define CONTROL_PROP_BANKS          1024
 
 
 //// Banks functions definition

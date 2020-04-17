@@ -11,6 +11,7 @@
 #include "glcd_widget.h"
 #include "naveg.h"
 #include "hardware.h"
+#include "images.h"
 #include <string.h>
 
 
@@ -20,8 +21,8 @@
 ************************************************************************************************************************
 */
 
-#define FOOTER_NAME_WIDTH       ((DISPLAY_WIDTH * 50)/100)
-#define FOOTER_VALUE_WIDTH      (DISPLAY_WIDTH - FOOTER_NAME_WIDTH)
+#define FOOTER_NAME_WIDTH       50
+#define FOOTER_VALUE_WIDTH      (DISPLAY_WIDTH - FOOTER_NAME_WIDTH - 10)
 
 enum {BANKS_LIST, PEDALBOARD_LIST};
 
@@ -86,13 +87,20 @@ void screen_clear(uint8_t display_id)
     glcd_clear(hardware_glcds(display_id), GLCD_WHITE);
 }
 
-void screen_control(uint8_t display_id, control_t *control)
-{
+void screen_encoder(uint8_t display_id, control_t *control)
+{    
     glcd_t *display = hardware_glcds(display_id);
 
+    //TOOO NOT TRIGGERED HERE DEBUG
+    screen_top_info(NULL, display_id, 1);
+
+    //no control? 
     if (!control)
     {
-        glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 51, GLCD_WHITE);
+        glcd_rect_fill(display, 0, 9, DISPLAY_WIDTH, 41, GLCD_WHITE);
+
+        //draw back the title line on 16
+        glcd_hline(display, 0, 16, DISPLAY_WIDTH, GLCD_BLACK);
 
         char text[sizeof(SCREEN_ROTARY_DEFAULT_NAME) + 2];
         strcpy(text, SCREEN_ROTARY_DEFAULT_NAME);
@@ -102,7 +110,7 @@ void screen_control(uint8_t display_id, control_t *control)
         textbox_t title;
         title.color = GLCD_BLACK;
         title.mode = TEXT_SINGLE_LINE;
-        title.font = alterebro24;
+        title.font = Terminal7x8;
         title.height = 0;
         title.width = 0;
         title.top_margin = 0;
@@ -111,95 +119,107 @@ void screen_control(uint8_t display_id, control_t *control)
         title.right_margin = 0;
         title.text = text;
         title.align = ALIGN_CENTER_NONE;
-        title.y = 25 - (alterebro24[FONT_HEIGHT] / 2);
+        title.y = 33 - (Terminal7x8[FONT_HEIGHT] / 2);
         widget_textbox(display, &title);
         return;
     }
-
-    // clear the title area
-    glcd_rect_fill(display, 0, 0, 113, 15, GLCD_WHITE);
-
-    // control title label
-    textbox_t title;
-    title.color = GLCD_BLACK;
-    title.mode = TEXT_SINGLE_LINE;
-    title.font = alterebro24;
-    title.top_margin = 2;
-    title.bottom_margin = 0;
-    title.left_margin = 0;
-    title.right_margin = 0;
-    title.height = 0;
-    title.width = 113;
-    title.text = control->label;
-    title.align = ALIGN_LEFT_TOP;
-    widget_textbox(display, &title);
-
-    // horizontal title line
-    glcd_hline(display, 0, 16, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
-
-    // graph type control
-    if (control->properties == CONTROL_PROP_LINEAR ||
-        control->properties == CONTROL_PROP_LOGARITHMIC)
+    else 
     {
-        const char *unit;
-        unit = (strcmp(control->unit, "none") == 0 ? NULL : control->unit);
+        //clear the area
+        glcd_rect_fill(display, 0, 9, DISPLAY_WIDTH - 11, 15, GLCD_WHITE);
+        glcd_rect_fill(display, 0, 24, DISPLAY_WIDTH, 26, GLCD_WHITE);
 
-        graph_t graph;
-        graph.x = 0;
-        graph.y = 18;
-        graph.color = GLCD_BLACK;
-        graph.font = alterebro24;
-        graph.min = control->minimum;
-        graph.max = control->maximum;
-        graph.value = control->value;
-        graph.unit = unit;
-        graph.type =
-            (control->properties == CONTROL_PROP_LOGARITHMIC ? GRAPH_TYPE_LOG : GRAPH_TYPE_LINEAR);
-        widget_graph(display, &graph);
+        //draw back the title line on 16
+        glcd_hline(display, 0, 16, DISPLAY_WIDTH, GLCD_BLACK);
+        
+        // control title label
+        textbox_t title;
+        title.color = GLCD_BLACK;
+        title.mode = TEXT_SINGLE_LINE;
+        title.font = Terminal5x7;
+        title.top_margin = 0;
+        title.bottom_margin = 0;
+        title.left_margin = 2;
+        title.right_margin = 14;
+        title.height = 0;
+        title.width = 0;
+        
+        title.y = 13;
+
+        uint8_t char_cnt_name = strlen(control->label);
+        //limit if to big
+        if (char_cnt_name >= 19) char_cnt_name = 19;
+        
+        char *title_str_bfr = (char *) MALLOC((char_cnt_name + 1) * sizeof(char));
+        strncpy(title_str_bfr, control->label, char_cnt_name);
+        title_str_bfr[char_cnt_name] = '\0';
+        title.text = title_str_bfr;
+
+        //at this point we need to start taking the index box into account
+        if (char_cnt_name > 17)
+        {
+            uint8_t pixel_shift = (3 * (char_cnt_name-17));
+            // clear the name area
+            glcd_rect_fill(display, (62 - (char_cnt_name * 3)) - pixel_shift, 12, ((6*char_cnt_name) +3), 9, GLCD_WHITE);  
+
+            title.left_margin = 13 - (6 * (char_cnt_name-17));
+            title.align = ALIGN_LEFT_NONE;
+            title.text = control->label;
+            widget_textbox(display, &title);
+
+            // invert the name area
+            glcd_rect_invert(display, (62 - (char_cnt_name * 3)) - pixel_shift, 12, ((6*char_cnt_name) +3), 9);
+        }
+        //normal
+        else
+        {
+            // clear the name area
+            glcd_rect_fill(display, (63 - (char_cnt_name * 3)), 12, ((6*char_cnt_name) +3), 9, GLCD_WHITE);  
+
+            title.align = ALIGN_CENTER_NONE;
+            widget_textbox(display, &title);
+
+            // invert the name area
+            glcd_rect_invert(display, (63 - (char_cnt_name * 3)), 12, ((6*char_cnt_name) +3), 9);
+        }
+
+        FREE(title_str_bfr);
     }
 
-    // integer type control
-    else if (control->properties == CONTROL_PROP_INTEGER)
+    // bar type control
+    if (control->properties == CONTROL_PROP_LINEAR ||
+        control->properties == CONTROL_PROP_LOGARITHMIC || 
+        control->properties == CONTROL_PROP_INTEGER)
     {
-        textbox_t value, unit;
-        char value_str[32];
+        bar_t bar;
+        bar.x = 4;
+        bar.y = 23;
+        bar.width = 116;
+        bar.height = 14;
+        bar.color = GLCD_BLACK;
+        bar.step = control->step;
+        bar.steps = control->steps - 1;
 
-        // clear the text area
-        glcd_rect_fill(display, 0, 17, 128, 33, GLCD_WHITE);
-
-        // draws the value
-        int_to_str(control->value, value_str, sizeof(value_str), 0);
-        value.color = GLCD_BLACK;
-        value.mode = TEXT_SINGLE_LINE;
-        value.font = alterebro49;
-        value.top_margin = 3;
-        value.bottom_margin = 0;
-        value.left_margin = 0;
-        value.right_margin = (strcmp(control->unit, "none") == 0 ? 0 : 4);
-        value.height = 0;
-        value.width = 0;
-        value.text = value_str;
-        value.align = ALIGN_CENTER_MIDDLE;
-        widget_textbox(display, &value);
-
-        // draws the unit
-        if (strcmp(control->unit, "none") != 0)
+        char value_str[10] = {0};
+        if ((control->value > 99.9) || (control->properties == CONTROL_PROP_INTEGER))
         {
-            unit.color = GLCD_BLACK;
-            unit.mode = TEXT_SINGLE_LINE;
-            unit.font = alterebro24;
-            unit.top_margin = 0;
-            unit.bottom_margin = 0;
-            unit.left_margin = 0;
-            unit.right_margin = 0;
-            unit.height = 0;
-            unit.width = 0;
-            unit.text = control->unit;
-            unit.align = ALIGN_NONE_NONE;
-            unit.x = value.x + value.width + 2;
-            unit.y = value.y + value.height - unit.font[FONT_HEIGHT];
-            widget_textbox(display, &unit);
+            int_to_str(control->value, value_str, sizeof(value_str), 0);
         }
+        else 
+        {
+            float_to_str((control->value), value_str, sizeof(value_str), 2);
+        }
+
+        const char *unit;
+        unit = (strcmp(control->unit, "none") == 0 ? NULL : control->unit);
+        char *str_bfr = MALLOC(strlen(value_str)+strlen(unit)+3);
+        strcpy(str_bfr, value_str);
+        strcat(str_bfr, " ");
+        strcat(str_bfr, unit);
+        bar.label = str_bfr;
+
+        widget_bar(display, &bar);
+        FREE(str_bfr);
     }
 
     // list type control
@@ -216,24 +236,40 @@ void screen_control(uint8_t display_id, control_t *control)
 
         listbox_t list;
         list.x = 0;
-        list.y = 17;
-        list.width = 128;
-        list.height = 33;
+        list.y = 24;
+        list.width = DISPLAY_WIDTH;
+        list.height = 25;
         list.color = GLCD_BLACK;
-        list.font = alterebro15;
+        list.font = Terminal3x5;
+        list.font_highlight = Terminal5x7;
         list.selected = control->step;
         list.count = control->scale_points_count;
         list.list = labels_list;
         list.line_space = 1;
         list.line_top_margin = 1;
-        list.line_bottom_margin = 0;
+        list.line_bottom_margin = 1;
         list.text_left_margin = 1;
-        widget_listbox2(display, &list);
+        widget_listbox4(display, &list);
     }
+    else if (control->properties == CONTROL_PROP_TOGGLED ||
+             control->properties == CONTROL_PROP_BYPASS)
+    {
+        toggle_t toggle;
+        toggle.x = 20;
+        toggle.y = 26;
+        toggle.width = 88;
+        toggle.height = 20;
+        toggle.color = GLCD_BLACK;
+        toggle.value = (control->properties == CONTROL_PROP_TOGGLED)?control->value:!control->value;;
+        widget_toggle(display, &toggle);
+    }
+
 }
 
 void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max)
 {
+    return;
+
     char str_current[4], str_max[4];
     int_to_str(current, str_current, sizeof(str_current), 2);
     int_to_str(max, str_max, sizeof(str_max), 2);
@@ -242,31 +278,36 @@ void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max)
 
     glcd_t *display = hardware_glcds(display_id);
 
-    // vertical line index separator
-    glcd_vline(display, 114, 0, 16, GLCD_BLACK_WHITE);
+    //clear the part
+    glcd_rect_fill(display, 119, 10, DISPLAY_WIDTH-119, 13, GLCD_WHITE);
 
     // draws the max field
     textbox_t index;
     index.color = GLCD_BLACK;
     index.mode = TEXT_SINGLE_LINE;
-    index.font = System5x7;
+    index.font = Terminal3x5;
     index.height = 0;
     index.width = 0;
     index.bottom_margin = 0;
     index.left_margin = 0;
-    index.right_margin = 1;
-    index.align = ALIGN_RIGHT_TOP;
-    index.top_margin = 8;
-    index.text = str_max;
+    index.right_margin = 0;
+    index.align = ALIGN_NONE_NONE;
+    index.top_margin = 0;
+    index.text = str_current;
+    index.x = 120;
+    index.y = 11;
     widget_textbox(display, &index);
 
     // draws the current field
-    index.top_margin = 0;
-    index.text = str_current;
+    index.y = 17;
+    index.text = str_max;
     widget_textbox(display, &index);
+
+    //invert the block
+    glcd_rect_invert(display, 119, 10, DISPLAY_WIDTH-119, 13);
 }
 
-void screen_footer(uint8_t display_id, const char *name, const char *value)
+void screen_footer(uint8_t display_id, const char *name, const char *value, int16_t property)
 {
     if (display_id > FOOTSWITCHES_COUNT) return;
 
@@ -274,11 +315,22 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
 
     glcd_t *display = hardware_glcds(display_id);
 
-    // horizontal footer line
-    glcd_hline(display, 0, 51, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
-
     // clear the footer area
-    glcd_rect_fill(display, 0, 52, DISPLAY_WIDTH, DISPLAY_HEIGHT-52, GLCD_WHITE);
+    glcd_rect_fill(display, 0, 50, DISPLAY_WIDTH, DISPLAY_HEIGHT-50, GLCD_WHITE);
+    glcd_hline(display, 0, 50, DISPLAY_WIDTH, GLCD_BLACK);
+
+    // draws the name field
+    textbox_t footer;
+    footer.color = GLCD_BLACK;
+    footer.mode = TEXT_SINGLE_LINE;
+    footer.font = Terminal7x8;
+    footer.height = 0;
+    footer.width = 0;
+    footer.top_margin = 0;
+    footer.bottom_margin = 0;
+    footer.left_margin = 1;
+    footer.right_margin = 1;
+    footer.y = 53;
 
     if (name == NULL && value == NULL)
     {
@@ -287,50 +339,142 @@ void screen_footer(uint8_t display_id, const char *name, const char *value)
         text[sizeof(SCREEN_FOOT_DEFAULT_NAME)-1] = display_id + '1';
         text[sizeof(SCREEN_FOOT_DEFAULT_NAME)] = 0;
 
-        textbox_t title;
-        title.color = GLCD_BLACK;
-        title.mode = TEXT_SINGLE_LINE;
-        title.font = alterebro24;
-        title.top_margin = 0;
-        title.bottom_margin = 0;
-        title.left_margin = 0;
-        title.right_margin = 0;
-        title.height = 0;
-        title.width = 0;
-        title.text = text;
-        title.align = ALIGN_CENTER_NONE;
-        title.y = 52;
-        widget_textbox(display, &title);
+        footer.text = text;
+        footer.align = ALIGN_CENTER_NONE;
+        widget_textbox(display, &footer);
         return;
     }
-
-    // draws the name field
-    textbox_t footer;
-    footer.color = GLCD_BLACK;
-    footer.mode = TEXT_SINGLE_LINE;
-    footer.font = alterebro24;
-    footer.height = 0;
-    footer.top_margin = 0;
-    footer.bottom_margin = 0;
-    footer.left_margin = 0;
-    if ((value[0] == '+') || (value[0] == '-'))
+    //if we are in toggle, trigger or byoass mode we dont have a value
+    else if ((property & CONTROL_PROP_TOGGLED) || (property & CONTROL_PROP_BYPASS) || (property & CONTROL_PROP_TRIGGER) || (property & CONTROL_PROP_MOMENTARY_SW))
     {
-        //bigger width when going through banks
-        footer.width = 120; 
+        footer.text = name;
+        footer.align = ALIGN_CENTER_NONE;
+        widget_textbox(display, &footer);
+    
+        if (value[1] == 'N')
+        {
+            glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
+        }
     }
-    else footer.width = (value == NULL ? DISPLAY_WIDTH : FOOTER_NAME_WIDTH);
-    footer.right_margin = 0;
-    footer.text = name;
-    footer.y = 52;
-    footer.align = ALIGN_LEFT_NONE;
-    widget_textbox(display, &footer);
+    else 
+    {
+        uint8_t char_cnt_name = strlen(name);
+        uint8_t char_cnt_value = strlen(value);
 
-    // draws the value field
-    footer.width = FOOTER_VALUE_WIDTH;
-    footer.right_margin = 0;
-    footer.text = value;
-    footer.align = ALIGN_RIGHT_NONE;
-    widget_textbox(display, &footer);
+        if ((char_cnt_value + char_cnt_name) > 15)
+        {
+            //both bigger then the limmit
+            if ((char_cnt_value > 7)&&(char_cnt_name > 8))
+            {
+                char_cnt_name = 8;
+                char_cnt_value = 7;
+            }
+            else if (char_cnt_value > 7)
+            {
+                char_cnt_value = 15 - char_cnt_name;
+            }
+            else if (char_cnt_name > 8)
+            {
+                char_cnt_name = 15 - char_cnt_value;
+            }
+        }
+
+        char *title_str_bfr = (char *) MALLOC((char_cnt_name + 1) * sizeof(char));
+        char *value_str_bfr = (char *) MALLOC((char_cnt_value + 1) * sizeof(char));
+
+        //draw name
+        strncpy(title_str_bfr, name, char_cnt_name);
+        title_str_bfr[char_cnt_name] = '\0';
+        footer.text = title_str_bfr;
+        footer.align = ALIGN_LEFT_NONE;
+        widget_textbox(display, &footer);
+        FREE(title_str_bfr);
+
+        // draws the value field
+        strncpy(value_str_bfr, value, char_cnt_value);
+        value_str_bfr[char_cnt_value] =  '\0';
+        footer.text = value_str_bfr;
+        footer.width = 0;
+        footer.align = ALIGN_RIGHT_NONE;
+        widget_textbox(display, &footer);
+        FREE(value_str_bfr);
+    }
+}
+
+void screen_top_info(const void *data, uint8_t display_id, uint8_t update)
+{
+    static char* pedalboard_name = NULL;
+    uint8_t char_cnt = 0;
+    glcd_t *display = hardware_glcds(display_id);
+
+    if (update)
+    {
+        //TODO REMOVE DATA FROM HERE DEBUG
+        if ((pedalboard_name == NULL) || (data == NULL))
+        {
+            pedalboard_name = (char *) MALLOC(29 * sizeof(char));
+            strcpy(pedalboard_name, "DEFAULT");
+            char_cnt = 7;
+        }
+        else 
+        {
+            const char **name_list = (const char**)data;
+
+            // get first list name, copy it to our string buffer
+            const char *name_string = *name_list;
+            strncpy(pedalboard_name, name_string, 29);
+            pedalboard_name[29] = 0; // strncpy might not have final null byte
+
+            // go to next name in list
+            name_string = *(++name_list);
+
+            while (name_string && ((strlen(pedalboard_name) + strlen(name_string) + 1) < 29))
+            {
+                strcat(pedalboard_name, " ");
+                strcat(pedalboard_name, name_string);
+                name_string = *(++name_list);
+                char_cnt++;
+            }
+            pedalboard_name[29] = 0;
+        }
+    }
+
+    //we dont display inside a menu
+    if (naveg_is_tool_mode(display_id)) return;
+
+    // clear the name area
+    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 10, GLCD_WHITE);
+
+    textbox_t title;
+    title.color = GLCD_BLACK;
+    title.mode = TEXT_SINGLE_LINE;
+    title.font = Terminal5x7;
+    title.top_margin = 1;
+    title.bottom_margin = 0;
+    title.left_margin = 10;
+    title.right_margin = 1;
+    title.height = 0;
+    title.width = 0;
+    title.text = pedalboard_name;
+    title.align = ALIGN_CENTER_TOP;
+    title.y = 0;
+    title.x = 1;
+    widget_textbox(display, &title);
+
+    if (display_id)
+    {
+        icon_snapshot(display, (DISPLAY_WIDTH/2) - (char_cnt * 3) - 11, 1);
+    }
+    else 
+    {
+        icon_pedalboard(display, (DISPLAY_WIDTH/2) - (char_cnt * 3) - 11, 1);
+    }
+
+    //invert the top bar
+    glcd_rect_invert(display, 0, 0, DISPLAY_WIDTH, 9);
+
+    //TODO REMOVE ME DEBUG
+    FREE(pedalboard_name);
 }
 
 void screen_tool(uint8_t tool, uint8_t display_id)
@@ -383,7 +527,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
     // draws the title
     title_box.color = GLCD_BLACK;
     title_box.mode = TEXT_SINGLE_LINE;
-    title_box.font = SMfont;
+    title_box.font = Terminal3x5;
     title_box.top_margin = 0;
     title_box.bottom_margin = 0;
     title_box.left_margin = 0;
@@ -410,7 +554,7 @@ void screen_bp_list(const char *title, bp_list_t *list)
         list_box.selected = list->selected - list->page_min;
         list_box.count = count;
         list_box.list = list->names;
-        list_box.font = SMfont;
+        list_box.font = Terminal3x5;
         list_box.line_space = 2;
         list_box.line_top_margin = 1;
         list_box.line_bottom_margin = 1;
@@ -473,7 +617,7 @@ void screen_system_menu(menu_item_t *item)
     textbox_t title_box;
     title_box.color = GLCD_BLACK;
     title_box.mode = TEXT_SINGLE_LINE;
-    title_box.font = SMfont;
+    title_box.font = Terminal3x5;
     title_box.top_margin = 0;
     title_box.bottom_margin = 0;
     title_box.left_margin = 0;
@@ -512,7 +656,7 @@ void screen_system_menu(menu_item_t *item)
     list.width = 128;
     list.height = 53;
     list.color = GLCD_BLACK;
-    list.font = SMfont;
+    list.font = Terminal3x5;
     list.line_space = 2;
     list.line_top_margin = 1;
     list.line_bottom_margin = 1;
@@ -524,7 +668,7 @@ void screen_system_menu(menu_item_t *item)
     popup.y = 0;
     popup.width = DISPLAY_WIDTH;
     popup.height = DISPLAY_HEIGHT;
-    popup.font = SMfont;
+    popup.font = Terminal3x5;
 
     switch (item->desc->type)
     {

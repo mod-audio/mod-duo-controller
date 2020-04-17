@@ -224,7 +224,7 @@ static void write_msg(const char *msg)
     msg_box.right_margin = 0;
     msg_box.height = DISPLAY_HEIGHT;
     msg_box.width = DISPLAY_WIDTH;
-    msg_box.font = alterebro15;
+    msg_box.font = Terminal5x7;
     msg_box.text = msg;
     widget_textbox(hardware_glcds(0), &msg_box);
 }
