@@ -331,34 +331,10 @@ void widget_listbox2(glcd_t *display, listbox_t *listbox) //FIXME: function hard
 
 void widget_listbox4(glcd_t *display, listbox_t *listbox)
 {
-    //uint8_t i, font_height, max_lines, y_line;
-    //uint8_t first_line, focus, center_focus, focus_height;
-    //char aux[DISPLAY_WIDTH/2];
     const char *line_txt;
 
     glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
-/*
-    font_height = listbox->font[FONT_HEIGHT];
-    max_lines = 4;
 
-    center_focus = (max_lines / 2) - (1 - (max_lines % 2));
-    first_line = 0;
-
-    if (listbox->hover > center_focus && listbox->count > max_lines)
-    {
-        first_line = listbox->hover - center_focus;
-        if (first_line > ABS(listbox->count - max_lines))
-        {
-            first_line = ABS(listbox->count - max_lines);
-        }
-    }
-
-    if (max_lines > listbox->count) max_lines = listbox->count;
-    focus = listbox->hover - first_line;
-    focus_height = listbox->font_highlight[FONT_HEIGHT] + listbox->line_top_margin + listbox->line_bottom_margin;
-    y_line = listbox->y + listbox->line_space;
-
-    */
     int8_t first_line;
     uint8_t y_line = listbox->y + listbox->line_space;
     uint8_t font_height = listbox->font[FONT_HEIGHT];
@@ -382,6 +358,7 @@ void widget_listbox4(glcd_t *display, listbox_t *listbox)
 
             if ((first_line + i) == listbox->selected)
             {
+                y_line++;
                 glcd_text(display, listbox->x + listbox->text_left_margin, y_line, line_txt, listbox->font_highlight, listbox->color);
                 glcd_rect_invert(display, listbox->x, y_line - listbox->line_top_margin, listbox->width, focus_height);
                 y_line += focus_height;
@@ -389,7 +366,7 @@ void widget_listbox4(glcd_t *display, listbox_t *listbox)
             else 
             {
                 glcd_text(display, listbox->x + listbox->text_left_margin, y_line, line_txt, listbox->font, listbox->color);
-                y_line += font_height + listbox->line_space + ((first_line + i + 1 == listbox->selected)?1:0);
+                y_line += font_height + listbox->line_space;
             }
         }
     }
@@ -430,7 +407,7 @@ void widget_bar(glcd_t *display, bar_t *bar)
 
     //prevent it from trippin 
     if (bar_possistion < 1) bar_possistion = 1;
-    if (bar_possistion > bar->width) bar_possistion = bar->width - 1;
+    if (bar_possistion > bar->width - 4) bar_possistion = bar->width - 4;
 
     //color in the position area
     glcd_rect_fill(display, (bar->x+4), (bar->y+12), bar_possistion, bar->height - 4, GLCD_BLACK);
