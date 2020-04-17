@@ -268,8 +268,6 @@ void screen_encoder(uint8_t display_id, control_t *control)
 
 void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max)
 {
-    return;
-
     char str_current[4], str_max[4];
     int_to_str(current, str_current, sizeof(str_current), 2);
     int_to_str(max, str_max, sizeof(str_max), 2);
