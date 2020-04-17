@@ -396,6 +396,10 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         footer.align = ALIGN_RIGHT_NONE;
         widget_textbox(display, &footer);
         FREE(value_str_bfr);
+
+        //if in banks menu, invert
+        if (property == CONTROL_PROP_BANKS)
+            glcd_rect_invert(display, DISPLAY_WIDTH - 10, 51, 10, DISPLAY_HEIGHT-51);
     }
 }
 
