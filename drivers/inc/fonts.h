@@ -360,16 +360,16 @@ static const uint8_t Terminal3x5[] = {
     0x04, 0x04, 0x04,                        // Code for char -
     0x00, 0x10, 0x00,                        // Code for char .
     0x18, 0x04, 0x03,                        // Code for char /
-    0x1E, 0x11, 0x0F,                        // Code for char 0
-    0x12, 0x1F, 0x10,                        // Code for char 1
-    0x19, 0x15, 0x12,                        // Code for char 2
-    0x11, 0x15, 0x0A,                        // Code for char 3
-    0x06, 0x04, 0x1F,                        // Code for char 4
-    0x17, 0x15, 0x09,                        // Code for char 5
-    0x0E, 0x15, 0x08,                        // Code for char 6
-    0x01, 0x1D, 0x07,                        // Code for char 7
-    0x0A, 0x15, 0x0A,                        // Code for char 8
-    0x02, 0x15, 0x0E,                        // Code for char 9
+    0x1F, 0x11, 0x1F,                        // Code for char 0
+    0x00, 0x1F, 0x00,                        // Code for char 1
+    0x1D, 0x15, 0x17,                        // Code for char 2
+    0x15, 0x15, 0x1F,                        // Code for char 3
+    0x07, 0x04, 0x1F,                        // Code for char 4
+    0x17, 0x15, 0x1D,                        // Code for char 5
+    0x1F, 0x15, 0x1D,                        // Code for char 6
+    0x01, 0x01, 0x1F,                        // Code for char 7
+    0x1F, 0x15, 0x1F,                        // Code for char 8
+    0x17, 0x15, 0x1F,                        // Code for char 9
     0x00, 0x0A, 0x00,                        // Code for char :
     0x10, 0x0A, 0x00,                        // Code for char ;
     0x04, 0x0A, 0x11,                        // Code for char <
