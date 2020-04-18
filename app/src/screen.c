@@ -154,34 +154,16 @@ void screen_encoder(uint8_t display_id, control_t *control)
         strncpy(title_str_bfr, control->label, char_cnt_name);
         title_str_bfr[char_cnt_name] = '\0';
         title.text = title_str_bfr;
+        title.align = ALIGN_NONE_NONE;
 
-        //at this point we need to start taking the index box into account
-        if (char_cnt_name > 17)
-        {
-            uint8_t pixel_shift = (3 * (char_cnt_name-17));
-            // clear the name area
-            glcd_rect_fill(display, (62 - (char_cnt_name * 3)) - pixel_shift, 12, ((6*char_cnt_name) +3), 9, GLCD_WHITE);  
+        // clear the name area
+        glcd_rect_fill(display, (((char_cnt_name > 17)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3-1, 12, ((6*char_cnt_name) +3), 9, GLCD_WHITE);  
 
-            title.left_margin = 13 - (6 * (char_cnt_name-17));
-            title.align = ALIGN_LEFT_NONE;
-            title.text = control->label;
-            widget_textbox(display, &title);
+        title.x = (((char_cnt_name > 17)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3 + 1;
+        widget_textbox(display, &title);
 
-            // invert the name area
-            glcd_rect_invert(display, (62 - (char_cnt_name * 3)) - pixel_shift, 12, ((6*char_cnt_name) +3), 9);
-        }
-        //normal
-        else
-        {
-            // clear the name area
-            glcd_rect_fill(display, (63 - (char_cnt_name * 3)), 12, ((6*char_cnt_name) +3), 9, GLCD_WHITE);  
-
-            title.align = ALIGN_CENTER_NONE;
-            widget_textbox(display, &title);
-
-            // invert the name area
-            glcd_rect_invert(display, (63 - (char_cnt_name * 3)), 12, ((6*char_cnt_name) +3), 9);
-        }
+        // invert the name area
+        glcd_rect_invert(display, (((char_cnt_name > 17)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3-1, 12, ((6*char_cnt_name) +3), 9);
 
         FREE(title_str_bfr);
     }
@@ -261,12 +243,11 @@ void screen_encoder(uint8_t display_id, control_t *control)
         toggle.x = 20;
         toggle.y = 26;
         toggle.width = 88;
-        toggle.height = 20;
+        toggle.height = 21;
         toggle.color = GLCD_BLACK;
         toggle.value = (control->properties == CONTROL_PROP_TOGGLED)?control->value:!control->value;;
         widget_toggle(display, &toggle);
     }
-
 }
 
 void screen_controls_index(uint8_t display_id, uint8_t current, uint8_t max)
@@ -402,7 +383,7 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
 
         //if in banks menu, invert
         if (property == CONTROL_PROP_BANKS)
-            glcd_rect_invert(display, DISPLAY_WIDTH - 10, 51, 10, DISPLAY_HEIGHT-51);
+            glcd_rect_invert(display, DISPLAY_WIDTH - 10, 51, 10, DISPLAY_HEIGHT-52);
     }
 }
 
@@ -461,18 +442,18 @@ void screen_top_info(const void *data, uint8_t display_id, uint8_t update)
     title.height = 0;
     title.width = 0;
     title.text = pedalboard_name;
-    title.align = ALIGN_CENTER_TOP;
-    title.y = 0;
-    title.x = 1;
+    title.align = ALIGN_NONE_NONE;
+    title.y = 1;
+    title.x = ((DISPLAY_WIDTH / 2) - 3*char_cnt + 7);
     widget_textbox(display, &title);
 
     if (display_id)
     {
-        icon_snapshot(display, (DISPLAY_WIDTH/2) - (char_cnt * 3) - 11, 1);
+        icon_snapshot(display, title.x - 11, 1);
     }
     else 
     {
-        icon_pedalboard(display, (DISPLAY_WIDTH/2) - (char_cnt * 3) - 11, 1);
+        icon_pedalboard(display, title.x - 11, 1);
     }
 
     //invert the top bar

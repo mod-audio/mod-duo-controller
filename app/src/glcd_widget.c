@@ -386,7 +386,8 @@ void widget_bar(glcd_t *display, bar_t *bar)
     label.left_margin = 0;
     label.right_margin = 0;
     label.text = bar->label;
-    label.align = ALIGN_CENTER_NONE;
+    label.align = ALIGN_NONE_NONE;
+    label.x = ((DISPLAY_WIDTH / 2) - (3*(strlen(bar->label)-1)) -2); 
     label.y = bar->y + 1;
     widget_textbox(display, &label);
 
