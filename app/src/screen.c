@@ -157,13 +157,13 @@ void screen_encoder(uint8_t display_id, control_t *control)
         title.align = ALIGN_NONE_NONE;
 
         // clear the name area
-        glcd_rect_fill(display, (((char_cnt_name > 17)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3-1, 12, ((6*char_cnt_name) +3), 9, GLCD_WHITE);  
+        glcd_rect_fill(display, (((char_cnt_name > 16)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3-1, 12, ((6*char_cnt_name) +3), 9, GLCD_WHITE);
 
-        title.x = (((char_cnt_name > 17)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3 + 1;
+        title.x = (((char_cnt_name > 16)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3 + 1;
         widget_textbox(display, &title);
 
         // invert the name area
-        glcd_rect_invert(display, (((char_cnt_name > 17)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3-1, 12, ((6*char_cnt_name) +3), 9);
+        glcd_rect_invert(display, (((char_cnt_name > 16)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3-1, 12, ((6*char_cnt_name) +3), 9);
 
         FREE(title_str_bfr);
     }
@@ -192,14 +192,23 @@ void screen_encoder(uint8_t display_id, control_t *control)
             float_to_str((control->value), value_str, sizeof(value_str), 2);
         }
 
-        const char *unit;
-        unit = (strcmp(control->unit, "none") == 0 ? NULL : control->unit);
-        char *str_bfr = MALLOC(strlen(value_str)+strlen(unit)+3);
+        //convert unit
+        char tmp_unit[10];
+        char tmp_unit_check[1] = "";
+        strcpy(tmp_unit, control->unit);
+
+        char *str_bfr = MALLOC(strlen(value_str)+strlen(control->unit)+1);
         strcpy(str_bfr, value_str);
-        if (unit)
+
+        if (strcmp(tmp_unit_check, tmp_unit) == 0)
+        {
+            str_bfr[strlen(value_str)] = '\0';
+        }
+        else
         {
             strcat(str_bfr, " ");
-            strcat(str_bfr, unit);
+            strcat(str_bfr, tmp_unit);
+            str_bfr[strlen(value_str)+strlen(control->unit)+1] = '\0';
         }
         bar.label = str_bfr;
 
