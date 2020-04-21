@@ -57,9 +57,10 @@
 */
 
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
-#define TASK_NAME(name)     ((const signed char * const) (name))
+#define TASK_NAME(name)     ((const char * const) (name))
 
-#define ACTUATORS_QUEUE_SIZE    5
+#define ACTUATORS_QUEUE_SIZE    10
+#define RESERVED_QUEUE_SPACES   3
 
 
 /*
@@ -71,7 +72,7 @@
 static volatile xQueueHandle g_actuators_queue;
 static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
 static uint8_t g_ui_communication_started;
-
+#define ACTUATOR_TYPE(act)  (((button_t *)(act))->type)
 /*
 ************************************************************************************************************************
 *           LOCAL FUNCTION PROTOTYPES
@@ -181,7 +182,21 @@ static void actuators_cb(void *actuator)
 
     // queue actuator info
     portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(g_actuators_queue, &actuator_info, &xHigherPriorityTaskWoken);
+    if (ACTUATOR_TYPE(actuator) == BUTTON)
+    {
+        xQueueSendToFrontFromISR(g_actuators_queue, &actuator_info, &xHigherPriorityTaskWoken);
+    }
+    else
+    {
+        if (uxQueueSpacesAvailable(g_actuators_queue) > RESERVED_QUEUE_SPACES)
+        {
+            // queue actuator info
+            xQueueSendToBackFromISR(g_actuators_queue, &actuator_info, &xHigherPriorityTaskWoken);
+        }
+        else
+            return;
+
+    }
 
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
@@ -513,13 +528,18 @@ static void control_add_cb(proto_t *proto)
 
     naveg_add_control(control, 1);
 
+    protocol_response("resp 0", proto);
+
     g_protocol_busy = false;
     system_lock_comm_serial(g_protocol_busy);
-    protocol_response("resp 0", proto);
 }
 
 static void control_rm_cb(proto_t *proto)
 {
+    //lock actuators
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     g_ui_communication_started = 1;
     
     naveg_remove_control(atoi(proto->list[1]));
@@ -535,6 +555,9 @@ static void control_rm_cb(proto_t *proto)
     }
     
     protocol_response("resp 0", proto);
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void control_set_cb(proto_t *proto)

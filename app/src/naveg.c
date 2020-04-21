@@ -178,8 +178,20 @@ static int get_display_by_id(uint8_t id, uint8_t type)
 static void display_disable_all_tools(uint8_t display)
 {
     int i;
-    if (tool_is_on(DISPLAY_TOOL_TUNER)) 
+    if (tool_is_on(DISPLAY_TOOL_TUNER))
+    {
+        g_protocol_busy = true;
+        system_lock_comm_serial(g_protocol_busy);
+
+        // sends the data to GUI
         comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+
+        // waits the pedalboards list be received
+        comm_webgui_wait_response();
+
+        g_protocol_busy = false;
+        system_lock_comm_serial(g_protocol_busy);
+    } 
     
     for (i = 0; i < MAX_TOOLS; i++)
     {
@@ -422,26 +434,13 @@ static void foot_control_add(control_t *control)
             break;
 
         case CONTROL_PROP_MOMENTARY_SW:
+        // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
+        case CONTROL_PROP_TRIGGER:
             if ((control->scroll_dir == 0)||(control->scroll_dir == 2))
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
             else
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_PRESSED_COLOR);
             
-            // if is in tool mode break
-            if (display_has_tool_enabled(control->hw_id - ENCODERS_COUNT)) break;
-
-            // updates the footer
-            screen_footer(control->hw_id - ENCODERS_COUNT, control->label, NULL, control->properties);
-            break;
-
-        // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
-        case CONTROL_PROP_TRIGGER:
-            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
-            else
-            {
-                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_PRESSED_COLOR);
-            }
-
             // if is in tool mode break
             if (display_has_tool_enabled(control->hw_id - ENCODERS_COUNT)) break;
 
@@ -529,7 +528,7 @@ static void foot_control_add(control_t *control)
         case CONTROL_PROP_REVERSE_ENUM:
         case CONTROL_PROP_ENUMERATION:
         case CONTROL_PROP_SCALE_POINTS:
-            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+            if ((control->scroll_dir == 0)||(control->scroll_dir == 2)) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
             else
             {
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
@@ -639,11 +638,17 @@ static void request_control_page(control_t *control, uint8_t dir)
     // insert the direction on buffer
     i += int_to_str(bitmask, &buffer[i], sizeof(buffer) - i, 0);
 
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
-    // waits the banks list be received
-    comm_webgui_wait_response();;
+    // waits the pedalboards list be received
+    comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void parse_banks_list(void *data, menu_item_t *item)
@@ -694,11 +699,17 @@ static void request_banks_list(uint8_t dir)
     //insert current bank, because first time we are entering the menu
     i += int_to_str(g_current_bank, &buffer[i], sizeof(buffer) - i, 0);
 
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
-    // waits the banks list be received
+    // waits the pedalboards list be received
     comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     g_banks->hover = g_current_bank;
     g_banks->selected = g_current_bank;
@@ -731,11 +742,17 @@ static void request_next_bank_page(uint8_t dir)
 
     i += int_to_str(g_banks->hover, &buffer[i], sizeof(buffer) - i, 0);
 
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
-    // waits the banks list be received
+    // waits the pedalboards list be received
     comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
 	//restore our previous hover / selected bank
 	g_banks->hover = prev_hover;
@@ -817,11 +834,17 @@ static void request_pedalboards(uint8_t dir, uint16_t bank_uid)
     	prev_selected = g_naveg_pedalboards->selected;
     }
     
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
     comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     if (g_naveg_pedalboards)
     {
@@ -1062,13 +1085,19 @@ static void control_set(uint8_t id, control_t *control)
     i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
     buffer[i] = 0;
 
-    // send the data to GUI
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    // sends the data to GUI
     comm_webgui_send(buffer, i);
 
     //wait for a response from mod-ui
     if (g_should_wait_for_webgui) {
         comm_webgui_wait_response();
     }
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void bp_enter(void)
@@ -1712,8 +1741,17 @@ static void tuner_enter(void)
     i += int_to_str(input, &buffer[i], sizeof(buffer) - i, 0);
     buffer[i] = 0;
 
-    // send the data to GUI
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    // sends the data to GUI
     comm_webgui_send(buffer, i);
+
+    // waits the pedalboards list be received
+    comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     // updates the screen
     screen_tuner_input(input);
@@ -2569,7 +2607,17 @@ void naveg_next_control(uint8_t display)
     i += int_to_str(display, &buffer[i], 4, 0);
     buffer[i] = 0;
 
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    // sends the data to GUI
     comm_webgui_send(buffer, i);
+
+    // waits the pedalboards list be received
+    comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     FREE(buffer);
 }
@@ -2660,7 +2708,18 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
             case DISPLAY_TOOL_TUNER:
                 display_disable_all_tools(display);
+                
+                g_protocol_busy = true;
+                system_lock_comm_serial(g_protocol_busy);
+
+                // sends the data to GUI
                 comm_webgui_send(TUNER_ON_CMD, strlen(TUNER_ON_CMD));
+
+                // waits the pedalboards list be received
+                comm_webgui_wait_response();
+
+                g_protocol_busy = false;
+                system_lock_comm_serial(g_protocol_busy);
                 break;
             case DISPLAY_TOOL_SYSTEM:
                 screen_clear(1);
@@ -2704,7 +2763,18 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
 
             case DISPLAY_TOOL_TUNER:
+                g_protocol_busy = true;
+                system_lock_comm_serial(g_protocol_busy);
+
+                // sends the data to GUI
                 comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+
+                // waits the pedalboards list be received
+                comm_webgui_wait_response();
+
+                g_protocol_busy = false;
+                system_lock_comm_serial(g_protocol_busy);
+                
                 tool_off(DISPLAY_TOOL_TUNER);
 
                 if (tool_is_on(DISPLAY_TOOL_SYSTEM))

@@ -149,11 +149,8 @@ void screen_encoder(uint8_t display_id, control_t *control)
         uint8_t char_cnt_name = strlen(control->label);
         //limit if to big
         if (char_cnt_name >= 19) char_cnt_name = 19;
-        
-        char *title_str_bfr = (char *) MALLOC((char_cnt_name + 1) * sizeof(char));
-        strncpy(title_str_bfr, control->label, char_cnt_name);
-        title_str_bfr[char_cnt_name] = '\0';
-        title.text = title_str_bfr;
+
+        title.text = control->label;
         title.align = ALIGN_NONE_NONE;
 
         // clear the name area
@@ -164,8 +161,6 @@ void screen_encoder(uint8_t display_id, control_t *control)
 
         // invert the name area
         glcd_rect_invert(display, (((char_cnt_name > 16)?DISPLAY_WIDTH-9:DISPLAY_WIDTH) /2) - char_cnt_name*3-1, 12, ((6*char_cnt_name) +3), 9);
-
-        FREE(title_str_bfr);
     }
 
     // bar type control
@@ -182,45 +177,32 @@ void screen_encoder(uint8_t display_id, control_t *control)
         bar.step = control->step;
         bar.steps = control->steps - 1;
 
-        char value_str[10] = {0};
+        char str_bfr[15] = {0};
         if ((control->value > 99.9) || (control->properties == CONTROL_PROP_INTEGER))
         {
-            int_to_str(control->value, value_str, sizeof(value_str), 0);
+            int_to_str(control->value, str_bfr, sizeof(str_bfr), 0);
         }
         else 
         {
-            float_to_str((control->value), value_str, sizeof(value_str), 2);
+            float_to_str((control->value), str_bfr, sizeof(str_bfr), 2);
         }
 
-        //convert unit
-        char tmp_unit[10];
-        char tmp_unit_check[1] = "";
-        strcpy(tmp_unit, control->unit);
-
-        char *str_bfr = MALLOC(strlen(value_str)+strlen(control->unit)+1);
-        strcpy(str_bfr, value_str);
-
-        if (strcmp(tmp_unit_check, tmp_unit) == 0)
-        {
-            str_bfr[strlen(value_str)] = '\0';
-        }
-        else
+        if (strcmp("", control->unit) != 0)
         {
             strcat(str_bfr, " ");
-            strcat(str_bfr, tmp_unit);
-            str_bfr[strlen(value_str)+strlen(control->unit)+1] = '\0';
+            strcat(str_bfr, control->unit);
         }
+
         bar.label = str_bfr;
 
         widget_bar(display, &bar);
-        FREE(str_bfr);
     }
 
     // list type control
     else if (control->properties == CONTROL_PROP_ENUMERATION ||
              control->properties == CONTROL_PROP_SCALE_POINTS)
     {
-        static char *labels_list[128];
+        static char *labels_list[10];
 
         uint8_t i;
         for (i = 0; i < control->scale_points_count; i++)
@@ -370,8 +352,8 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
             }
         }
 
-        char *title_str_bfr = (char *) MALLOC((char_cnt_name + 1) * sizeof(char));
-        char *value_str_bfr = (char *) MALLOC((char_cnt_value + 1) * sizeof(char));
+        char title_str_bfr[char_cnt_name];
+        char value_str_bfr[char_cnt_value];
 
         //draw name
         strncpy(title_str_bfr, name, char_cnt_name);
@@ -379,7 +361,6 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         footer.text = title_str_bfr;
         footer.align = ALIGN_LEFT_NONE;
         widget_textbox(display, &footer);
-        FREE(title_str_bfr);
 
         // draws the value field
         strncpy(value_str_bfr, value, char_cnt_value);
@@ -388,7 +369,6 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         footer.width = 0;
         footer.align = ALIGN_RIGHT_NONE;
         widget_textbox(display, &footer);
-        FREE(value_str_bfr);
 
         //if in banks menu, invert
         if (property == CONTROL_PROP_BANKS)
