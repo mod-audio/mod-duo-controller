@@ -191,7 +191,7 @@ static void display_disable_all_tools(uint8_t display)
 
         g_protocol_busy = false;
         system_lock_comm_serial(g_protocol_busy);
-    } 
+    }
     
     for (i = 0; i < MAX_TOOLS; i++)
     {
@@ -2674,7 +2674,7 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
 
         bank_config_update(bank_func_idx);
         return;
-    }        
+    }
 
     // checks if there is assigned control
     if (g_foots[foot] == NULL) return;
@@ -2708,7 +2708,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
             case DISPLAY_TOOL_TUNER:
                 display_disable_all_tools(display);
-                
+
                 g_protocol_busy = true;
                 system_lock_comm_serial(g_protocol_busy);
 
@@ -2782,7 +2782,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                    tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, 1); 
                    return;
                 } 
-                
+
                 break;
         }
 
