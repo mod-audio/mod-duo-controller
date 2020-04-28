@@ -675,7 +675,11 @@ static void snapshot_name_cb(proto_t *proto)
 static void boot_cb(proto_t *proto)
 {
     g_should_wait_for_webgui = true;
-    
+ 
+    //init the pb_name to def
+    screen_pb_name(NULL, 1); 
+    screen_ss_name(NULL, 1); 
+
     //set the display brightness 
     system_update_menu_value(DISPLAY_BRIGHTNESS_ID, atoi(proto->list[1]));
 
