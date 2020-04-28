@@ -290,6 +290,10 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define FOOT_NAVIG_CMD                "fn %i"
 //next control page <hw_id> <up/down>
 #define CONTROL_PAGE_CMD              "ncp %i %i"
+//get the name of the current pedalboard
+#define PB_NAME_SET_CMD               "s_pbn %s ..."
+//get the name of the current pedalboard
+#define SS_NAME_SET_CMD               "s_ssn %s ..."
 
 //// Control propertires definitions
 #define CONTROL_PROP_LINEAR         0

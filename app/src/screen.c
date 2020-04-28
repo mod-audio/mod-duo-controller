@@ -91,9 +91,6 @@ void screen_encoder(uint8_t display_id, control_t *control)
 {    
     glcd_t *display = hardware_glcds(display_id);
 
-    //TOOO NOT TRIGGERED HERE DEBUG
-    screen_top_info(NULL, display_id, 1);
-
     //no control? 
     if (!control)
     {
@@ -376,16 +373,15 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
     }
 }
 
-void screen_top_info(const void *data, uint8_t display_id, uint8_t update)
+void screen_pb_name(const void *data, uint8_t update)
 {
     static char* pedalboard_name = NULL;
-    uint8_t char_cnt = 0;
-    glcd_t *display = hardware_glcds(display_id);
+    static uint8_t char_cnt = 0;
+    glcd_t *display = hardware_glcds(0);
 
     if (update)
     {
-        //TODO REMOVE DATA FROM HERE DEBUG
-        if ((pedalboard_name == NULL) || (data == NULL))
+        if (pedalboard_name == NULL)
         {
             pedalboard_name = (char *) MALLOC(29 * sizeof(char));
             strcpy(pedalboard_name, "DEFAULT");
@@ -411,11 +407,13 @@ void screen_top_info(const void *data, uint8_t display_id, uint8_t update)
                 char_cnt++;
             }
             pedalboard_name[29] = 0;
+
+            char_cnt = strlen(pedalboard_name);
         }
     }
 
     //we dont display inside a menu
-    if (naveg_is_tool_mode(display_id)) return;
+    if (naveg_is_tool_mode(0)) return;
 
     // clear the name area
     glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 10, GLCD_WHITE);
@@ -433,23 +431,79 @@ void screen_top_info(const void *data, uint8_t display_id, uint8_t update)
     title.text = pedalboard_name;
     title.align = ALIGN_NONE_NONE;
     title.y = 1;
-    title.x = ((DISPLAY_WIDTH / 2) - 3*char_cnt + 7);
+    title.x = ((DISPLAY_WIDTH / 2) - (3*char_cnt) + 7);
     widget_textbox(display, &title);
 
-    if (display_id)
-    {
-        icon_snapshot(display, title.x - 11, 1);
-    }
-    else 
-    {
-        icon_pedalboard(display, title.x - 11, 1);
-    }
+    icon_pedalboard(display, title.x - 11, 1);
 
     //invert the top bar
     glcd_rect_invert(display, 0, 0, DISPLAY_WIDTH, 9);
+}
 
-    //TODO REMOVE ME DEBUG
-    FREE(pedalboard_name);
+void screen_ss_name(const void *data, uint8_t update)
+{
+    static char* snapshot_name = NULL;
+    static uint8_t char_cnt = 0;
+    glcd_t *display = hardware_glcds(1);
+
+    if (update)
+    {
+        if (snapshot_name == NULL)
+        {
+            snapshot_name = (char *) MALLOC(29 * sizeof(char));
+            strcpy(snapshot_name, "DEFAULT");
+            char_cnt = 7;
+        }
+        else 
+        {
+            const char **name_list = (const char**)data;
+
+            // get first list name, copy it to our string buffer
+            const char *name_string = *name_list;
+            strncpy(snapshot_name, name_string, 29);
+            snapshot_name[29] = 0; // strncpy might not have final null byte
+
+            // go to next name in list
+            name_string = *(++name_list);
+
+            while (name_string && ((strlen(snapshot_name) + strlen(name_string) + 1) < 29))
+            {
+                strcat(snapshot_name, " ");
+                strcat(snapshot_name, name_string);
+                name_string = *(++name_list);
+            }
+            snapshot_name[29] = 0;
+
+            char_cnt = strlen(snapshot_name);
+        }
+    }
+
+    //we dont display inside a menu
+    if (naveg_is_tool_mode(1)) return;
+
+    // clear the name area
+    glcd_rect_fill(display, 0, 0, DISPLAY_WIDTH, 10, GLCD_WHITE);
+
+    textbox_t title;
+    title.color = GLCD_BLACK;
+    title.mode = TEXT_SINGLE_LINE;
+    title.font = Terminal5x7;
+    title.top_margin = 1;
+    title.bottom_margin = 0;
+    title.left_margin = 10;
+    title.right_margin = 1;
+    title.height = 0;
+    title.width = 0;
+    title.text = snapshot_name;
+    title.align = ALIGN_NONE_NONE;
+    title.y = 1;
+    title.x = ((DISPLAY_WIDTH / 2) - (3*char_cnt) + 7);
+    widget_textbox(display, &title);
+
+    icon_snapshot(display, title.x - 11, 1);
+
+    //invert the top bar
+    glcd_rect_invert(display, 0, 0, DISPLAY_WIDTH, 9);
 }
 
 void screen_tool(uint8_t tool, uint8_t display_id)

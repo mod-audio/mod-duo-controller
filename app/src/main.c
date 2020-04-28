@@ -107,6 +107,8 @@ static void bank_config_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
 static void restore_cb(proto_t *proto);
+static void pedalboard_name_cb(proto_t *proto);
+static void snapshot_name_cb(proto_t *proto);
 static void boot_cb(proto_t *proto);
 static void menu_item_changed_cb(proto_t *proto);
 static void pedalboard_clear_cb(proto_t *proto);
@@ -408,6 +410,8 @@ static void setup_task(void *pvParameters)
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
     protocol_add_command(RESTORE_CMD, restore_cb);
+    protocol_add_command(PB_NAME_SET_CMD, pedalboard_name_cb);
+    protocol_add_command(SS_NAME_SET_CMD, snapshot_name_cb);
     protocol_add_command(BOOT_HMI_CMD, boot_cb);
     protocol_add_command(MENU_ITEM_CHANGE, menu_item_changed_cb);
     protocol_add_command(CLEAR_PEDALBOARD, pedalboard_clear_cb);
@@ -642,6 +646,32 @@ static void restore_cb(proto_t *proto)
     protocol_response("resp 0", proto);
 }
 
+static void pedalboard_name_cb(proto_t *proto)
+{
+    //lock actuators
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    screen_pb_name(&proto->list[1] , 1);
+    protocol_response("resp 0", proto);
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
+}
+
+static void snapshot_name_cb(proto_t *proto)
+{
+    //lock actuators
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    screen_ss_name(&proto->list[1] , 1);
+    protocol_response("resp 0", proto);
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
+}
+
 static void boot_cb(proto_t *proto)
 {
     g_should_wait_for_webgui = true;
@@ -657,6 +687,10 @@ static void boot_cb(proto_t *proto)
 
     //set the current user profile 
     system_update_menu_value(PROFILES_ID, atoi(proto->list[4]));
+
+    //display default names
+    screen_pb_name(NULL, 1);
+    screen_ss_name(NULL, 1); 
 
     protocol_response("resp 0", proto);
 }

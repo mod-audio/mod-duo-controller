@@ -2794,6 +2794,9 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         // draws the control
         screen_encoder(display, control);
 
+        //draw the top bar
+        screen_pb_name(NULL, 0);
+
         //draw the index (do not update values)
         naveg_set_index(0, display, 0, 0);
 
@@ -2810,6 +2813,9 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
      
             // draws the control
             screen_encoder(display, control);
+
+            //draw the top bar
+            screen_ss_name(NULL, 0);
     
             //draw the index (do not update values)
             naveg_set_index(0, display, 0, 0);
