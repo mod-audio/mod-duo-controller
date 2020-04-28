@@ -2169,6 +2169,10 @@ void naveg_initial_state(uint16_t max_menu, uint16_t page_min, uint16_t page_max
     	g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
     	g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
     }
+
+    //init the pb_name to def
+    screen_pb_name(NULL, 1); 
+    screen_ss_name(NULL, 1); 
 }
 
 void naveg_ui_connection(uint8_t status)

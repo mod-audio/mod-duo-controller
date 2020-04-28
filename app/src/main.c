@@ -688,9 +688,8 @@ static void boot_cb(proto_t *proto)
     //set the current user profile 
     system_update_menu_value(PROFILES_ID, atoi(proto->list[4]));
 
-    //display default names
-    screen_pb_name(NULL, 1);
-    screen_ss_name(NULL, 1); 
+    //display pb name
+    screen_pb_name(&proto->list[5], 1);
 
     protocol_response("resp 0", proto);
 }
