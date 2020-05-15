@@ -383,7 +383,7 @@ void screen_pb_name(const void *data, uint8_t update)
     {
         if (pedalboard_name == NULL)
         {
-            pedalboard_name = (char *) MALLOC(29 * sizeof(char));
+            pedalboard_name = (char *) MALLOC(30 * sizeof(char));
             strcpy(pedalboard_name, "DEFAULT");
             char_cnt = 7;
         }
@@ -450,7 +450,7 @@ void screen_ss_name(const void *data, uint8_t update)
     {
         if (snapshot_name == NULL)
         {
-            snapshot_name = (char *) MALLOC(29 * sizeof(char));
+            snapshot_name = (char *) MALLOC(30 * sizeof(char));
             strcpy(snapshot_name, "DEFAULT");
             char_cnt = 7;
         }
