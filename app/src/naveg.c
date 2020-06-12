@@ -416,7 +416,7 @@ static void foot_control_add(control_t *control)
 
         // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
         case CONTROL_PROP_TRIGGER:
-            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
+            if ((control->scroll_dir == 2) || (control->scroll_dir == 0)) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
             else
             {
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_PRESSED_COLOR);
