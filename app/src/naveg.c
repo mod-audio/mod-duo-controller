@@ -962,6 +962,7 @@ static void control_set(uint8_t id, control_t *control)
             break;
 
         case CONTROL_PROP_TRIGGER:
+            control->value = 1;
 
             // to update the footer and screen
             foot_control_add(control);
