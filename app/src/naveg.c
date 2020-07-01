@@ -199,6 +199,39 @@ static int display_has_tool_enabled(uint8_t display)
     return 0;
 }
 
+//TODO INSTEAD OF PASSING A VALUE, IT SHOULD BE LIST INDEX
+static color_t get_enumeration_color(uint16_t current_list_item)
+{
+    uint16_t list_color = current_list_item % 5;
+
+    switch(list_color)
+    {
+        case 0:
+            return ENUMERATED_1_COLOR;
+        break;
+
+        case 1:
+            return ENUMERATED_2_COLOR;
+        break;
+
+        case 2:
+            return ENUMERATED_3_COLOR;
+        break;
+
+        case 3:
+            return ENUMERATED_4_COLOR;
+        break;
+
+        case 4:
+            return ENUMERATED_5_COLOR;
+        break;
+
+        default:
+            return ENUMERATED_1_COLOR;
+        break;
+    }
+}
+
 void draw_all_foots(uint8_t display)
 {
     uint8_t i;
@@ -509,7 +542,7 @@ static void foot_control_add(control_t *control)
         case CONTROL_PROP_REVERSE_ENUM:
         case CONTROL_PROP_ENUMERATION:
         case CONTROL_PROP_SCALE_POINTS:
-            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), get_enumeration_color(control->value));
             else
             {
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
@@ -886,7 +919,7 @@ static void control_set(uint8_t id, control_t *control)
             //footswitch (need to check for pages here)
             else if ((ENCODERS_COUNT <= control->hw_id) && ( control->hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT))
             {
-                if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+                if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), get_enumeration_color(control->value));
                 else
                 {
                     led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
@@ -2416,7 +2449,7 @@ void naveg_set_control(uint8_t hw_id, float value)
             case CONTROL_PROP_ENUMERATION:
             case CONTROL_PROP_SCALE_POINTS:
                 // updates the led
-                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), get_enumeration_color(control->value));
 
                 // locates the current value
                 control->step = 0;
@@ -2497,7 +2530,7 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
         else if ((g_foots[foot]->properties == CONTROL_PROP_SCALE_POINTS) || (g_foots[foot]->properties == CONTROL_PROP_REVERSE_ENUM) || (g_foots[foot]->properties == CONTROL_PROP_ENUMERATION))
         {
             led_set_color(hardware_leds(foot), BLACK);
-            led_set_color(hardware_leds(foot), ENUMERATED_COLOR); //ENUMERATED_COLOR
+            led_set_color(hardware_leds(foot), get_enumeration_color(g_foots[foot]->value));
         }
         else return;
 
