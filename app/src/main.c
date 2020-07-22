@@ -57,9 +57,10 @@
 */
 
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
-#define TASK_NAME(name)     ((const signed char * const) (name))
+#define TASK_NAME(name)     ((const char * const) (name))
 
-#define ACTUATORS_QUEUE_SIZE    5
+#define ACTUATORS_QUEUE_SIZE    10
+#define RESERVED_QUEUE_SPACES   3
 
 
 /*
@@ -71,7 +72,7 @@
 static volatile xQueueHandle g_actuators_queue;
 static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
 static uint8_t g_ui_communication_started;
-
+#define ACTUATOR_TYPE(act)  (((button_t *)(act))->type)
 /*
 ************************************************************************************************************************
 *           LOCAL FUNCTION PROTOTYPES
@@ -106,6 +107,8 @@ static void bank_config_cb(proto_t *proto);
 static void tuner_cb(proto_t *proto);
 static void resp_cb(proto_t *proto);
 static void restore_cb(proto_t *proto);
+static void pedalboard_name_cb(proto_t *proto);
+static void snapshot_name_cb(proto_t *proto);
 static void boot_cb(proto_t *proto);
 static void menu_item_changed_cb(proto_t *proto);
 static void pedalboard_clear_cb(proto_t *proto);
@@ -181,7 +184,21 @@ static void actuators_cb(void *actuator)
 
     // queue actuator info
     portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(g_actuators_queue, &actuator_info, &xHigherPriorityTaskWoken);
+    if (ACTUATOR_TYPE(actuator) == BUTTON)
+    {
+        xQueueSendToFrontFromISR(g_actuators_queue, &actuator_info, &xHigherPriorityTaskWoken);
+    }
+    else
+    {
+        if (uxQueueSpacesAvailable(g_actuators_queue) > RESERVED_QUEUE_SPACES)
+        {
+            // queue actuator info
+            xQueueSendToBackFromISR(g_actuators_queue, &actuator_info, &xHigherPriorityTaskWoken);
+        }
+        else
+            return;
+
+    }
 
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
@@ -393,6 +410,8 @@ static void setup_task(void *pvParameters)
     protocol_add_command(TUNER_CMD, tuner_cb);
     protocol_add_command(RESPONSE_CMD, resp_cb);
     protocol_add_command(RESTORE_CMD, restore_cb);
+    protocol_add_command(PB_NAME_SET_CMD, pedalboard_name_cb);
+    protocol_add_command(SS_NAME_SET_CMD, snapshot_name_cb);
     protocol_add_command(BOOT_HMI_CMD, boot_cb);
     protocol_add_command(MENU_ITEM_CHANGE, menu_item_changed_cb);
     protocol_add_command(CLEAR_PEDALBOARD, pedalboard_clear_cb);
@@ -513,13 +532,18 @@ static void control_add_cb(proto_t *proto)
 
     naveg_add_control(control, 1);
 
+    protocol_response("resp 0", proto);
+
     g_protocol_busy = false;
     system_lock_comm_serial(g_protocol_busy);
-    protocol_response("resp 0", proto);
 }
 
 static void control_rm_cb(proto_t *proto)
 {
+    //lock actuators
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     g_ui_communication_started = 1;
     
     naveg_remove_control(atoi(proto->list[1]));
@@ -535,6 +559,9 @@ static void control_rm_cb(proto_t *proto)
     }
     
     protocol_response("resp 0", proto);
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void control_set_cb(proto_t *proto)
@@ -619,10 +646,36 @@ static void restore_cb(proto_t *proto)
     protocol_response("resp 0", proto);
 }
 
+static void pedalboard_name_cb(proto_t *proto)
+{
+    //lock actuators
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    screen_pb_name(&proto->list[1] , 1);
+    protocol_response("resp 0", proto);
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
+}
+
+static void snapshot_name_cb(proto_t *proto)
+{
+    //lock actuators
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    screen_ss_name(&proto->list[1] , 1);
+    protocol_response("resp 0", proto);
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
+}
+
 static void boot_cb(proto_t *proto)
 {
     g_should_wait_for_webgui = true;
-    
+
     //set the display brightness 
     system_update_menu_value(DISPLAY_BRIGHTNESS_ID, atoi(proto->list[1]));
 

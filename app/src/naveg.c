@@ -113,6 +113,7 @@ static xSemaphoreHandle g_dialog_sem;
 static uint8_t dialog_active = 0;
 static int16_t g_current_bank;
 static uint8_t g_force_update_pedalboard = 1;
+static uint8_t g_scroll_dir = 1;
 
 // only enabled after "boot" command received
 bool g_should_wait_for_webgui = false;
@@ -177,8 +178,20 @@ static int get_display_by_id(uint8_t id, uint8_t type)
 static void display_disable_all_tools(uint8_t display)
 {
     int i;
-    if (tool_is_on(DISPLAY_TOOL_TUNER)) 
+    if (tool_is_on(DISPLAY_TOOL_TUNER))
+    {
+        g_protocol_busy = true;
+        system_lock_comm_serial(g_protocol_busy);
+
+        // sends the data to GUI
         comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+
+        // waits the pedalboards list be received
+        comm_webgui_wait_response();
+
+        g_protocol_busy = false;
+        system_lock_comm_serial(g_protocol_busy);
+    }
     
     for (i = 0; i < MAX_TOOLS; i++)
     {
@@ -218,7 +231,7 @@ void draw_all_foots(uint8_t display)
         }
         else
         {
-            screen_footer(foot + i, NULL, NULL);
+            screen_footer(foot + i, NULL, NULL, 0);
         }
     }
 }
@@ -314,7 +327,7 @@ static void display_control_add(control_t *control)
         case CONTROL_PROP_SCALE_POINTS:
             control->step = 0;
             uint8_t i;
-            control->scroll_dir = 1;
+            control->scroll_dir = g_scroll_dir;
             for (i = 0; i < control->scale_points_count; i++)
             {
                 if (control->value == control->scale_points[i]->value)
@@ -331,13 +344,19 @@ static void display_control_add(control_t *control)
             control->step =
                 (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
             break;
+
+        case CONTROL_PROP_BYPASS:
+        case CONTROL_PROP_TOGGLED:
+            control->steps = 1;
+            control->step = control->value;
+            break;
     }
 
     // if tool is enabled don't draws the control
     if (display_has_tool_enabled(display)) return;
 
     // update the control screen
-    screen_control(display, control);
+    screen_encoder(display, control);
 }
 
 // control removed from display
@@ -350,7 +369,7 @@ static void display_control_rm(uint8_t hw_id)
 
     if (!g_controls[display])
     {
-        if (!display_has_tool_enabled(display)) screen_control(display, NULL);
+        if (!display_has_tool_enabled(display)) screen_encoder(display, NULL);
         return;
     }
 
@@ -361,12 +380,12 @@ static void display_control_rm(uint8_t hw_id)
         data_free_control(control);
         g_controls[display] = NULL;
         if (!display_has_tool_enabled(display))
-            screen_control(display, NULL);
+            screen_encoder(display, NULL);
         return;
     }
     else if (!display_has_tool_enabled(display))
     {
-        screen_control(display, NULL);
+        screen_encoder(display, NULL);
     }
 }
 
@@ -411,22 +430,22 @@ static void foot_control_add(control_t *control)
 
             // updates the footer
             screen_footer((control->hw_id - ENCODERS_COUNT), control->label,
-                         (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT));
+                         (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT), control->properties);
             break;
 
+        case CONTROL_PROP_MOMENTARY_SW:
         // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
         case CONTROL_PROP_TRIGGER:
-            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
+            if ((control->scroll_dir == 0)||(control->scroll_dir == 2))
+                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
             else
-            {
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_PRESSED_COLOR);
-            }
-
+            
             // if is in tool mode break
             if (display_has_tool_enabled(control->hw_id - ENCODERS_COUNT)) break;
 
             // updates the footer
-            screen_footer(control->hw_id - ENCODERS_COUNT, control->label, NULL);
+            screen_footer(control->hw_id - ENCODERS_COUNT, control->label, NULL, control->properties);
             break;
 
         case CONTROL_PROP_TAP_TEMPO:
@@ -488,7 +507,7 @@ static void foot_control_add(control_t *control)
             strcpy(&value_txt[i], control->unit);
 
             // updates the footer
-            screen_footer((control->hw_id - ENCODERS_COUNT), control->label, value_txt);
+            screen_footer((control->hw_id - ENCODERS_COUNT), control->label, value_txt, control->properties);
             break;
 
         case CONTROL_PROP_BYPASS:
@@ -503,13 +522,13 @@ static void foot_control_add(control_t *control)
 
             // updates the footer
             screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
-                         (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
+                         (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT), control->properties);
             break;
 
         case CONTROL_PROP_REVERSE_ENUM:
         case CONTROL_PROP_ENUMERATION:
         case CONTROL_PROP_SCALE_POINTS:
-            if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
+            if ((control->scroll_dir == 0)||(control->scroll_dir == 2)) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
             else
             {
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
@@ -531,7 +550,7 @@ static void foot_control_add(control_t *control)
             if (display_has_tool_enabled(control->hw_id - ENCODERS_COUNT)) break;
 
             // updates the footer
-            screen_footer((control->hw_id - ENCODERS_COUNT), control->label, control->scale_points[i]->label);
+            screen_footer((control->hw_id - ENCODERS_COUNT), control->label, control->scale_points[i]->label, control->properties);
             break;
     }
 }
@@ -548,7 +567,7 @@ static void foot_control_rm(uint8_t hw_id)
         // if there is no controls assigned, load the default screen
         if (!g_foots[i] && ! bank_config_check(i) && !display_has_tool_enabled(i))
         {
-            screen_footer(i, NULL, NULL);
+            screen_footer(i, NULL, NULL, 0);
             continue;
         }
 
@@ -570,7 +589,7 @@ static void foot_control_rm(uint8_t hw_id)
 
                 // update the footer
                 if (!display_has_tool_enabled(i))
-                    screen_footer(i, NULL, NULL);
+                    screen_footer(i, NULL, NULL, 0);
             }    
         }
     }
@@ -619,11 +638,17 @@ static void request_control_page(control_t *control, uint8_t dir)
     // insert the direction on buffer
     i += int_to_str(bitmask, &buffer[i], sizeof(buffer) - i, 0);
 
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
-    // waits the banks list be received
-    comm_webgui_wait_response();;
+    // waits the pedalboards list be received
+    comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void parse_banks_list(void *data, menu_item_t *item)
@@ -674,11 +699,17 @@ static void request_banks_list(uint8_t dir)
     //insert current bank, because first time we are entering the menu
     i += int_to_str(g_current_bank, &buffer[i], sizeof(buffer) - i, 0);
 
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
-    // waits the banks list be received
+    // waits the pedalboards list be received
     comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     g_banks->hover = g_current_bank;
     g_banks->selected = g_current_bank;
@@ -711,11 +742,17 @@ static void request_next_bank_page(uint8_t dir)
 
     i += int_to_str(g_banks->hover, &buffer[i], sizeof(buffer) - i, 0);
 
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
-    // waits the banks list be received
+    // waits the pedalboards list be received
     comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
 	//restore our previous hover / selected bank
 	g_banks->hover = prev_hover;
@@ -797,11 +834,17 @@ static void request_pedalboards(uint8_t dir, uint16_t bank_uid)
     	prev_selected = g_naveg_pedalboards->selected;
     }
     
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
     // sends the data to GUI
     comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
     comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     if (g_naveg_pedalboards)
     {
@@ -869,7 +912,7 @@ static void control_set(uint8_t id, control_t *control)
             {
                 // update the screen
                 if (!display_has_tool_enabled(id))
-                    screen_control(id, control);
+                    screen_encoder(id, control);
             }
             break;
 
@@ -881,7 +924,7 @@ static void control_set(uint8_t id, control_t *control)
             {
                 // update the screen
                 if (!display_has_tool_enabled(id))
-                    screen_control(id, control);
+                    screen_encoder(id, control);
             }
             //footswitch (need to check for pages here)
             else if ((ENCODERS_COUNT <= control->hw_id) && ( control->hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT))
@@ -948,23 +991,42 @@ static void control_set(uint8_t id, control_t *control)
                 // updates the value and the screen
                 control->value = control->scale_points[control->step]->value;
                 if (!display_has_tool_enabled(get_display_by_id(id, FOOT)))
-                    screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[control->step]->label);
+                    screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[control->step]->label, control->properties);
             }
             break;
 
         case CONTROL_PROP_TOGGLED:
         case CONTROL_PROP_BYPASS:
-            if (control->value > 0) control->value = 0;
-            else control->value = 1;
+            if (control->hw_id < ENCODERS_COUNT)
+            {
+                // update the screen
+                if (!display_has_tool_enabled(id))
+                    screen_encoder(id, control);
+            }
+            else 
+            {
+                if (control->value > control->minimum) control->value = control->minimum;
+                else control->value = control->maximum;
 
-            // to update the footer and screen
-            foot_control_add(control);
+                // to update the footer and screen
+                foot_control_add(control);
+            }
             break;
 
-        case CONTROL_PROP_TRIGGER:
 
+        case CONTROL_PROP_TRIGGER:
+            control->value = control->maximum;
             // to update the footer and screen
             foot_control_add(control);
+
+            if (!control->scroll_dir) return;
+            break;
+
+        case CONTROL_PROP_MOMENTARY_SW:
+            control->value = !control->value;
+            // to update the footer and screen
+            foot_control_add(control);
+
             break;
 
         case CONTROL_PROP_TAP_TEMPO:
@@ -1023,13 +1085,19 @@ static void control_set(uint8_t id, control_t *control)
     i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
     buffer[i] = 0;
 
-    // send the data to GUI
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    // sends the data to GUI
     comm_webgui_send(buffer, i);
 
     //wait for a response from mod-ui
     if (g_should_wait_for_webgui) {
         comm_webgui_wait_response();
     }
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void bp_enter(void)
@@ -1673,8 +1741,17 @@ static void tuner_enter(void)
     i += int_to_str(input, &buffer[i], sizeof(buffer) - i, 0);
     buffer[i] = 0;
 
-    // send the data to GUI
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    // sends the data to GUI
     comm_webgui_send(buffer, i);
+
+    // waits the pedalboards list be received
+    comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     // updates the screen
     screen_tuner_input(input);
@@ -1904,17 +1981,27 @@ static void bank_config_footer(void)
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
                	screen_footer(bank_conf->hw_id- ENCODERS_COUNT, TRUE_BYPASS_FOOTER_TEXT,
-                            (bypass ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
+                            (bypass ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT), 0);
                 break;
             
             case BANK_FUNC_PEDALBOARD_NEXT:
-                if (g_current_pedalboard == (g_footswitch_pedalboards.menu_max)) color = BLACK;
-                else color = PEDALBOARD_NEXT_COLOR;
+                if (g_current_pedalboard == (g_footswitch_pedalboards.menu_max))
+                {
+                    color = BLACK;
+                    pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
+                } 
+                else 
+                {
+                    color = PEDALBOARD_NEXT_COLOR;
 
+                    if (bank_config_check(!(bank_conf->hw_id- ENCODERS_COUNT)) == BANK_FUNC_PEDALBOARD_PREV)
+                    pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min + 1];
+                }
+                
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
-                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT);
+                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT, CONTROL_PROP_BANKS);
                 
                 //turn on footswitch navigation internal value
                 if (!naveg_ui_status()) system_update_menu_value(FOOTSWITCH_NAV_ID, 1);
@@ -1922,14 +2009,24 @@ static void bank_config_footer(void)
                 break;
 
             case BANK_FUNC_PEDALBOARD_PREV:
-                if (g_current_pedalboard == 1) color = BLACK;
-                else color = PEDALBOARD_PREV_COLOR;
+                if (g_current_pedalboard == 1)
+                {
+                    color = BLACK;
+                    pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min];
+                }
+                else 
+                {
+                    color = PEDALBOARD_PREV_COLOR;
+                
+                    if (bank_config_check(!(bank_conf->hw_id - ENCODERS_COUNT)) == BANK_FUNC_PEDALBOARD_NEXT)
+                    pedalboard_name = g_footswitch_pedalboards.names[g_current_pedalboard - g_footswitch_pedalboards.page_min - 1];
+                }
 
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
-                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name , PEDALBOARD_PREV_FOOTER_TEXT);
-                
+                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name , PEDALBOARD_PREV_FOOTER_TEXT, CONTROL_PROP_BANKS);
+
                 //turn on footswitch navigation internal value
                 if (!naveg_ui_status()) system_update_menu_value(FOOTSWITCH_NAV_ID, 1);
                 
@@ -2158,8 +2255,11 @@ void naveg_inc_control(uint8_t display)
     if  (((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) 
     	|| (control->properties == CONTROL_PROP_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
     {
+        //sets the direction
+        control->scroll_dir = g_scroll_dir = 0;
+
         // increments the step
-        if (control->step < (control->steps - 2))
+        if (control->step < (control->steps - 3))
             control->step++;
         //we are at the end of our list ask for more data
         else
@@ -2170,6 +2270,20 @@ void naveg_inc_control(uint8_t display)
         	//since a new control is assigned we can return
         	return;
         }    	
+    }
+    else if (control->properties == CONTROL_PROP_TOGGLED)
+    {
+        if (control->value == 1)
+            return;
+        else 
+            control->value = 1;
+    }
+    else if (control->properties == CONTROL_PROP_BYPASS)
+    {
+        if (control->value == 0)
+            return;
+        else 
+            control->value = 0;
     }
     else
     {
@@ -2199,8 +2313,11 @@ void naveg_dec_control(uint8_t display)
     if  (((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) ||
      (control->properties == CONTROL_PROP_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
     {
+        //sets the direction
+        control->scroll_dir = g_scroll_dir = 0;
+
         // decrements the step
-        if (control->step > 1)
+        if (control->step > 2)
             control->step--;
         //we are at the end of our list ask for more data
         else
@@ -2211,6 +2328,20 @@ void naveg_dec_control(uint8_t display)
         	//since a new control is assigned we can return
         	return;
         }
+    }
+    else if (control->properties == CONTROL_PROP_TOGGLED)
+    {
+        if (control->value == 0)
+            return;
+        else 
+            control->value = 0;
+    }
+    else if (control->properties == CONTROL_PROP_BYPASS)
+    {
+        if (control->value == 1)
+            return;
+        else 
+            control->value = 1;
     }
     else
     {
@@ -2266,7 +2397,7 @@ void naveg_set_control(uint8_t hw_id, float value)
         {
             if (!display_has_tool_enabled(hw_id))
             {
-                screen_control(id, control);
+                screen_encoder(id, control);
             }
         }
         //button
@@ -2292,8 +2423,12 @@ void naveg_set_control(uint8_t hw_id, float value)
 
                 // updates the footer
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
-                             (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT));
+                             (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT), control->properties);
                 break;
+
+            //not implemented, not sure if ever needed
+            case CONTROL_PROP_MOMENTARY_SW:
+            break;
 
             // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
             case CONTROL_PROP_TRIGGER:
@@ -2322,7 +2457,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                     break;
 
                 // updates the footer (a getto fix here, the screen.c file did not regognize the NULL pointer so it did not allign the text properly, TODO fix this)
-                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, BYPASS_ON_FOOTER_TEXT);
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, BYPASS_ON_FOOTER_TEXT, control->properties);
                 break;
 
             case CONTROL_PROP_TAP_TEMPO:
@@ -2393,7 +2528,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                 strcpy(&value_txt[i], control->unit);
 
                 // updates the footer
-                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, value_txt);
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, value_txt, control->properties);
                 break;
 
             case CONTROL_PROP_BYPASS:
@@ -2409,7 +2544,7 @@ void naveg_set_control(uint8_t hw_id, float value)
 
                 // updates the footer
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
-                             (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
+                             (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT), control->properties);
                 break;
 
             case CONTROL_PROP_REVERSE_ENUM:
@@ -2435,7 +2570,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                     break;
 
                 // updates the footer
-                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[i]->label);
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[i]->label, control->properties);
                 break;
             }
         }
@@ -2472,7 +2607,17 @@ void naveg_next_control(uint8_t display)
     i += int_to_str(display, &buffer[i], 4, 0);
     buffer[i] = 0;
 
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    // sends the data to GUI
     comm_webgui_send(buffer, i);
+
+    // waits the pedalboards list be received
+    comm_webgui_wait_response();
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
 
     FREE(buffer);
 }
@@ -2489,7 +2634,7 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
     //detect a release action which we dont use right now for all actuator modes
     if (!pressed)
     {
-        if (g_foots[foot]->properties == CONTROL_PROP_TRIGGER)
+        if ((g_foots[foot]->properties == CONTROL_PROP_TRIGGER) || (g_foots[foot]->properties == CONTROL_PROP_MOMENTARY_SW))
         {
             led_set_color(hardware_leds(foot), BLACK);
             led_set_color(hardware_leds(foot), TRIGGER_COLOR); //TRIGGER_COLOR
@@ -2504,8 +2649,9 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
         //not used right now anymore, maybe in the future, TODO: rename to actuator flag
         g_foots[foot]->scroll_dir = pressed;
 
-        //we dont actually preform an action here
-        return;
+        //when momentary send off
+        if (g_foots[foot]->properties != CONTROL_PROP_MOMENTARY_SW)
+            return;
     }
 
     // checks if the foot is used like bank function
@@ -2528,7 +2674,7 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
 
         bank_config_update(bank_func_idx);
         return;
-    }        
+    }
 
     // checks if there is assigned control
     if (g_foots[foot] == NULL) return;
@@ -2562,7 +2708,18 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
             case DISPLAY_TOOL_TUNER:
                 display_disable_all_tools(display);
+
+                g_protocol_busy = true;
+                system_lock_comm_serial(g_protocol_busy);
+
+                // sends the data to GUI
                 comm_webgui_send(TUNER_ON_CMD, strlen(TUNER_ON_CMD));
+
+                // waits the pedalboards list be received
+                comm_webgui_wait_response();
+
+                g_protocol_busy = false;
+                system_lock_comm_serial(g_protocol_busy);
                 break;
             case DISPLAY_TOOL_SYSTEM:
                 screen_clear(1);
@@ -2606,7 +2763,18 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
 
             case DISPLAY_TOOL_TUNER:
+                g_protocol_busy = true;
+                system_lock_comm_serial(g_protocol_busy);
+
+                // sends the data to GUI
                 comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+
+                // waits the pedalboards list be received
+                comm_webgui_wait_response();
+
+                g_protocol_busy = false;
+                system_lock_comm_serial(g_protocol_busy);
+                
                 tool_off(DISPLAY_TOOL_TUNER);
 
                 if (tool_is_on(DISPLAY_TOOL_SYSTEM))
@@ -2614,7 +2782,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                    tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, 1); 
                    return;
                 } 
-                
+
                 break;
         }
 
@@ -2624,7 +2792,10 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         control_t *control = g_controls[display];
 
         // draws the control
-        screen_control(display, control);
+        screen_encoder(display, control);
+
+        //draw the top bar
+        display ? screen_ss_name(NULL, 0) : screen_pb_name(NULL, 0);
 
         //draw the index (do not update values)
         naveg_set_index(0, display, 0, 0);
@@ -2632,7 +2803,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         // checks the function assigned to foot and update the footer
         if (bank_config_check(display)) bank_config_footer();
         else if (g_foots[display]) foot_control_add(g_foots[display]);
-        else screen_footer(display, NULL, NULL);
+        else screen_footer(display, NULL, NULL, 0);
 
         if (tool == DISPLAY_TOOL_SYSTEM)
         {
@@ -2641,7 +2812,10 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             display = 1; 
      
             // draws the control
-            screen_control(display, control);
+            screen_encoder(display, control);
+
+            //draw the top bar
+            screen_ss_name(NULL, 0);
     
             //draw the index (do not update values)
             naveg_set_index(0, display, 0, 0);
@@ -2649,7 +2823,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             // checks the function assigned to foot and update the footer
             if (bank_config_check(display)) bank_config_footer();
             else if (g_foots[display]) foot_control_add(g_foots[display]);
-            else screen_footer(display, NULL, NULL);
+            else screen_footer(display, NULL, NULL, 0);
         }
     }
 }
@@ -2702,7 +2876,7 @@ void naveg_bank_config(bank_config_t *bank_conf)
             // updates the screen and led
             led_set_color(hardware_leds(g_bank_functions[i].hw_id - ENCODERS_COUNT), BLACK);
             if (!display_has_tool_enabled(g_bank_functions[i].hw_id))
-                screen_footer(g_bank_functions[i].hw_id - ENCODERS_COUNT, NULL, NULL);
+                screen_footer(g_bank_functions[i].hw_id - ENCODERS_COUNT, NULL, NULL, 0);
 
             // removes the function
             g_bank_functions[i].function = BANK_FUNC_NONE;
@@ -2725,7 +2899,7 @@ void naveg_bank_config(bank_config_t *bank_conf)
 
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), BLACK);
                 if (!display_has_tool_enabled(bank_conf->hw_id))
-                    screen_footer(bank_conf->hw_id - ENCODERS_COUNT, NULL, NULL);
+                    screen_footer(bank_conf->hw_id - ENCODERS_COUNT, NULL, NULL, 0);
 
                 // checks if has control assigned in this foot
                 // if yes, updates the footer screen
