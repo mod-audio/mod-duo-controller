@@ -129,7 +129,7 @@ uint8_t naveg_tap_tempo_status(uint8_t id);
 //updates all items in a menu
 void naveg_menu_refresh(uint8_t display_id);
 //updates a specific item in a menu
-void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float min, float max);
+void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float min, float max, uint8_t dir);
 
 void naveg_bypass_refresh(uint8_t bypass_1, uint8_t bypass_2, uint8_t quick_bypass);
 

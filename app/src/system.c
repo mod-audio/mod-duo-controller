@@ -255,7 +255,16 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
     g_gains_volumes[item->desc->id - VOLUME_ID] = item->data.value;
 
     char str_bfr[8] = {};
-    int value_bfr = MAP(item->data.value, min, max, 0, 100);
+    float value_bfr;
+    if (!dir)
+    {
+        value_bfr = MAP(item->data.value, min, max, 0, 115);
+        value_bfr -= 15;
+    }
+    else 
+    {
+        value_bfr = MAP(item->data.value, min, max, 0, 100);
+    }
     int_to_str(value_bfr, str_bfr, 8, 0);
     strcpy(item->name, item->desc->name);
     uint8_t q;
@@ -272,9 +281,9 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
     if ((((event == MENU_EV_UP) || (event == MENU_EV_DOWN)) && (dir ? g_sl_out : g_sl_in))&& (item->desc->id != HP_VOLUME))
     {
         if (strchr(source, '1'))
-            naveg_update_gain(DISPLAY_RIGHT, item->desc->id + 1, item->data.value, min, max);
+            naveg_update_gain(DISPLAY_RIGHT, item->desc->id + 1, item->data.value, min, max, dir);
         else
-            naveg_update_gain(DISPLAY_RIGHT, item->desc->id - 1, item->data.value, min, max);
+            naveg_update_gain(DISPLAY_RIGHT, item->desc->id - 1, item->data.value, min, max, dir);
     }
     
     naveg_settings_refresh(DISPLAY_RIGHT);
@@ -551,14 +560,14 @@ void system_volume_cb(void *arg, int event)
             case IN1_VOLUME:
                 source = "in 1";
                 min = 0;
-                max = 102.0;
+                max = 98.0;
                 step = 1.0;
                 break;
 
             case IN2_VOLUME:
                 source = "in 2";
                 min = 0.0;
-                max = 102.0;
+                max = 98.0;
                 step = 1.0;
                 break;
 
@@ -664,7 +673,7 @@ void system_sl_in_cb (void *arg, int event)
             //keep everything in sync
             g_gains_volumes[IN2_VOLUME - VOLUME_ID] = g_gains_volumes[IN1_VOLUME - VOLUME_ID];
 
-            naveg_update_gain(DISPLAY_RIGHT, IN2_VOLUME, g_gains_volumes[IN1_VOLUME - VOLUME_ID], 0, 78);
+            naveg_update_gain(DISPLAY_RIGHT, IN2_VOLUME, g_gains_volumes[IN1_VOLUME - VOLUME_ID], 0, 98, 0);
 
             system_save_gains_cb(NULL, MENU_EV_ENTER);
         }
@@ -698,7 +707,7 @@ void system_sl_out_cb (void *arg, int event)
             g_gains_volumes[OUT2_VOLUME - VOLUME_ID] = g_gains_volumes[OUT1_VOLUME - VOLUME_ID];
             
 
-            naveg_update_gain(DISPLAY_RIGHT, OUT2_VOLUME, g_gains_volumes[OUT1_VOLUME - VOLUME_ID], 0, 78);
+            naveg_update_gain(DISPLAY_RIGHT, OUT2_VOLUME, g_gains_volumes[OUT1_VOLUME - VOLUME_ID], 0, 98, 1);
 
             system_save_gains_cb(NULL, MENU_EV_ENTER);
         }
