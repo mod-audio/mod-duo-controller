@@ -434,6 +434,20 @@ static void foot_control_add(control_t *control)
             break;
 
         case CONTROL_PROP_MOMENTARY_SW:
+            // updates the led
+            if ((control->scroll_dir == 0)||(control->scroll_dir == 2))
+                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
+            else
+                led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_PRESSED_COLOR);
+
+            // if is in tool mode break
+            if (display_has_tool_enabled(control->hw_id)) break;
+
+            // updates the footer
+            screen_footer((control->hw_id - ENCODERS_COUNT), control->label,
+                         (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT), control->properties);
+            break;
+
         // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
         case CONTROL_PROP_TRIGGER:
             if ((control->scroll_dir == 0)||(control->scroll_dir == 2))
@@ -2405,7 +2419,12 @@ void naveg_set_control(uint8_t hw_id, float value)
         {
             //not implemented, not sure if ever needed
             if (control->properties == CONTROL_PROP_MOMENTARY_SW)
+            {
+                // updates the footer
+                screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
+                             (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT), control->properties);
                 return;
+            }
 
             // default state of led blink (no blink)
             led_blink(hardware_leds(control->hw_id - ENCODERS_COUNT), 0, 0);
