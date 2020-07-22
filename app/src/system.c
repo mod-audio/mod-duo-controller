@@ -707,7 +707,7 @@ void system_sl_out_cb (void *arg, int event)
             g_gains_volumes[OUT2_VOLUME - VOLUME_ID] = g_gains_volumes[OUT1_VOLUME - VOLUME_ID];
             
 
-            naveg_update_gain(DISPLAY_RIGHT, OUT2_VOLUME, g_gains_volumes[OUT1_VOLUME - VOLUME_ID], 0, 98, 1);
+            naveg_update_gain(DISPLAY_RIGHT, OUT2_VOLUME, g_gains_volumes[OUT1_VOLUME - VOLUME_ID], 0, 100, 1);
 
             system_save_gains_cb(NULL, MENU_EV_ENTER);
         }
