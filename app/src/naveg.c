@@ -2403,6 +2403,10 @@ void naveg_set_control(uint8_t hw_id, float value)
         //button
         else if (hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT)
         {
+            //not implemented, not sure if ever needed
+            if (control->properties == CONTROL_PROP_MOMENTARY_SW)
+                return;
+
             // default state of led blink (no blink)
             led_blink(hardware_leds(control->hw_id - ENCODERS_COUNT), 0, 0);
 
@@ -2425,10 +2429,6 @@ void naveg_set_control(uint8_t hw_id, float value)
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
                              (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT), control->properties);
                 break;
-
-            //not implemented, not sure if ever needed
-            case CONTROL_PROP_MOMENTARY_SW:
-            break;
 
             // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
             case CONTROL_PROP_TRIGGER:
