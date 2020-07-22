@@ -53,6 +53,7 @@ enum {UI_DISCONNECTED, UI_CONNECTED};
 */
 bool g_should_wait_for_webgui;
 bool g_protocol_busy;
+bool g_ui_communication_started;
 /*
 ************************************************************************************************************************
 *           MACRO'S

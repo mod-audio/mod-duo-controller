@@ -91,7 +91,26 @@ void protocol_add_command(const char *command, void (*callback)(proto_t *proto))
 void protocol_response(const char *response, proto_t *proto);
 void protocol_remove_commands(void);
 
-
+void cb_ping(proto_t *proto);
+void cb_say(proto_t *proto);
+void cb_led(proto_t *proto);
+void cb_glcd_text(proto_t *proto);
+void cb_glcd_dialog(proto_t *proto);
+void cb_glcd_draw(proto_t *proto);
+void cb_gui_connection(proto_t *proto);
+void cb_control_add(proto_t *proto);
+void cb_control_rm(proto_t *proto);
+void cb_control_set(proto_t *proto);
+void cb_control_get(proto_t *proto);
+void cb_control_set_index(proto_t *proto);
+void cb_initial_state(proto_t *proto);
+void cb_bank_config(proto_t *proto);
+void cb_tuner(proto_t *proto);
+void cb_resp(proto_t *proto);
+void cb_restore(proto_t *proto);
+void cb_boot(proto_t *proto);
+void cb_menu_item_changed(proto_t *proto);
+void cb_pedalboard_clear(proto_t *proto);
 /*
 ************************************************************************************************************************
 *           CONFIGURATION ERRORS

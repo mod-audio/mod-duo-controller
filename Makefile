@@ -29,6 +29,7 @@ APP_SRC 	= ./app/src
 RTOS_SRC	= ./freertos/src
 RTOS_INC	= ./freertos/inc
 DRIVERS_INC	= ./drivers/inc
+PROTOCOL_INC= ./mod-controller-proto
 DRIVERS_SRC	= ./drivers/src
 OUT_DIR		= ./out
 
@@ -45,7 +46,7 @@ OBJ = $(SRC:.c=.o)
 ALL_OBJ = `find -name "*.o"`
 
 # include directories
-INC = $(DEVICE_INC) $(CMSIS_INC) $(CDL_INC) $(RTOS_INC) $(DRIVERS_INC) $(APP_INC) $(USB_INC)
+INC = $(DEVICE_INC) $(CMSIS_INC) $(CDL_INC) $(RTOS_INC) $(DRIVERS_INC) $(APP_INC) $(USB_INC) $(PROTOCOL_INC)
 
 # C flags
 CFLAGS += -mcpu=$(MCU)

@@ -8,6 +8,7 @@
 #include "data.h"
 #include "config.h"
 #include "utils.h"
+#include "mod-protocol.h"
 
 #include <stdlib.h>
 #include <string.h>

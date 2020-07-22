@@ -70,7 +70,6 @@
 
 static volatile xQueueHandle g_actuators_queue;
 static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
-static uint8_t g_ui_communication_started;
 
 /*
 ************************************************************************************************************************
@@ -87,7 +86,7 @@ static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
 static void cli_task(void *pvParameters);
 static void setup_task(void *pvParameters);
-
+/*
 // protocol callbacks
 static void ping_cb(proto_t *proto);
 static void say_cb(proto_t *proto);
@@ -108,7 +107,7 @@ static void resp_cb(proto_t *proto);
 static void restore_cb(proto_t *proto);
 static void boot_cb(proto_t *proto);
 static void menu_item_changed_cb(proto_t *proto);
-static void pedalboard_clear_cb(proto_t *proto);
+static void pedalboard_clear_cb(proto_t *proto);*/
 
 /*
 ************************************************************************************************************************
@@ -374,29 +373,6 @@ static void setup_task(void *pvParameters)
         actuator_enable_event(hardware_actuators(FOOTSWITCH0 + i), EV_ALL_BUTTON_EVENTS);
     }
 
-    // protocol definitions
-    protocol_add_command(PING_CMD, ping_cb);
-    protocol_add_command(SAY_CMD, say_cb);
-    protocol_add_command(LED_CMD, led_cb);
-    protocol_add_command(GLCD_TEXT_CMD, glcd_text_cb);
-    protocol_add_command(GLCD_DIALOG_CMD, glcd_dialog_cb);
-    protocol_add_command(GLCD_DRAW_CMD, glcd_draw_cb);
-    protocol_add_command(GUI_CONNECTED_CMD, gui_connection_cb);
-    protocol_add_command(GUI_DISCONNECTED_CMD, gui_connection_cb);
-    protocol_add_command(CONTROL_ADD_CMD, control_add_cb);
-    protocol_add_command(CONTROL_REMOVE_CMD, control_rm_cb);
-    protocol_add_command(CONTROL_SET_CMD, control_set_cb);
-    protocol_add_command(CONTROL_GET_CMD, control_get_cb);
-    protocol_add_command(CONTROL_INDEX_SET, control_set_index_cb);
-    protocol_add_command(INITIAL_STATE_CMD, initial_state_cb);
-    protocol_add_command(BANK_CONFIG_CMD, bank_config_cb);
-    protocol_add_command(TUNER_CMD, tuner_cb);
-    protocol_add_command(RESPONSE_CMD, resp_cb);
-    protocol_add_command(RESTORE_CMD, restore_cb);
-    protocol_add_command(BOOT_HMI_CMD, boot_cb);
-    protocol_add_command(MENU_ITEM_CHANGE, menu_item_changed_cb);
-    protocol_add_command(CLEAR_PEDALBOARD, pedalboard_clear_cb);
-
     // init the navigation
     naveg_init();
 
@@ -404,280 +380,11 @@ static void setup_task(void *pvParameters)
     vTaskDelete(NULL);
 }
 
-
-/*
-************************************************************************************************************************
-*           PROTOCOL CALLBACKS
-************************************************************************************************************************
-*/
-
 void reset_queue(void)
 {
     xQueueReset(g_actuators_queue);
 }
 
-static void ping_cb(proto_t *proto)
-{
-    g_ui_communication_started = 1;
-    g_protocol_busy = false;
-    protocol_response("resp 0", proto);
-}
-
-static void say_cb(proto_t *proto)
-{
-    protocol_response(proto->list[1], proto);
-}
-
-static void led_cb(proto_t *proto)
-{
-    color_t color;
-    led_t *led = hardware_leds(atoi(proto->list[1]));
-    color.r = atoi(proto->list[2]);
-    color.g = atoi(proto->list[3]);
-    color.b = atoi(proto->list[4]);
-    led_set_color(led, color);
-
-    if (proto->list_count == 7)
-    {
-        led_blink(led, atoi(proto->list[5]), atoi(proto->list[6]));
-    }
-
-    protocol_response("resp 0", proto);
-}
-
-static void glcd_text_cb(proto_t *proto)
-{
-    uint8_t glcd_id, x, y;
-    glcd_id = atoi(proto->list[1]);
-    x = atoi(proto->list[2]);
-    y = atoi(proto->list[3]);
-
-    if (glcd_id >= GLCD_COUNT) return;
-
-    glcd_text(hardware_glcds(glcd_id), x, y, proto->list[4], NULL, GLCD_BLACK);
-    protocol_response("resp 0", proto);
-}
-
-static void glcd_dialog_cb(proto_t *proto)
-{
-    uint8_t val = naveg_dialog(proto->list[1]);
-    char resp[16];
-    strcpy(resp, "resp 0 ");
-    resp[7] = val + '0';
-    resp[8] = 0;
-    protocol_response(resp, proto);
-}
-
-static void glcd_draw_cb(proto_t *proto)
-{
-    uint8_t glcd_id, x, y;
-    glcd_id = atoi(proto->list[1]);
-    x = atoi(proto->list[2]);
-    y = atoi(proto->list[3]);
-
-    if (glcd_id >= GLCD_COUNT) return;
-
-    str_to_hex(proto->list[4], g_msg_buffer, sizeof(g_msg_buffer));
-    glcd_draw_image(hardware_glcds(glcd_id), x, y, g_msg_buffer, GLCD_BLACK);
-
-    protocol_response("resp 0", proto);
-}
-
-static void gui_connection_cb(proto_t *proto)
-{
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-    //clear the buffer so we dont send any messages
-    comm_webgui_clear();
-
-    if (strcmp(proto->list[0], GUI_CONNECTED_CMD) == 0)
-        naveg_ui_connection(UI_CONNECTED);
-    else
-        naveg_ui_connection(UI_DISCONNECTED);
-
-    //we are done supposedly closing the menu, we can unlock the actuators
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
-
-    protocol_response("resp 0", proto);
-}
-
-static void control_add_cb(proto_t *proto)
-{
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
-    control_t *control = data_parse_control(proto->list);
-
-    naveg_add_control(control, 1);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
-    protocol_response("resp 0", proto);
-}
-
-static void control_rm_cb(proto_t *proto)
-{
-    g_ui_communication_started = 1;
-    
-    naveg_remove_control(atoi(proto->list[1]));
-
-    uint8_t i;
-    for (i = 2; i < TOTAL_ACTUATORS + 1; i++)
-    {
-        if ((proto->list[i]) != NULL)
-        {
-            naveg_remove_control(atoi(proto->list[i]));
-        }
-        else break;
-    }
-    
-    protocol_response("resp 0", proto);
-}
-
-static void control_set_cb(proto_t *proto)
-{
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
-    naveg_set_control(atoi(proto->list[1]), atof(proto->list[2]));
-    protocol_response("resp 0", proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
-}
-
-static void control_get_cb(proto_t *proto)
-{
-    float value;
-    value = naveg_get_control(atoi(proto->list[1]));
-
-    char resp[32];
-    strcpy(resp, "resp 0 ");
-
-    float_to_str(value, &resp[strlen(resp)], 8, 3);
-    protocol_response(resp, proto);
-}
-
-static void control_set_index_cb(proto_t *proto)
-{
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
-    //index_set <updatevalues> <encoder hardware_id> <control index> <index_count>
-    naveg_set_index(1, atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]));
-    protocol_response("resp 0", proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
-}
-
-static void initial_state_cb(proto_t *proto)
-{
-    g_ui_communication_started = 1;
-    naveg_initial_state(atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]), proto->list[4], proto->list[5], &(proto->list[6]));
-    protocol_response("resp 0", proto);
-}
-
-static void bank_config_cb(proto_t *proto)
-{
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
-    bank_config_t bank_func;
-    bank_func.hw_id = atoi(proto->list[1]);
-    bank_func.function = atoi(proto->list[2]);
-    naveg_bank_config(&bank_func);
-    protocol_response("resp 0", proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
-}
-
-static void tuner_cb(proto_t *proto)
-{
-    screen_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
-    protocol_response("resp 0", proto);
-}
-
-static void resp_cb(proto_t *proto)
-{
-    comm_webgui_response_cb(proto->list);
-}
-
-static void restore_cb(proto_t *proto)
-{
-    //clear all screens 
-    screen_clear(DISPLAY_LEFT);
-    screen_clear(DISPLAY_RIGHT);
-
-    cli_restore(RESTORE_INIT);
-    protocol_response("resp 0", proto);
-}
-
-static void boot_cb(proto_t *proto)
-{
-    g_should_wait_for_webgui = true;
-    
-    //set the display brightness 
-    system_update_menu_value(DISPLAY_BRIGHTNESS_ID, atoi(proto->list[1]));
-
-    //set the quick bypass link
-    system_update_menu_value(QUICK_BYPASS_ID, atoi(proto->list[2]));
-
-    //set the tuner mute state 
-    system_update_menu_value(TUNER_MUTE_ID, atoi(proto->list[3]));
-
-    //set the current user profile 
-    system_update_menu_value(PROFILES_ID, atoi(proto->list[4]));
-
-    protocol_response("resp 0", proto);
-}
-
-static void menu_item_changed_cb(proto_t *proto)
-{
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
-    naveg_menu_item_changed_cb(atoi(proto->list[1]), atoi(proto->list[2]));
-    
-    uint8_t i;
-    for (i = 3; i < ((AMOUNT_OF_MENU_VARS+1) * 2); i+=2)
-    {
-        if (atoi(proto->list[i]) != 0)
-        {
-            naveg_menu_item_changed_cb(atoi(proto->list[i]), atoi(proto->list[i+1]));
-        }
-        else break;
-    }
-
-    protocol_response("resp 0", proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
-}
-
-static void  pedalboard_clear_cb(proto_t *proto)
-{
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
-    //clear controls
-    uint8_t i;
-    for (i = 0; i < TOTAL_ACTUATORS; i++)
-    {
-        naveg_remove_control(i);
-    }
-
-    protocol_response("resp 0", proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
-}
 /*
 ************************************************************************************************************************
 *           ERRORS CALLBACKS

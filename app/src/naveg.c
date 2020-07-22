@@ -16,6 +16,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "actuator.h"
+#include "mod-protocol.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -178,7 +179,7 @@ static void display_disable_all_tools(uint8_t display)
 {
     int i;
     if (tool_is_on(DISPLAY_TOOL_TUNER)) 
-        comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+        comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
     
     for (i = 0; i < MAX_TOOLS; i++)
     {
@@ -603,7 +604,7 @@ static void request_control_page(control_t *control, uint8_t dir)
     memset(buffer, 0, sizeof buffer);
     uint8_t i;
 
-    i = copy_command(buffer, CONTROL_PAGE_CMD); 
+    i = copy_command(buffer, CMD_CONTROL_PAGE); 
 
     // insert the hw_id on buffer
     i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
@@ -663,7 +664,7 @@ static void request_banks_list(uint8_t dir)
     memset(buffer, 0, 20);
     uint8_t i;
 
-    i = copy_command(buffer, BANKS_CMD); 
+    i = copy_command(buffer, CMD_BANKS); 
 
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
@@ -701,7 +702,7 @@ static void request_next_bank_page(uint8_t dir)
     memset(buffer, 0, sizeof buffer);
     uint8_t i;
 
-    i = copy_command(buffer, BANKS_CMD); 
+    i = copy_command(buffer, CMD_BANKS); 
 
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
@@ -757,7 +758,7 @@ static void request_pedalboards(uint8_t dir, uint16_t bank_uid)
     // sets the response callback
     comm_webgui_set_response_cb(parse_pedalboards_list, NULL);
 
-    i = copy_command((char *)buffer, PEDALBOARDS_CMD);
+    i = copy_command((char *)buffer, CMD_PEDALBOARDS);
 
     uint8_t bitmask = 0;
 	if (dir == 1) {bitmask |= LIST_PAGE_UP;}
@@ -816,7 +817,7 @@ static void send_load_pedalboard(uint16_t bank_id, const char *pedalboard_uid)
     char buffer[40];
     memset(buffer, 0, sizeof buffer);
 
-    i = copy_command((char *)buffer, PEDALBOARD_CMD);
+    i = copy_command((char *)buffer, CMD_LOAD_PEDALBOARD);
 
     // copy the bank id
     i += int_to_str(bank_id, &buffer[i], 8, 0);
@@ -1013,7 +1014,7 @@ static void control_set(uint8_t id, control_t *control)
     char buffer[128];
     uint8_t i;
 
-    i = copy_command(buffer, CONTROL_SET_CMD);
+    i = copy_command(buffer, CMD_CONTROL_SET);
 
     // insert the hw_id on buffer
     i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
@@ -1664,7 +1665,7 @@ static void tuner_enter(void)
     static uint8_t input = 1;
 
     char buffer[128];
-    uint32_t i = copy_command(buffer, TUNER_INPUT_CMD);
+    uint32_t i = copy_command(buffer, CMD_TUNER_INPUT);
 
     // toggle the input
     input = (input == 1 ? 2 : 1);
@@ -1756,7 +1757,7 @@ static void request_footswitch_pedalboards(uint8_t dir)
 	comm_webgui_set_response_cb(parse_footswitch_pedalboards_list, NULL);
 
 	//create the command
-	i = copy_command((char *)buffer, PEDALBOARDS_CMD);
+	i = copy_command((char *)buffer, CMD_PEDALBOARDS);
 
 	uint8_t bitmask = 0;
 	if (dir == 1) {bitmask |= LIST_PAGE_UP;}
@@ -1917,7 +1918,7 @@ static void bank_config_footer(void)
                 screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT);
                 
                 //turn on footswitch navigation internal value
-                if (!naveg_ui_status()) system_update_menu_value(FOOTSWITCH_NAV_ID, 1);
+                if (!naveg_ui_status()) system_update_menu_value(MENU_ID_FOOTSWITCH_NAV, 1);
 
                 break;
 
@@ -1931,7 +1932,7 @@ static void bank_config_footer(void)
                 screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name , PEDALBOARD_PREV_FOOTER_TEXT);
                 
                 //turn on footswitch navigation internal value
-                if (!naveg_ui_status()) system_update_menu_value(FOOTSWITCH_NAV_ID, 1);
+                if (!naveg_ui_status()) system_update_menu_value(MENU_ID_FOOTSWITCH_NAV, 1);
                 
                 break; 
         }
@@ -2082,7 +2083,7 @@ void naveg_ui_connection(uint8_t status)
     {
         g_ui_connected = 1;
         //turn of footswitch navigation internal value
-        system_update_menu_value(FOOTSWITCH_NAV_ID, 0);
+        system_update_menu_value(MENU_ID_FOOTSWITCH_NAV, 0);
     }
     else
     {
@@ -2466,7 +2467,7 @@ void naveg_next_control(uint8_t display)
     char * buffer = (char *) MALLOC(128 * sizeof(char));
     uint8_t i;
 
-    i = copy_command(buffer, CONTROL_NEXT_CMD);
+    i = copy_command(buffer, CMD_CONTROL_NEXT);
 
     // inserts the hw id
     i += int_to_str(display, &buffer[i], 4, 0);
@@ -2562,7 +2563,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
             case DISPLAY_TOOL_TUNER:
                 display_disable_all_tools(display);
-                comm_webgui_send(TUNER_ON_CMD, strlen(TUNER_ON_CMD));
+                comm_webgui_send(CMD_TUNER_ON, strlen(CMD_TUNER_ON));
                 break;
             case DISPLAY_TOOL_SYSTEM:
                 screen_clear(1);
@@ -2606,7 +2607,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
 
             case DISPLAY_TOOL_TUNER:
-                comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+                comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
                 tool_off(DISPLAY_TOOL_TUNER);
 
                 if (tool_is_on(DISPLAY_TOOL_SYSTEM))

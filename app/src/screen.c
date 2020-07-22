@@ -11,6 +11,7 @@
 #include "glcd_widget.h"
 #include "naveg.h"
 #include "hardware.h"
+#include "mod-protocol.h"
 #include <string.h>
 
 
