@@ -379,37 +379,35 @@ void screen_pb_name(const void *data, uint8_t update)
     static uint8_t char_cnt = 0;
     glcd_t *display = hardware_glcds(0);
 
+    if (pedalboard_name == NULL)
+    {
+        pedalboard_name = (char *) MALLOC(30 * sizeof(char));
+        strcpy(pedalboard_name, "DEFAULT");
+        char_cnt = 7;
+    }
+
     if (update)
     {
-        if (pedalboard_name == NULL)
-        {
-            pedalboard_name = (char *) MALLOC(30 * sizeof(char));
-            strcpy(pedalboard_name, "DEFAULT");
-            char_cnt = 7;
-        }
-        else 
-        {
-            const char **name_list = (const char**)data;
+        const char **name_list = (const char**)data;
 
-            // get first list name, copy it to our string buffer
-            const char *name_string = *name_list;
-            strncpy(pedalboard_name, name_string, 29);
-            pedalboard_name[29] = 0; // strncpy might not have final null byte
+        // get first list name, copy it to our string buffer
+        const char *name_string = *name_list;
+        strncpy(pedalboard_name, name_string, 29);
+        pedalboard_name[29] = 0; // strncpy might not have final null byte
 
-            // go to next name in list
+        // go to next name in list
+        name_string = *(++name_list);
+
+        while (name_string && ((strlen(pedalboard_name) + strlen(name_string) + 1) < 29))
+        {
+            strcat(pedalboard_name, " ");
+            strcat(pedalboard_name, name_string);
             name_string = *(++name_list);
-
-            while (name_string && ((strlen(pedalboard_name) + strlen(name_string) + 1) < 29))
-            {
-                strcat(pedalboard_name, " ");
-                strcat(pedalboard_name, name_string);
-                name_string = *(++name_list);
-                char_cnt++;
-            }
-            pedalboard_name[29] = 0;
-
-            char_cnt = strlen(pedalboard_name);
+            char_cnt++;
         }
+        pedalboard_name[29] = 0;
+
+        char_cnt = strlen(pedalboard_name);
     }
 
     //we dont display inside a menu
@@ -446,36 +444,34 @@ void screen_ss_name(const void *data, uint8_t update)
     static uint8_t char_cnt = 0;
     glcd_t *display = hardware_glcds(1);
 
+    if (snapshot_name == NULL)
+    {
+        snapshot_name = (char *) MALLOC(30 * sizeof(char));
+        strcpy(snapshot_name, "DEFAULT");
+        char_cnt = 7;
+    }
+
     if (update)
     {
-        if (snapshot_name == NULL)
-        {
-            snapshot_name = (char *) MALLOC(30 * sizeof(char));
-            strcpy(snapshot_name, "DEFAULT");
-            char_cnt = 7;
-        }
-        else 
-        {
-            const char **name_list = (const char**)data;
+        const char **name_list = (const char**)data;
 
-            // get first list name, copy it to our string buffer
-            const char *name_string = *name_list;
-            strncpy(snapshot_name, name_string, 29);
-            snapshot_name[29] = 0; // strncpy might not have final null byte
+        // get first list name, copy it to our string buffer
+        const char *name_string = *name_list;
+        strncpy(snapshot_name, name_string, 29);
+        snapshot_name[29] = 0; // strncpy might not have final null byte
 
-            // go to next name in list
+        // go to next name in list
+        name_string = *(++name_list);
+
+        while (name_string && ((strlen(snapshot_name) + strlen(name_string) + 1) < 29))
+        {
+            strcat(snapshot_name, " ");
+            strcat(snapshot_name, name_string);
             name_string = *(++name_list);
-
-            while (name_string && ((strlen(snapshot_name) + strlen(name_string) + 1) < 29))
-            {
-                strcat(snapshot_name, " ");
-                strcat(snapshot_name, name_string);
-                name_string = *(++name_list);
-            }
-            snapshot_name[29] = 0;
-
-            char_cnt = strlen(snapshot_name);
         }
+        snapshot_name[29] = 0;
+
+        char_cnt = strlen(snapshot_name);
     }
 
     //we dont display inside a menu
