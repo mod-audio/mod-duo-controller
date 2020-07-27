@@ -22,9 +22,9 @@
 */
 
 // check in hardware_setup() what is the function of each timer
-#define TIMER0_PRIORITY     3
+#define TIMER0_PRIORITY     1
 #define TIMER1_PRIORITY     2
-#define TIMER2_PRIORITY     1
+#define TIMER2_PRIORITY     3
 
 /*
 ************************************************************************************************************************
@@ -498,6 +498,9 @@ void TIMER2_IRQHandler(void)
             if (g_overlay_counter == 0)
             {
                 //turn off overlay
+
+                //todo, on the Dwarf we should have a buffer pointer pointing to either an overlay buffer or the main screen buffer, and just tell to update. 
+                //triggering this function right now causes the display brightness to flicker since we are proforming a lot of tasks in an interupt routine
                 naveg_turn_off_overlay();
             }
         }
