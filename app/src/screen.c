@@ -616,19 +616,8 @@ void screen_system_menu(menu_item_t *item)
     static menu_item_t *last_item = NULL;
 
     glcd_t *display;
-    if (item->desc->id == ROOT_ID)
-    {
-        display = hardware_glcds(DISPLAY_TOOL_SYSTEM);
-    }
-    else if (item->desc->id == TUNER_ID)
-    {
-        return;
-    }
-    else
-    {
-        display = hardware_glcds(DISPLAY_RIGHT);
-    }
-
+    display = hardware_glcds(DISPLAY_TOOL_SYSTEM);
+    
     //we dont display a menu on the right screen when we are in the banks.
     if ((display == hardware_glcds(DISPLAY_RIGHT)) && (naveg_tool_is_on(DISPLAY_TOOL_NAVIG)))
     {

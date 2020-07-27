@@ -2746,7 +2746,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 screen_clear(1);
                 display_disable_all_tools(DISPLAY_LEFT);
                 display_disable_all_tools(DISPLAY_RIGHT);
-                tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, 1);
+                //tool_on(DISPLAY_TOOL_SYSTEM_SUBMENU, 1);
         }
 
         // draws the tool
@@ -2756,9 +2756,9 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         if (tool == DISPLAY_TOOL_SYSTEM)
         {
             //already enter banks menu on display 1
-            menu_enter(1);
-            g_current_main_menu = g_current_menu;
-            g_current_main_item = g_current_item;
+            //menu_enter(1);
+            //g_current_main_menu = g_current_menu;
+            //g_current_main_item = g_current_item;
             menu_enter(0);
         }
     }
@@ -3016,7 +3016,7 @@ void naveg_up(uint8_t display)
                     g_current_main_item = g_current_item;
                 }
                 menu_up(display);
-                if ((dialog_active != 1) || tool_is_on(DISPLAY_TOOL_NAVIG)) menu_enter(display);
+                //if ((dialog_active != 1) || tool_is_on(DISPLAY_TOOL_NAVIG)) menu_enter(display);
             }
         }
         else if (display == 1)
@@ -3058,7 +3058,7 @@ void naveg_down(uint8_t display)
                     g_current_main_item = g_current_item;
                 }
                 menu_down(display);
-                if (dialog_active != 1) menu_enter(display);
+                //if (dialog_active != 1) menu_enter(display);
             }
         }
         else if (display == 1)

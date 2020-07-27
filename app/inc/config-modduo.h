@@ -350,7 +350,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // includes the system menu callbacks
 #include "system.h"
 // defines the menu id's
-#define ROOT_ID         (0 * 10)
+
+//#define ROOT_ID         (0 * 10)
 #define INP_ID          (1 * 10)
 #define OUTP_ID         (2 * 10)
 #define TUNER_ID        (3 * 10)
@@ -411,8 +412,8 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 
 #define DIALOG_ID           230
 
-#define SYSTEM_MENU     \
-    {"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                       , 0},  \
+/*
+{"SETTINGS",                        MENU_LIST,      ROOT_ID,            -1,             NULL                       , 0},  \
     {"BANKS",                           MENU_SET,       BANKS_ID,           ROOT_ID,        system_banks_cb            , 0},  \
     {"CURRENT PEDALBOARD",              MENU_LIST,      PEDALBOARD_ID,      ROOT_ID,        NULL                       , 0},  \
     {"SAVE STATE",                      MENU_CONFIRM,   PEDALBOARD_SAVE_ID, PEDALBOARD_ID,  system_pedalboard_cb       , 0},  \
@@ -476,6 +477,30 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
     {"< BACK TO INFO",                  MENU_RETURN,    DEVICE_ID+1,        DEVICE_ID,      NULL                       , 0},  \
     {"SERIAL NUMBER",                   MENU_OK,        DEVICE_ID+2,        DEVICE_ID,      system_tag_cb              , 0},  \
     {"SYSTEM UPGRADE",                  MENU_CONFIRM,   UPGRADE_ID,         SYSTEM_ID,      system_upgrade_cb          , 0},  \
+*/
+
+#define ROOT_ID             (0 * 10)
+#define INP_OUTP_ID         ROOT_ID+1
+#define MIDI_SYNC_ID        ROOT_ID+2
+#define SYS_PLUGIN_ID       ROOT_ID+3
+#define USER_PROFILE_ID     ROOT_ID+4
+#define DEVICE_SETTING_ID   ROOT_ID+5
+#define BLEUTOOTH_ID        ROOT_ID+6
+#define DEVICE_INFO_ID      ROOT_ID+7
+#define QUICK_LAUNCH_ID     ROOT_ID+8
+#define UPDATE_ID           ROOT_ID+9
+
+#define SYSTEM_MENU     \
+  {"SETTINGS",                                  MENU_LIST,       ROOT_ID,             -1,             NULL            , 0},  \
+  {"Input & Output",                            MENU_NONE,       INP_OUTP_ID,         ROOT_ID,        NULL            , 0},  \
+  {"MIDI & Sync",                               MENU_NONE,       MIDI_SYNC_ID,        ROOT_ID,        NULL            , 0},  \
+  {"System Plugins",                            MENU_NONE,       SYS_PLUGIN_ID,       ROOT_ID,        NULL            , 0},  \
+  {"User Profiles",                             MENU_NONE,       USER_PROFILE_ID,     ROOT_ID,        NULL            , 0},  \
+  {"Device settings",                           MENU_NONE,       DEVICE_SETTING_ID,   ROOT_ID,        NULL            , 0},  \
+  {"Bluetooth",                                 MENU_NONE,       BLEUTOOTH_ID,        ROOT_ID,        NULL            , 0},  \
+  {"Info",                                      MENU_NONE,       DEVICE_INFO_ID,      ROOT_ID,        NULL            , 0},  \
+  {"Quick Launch items",                        MENU_NONE,       QUICK_LAUNCH_ID,     ROOT_ID,        NULL            , 0},  \
+  {"System upgrade",                            MENU_NONE,       UPDATE_ID,           ROOT_ID,        NULL            , 0},  \
 
 //POPUP DEFINES
 //PROFILE POPUP TXT
