@@ -139,8 +139,8 @@ void screen_control(uint8_t display_id, control_t *control)
     glcd_hline(display, 0, 16, DISPLAY_WIDTH, GLCD_BLACK_WHITE);
 
     // graph type control
-    if (control->properties == CONTROL_PROP_LINEAR ||
-        control->properties == CONTROL_PROP_LOGARITHMIC)
+    if (control->properties == FLAG_CONTROL_LINEAR ||
+        control->properties == FLAG_CONTROL_LOGARITHMIC)
     {
         const char *unit;
         unit = (strcmp(control->unit, "none") == 0 ? NULL : control->unit);
@@ -155,12 +155,12 @@ void screen_control(uint8_t display_id, control_t *control)
         graph.value = control->value;
         graph.unit = unit;
         graph.type =
-            (control->properties == CONTROL_PROP_LOGARITHMIC ? GRAPH_TYPE_LOG : GRAPH_TYPE_LINEAR);
+            (control->properties == FLAG_CONTROL_LOGARITHMIC ? GRAPH_TYPE_LOG : GRAPH_TYPE_LINEAR);
         widget_graph(display, &graph);
     }
 
     // integer type control
-    else if (control->properties == CONTROL_PROP_INTEGER)
+    else if (control->properties == FLAG_CONTROL_INTEGER)
     {
         textbox_t value, unit;
         char value_str[32];
@@ -204,8 +204,8 @@ void screen_control(uint8_t display_id, control_t *control)
     }
 
     // list type control
-    else if (control->properties == CONTROL_PROP_ENUMERATION ||
-             control->properties == CONTROL_PROP_SCALE_POINTS)
+    else if (control->properties == FLAG_CONTROL_ENUMERATION ||
+             control->properties == FLAG_CONTROL_SCALE_POINTS)
     {
         static char *labels_list[128];
 

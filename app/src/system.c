@@ -645,7 +645,7 @@ void system_banks_cb(void *arg, int event)
                 if (g_footswitch_navigation == 0) g_footswitch_navigation= 1;
                 else g_footswitch_navigation = 0;
 
-                set_item_value(CMD_FOOT_NAVIG, g_footswitch_navigation);
+                set_item_value(CMD_DUO_FOOT_NAVIG, g_footswitch_navigation);
             }
             else g_footswitch_navigation = 0;
         }

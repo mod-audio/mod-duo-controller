@@ -85,7 +85,7 @@ typedef struct MSG_T {
 *           FUNCTION PROTOTYPES
 ************************************************************************************************************************
 */
-
+void protocol_init(void);
 void protocol_parse(msg_t *msg);
 void protocol_add_command(const char *command, void (*callback)(proto_t *proto));
 void protocol_response(const char *response, proto_t *proto);

@@ -254,18 +254,18 @@ static void step_to_value(control_t *control)
     float p_step = ((float) control->step) / ((float) (control->steps - 1));
     switch (control->properties)
     {
-        case CONTROL_PROP_LINEAR:
-        case CONTROL_PROP_INTEGER:
+        case FLAG_CONTROL_LINEAR:
+        case FLAG_CONTROL_INTEGER:
             control->value = (p_step * (control->maximum - control->minimum)) + control->minimum;
             break;
 
-        case CONTROL_PROP_LOGARITHMIC:
+        case FLAG_CONTROL_LOGARITHMIC:
             control->value = control->minimum * pow(control->maximum / control->minimum, p_step);
             break;
 
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
+        case FLAG_CONTROL_REVERSE_ENUM:
+        case FLAG_CONTROL_ENUMERATION:
+        case FLAG_CONTROL_SCALE_POINTS:
             control->value = control->scale_points[control->step]->value;
             break;
     }
@@ -291,12 +291,12 @@ static void display_control_add(control_t *control)
     // calculates initial step
     switch (control->properties)
     {
-        case CONTROL_PROP_LINEAR:
+        case FLAG_CONTROL_LINEAR:
             control->step =
                 (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
             break;
 
-        case CONTROL_PROP_LOGARITHMIC:
+        case FLAG_CONTROL_LOGARITHMIC:
             if (control->minimum == 0.0)
                 control->minimum = FLT_MIN;
 
@@ -310,9 +310,9 @@ static void display_control_add(control_t *control)
                 (control->steps - 1) * log(control->value / control->minimum) / log(control->maximum / control->minimum);
             break;
 
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
+        case FLAG_CONTROL_REVERSE_ENUM:
+        case FLAG_CONTROL_ENUMERATION:
+        case FLAG_CONTROL_SCALE_POINTS:
             control->step = 0;
             uint8_t i;
             control->scroll_dir = 1;
@@ -327,7 +327,7 @@ static void display_control_add(control_t *control)
             control->steps = control->scale_points_count;
             break;
 
-        case CONTROL_PROP_INTEGER:
+        case FLAG_CONTROL_INTEGER:
             control->steps = (control->maximum - control->minimum) + 1;
             control->step =
                 (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
@@ -400,7 +400,7 @@ static void foot_control_add(control_t *control)
     switch (control->properties)
     {
         // toggled specification: http://lv2plug.in/ns/lv2core/#toggled
-        case CONTROL_PROP_TOGGLED:
+        case FLAG_CONTROL_TOGGLED:
             // updates the led
             if (control->value <= 0)
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BLACK);
@@ -416,7 +416,7 @@ static void foot_control_add(control_t *control)
             break;
 
         // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
-        case CONTROL_PROP_TRIGGER:
+        case FLAG_CONTROL_TRIGGER:
             if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
             else
             {
@@ -430,7 +430,7 @@ static void foot_control_add(control_t *control)
             screen_footer(control->hw_id - ENCODERS_COUNT, control->label, NULL);
             break;
 
-        case CONTROL_PROP_TAP_TEMPO:
+        case FLAG_CONTROL_TAP_TEMPO:
             // defines the led color
             led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TAP_TEMPO_COLOR);
 
@@ -492,7 +492,7 @@ static void foot_control_add(control_t *control)
             screen_footer((control->hw_id - ENCODERS_COUNT), control->label, value_txt);
             break;
 
-        case CONTROL_PROP_BYPASS:
+        case FLAG_CONTROL_BYPASS:
             // updates the led
             if (control->value <= 0)
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BYPASS_COLOR);
@@ -507,9 +507,9 @@ static void foot_control_add(control_t *control)
                          (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
             break;
 
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
+        case FLAG_CONTROL_REVERSE_ENUM:
+        case FLAG_CONTROL_ENUMERATION:
+        case FLAG_CONTROL_SCALE_POINTS:
             if (control->scroll_dir == 2) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
             else
             {
@@ -863,9 +863,9 @@ static void control_set(uint8_t id, control_t *control)
 
     switch (control->properties)
     {
-        case CONTROL_PROP_LINEAR:
-        case CONTROL_PROP_INTEGER:
-        case CONTROL_PROP_LOGARITHMIC:
+        case FLAG_CONTROL_LINEAR:
+        case FLAG_CONTROL_INTEGER:
+        case FLAG_CONTROL_LOGARITHMIC:
             if (control->hw_id < ENCODERS_COUNT)
             {
                 // update the screen
@@ -874,9 +874,9 @@ static void control_set(uint8_t id, control_t *control)
             }
             break;
 
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
+        case FLAG_CONTROL_REVERSE_ENUM:
+        case FLAG_CONTROL_ENUMERATION:
+        case FLAG_CONTROL_SCALE_POINTS:
         	//encoder (pagination is done in the increment / decrement functions)
             if (control->hw_id < ENCODERS_COUNT)
             {
@@ -893,7 +893,7 @@ static void control_set(uint8_t id, control_t *control)
                     led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
                 }
 
-                if (control->properties != CONTROL_PROP_REVERSE_ENUM)
+                if (control->properties != FLAG_CONTROL_REVERSE_ENUM)
                 {
         			// increments the step
         			if (control->step < (control->steps - 1))
@@ -953,8 +953,8 @@ static void control_set(uint8_t id, control_t *control)
             }
             break;
 
-        case CONTROL_PROP_TOGGLED:
-        case CONTROL_PROP_BYPASS:
+        case FLAG_CONTROL_TOGGLED:
+        case FLAG_CONTROL_BYPASS:
             if (control->value > 0) control->value = 0;
             else control->value = 1;
 
@@ -962,13 +962,13 @@ static void control_set(uint8_t id, control_t *control)
             foot_control_add(control);
             break;
 
-        case CONTROL_PROP_TRIGGER:
+        case FLAG_CONTROL_TRIGGER:
 
             // to update the footer and screen
             foot_control_add(control);
             break;
 
-        case CONTROL_PROP_TAP_TEMPO:
+        case FLAG_CONTROL_TAP_TEMPO:
             now = hardware_timestamp();
             delta = now - g_tap_tempo[control->hw_id - ENCODERS_COUNT].time;
             g_tap_tempo[control->hw_id - ENCODERS_COUNT].time = now;
@@ -2156,8 +2156,8 @@ void naveg_inc_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
 
-    if  (((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) 
-    	|| (control->properties == CONTROL_PROP_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
+    if  (((control->properties == FLAG_CONTROL_ENUMERATION) || (control->properties == FLAG_CONTROL_SCALE_POINTS) 
+    	|| (control->properties == FLAG_CONTROL_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
     {
         // increments the step
         if (control->step < (control->steps - 2))
@@ -2197,8 +2197,8 @@ void naveg_dec_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
     
-    if  (((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) ||
-     (control->properties == CONTROL_PROP_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
+    if  (((control->properties == FLAG_CONTROL_ENUMERATION) || (control->properties == FLAG_CONTROL_SCALE_POINTS) ||
+     (control->properties == FLAG_CONTROL_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
     {
         // decrements the step
         if (control->step > 1)
@@ -2280,7 +2280,7 @@ void naveg_set_control(uint8_t hw_id, float value)
             switch (control->properties)
             {
             // toggled specification: http://lv2plug.in/ns/lv2core/#toggled
-            case CONTROL_PROP_TOGGLED:
+            case FLAG_CONTROL_TOGGLED:
                 // updates the led
                 if (control->value <= 0)
                     led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BLACK);
@@ -2297,7 +2297,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                 break;
 
             // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
-            case CONTROL_PROP_TRIGGER:
+            case FLAG_CONTROL_TRIGGER:
                 // updates the led
                 //check if its assigned to a trigger and if the button is released
                 if (!control->scroll_dir)
@@ -2326,7 +2326,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label, BYPASS_ON_FOOTER_TEXT);
                 break;
 
-            case CONTROL_PROP_TAP_TEMPO:
+            case FLAG_CONTROL_TAP_TEMPO:
                 // defines the led color
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TAP_TEMPO_COLOR);
 
@@ -2397,7 +2397,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label, value_txt);
                 break;
 
-            case CONTROL_PROP_BYPASS:
+            case FLAG_CONTROL_BYPASS:
                 // updates the led
                 if (control->value <= 0)
                     led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BYPASS_COLOR);
@@ -2413,9 +2413,9 @@ void naveg_set_control(uint8_t hw_id, float value)
                              (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT));
                 break;
 
-            case CONTROL_PROP_REVERSE_ENUM:
-            case CONTROL_PROP_ENUMERATION:
-            case CONTROL_PROP_SCALE_POINTS:
+            case FLAG_CONTROL_REVERSE_ENUM:
+            case FLAG_CONTROL_ENUMERATION:
+            case FLAG_CONTROL_SCALE_POINTS:
                 // updates the led
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
 
@@ -2467,7 +2467,7 @@ void naveg_next_control(uint8_t display)
     char * buffer = (char *) MALLOC(128 * sizeof(char));
     uint8_t i;
 
-    i = copy_command(buffer, CMD_CONTROL_NEXT);
+    i = copy_command(buffer, CMD_DUO_CONTROL_NEXT);
 
     // inserts the hw id
     i += int_to_str(display, &buffer[i], 4, 0);
@@ -2490,12 +2490,12 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
     //detect a release action which we dont use right now for all actuator modes
     if (!pressed)
     {
-        if (g_foots[foot]->properties == CONTROL_PROP_TRIGGER)
+        if (g_foots[foot]->properties == FLAG_CONTROL_TRIGGER)
         {
             led_set_color(hardware_leds(foot), BLACK);
             led_set_color(hardware_leds(foot), TRIGGER_COLOR); //TRIGGER_COLOR
         }
-        else if ((g_foots[foot]->properties == CONTROL_PROP_SCALE_POINTS) || (g_foots[foot]->properties == CONTROL_PROP_REVERSE_ENUM) || (g_foots[foot]->properties == CONTROL_PROP_ENUMERATION))
+        else if ((g_foots[foot]->properties == FLAG_CONTROL_SCALE_POINTS) || (g_foots[foot]->properties == FLAG_CONTROL_REVERSE_ENUM) || (g_foots[foot]->properties == FLAG_CONTROL_ENUMERATION))
         {
             led_set_color(hardware_leds(foot), BLACK);
             led_set_color(hardware_leds(foot), ENUMERATED_COLOR); //ENUMERATED_COLOR

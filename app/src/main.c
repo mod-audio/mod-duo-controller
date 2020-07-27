@@ -199,6 +199,8 @@ static void procotol_task(void *pvParameters)
 
     hardware_eneble_serial_interupt(WEBGUI_SERIAL);
 
+    protocol_init();
+
     while (1)
     {
         uint32_t msg_size;

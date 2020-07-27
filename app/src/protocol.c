@@ -273,13 +273,13 @@ void protocol_init(void)
     protocol_add_command(CMD_CONTROL_REMOVE, cb_control_rm);
     protocol_add_command(CMD_CONTROL_SET, cb_control_set);
     protocol_add_command(CMD_CONTROL_GET, cb_control_get);
-    protocol_add_command(CMD_CONTROL_INDEX_SET, cb_control_set_index);
+    protocol_add_command(CMD_DUO_CONTROL_INDEX_SET, cb_control_set_index);
     protocol_add_command(CMD_INITIAL_STATE, cb_initial_state);
     protocol_add_command(CMD_BANKS, cb_bank_config);
     protocol_add_command(CMD_TUNER, cb_tuner);
     protocol_add_command(CMD_RESPONSE, cb_resp);
     protocol_add_command(CMD_RESTORE, cb_restore);
-    protocol_add_command(CMD_BOOT_DUO_HMI, cb_boot);
+    protocol_add_command(CMD_DUO_BOOT, cb_boot);
     protocol_add_command(CMD_MENU_ITEM_CHANGE, cb_menu_item_changed);
     protocol_add_command(CMD_CLEAR_PEDALBOARD, cb_pedalboard_clear);
 }
@@ -518,7 +518,7 @@ void cb_menu_item_changed(proto_t *proto)
     naveg_menu_item_changed_cb(atoi(proto->list[1]), atoi(proto->list[2]));
     
     uint8_t i;
-    for (i = 3; i < ((MENU_TOP_ID+1) * 2); i+=2)
+    for (i = 3; i < ((MENU_ID_TOP+1) * 2); i+=2)
     {
         if (atoi(proto->list[i]) != 0)
         {

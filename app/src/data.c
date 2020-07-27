@@ -111,29 +111,29 @@ control_t *data_parse_control(char **data)
         goto error;
 
     control->properties = 0;
-    if (CONTROL_PROP_REVERSE_ENUM & properties_mask)
-        control->properties = CONTROL_PROP_REVERSE_ENUM;
-    else if (CONTROL_PROP_ENUMERATION & properties_mask)
-        control->properties = CONTROL_PROP_ENUMERATION;
-    else if (CONTROL_PROP_SCALE_POINTS & properties_mask)
-        control->properties = CONTROL_PROP_SCALE_POINTS;
-    else if (CONTROL_PROP_TAP_TEMPO & properties_mask)
-        control->properties = CONTROL_PROP_TAP_TEMPO;
-    else if (CONTROL_PROP_BYPASS & properties_mask)
-        control->properties = CONTROL_PROP_BYPASS;
-    else if (CONTROL_PROP_TRIGGER & properties_mask)
-        control->properties = CONTROL_PROP_TRIGGER;
-    else if (CONTROL_PROP_TOGGLED & properties_mask)
-        control->properties = CONTROL_PROP_TOGGLED;
-    else if (CONTROL_PROP_LOGARITHMIC & properties_mask)
-        control->properties = CONTROL_PROP_LOGARITHMIC;
-    else if (CONTROL_PROP_INTEGER & properties_mask)
-        control->properties = CONTROL_PROP_INTEGER;
+    if (FLAG_CONTROL_REVERSE_ENUM & properties_mask)
+        control->properties = FLAG_CONTROL_REVERSE_ENUM;
+    else if (FLAG_CONTROL_ENUMERATION & properties_mask)
+        control->properties = FLAG_CONTROL_ENUMERATION;
+    else if (FLAG_CONTROL_SCALE_POINTS & properties_mask)
+        control->properties = FLAG_CONTROL_SCALE_POINTS;
+    else if (FLAG_CONTROL_TAP_TEMPO & properties_mask)
+        control->properties = FLAG_CONTROL_TAP_TEMPO;
+    else if (FLAG_CONTROL_BYPASS & properties_mask)
+        control->properties = FLAG_CONTROL_BYPASS;
+    else if (FLAG_CONTROL_TRIGGER & properties_mask)
+        control->properties = FLAG_CONTROL_TRIGGER;
+    else if (FLAG_CONTROL_TOGGLED & properties_mask)
+        control->properties = FLAG_CONTROL_TOGGLED;
+    else if (FLAG_CONTROL_LOGARITHMIC & properties_mask)
+        control->properties = FLAG_CONTROL_LOGARITHMIC;
+    else if (FLAG_CONTROL_INTEGER & properties_mask)
+        control->properties = FLAG_CONTROL_INTEGER;
 
     // checks if has scale points
     uint8_t i = 0;
-    if (len >= (min_params+1) && (control->properties == CONTROL_PROP_ENUMERATION ||
-        control->properties == CONTROL_PROP_SCALE_POINTS || control->properties == CONTROL_PROP_REVERSE_ENUM))
+    if (len >= (min_params+1) && (control->properties == FLAG_CONTROL_ENUMERATION ||
+        control->properties == FLAG_CONTROL_SCALE_POINTS || control->properties == FLAG_CONTROL_REVERSE_ENUM))
     {
         control->scale_points_count = atoi(data[min_params - 1]);
         if (control->scale_points_count == 0) return control;
