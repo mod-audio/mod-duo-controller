@@ -13,6 +13,7 @@
 #include "task.h"
 #include "device.h"
 
+#include "naveg.h"
 
 /*
 ************************************************************************************************************************
@@ -23,6 +24,7 @@
 // check in hardware_setup() what is the function of each timer
 #define TIMER0_PRIORITY     3
 #define TIMER1_PRIORITY     2
+#define TIMER2_PRIORITY     1
 
 /*
 ************************************************************************************************************************
@@ -115,6 +117,7 @@ static led_t g_leds[LEDS_COUNT];
 static encoder_t g_encoders[ENCODERS_COUNT];
 static button_t g_footswitches[FOOTSWITCHES_COUNT];
 static uint32_t g_counter;
+static uint32_t g_overlay_counter;
 static int g_brightness;
 
 
@@ -245,6 +248,33 @@ void hardware_setup(void)
     NVIC_EnableIRQ(TIMER1_IRQn);
     // to start timer
     TIM_Cmd(LPC_TIM1, ENABLE);
+
+    ////////////////////////////////////////////////////////////////
+    // Timer 2 configuration
+    // this timer is all device screen overlays
+
+    // initialize timer 1, prescale count time of 10ms
+    TIM_ConfigStruct.PrescaleOption = TIM_PRESCALE_USVAL;
+    TIM_ConfigStruct.PrescaleValue = 10000;
+    // use channel 2, MR2
+    TIM_MatchConfigStruct.MatchChannel = 2;
+    // enable interrupt when MR2 matches the value in TC register
+    TIM_MatchConfigStruct.IntOnMatch = TRUE;
+    // enable reset on MR2: TIMER will reset if MR2 matches it
+    TIM_MatchConfigStruct.ResetOnMatch = TRUE;
+    // stop on MR1 if MR2 matches it
+    TIM_MatchConfigStruct.StopOnMatch = FALSE;
+    // set Match value, count value of 1
+    TIM_MatchConfigStruct.MatchValue = 1;
+    // set configuration for Tim_config and Tim_MatchConfig
+    TIM_Init(LPC_TIM2, TIM_TIMER_MODE, &TIM_ConfigStruct);
+    TIM_ConfigMatch(LPC_TIM2, &TIM_MatchConfigStruct);
+    // set priority
+    NVIC_SetPriority(TIMER2_IRQn, TIMER2_PRIORITY);
+    // enable interrupt for timer 1
+    NVIC_EnableIRQ(TIMER2_IRQn);
+    // to start timer
+    TIM_Cmd(LPC_TIM2, ENABLE);
 
     ////////////////////////////////////////////////////////////////
     // Serial initialization
@@ -398,6 +428,12 @@ void hardware_coreboard_power(uint8_t state)
     }
 }
 
+void hardware_set_overlay_timeout(uint32_t overlay_time_in_ms)
+{
+    //overlay counter is per 10ms, not in ms, so devided by 10
+    g_overlay_counter = (overlay_time_in_ms / 10);
+}
+
 void TIMER0_IRQHandler(void)
 {
     static int count = 1, state;
@@ -449,4 +485,23 @@ void TIMER1_IRQHandler(void)
     }
 
     TIM_ClearIntPending(LPC_TIM1, TIM_MR1_INT);
+}
+
+void TIMER2_IRQHandler(void)
+{
+    if (TIM_GetIntStatus(LPC_TIM2, TIM_MR2_INT) == SET)
+    {
+        if (g_overlay_counter != 0)
+        {
+            g_overlay_counter--;
+
+            if (g_overlay_counter == 0)
+            {
+                //turn off overlay
+                naveg_turn_off_overlay();
+            }
+        }
+    }
+
+    TIM_ClearIntPending(LPC_TIM2, TIM_MR2_INT);
 }

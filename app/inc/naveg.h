@@ -142,6 +142,10 @@ uint8_t naveg_tool_is_on(uint8_t tool);
 uint8_t naveg_banks_mode_pb(void);
 
 char* naveg_get_current_pb_name(void);
+
+void naveg_trigger_overlay(void);
+void naveg_turn_off_overlay(void);
+
 /*
 ************************************************************************************************************************
 *           CONFIGURATION ERRORS

@@ -302,8 +302,16 @@ static void actuators_task(void *pvParameters)
             {
                 if (BUTTON_CLICKED(status))
                 {
-                    naveg_next_control(id);
-                    naveg_enter(id);
+                    //check overlay functionality
+                    if (id == 0)
+                    {
+                        naveg_trigger_overlay();
+                    }
+                    else 
+                    {
+                        naveg_next_control(id);
+                        naveg_enter(id);
+                    }
                 }
                 if (BUTTON_HOLD(status))
                 {   

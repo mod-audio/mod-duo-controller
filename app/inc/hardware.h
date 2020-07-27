@@ -83,7 +83,7 @@ void *hardware_actuators(uint8_t actuator_id);
 uint32_t hardware_timestamp(void);
 // turn on/off coreboard
 void hardware_coreboard_power(uint8_t state);
-
+void hardware_set_overlay_timeout(uint32_t overlay_time_in_ms);
 
 /*
 ************************************************************************************************************************

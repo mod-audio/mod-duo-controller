@@ -23,6 +23,8 @@
 #include <math.h>
 #include <float.h>
 
+#include "images.h"
+
 //reset actuator queue
 void reset_queue(void);
 
@@ -3285,4 +3287,19 @@ void naveg_menu_item_changed_cb(uint8_t item_ID, uint16_t value)
 
     //when we are not in the menu, did we change the master volume link?
         //TODO update the master volume link widget
+}
+
+//testing function to check overlay functionality
+void naveg_trigger_overlay(void)
+{
+    screen_image(0, mod_logo);
+
+    hardware_set_overlay_timeout(500);
+}
+//testing function to check overlay functionality
+void naveg_turn_off_overlay(void)
+{
+    //this just resets the display, no point in implementing this for the Dwarf now, since we will not only have control and tool mode, but a lot more
+    tool_on(DISPLAY_TOOL_SYSTEM, 0);   
+    naveg_toggle_tool(DISPLAY_TOOL_SYSTEM, 0);
 }
