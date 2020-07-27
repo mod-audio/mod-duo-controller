@@ -26,20 +26,21 @@ typedef enum {
 
 // Actuators properties
 typedef enum {
-    BUTTON_HOLD_TIME, ENCODER_STEPS
+    BUTTON_HOLD_TIME, ENCODER_STEPS, BUTTON_DOUBLE_TIME
 } actuator_prop_t;
 
 // Events definition
-#define EV_NONE                 0x00
-#define EV_BUTTON_CLICKED       0x01
-#define EV_BUTTON_PRESSED       0x02
-#define EV_BUTTON_RELEASED      0x04
-#define EV_BUTTON_HELD          0x08
-#define EV_ALL_BUTTON_EVENTS    0x0F
-#define EV_ENCODER_TURNED       0x10
-#define EV_ENCODER_TURNED_CW    0x20
-#define EV_ENCODER_TURNED_ACW   0x40
-#define EV_ALL_ENCODER_EVENTS   0xEF
+#define EV_NONE                     0x00
+#define EV_BUTTON_CLICKED           0x01
+#define EV_BUTTON_PRESSED           0x02
+#define EV_BUTTON_RELEASED          0x04
+#define EV_BUTTON_HELD              0x08
+#define EV_BUTTON_PRESSED_DOUBLE    0x80
+#define EV_ALL_BUTTON_EVENTS        0x8F
+#define EV_ENCODER_TURNED           0x10
+#define EV_ENCODER_TURNED_CW        0x20
+#define EV_ENCODER_TURNED_ACW       0x40
+#define EV_ALL_ENCODER_EVENTS       0x6F
 
 
 /*
@@ -65,10 +66,11 @@ typedef enum {
 #define CLOCK_PERIOD                1
 
 // Debounce configuration (in miliseconds)
-#define BUTTON_PRESS_DEBOUNCE       15
-#define BUTTON_RELEASE_DEBOUNCE     50
-#define ENCODER_PRESS_DEBOUNCE      35
-#define ENCODER_RELEASE_DEBOUNCE    100
+#define BUTTON_PRESS_DEBOUNCE           15
+#define BUTTON_DOUBLE_PRESS_DEBOUNCE    50
+#define BUTTON_RELEASE_DEBOUNCE         50
+#define ENCODER_PRESS_DEBOUNCE          35
+#define ENCODER_RELEASE_DEBOUNCE        100
 
 // Encoders configuration
 #define ENCODER_RESOLUTION          24
@@ -93,6 +95,7 @@ typedef struct BUTTON_T {
 
     uint8_t port, pin;
     uint16_t hold_time, hold_time_counter;
+    uint16_t last_pressed_time, last_pressed_time_counter;
 } button_t;
 
 typedef struct ENCODER_T {
@@ -123,6 +126,7 @@ typedef struct ENCODER_T {
 #define BUTTON_PRESSED(status)      ((status) & EV_BUTTON_PRESSED)
 #define BUTTON_RELEASED(status)     ((status) & EV_BUTTON_RELEASED)
 #define BUTTON_HOLD(status)         ((status) & EV_BUTTON_HELD)
+#define BUTTON_DOUBLE(status)       ((status) & EV_BUTTON_PRESSED_DOUBLE)
 #define ENCODER_TURNED(status)      ((status) & EV_ENCODER_TURNED)
 #define ENCODER_TURNED_CW(status)   ((status) & EV_ENCODER_TURNED_CW)
 #define ENCODER_TURNED_ACW(status)  ((status) & EV_ENCODER_TURNED_ACW)

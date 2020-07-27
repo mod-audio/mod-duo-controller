@@ -329,6 +329,11 @@ static void actuators_task(void *pvParameters)
             // footswitches
             else if (type == BUTTON)
             {
+                if (BUTTON_DOUBLE(status))
+                {
+                    led_set_color(hardware_leds(1), MAGENTA);
+                }
+
                if (BUTTON_PRESSED(status))
                 {
                     naveg_foot_change(id, 1);

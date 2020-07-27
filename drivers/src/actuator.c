@@ -10,6 +10,7 @@
 */
 
 #include "actuator.h"
+#include "hardware.h"
 
 
 /*
@@ -19,7 +20,7 @@
 */
 
 #define BUTTONS_FLAGS \
-    (EV_BUTTON_CLICKED | EV_BUTTON_PRESSED | EV_BUTTON_RELEASED | EV_BUTTON_HELD)
+    (EV_BUTTON_CLICKED | EV_BUTTON_PRESSED | EV_BUTTON_RELEASED | EV_BUTTON_HELD | EV_BUTTON_PRESSED_DOUBLE)
 
 #define ENCODERS_FLAGS \
     (EV_BUTTON_CLICKED | EV_BUTTON_PRESSED | EV_BUTTON_RELEASED | EV_BUTTON_HELD | \
@@ -213,6 +214,11 @@ void actuator_set_prop(void *actuator, actuator_prop_t prop, uint16_t value)
                 button->hold_time = value;
                 button->hold_time_counter = value / CLOCK_PERIOD;
             }
+            else if (prop == BUTTON_DOUBLE_TIME)
+            {
+                button->last_pressed_time = value;
+                button->last_pressed_time_counter = value / CLOCK_PERIOD;
+            }
             break;
 
         case ROTARY_ENCODER:
@@ -321,6 +327,37 @@ void actuators_clock(void)
                                 event(button, EV_BUTTON_HELD);
                             }
                         }
+
+                        // double button press hold
+                        else if (button->last_pressed_time_counter > 0)
+                        {
+                            button->last_pressed_time_counter--;
+
+                            //check other button
+                            button_t *other_button;
+                            if (i == 1) other_button = (button_t *) g_actuators_pointers[3];
+                            else other_button = (button_t *) g_actuators_pointers[1];
+
+                            if (READ_PIN(other_button->port, other_button->pin) == BUTTON_ACTIVATED)
+                            {
+                                CLR_FLAG(button->status, EV_BUTTON_PRESSED);
+                                SET_FLAG(button->status, EV_BUTTON_PRESSED_DOUBLE);
+
+                                event(button, EV_BUTTON_PRESSED_DOUBLE);
+
+                                // reload double press time counter
+                                button->last_pressed_time_counter = button->last_pressed_time / CLOCK_PERIOD;
+                            }
+                            else if (button->last_pressed_time_counter == 0)
+                            {
+                                // update status flags
+                                CLR_FLAG(button->status, EV_BUTTON_PRESSED_DOUBLE);
+                                CLR_FLAG(button->status, EV_BUTTON_RELEASED);
+                                SET_FLAG(button->status, EV_BUTTON_PRESSED);
+
+                                event(button, EV_BUTTON_PRESSED);
+                            }
+                        }
                     }
                     // button released
                     else
@@ -330,6 +367,9 @@ void actuators_clock(void)
 
                         // reload hold time counter
                         button->hold_time_counter = button->hold_time / CLOCK_PERIOD;
+
+                        // reload double press time counter
+                        button->last_pressed_time_counter = button->last_pressed_time / CLOCK_PERIOD;
                     }
                 }
                 // button state change
@@ -345,12 +385,6 @@ void actuators_clock(void)
                         // button pressed
                         if (button_on)
                         {
-                            // update status flags
-                            CLR_FLAG(button->status, EV_BUTTON_RELEASED);
-                            SET_FLAG(button->status, EV_BUTTON_PRESSED);
-
-                            event(button, EV_BUTTON_PRESSED);
-
                             // reload debounce counter
                             button->debounce = BUTTON_RELEASE_DEBOUNCE / CLOCK_PERIOD;
                         }
@@ -358,6 +392,7 @@ void actuators_clock(void)
                         else
                         {
                             // update status flags
+                            CLR_FLAG(button->status, EV_BUTTON_PRESSED_DOUBLE);
                             CLR_FLAG(button->status, EV_BUTTON_PRESSED);
                             SET_FLAG(button->status, EV_BUTTON_RELEASED);
 
@@ -377,6 +412,7 @@ void actuators_clock(void)
                     }
                 }
                 break;
+
 
             case ROTARY_ENCODER:
                 // --- button processing ---
