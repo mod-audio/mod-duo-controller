@@ -29,6 +29,12 @@
 *           LOCAL CONSTANTS
 ************************************************************************************************************************
 */
+const HeapRegion_t xHeapRegions[] =
+{
+    //{ ( uint8_t * ) 0x10005000, 0x2000 },
+    { ( uint8_t * ) 0x2007c000, 0x8000 },
+    { NULL, 0 } /* Terminates the array. */
+};
 
 static const led_pins_t LEDS_PINS[] = {
 #ifdef LED0_PINS
@@ -146,6 +152,9 @@ void hardware_setup(void)
 
     // configure the peripherals power
     CLKPWR_ConfigPPWR(HW_CLK_PWR_CONTROL, ENABLE);
+
+    //Pass the array into vPortDefineHeapRegions().
+    vPortDefineHeapRegions( xHeapRegions );
 
     // configure and set initial state of shutdown cpu button
     // note: CLR_PIN will make the coreboard reboot unless SET_PIN is called in less than 5s

@@ -111,6 +111,7 @@ control_t *data_parse_control(char **data)
         goto error;
 
     control->properties = 0;
+
     if (FLAG_CONTROL_REVERSE_ENUM & properties_mask)
         control->properties = FLAG_CONTROL_REVERSE_ENUM;
     else if (FLAG_CONTROL_ENUMERATION & properties_mask)
@@ -129,6 +130,9 @@ control_t *data_parse_control(char **data)
         control->properties = FLAG_CONTROL_LOGARITHMIC;
     else if (FLAG_CONTROL_INTEGER & properties_mask)
         control->properties = FLAG_CONTROL_INTEGER;
+
+    if (FLAG_CONTROL_MOMENTARY_SW & properties_mask)
+        control->properties = FLAG_CONTROL_MOMENTARY_SW;
 
     // checks if has scale points
     uint8_t i = 0;

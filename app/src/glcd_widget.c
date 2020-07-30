@@ -31,43 +31,6 @@
 ************************************************************************************************************************
 */
 
-static const uint8_t GraphLinTable[] = {
-     1,  2,  3,  4,  5,  6,  7,  8,  9, 10,
-    11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-    31, 32
-};
-
-static const uint8_t GraphLogTable[] = {
-     1,  1,  1,  1,  1,  1,  2,  2,  2,  2,
-     3,  3,  3,  4,  4,  5,  5,  6,  7,  8,
-     9, 10, 11, 12, 13, 15, 17, 19, 21, 24,
-    28, 32
-};
-
-#if 0
-static const uint8_t GraphVTable[] = {
-    31, 29, 27, 25, 23, 21, 19, 17, 15, 13,
-    11,  9,  7,  5,  3,  1,  1,  3,  5,  7,
-     9, 11, 13, 15, 17, 19, 21, 23, 25, 27,
-    29, 31
-};
-
-static const uint8_t GraphATable[] = {
-     1,  3,  5,  7,  9, 11, 13, 15, 17, 19,
-    21, 23, 25, 27, 29, 31, 31, 29, 27, 25,
-    23, 21, 19, 17, 15, 13, 11,  9,  7,  5,
-     3,  1
-};
-
-static const uint8_t GraphVPositionTable[] = {
-      0,   4,   8,  12,  16,  20,  24,  28,  32,  36,
-     40,  44,  48,  52,  56,  60,  67,  71,  75,  79,
-     83,  87,  91,  95,  99, 103, 107, 111, 115, 119,
-    123, 127
-};
-#endif
-
 /*
 ************************************************************************************************************************
 *           LOCAL DATA TYPES
@@ -83,7 +46,7 @@ static const uint8_t GraphVPositionTable[] = {
 
 #define ABS(x)      ((x) > 0 ? (x) : -(x))
 #define ROUND(x)    ((x) > 0.0 ? (((float)(x)) + 0.5) : (((float)(x)) - 0.5))
-
+#define MAP(x, in_min, in_max, out_min, out_max)    ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
 /*
 ************************************************************************************************************************
@@ -348,14 +311,13 @@ void widget_listbox(glcd_t *display, listbox_t *listbox)
     }
 }
 
-
 void widget_listbox2(glcd_t *display, listbox_t *listbox) //FIXME: function hardcoded
 {
     glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
 
     if (listbox->selected > 0)
     {
-        glcd_text(display, listbox->x + listbox->text_left_margin, 19, listbox->list[listbox->selected-1], alterebro15, listbox->color);
+        glcd_text(display, listbox->x + listbox->text_left_margin, 19, listbox->list[listbox->selected-1], Terminal5x7, listbox->color);
     }
 
     if (listbox->selected < (listbox->count - 1))
@@ -367,144 +329,127 @@ void widget_listbox2(glcd_t *display, listbox_t *listbox) //FIXME: function hard
     glcd_rect_invert(display, listbox->x, 27, listbox->width, 13);
 }
 
-
-void widget_graph(glcd_t *display, graph_t *graph)
+void widget_listbox4(glcd_t *display, listbox_t *listbox)
 {
-    const uint8_t *graph_table = NULL;
-    uint8_t i, n = 0;
-    float a, b, x, y, value, min, max;
-    textbox_t value_box, unit_box;
-    char value_str[16];
+    const char *line_txt;
 
-    // clear the graph area
-    glcd_rect_fill(display, graph->x, graph->y, GRAPH_WIDTH, GRAPH_HEIGHT, ~graph->color);
+    glcd_rect_fill(display, listbox->x, listbox->y, listbox->width, listbox->height, ~listbox->color);
 
-    // init the value box
-    float_to_str(graph->value, value_str, sizeof(value_str), 2);
-    value_box.mode = TEXT_SINGLE_LINE;
-    value_box.text = value_str;
-    value_box.color = GLCD_BLACK;
-    value_box.font = graph->font;
-    value_box.top_margin = 0;
-    value_box.bottom_margin = 0;
-    value_box.left_margin = 2;
-    value_box.right_margin = 2;
-    value_box.align = ALIGN_NONE_NONE;
-    value_box.x = graph->x;
-    value_box.y = graph->y;
-    value_box.height = 0;
-    value_box.width = 0;
+    int8_t first_line;
+    uint8_t y_line = listbox->y + listbox->line_space;
+    uint8_t font_height = listbox->font[FONT_HEIGHT];
+    uint8_t focus_height = listbox->font_highlight[FONT_HEIGHT] + listbox->line_top_margin + listbox->line_bottom_margin;
 
-    // init the unit box
-    unit_box.mode = TEXT_SINGLE_LINE;
-    unit_box.color = GLCD_BLACK;
-    unit_box.font = graph->font;
-    unit_box.top_margin = 0;
-    unit_box.bottom_margin = 0;
-    unit_box.left_margin = 0;
-    unit_box.right_margin = 0;
-    unit_box.text = graph->unit;
-    unit_box.align = ALIGN_NONE_NONE;
-    unit_box.x = value_box.x + get_text_width(value_str, graph->font) + 4;
-    unit_box.y = value_box.y;
-    unit_box.height = 0;
-    unit_box.width = 0;
+    //beginning of list
+    if (listbox->selected < 2)
+        first_line = 0;
+    //end of list
+    else if (listbox->selected > (listbox->count -2) )   
+        first_line = listbox->count -3;
+    //anywhere else
+    else
+        first_line = listbox->selected - 1;
 
-    // linear
-    // y = a*x + b
-    // y1 = 0, y2 = GRAPH_NUM_BARS, x1 = graph->min, x2 = graph->max
-    // a = (y2 - y1) / (x2 - x1)
-    // b = y1 - (a * x1)
-    if (graph->type == GRAPH_TYPE_LINEAR)
+    for (uint8_t i = 0; i < 3; i++)
     {
-        graph_table = GraphLinTable;
-        a = ((float) GRAPH_NUM_BARS) / (graph->max - graph->min);
-        b = -(a * graph->min);
-        value = a * graph->value + b;
-        n = (uint8_t) ROUND(value);
-
-        x = graph->x;
-
-        uint8_t zero, height;
-
-        // zero axis
-        zero = (uint8_t) ROUND(b);
-        if (zero > GRAPH_NUM_BARS) zero = GRAPH_NUM_BARS;
-
-        for (i = 0; i < GRAPH_NUM_BARS; i++)
+        if (i < listbox->count)
         {
-            // calculates the y and height a
-            if (i < zero)
-            {
-                y = graph->y + GRAPH_HEIGHT - zero;
-                height = zero - graph_table[i];
-            }
-            else
-            {
-                y = graph->y + GRAPH_HEIGHT - graph_table[i];
-                height = graph_table[i] - zero;
-            }
+            line_txt = listbox->list[first_line + i];
 
-            // draws the full column
-            if (i < n)
+            if ((first_line + i) == listbox->selected)
             {
-                glcd_rect_fill(display, x, y, GRAPH_BAR_WIDTH, height, graph->color);
+                y_line++;
+                glcd_text(display, listbox->x + listbox->text_left_margin, y_line, line_txt, listbox->font_highlight, listbox->color);
+                glcd_rect_invert(display, listbox->x, y_line - listbox->line_top_margin, listbox->width, focus_height);
+                y_line += focus_height;
             }
-            // draws the empty column
-            else
+            else 
             {
-                glcd_vline(display, x + 2, y, height, graph->color);
+                glcd_text(display, listbox->x + listbox->text_left_margin, y_line, line_txt, listbox->font, listbox->color);
+                y_line += font_height + listbox->line_space;
             }
-
-            x += (GRAPH_BAR_WIDTH + GRAPH_BAR_SPACE);
-        }
-
-        // recalculate the textbox position if necessary
-        if (zero > graph->font[FONT_HEIGHT])
-        {
-            unit_box.x = GRAPH_WIDTH - get_text_width(graph->unit, graph->font);
-            unit_box.y = graph->y + GRAPH_HEIGHT - graph->font[FONT_HEIGHT];
-
-            value_box.x = unit_box.x - get_text_width(value_box.text, graph->font) - 4;
-            value_box.y = unit_box.y;
         }
     }
+}
 
-    // log
-    // y = a * log(x) + b
-    // y1 = 0, y2 = GRAPH_NUM_BARS, x1 = log(graph->min), x2 = log(graph->max)
-    // a = (y2 - y1) / (x2 - x1)
-    // b = y1 - (a * x1)
-    else if (graph->type == GRAPH_TYPE_LOG)
+void widget_bar(glcd_t *display, bar_t *bar)
+{
+    //draw the label
+    textbox_t label;
+    label.color = GLCD_BLACK;
+    label.mode = TEXT_SINGLE_LINE;
+    label.font = Terminal5x7;
+    label.height = 0;
+    label.width = 0;
+    label.top_margin = 0;
+    label.bottom_margin = 0;
+    label.left_margin = 0;
+    label.right_margin = 0;
+    label.text = bar->label;
+    label.align = ALIGN_NONE_NONE;
+    label.x = (DISPLAY_WIDTH / 2) - 3*strlen(bar->label) + 1;
+    label.y = bar->y + 1;
+    widget_textbox(display, &label);
+
+    float OldRange, NewRange, NewValue;
+    int32_t bar_possistion, NewMax, NewMin;
+
+    NewMin = 1;
+    NewMax = bar->width - 2;
+
+    OldRange = (bar->steps);
+    NewRange = (NewMax - NewMin);
+
+    NewValue = (((bar->step) * NewRange) / OldRange) + NewMin;
+    bar_possistion = ROUND(NewValue) - 2;
+
+    //draw the square
+    glcd_rect(display, bar->x+2, bar->y+10, bar->width, bar->height, GLCD_BLACK);
+
+    //prevent it from trippin 
+    if (bar_possistion < 1) bar_possistion = 1;
+    if (bar_possistion > bar->width - 4) bar_possistion = bar->width - 4;
+
+    //color in the position area
+    glcd_rect_fill(display, (bar->x+4), (bar->y+12), bar_possistion, bar->height - 4, GLCD_BLACK);
+}
+
+void widget_toggle(glcd_t *display, toggle_t *toggle)
+{
+    //draw the square
+    glcd_rect(display, toggle->x, toggle->y, toggle->width, toggle->height, GLCD_BLACK);
+
+    textbox_t label;
+    label.color = GLCD_BLACK;
+    label.mode = TEXT_SINGLE_LINE;
+    label.font = Terminal5x7;
+    label.height = 0;
+    label.width = 0;
+    label.top_margin = 0;
+    label.bottom_margin = 0;
+    label.left_margin = 0;
+    label.right_margin = 0;
+    label.align = ALIGN_NONE_NONE;
+    label.y = toggle->y + 7;
+
+    if (toggle->value == 1)
     {
-        graph_table = GraphLogTable;
-        min = log2(graph->min);
-        max = log2(graph->max);
-        a = ((float) GRAPH_NUM_BARS) / (max - min);
-        b = -(a * min);
-        value = log2(graph->value);
-        value = a * value + b;
-        n = (uint8_t) ROUND(value);
+        label.x = toggle->x + 15 + (toggle->width / 2);
+        label.text = "ON";
+        widget_textbox(display, &label);
 
-        x = graph->x;
-
-        for (i = 0; i < GRAPH_NUM_BARS; i++)
-        {
-            y = graph->y + GRAPH_HEIGHT - graph_table[i];
-
-            if (i < n)
-                glcd_rect_fill(display, x, y, GRAPH_BAR_WIDTH, graph_table[i], graph->color);
-            else
-                glcd_vline(display, x + 2, y, graph_table[i], graph->color);
-            x += (GRAPH_BAR_WIDTH + GRAPH_BAR_SPACE);
-        }
+        //color in the position area
+        glcd_rect_invert(display, (toggle->x+(toggle->width / 2)), (toggle->y+2), (toggle->width / 2)-2, (toggle->height - 4));
     }
+    else 
+    {
+        label.x = toggle->x + 15;
+        label.text = "OFF";
+        widget_textbox(display, &label);
 
-    // draws the value box
-    widget_textbox(display, &value_box);
-
-    // draws the unit box
-    widget_textbox(display, &unit_box);
+        //color in the position area
+        glcd_rect_invert(display, (toggle->x+2), (toggle->y+2), (toggle->width / 2)-2, (toggle->height - 4));
+    }
 }
 
 
@@ -562,7 +507,7 @@ void widget_tuner(glcd_t *display, tuner_t *tuner)
     textbox_t title;
     title.color = GLCD_BLACK;
     title.mode = TEXT_SINGLE_LINE;
-    title.font = SMfont;
+    title.font = Terminal3x5;
     title.top_margin = 0;
     title.bottom_margin = 0;
     title.left_margin = 0;
@@ -775,4 +720,48 @@ void widget_popup(glcd_t *display, popup_t *popup)
     glcd_hline(display, 0, DISPLAY_HEIGHT-1, DISPLAY_WIDTH, GLCD_BLACK);
 }
 
+//draw function works in buffers of 8 so ofsets are not possible, thats why we draw icons ourselves
 
+void icon_snapshot(glcd_t *display, uint8_t x, uint8_t y)
+{
+    // clears the icon area
+    glcd_rect_fill(display, x, y, 9, 7, GLCD_WHITE);
+
+    // draws the icon
+
+    //outer bourders
+    glcd_rect(display, x, y+1, 1, 6, GLCD_BLACK);
+    glcd_rect(display, x+8, y+1, 1, 6, GLCD_BLACK);
+
+    //top 3 
+    glcd_rect(display, x+6, y+1, 3, 1, GLCD_BLACK);    
+    glcd_rect(display, x, y+1, 3, 1, GLCD_BLACK);
+    glcd_rect(display, x+2, y, 5, 1, GLCD_BLACK);
+
+    //bottom
+    glcd_rect(display, x, y+6, 8, 1, GLCD_BLACK);
+
+    //dots
+    glcd_rect(display, x+4, y+2, 1, 1, GLCD_BLACK);
+    glcd_rect(display, x+3, y+3, 1, 1, GLCD_BLACK);
+    glcd_rect(display, x+5, y+3, 1, 1, GLCD_BLACK);
+    glcd_rect(display, x+4, y+4, 1, 1, GLCD_BLACK);
+}
+
+void icon_pedalboard(glcd_t *display, uint8_t x, uint8_t y)
+{
+    // clears the icon area
+    glcd_rect_fill(display, x, y, 9, 7, GLCD_WHITE);
+
+    // draws the icon
+    
+    //outer bourders    
+    glcd_rect(display, x, y, 1, 7, GLCD_BLACK);
+    glcd_rect(display, x+8, y, 1, 7, GLCD_BLACK);
+
+    //vertical lines
+    glcd_rect(display, x, y, 9, 1, GLCD_BLACK);
+    glcd_rect(display, x, y+2, 9, 1, GLCD_BLACK);
+    glcd_rect(display, x, y+4, 9, 1, GLCD_BLACK);
+    glcd_rect(display, x, y+6, 9, 1, GLCD_BLACK);
+}
