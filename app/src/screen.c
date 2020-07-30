@@ -11,6 +11,7 @@
 #include "glcd_widget.h"
 #include "naveg.h"
 #include "hardware.h"
+#include "mod-protocol.h"
 #include "images.h"
 #include <string.h>
 
@@ -161,9 +162,9 @@ void screen_encoder(uint8_t display_id, control_t *control)
     }
 
     // bar type control
-    if (control->properties == CONTROL_PROP_LINEAR ||
-        control->properties == CONTROL_PROP_LOGARITHMIC || 
-        control->properties == CONTROL_PROP_INTEGER)
+    if (control->properties == FLAG_CONTROL_LINEAR ||
+        control->properties == FLAG_CONTROL_LOGARITHMIC || 
+        control->properties == FLAG_CONTROL_INTEGER)
     {
         bar_t bar;
         bar.x = 4;
@@ -175,7 +176,7 @@ void screen_encoder(uint8_t display_id, control_t *control)
         bar.steps = control->steps - 1;
 
         char str_bfr[15] = {0};
-        if ((control->value > 99.9) || (control->properties == CONTROL_PROP_INTEGER))
+        if ((control->value > 99.9) || (control->properties == FLAG_CONTROL_INTEGER))
         {
             int_to_str(control->value, str_bfr, sizeof(str_bfr), 0);
         }
@@ -196,8 +197,8 @@ void screen_encoder(uint8_t display_id, control_t *control)
     }
 
     // list type control
-    else if (control->properties == CONTROL_PROP_ENUMERATION ||
-             control->properties == CONTROL_PROP_SCALE_POINTS)
+    else if (control->properties == FLAG_CONTROL_ENUMERATION ||
+             control->properties == FLAG_CONTROL_SCALE_POINTS)
     {
         static char *labels_list[10];
 
@@ -224,8 +225,8 @@ void screen_encoder(uint8_t display_id, control_t *control)
         list.text_left_margin = 1;
         widget_listbox4(display, &list);
     }
-    else if (control->properties == CONTROL_PROP_TOGGLED ||
-             control->properties == CONTROL_PROP_BYPASS)
+    else if (control->properties == FLAG_CONTROL_TOGGLED ||
+             control->properties == FLAG_CONTROL_BYPASS)
     {
         toggle_t toggle;
         toggle.x = 20;
@@ -233,7 +234,7 @@ void screen_encoder(uint8_t display_id, control_t *control)
         toggle.width = 88;
         toggle.height = 21;
         toggle.color = GLCD_BLACK;
-        toggle.value = (control->properties == CONTROL_PROP_TOGGLED)?control->value:!control->value;;
+        toggle.value = (control->properties == FLAG_CONTROL_TOGGLED)?control->value:!control->value;;
         widget_toggle(display, &toggle);
     }
 }
@@ -315,7 +316,7 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         return;
     }
     //if we are in toggle, trigger or byoass mode we dont have a value
-    else if ((property & CONTROL_PROP_TOGGLED) || (property & CONTROL_PROP_BYPASS) || (property & CONTROL_PROP_TRIGGER) || (property & CONTROL_PROP_MOMENTARY_SW))
+    else if ((property & FLAG_CONTROL_TOGGLED) || (property & FLAG_CONTROL_BYPASS) || (property & FLAG_CONTROL_TRIGGER) || (property & FLAG_CONTROL_MOMENTARY))
     {
         footer.text = name;
         footer.align = ALIGN_CENTER_NONE;
@@ -368,7 +369,7 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         widget_textbox(display, &footer);
 
         //if in banks menu, invert
-        if (property == CONTROL_PROP_BANKS)
+        if (property == FLAG_CONTROL_BANKS)
             glcd_rect_invert(display, DISPLAY_WIDTH - 10, 51, 10, DISPLAY_HEIGHT-52);
     }
 }

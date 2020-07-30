@@ -16,6 +16,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "actuator.h"
+#include "mod-protocol.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -178,13 +179,14 @@ static int get_display_by_id(uint8_t id, uint8_t type)
 static void display_disable_all_tools(uint8_t display)
 {
     int i;
+
     if (tool_is_on(DISPLAY_TOOL_TUNER))
     {
         g_protocol_busy = true;
         system_lock_comm_serial(g_protocol_busy);
 
         // sends the data to GUI
-        comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+        comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
 
         // waits the pedalboards list be received
         comm_webgui_wait_response();
@@ -266,18 +268,18 @@ static void step_to_value(control_t *control)
     float p_step = ((float) control->step) / ((float) (control->steps - 1));
     switch (control->properties)
     {
-        case CONTROL_PROP_LINEAR:
-        case CONTROL_PROP_INTEGER:
+        case FLAG_CONTROL_LINEAR:
+        case FLAG_CONTROL_INTEGER:
             control->value = (p_step * (control->maximum - control->minimum)) + control->minimum;
             break;
 
-        case CONTROL_PROP_LOGARITHMIC:
+        case FLAG_CONTROL_LOGARITHMIC:
             control->value = control->minimum * pow(control->maximum / control->minimum, p_step);
             break;
 
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
+        case FLAG_CONTROL_REVERSE_ENUM:
+        case FLAG_CONTROL_ENUMERATION:
+        case FLAG_CONTROL_SCALE_POINTS:
             control->value = control->scale_points[control->step]->value;
             break;
     }
@@ -303,12 +305,12 @@ static void display_control_add(control_t *control)
     // calculates initial step
     switch (control->properties)
     {
-        case CONTROL_PROP_LINEAR:
+        case FLAG_CONTROL_LINEAR:
             control->step =
                 (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
             break;
 
-        case CONTROL_PROP_LOGARITHMIC:
+        case FLAG_CONTROL_LOGARITHMIC:
             if (control->minimum == 0.0)
                 control->minimum = FLT_MIN;
 
@@ -322,9 +324,9 @@ static void display_control_add(control_t *control)
                 (control->steps - 1) * log(control->value / control->minimum) / log(control->maximum / control->minimum);
             break;
 
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
+        case FLAG_CONTROL_REVERSE_ENUM:
+        case FLAG_CONTROL_ENUMERATION:
+        case FLAG_CONTROL_SCALE_POINTS:
             control->step = 0;
             uint8_t i;
             control->scroll_dir = g_scroll_dir;
@@ -339,14 +341,14 @@ static void display_control_add(control_t *control)
             control->steps = control->scale_points_count;
             break;
 
-        case CONTROL_PROP_INTEGER:
+        case FLAG_CONTROL_INTEGER:
             control->steps = (control->maximum - control->minimum) + 1;
             control->step =
                 (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
             break;
 
-        case CONTROL_PROP_BYPASS:
-        case CONTROL_PROP_TOGGLED:
+        case FLAG_CONTROL_BYPASS:
+        case FLAG_CONTROL_TOGGLED:
             control->steps = 1;
             control->step = control->value;
             break;
@@ -418,7 +420,7 @@ static void foot_control_add(control_t *control)
     switch (control->properties)
     {
         // toggled specification: http://lv2plug.in/ns/lv2core/#toggled
-        case CONTROL_PROP_TOGGLED:
+        case FLAG_CONTROL_TOGGLED:
             // updates the led
             if (control->value <= 0)
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BLACK);
@@ -433,7 +435,7 @@ static void foot_control_add(control_t *control)
                          (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT), control->properties);
             break;
 
-        case CONTROL_PROP_MOMENTARY_SW:
+        case FLAG_CONTROL_MOMENTARY:
             // updates the led
             if ((control->scroll_dir == 0)||(control->scroll_dir == 2))
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
@@ -449,7 +451,7 @@ static void foot_control_add(control_t *control)
             break;
 
         // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
-        case CONTROL_PROP_TRIGGER:
+        case FLAG_CONTROL_TRIGGER:
             if ((control->scroll_dir == 0)||(control->scroll_dir == 2))
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
             else
@@ -462,7 +464,7 @@ static void foot_control_add(control_t *control)
             screen_footer(control->hw_id - ENCODERS_COUNT, control->label, NULL, control->properties);
             break;
 
-        case CONTROL_PROP_TAP_TEMPO:
+        case FLAG_CONTROL_TAP_TEMPO:
             // defines the led color
             led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TAP_TEMPO_COLOR);
 
@@ -524,7 +526,7 @@ static void foot_control_add(control_t *control)
             screen_footer((control->hw_id - ENCODERS_COUNT), control->label, value_txt, control->properties);
             break;
 
-        case CONTROL_PROP_BYPASS:
+        case FLAG_CONTROL_BYPASS:
             // updates the led
             if (control->value <= 0)
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BYPASS_COLOR);
@@ -539,9 +541,9 @@ static void foot_control_add(control_t *control)
                          (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT), control->properties);
             break;
 
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
+        case FLAG_CONTROL_REVERSE_ENUM:
+        case FLAG_CONTROL_ENUMERATION:
+        case FLAG_CONTROL_SCALE_POINTS:
             if ((control->scroll_dir == 0)||(control->scroll_dir == 2)) led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
             else
             {
@@ -636,7 +638,7 @@ static void request_control_page(control_t *control, uint8_t dir)
     memset(buffer, 0, sizeof buffer);
     uint8_t i;
 
-    i = copy_command(buffer, CONTROL_PAGE_CMD); 
+    i = copy_command(buffer, CMD_CONTROL_PAGE); 
 
     // insert the hw_id on buffer
     i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
@@ -702,7 +704,7 @@ static void request_banks_list(uint8_t dir)
     memset(buffer, 0, 20);
     uint8_t i;
 
-    i = copy_command(buffer, BANKS_CMD); 
+    i = copy_command(buffer, CMD_BANKS); 
 
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
@@ -746,7 +748,7 @@ static void request_next_bank_page(uint8_t dir)
     memset(buffer, 0, sizeof buffer);
     uint8_t i;
 
-    i = copy_command(buffer, BANKS_CMD); 
+    i = copy_command(buffer, CMD_BANKS); 
 
     // insert the direction on buffer
     i += int_to_str(dir, &buffer[i], sizeof(buffer) - i, 0);
@@ -808,7 +810,7 @@ static void request_pedalboards(uint8_t dir, uint16_t bank_uid)
     // sets the response callback
     comm_webgui_set_response_cb(parse_pedalboards_list, NULL);
 
-    i = copy_command((char *)buffer, PEDALBOARDS_CMD);
+    i = copy_command((char *)buffer, CMD_PEDALBOARDS);
 
     uint8_t bitmask = 0;
 	if (dir == 1) {bitmask |= LIST_PAGE_UP;}
@@ -873,7 +875,7 @@ static void send_load_pedalboard(uint16_t bank_id, const char *pedalboard_uid)
     char buffer[40];
     memset(buffer, 0, sizeof buffer);
 
-    i = copy_command((char *)buffer, PEDALBOARD_CMD);
+    i = copy_command((char *)buffer, CMD_LOAD_PEDALBOARD);
 
     // copy the bank id
     i += int_to_str(bank_id, &buffer[i], 8, 0);
@@ -919,9 +921,9 @@ static void control_set(uint8_t id, control_t *control)
 
     switch (control->properties)
     {
-        case CONTROL_PROP_LINEAR:
-        case CONTROL_PROP_INTEGER:
-        case CONTROL_PROP_LOGARITHMIC:
+        case FLAG_CONTROL_LINEAR:
+        case FLAG_CONTROL_INTEGER:
+        case FLAG_CONTROL_LOGARITHMIC:
             if (control->hw_id < ENCODERS_COUNT)
             {
                 // update the screen
@@ -930,9 +932,9 @@ static void control_set(uint8_t id, control_t *control)
             }
             break;
 
-        case CONTROL_PROP_REVERSE_ENUM:
-        case CONTROL_PROP_ENUMERATION:
-        case CONTROL_PROP_SCALE_POINTS:
+        case FLAG_CONTROL_REVERSE_ENUM:
+        case FLAG_CONTROL_ENUMERATION:
+        case FLAG_CONTROL_SCALE_POINTS:
         	//encoder (pagination is done in the increment / decrement functions)
             if (control->hw_id < ENCODERS_COUNT)
             {
@@ -949,7 +951,7 @@ static void control_set(uint8_t id, control_t *control)
                     led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
                 }
 
-                if (control->properties != CONTROL_PROP_REVERSE_ENUM)
+                if (control->properties != FLAG_CONTROL_REVERSE_ENUM)
                 {
         			// increments the step
         			if (control->step < (control->steps - 1))
@@ -1009,8 +1011,8 @@ static void control_set(uint8_t id, control_t *control)
             }
             break;
 
-        case CONTROL_PROP_TOGGLED:
-        case CONTROL_PROP_BYPASS:
+        case FLAG_CONTROL_TOGGLED:
+        case FLAG_CONTROL_BYPASS:
             if (control->hw_id < ENCODERS_COUNT)
             {
                 // update the screen
@@ -1027,8 +1029,7 @@ static void control_set(uint8_t id, control_t *control)
             }
             break;
 
-
-        case CONTROL_PROP_TRIGGER:
+        case FLAG_CONTROL_TRIGGER:
             control->value = control->maximum;
             // to update the footer and screen
             foot_control_add(control);
@@ -1036,14 +1037,14 @@ static void control_set(uint8_t id, control_t *control)
             if (!control->scroll_dir) return;
             break;
 
-        case CONTROL_PROP_MOMENTARY_SW:
+        case FLAG_CONTROL_MOMENTARY:
             control->value = !control->value;
             // to update the footer and screen
             foot_control_add(control);
 
             break;
 
-        case CONTROL_PROP_TAP_TEMPO:
+        case FLAG_CONTROL_TAP_TEMPO:
             now = hardware_timestamp();
             delta = now - g_tap_tempo[control->hw_id - ENCODERS_COUNT].time;
             g_tap_tempo[control->hw_id - ENCODERS_COUNT].time = now;
@@ -1089,7 +1090,7 @@ static void control_set(uint8_t id, control_t *control)
     char buffer[128];
     uint8_t i;
 
-    i = copy_command(buffer, CONTROL_SET_CMD);
+    i = copy_command(buffer, CMD_CONTROL_SET);
 
     // insert the hw_id on buffer
     i += int_to_str(control->hw_id, &buffer[i], sizeof(buffer) - i, 0);
@@ -1746,7 +1747,7 @@ static void tuner_enter(void)
     static uint8_t input = 1;
 
     char buffer[128];
-    uint32_t i = copy_command(buffer, TUNER_INPUT_CMD);
+    uint32_t i = copy_command(buffer, CMD_TUNER_INPUT);
 
     // toggle the input
     input = (input == 1 ? 2 : 1);
@@ -1847,7 +1848,7 @@ static void request_footswitch_pedalboards(uint8_t dir)
 	comm_webgui_set_response_cb(parse_footswitch_pedalboards_list, NULL);
 
 	//create the command
-	i = copy_command((char *)buffer, PEDALBOARDS_CMD);
+	i = copy_command((char *)buffer, CMD_PEDALBOARDS);
 
 	uint8_t bitmask = 0;
 	if (dir == 1) {bitmask |= LIST_PAGE_UP;}
@@ -2015,10 +2016,10 @@ static void bank_config_footer(void)
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
-                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT, CONTROL_PROP_BANKS);
+                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT, FLAG_CONTROL_BANKS);
                 
                 //turn on footswitch navigation internal value
-                if (!naveg_ui_status()) system_update_menu_value(FOOTSWITCH_NAV_ID, 1);
+                if (!naveg_ui_status()) system_update_menu_value(MENU_ID_FOOTSWITCH_NAV, 1);
 
                 break;
 
@@ -2039,10 +2040,10 @@ static void bank_config_footer(void)
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
-                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name , PEDALBOARD_PREV_FOOTER_TEXT, CONTROL_PROP_BANKS);
+                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name , PEDALBOARD_PREV_FOOTER_TEXT, FLAG_CONTROL_BANKS);
 
                 //turn on footswitch navigation internal value
-                if (!naveg_ui_status()) system_update_menu_value(FOOTSWITCH_NAV_ID, 1);
+                if (!naveg_ui_status()) system_update_menu_value(MENU_ID_FOOTSWITCH_NAV, 1);
                 
                 break; 
         }
@@ -2193,7 +2194,7 @@ void naveg_ui_connection(uint8_t status)
     {
         g_ui_connected = 1;
         //turn of footswitch navigation internal value
-        system_update_menu_value(FOOTSWITCH_NAV_ID, 0);
+        system_update_menu_value(MENU_ID_FOOTSWITCH_NAV, 0);
     }
     else
     {
@@ -2266,8 +2267,8 @@ void naveg_inc_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
 
-    if  (((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) 
-    	|| (control->properties == CONTROL_PROP_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
+    if  (((control->properties == FLAG_CONTROL_ENUMERATION) || (control->properties == FLAG_CONTROL_SCALE_POINTS) 
+    	|| (control->properties == FLAG_CONTROL_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
     {
         //sets the direction
         control->scroll_dir = g_scroll_dir = 0;
@@ -2285,14 +2286,14 @@ void naveg_inc_control(uint8_t display)
         	return;
         }    	
     }
-    else if (control->properties == CONTROL_PROP_TOGGLED)
+    else if (control->properties == FLAG_CONTROL_TOGGLED)
     {
         if (control->value == 1)
             return;
         else 
             control->value = 1;
     }
-    else if (control->properties == CONTROL_PROP_BYPASS)
+    else if (control->properties == FLAG_CONTROL_BYPASS)
     {
         if (control->value == 0)
             return;
@@ -2324,8 +2325,8 @@ void naveg_dec_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
     
-    if  (((control->properties == CONTROL_PROP_ENUMERATION) || (control->properties == CONTROL_PROP_SCALE_POINTS) ||
-     (control->properties == CONTROL_PROP_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
+    if  (((control->properties == FLAG_CONTROL_ENUMERATION) || (control->properties == FLAG_CONTROL_SCALE_POINTS) ||
+     (control->properties == FLAG_CONTROL_REVERSE_ENUM)) && (control->scale_points_flag & CONTROL_PAGINATED))
     {
         //sets the direction
         control->scroll_dir = g_scroll_dir = 0;
@@ -2343,14 +2344,14 @@ void naveg_dec_control(uint8_t display)
         	return;
         }
     }
-    else if (control->properties == CONTROL_PROP_TOGGLED)
+    else if (control->properties == FLAG_CONTROL_TOGGLED)
     {
         if (control->value == 0)
             return;
         else 
             control->value = 0;
     }
-    else if (control->properties == CONTROL_PROP_BYPASS)
+    else if (control->properties == FLAG_CONTROL_BYPASS)
     {
         if (control->value == 1)
             return;
@@ -2418,7 +2419,7 @@ void naveg_set_control(uint8_t hw_id, float value)
         else if (hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT)
         {
             //not implemented, not sure if ever needed
-            if (control->properties == CONTROL_PROP_MOMENTARY_SW)
+            if (control->properties == FLAG_CONTROL_MOMENTARY)
             {
                 // updates the footer
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
@@ -2433,7 +2434,7 @@ void naveg_set_control(uint8_t hw_id, float value)
             switch (control->properties)
             {
             // toggled specification: http://lv2plug.in/ns/lv2core/#toggled
-            case CONTROL_PROP_TOGGLED:
+            case FLAG_CONTROL_TOGGLED:
                 // updates the led
                 if (control->value <= 0)
                     led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BLACK);
@@ -2450,7 +2451,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                 break;
 
             // trigger specification: http://lv2plug.in/ns/ext/port-props/#trigger
-            case CONTROL_PROP_TRIGGER:
+            case FLAG_CONTROL_TRIGGER:
                 // updates the led
                 //check if its assigned to a trigger and if the button is released
                 if (!control->scroll_dir)
@@ -2479,7 +2480,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label, BYPASS_ON_FOOTER_TEXT, control->properties);
                 break;
 
-            case CONTROL_PROP_TAP_TEMPO:
+            case FLAG_CONTROL_TAP_TEMPO:
                 // defines the led color
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TAP_TEMPO_COLOR);
 
@@ -2550,7 +2551,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label, value_txt, control->properties);
                 break;
 
-            case CONTROL_PROP_BYPASS:
+            case FLAG_CONTROL_BYPASS:
                 // updates the led
                 if (control->value <= 0)
                     led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), BYPASS_COLOR);
@@ -2566,9 +2567,9 @@ void naveg_set_control(uint8_t hw_id, float value)
                              (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT), control->properties);
                 break;
 
-            case CONTROL_PROP_REVERSE_ENUM:
-            case CONTROL_PROP_ENUMERATION:
-            case CONTROL_PROP_SCALE_POINTS:
+            case FLAG_CONTROL_REVERSE_ENUM:
+            case FLAG_CONTROL_ENUMERATION:
+            case FLAG_CONTROL_SCALE_POINTS:
                 // updates the led
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERATED_COLOR);
 
@@ -2620,7 +2621,7 @@ void naveg_next_control(uint8_t display)
     char * buffer = (char *) MALLOC(128 * sizeof(char));
     uint8_t i;
 
-    i = copy_command(buffer, CONTROL_NEXT_CMD);
+    i = copy_command(buffer, CMD_DUO_CONTROL_NEXT);
 
     // inserts the hw id
     i += int_to_str(display, &buffer[i], 4, 0);
@@ -2653,12 +2654,12 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
     //detect a release action which we dont use right now for all actuator modes
     if (!pressed)
     {
-        if ((g_foots[foot]->properties == CONTROL_PROP_TRIGGER) || (g_foots[foot]->properties == CONTROL_PROP_MOMENTARY_SW))
+        if ((g_foots[foot]->properties == FLAG_CONTROL_TRIGGER) || (g_foots[foot]->properties == FLAG_CONTROL_MOMENTARY))
         {
             led_set_color(hardware_leds(foot), BLACK);
             led_set_color(hardware_leds(foot), TRIGGER_COLOR); //TRIGGER_COLOR
         }
-        else if ((g_foots[foot]->properties == CONTROL_PROP_SCALE_POINTS) || (g_foots[foot]->properties == CONTROL_PROP_REVERSE_ENUM) || (g_foots[foot]->properties == CONTROL_PROP_ENUMERATION))
+        else if ((g_foots[foot]->properties == FLAG_CONTROL_SCALE_POINTS) || (g_foots[foot]->properties == FLAG_CONTROL_REVERSE_ENUM) || (g_foots[foot]->properties == FLAG_CONTROL_ENUMERATION))
         {
             led_set_color(hardware_leds(foot), BLACK);
             led_set_color(hardware_leds(foot), ENUMERATED_COLOR); //ENUMERATED_COLOR
@@ -2669,7 +2670,7 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
         g_foots[foot]->scroll_dir = pressed;
 
         //when momentary send off
-        if (g_foots[foot]->properties != CONTROL_PROP_MOMENTARY_SW)
+        if (g_foots[foot]->properties != FLAG_CONTROL_MOMENTARY)
             return;
     }
 
@@ -2732,13 +2733,14 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 system_lock_comm_serial(g_protocol_busy);
 
                 // sends the data to GUI
-                comm_webgui_send(TUNER_ON_CMD, strlen(TUNER_ON_CMD));
+                comm_webgui_send(CMD_TUNER_ON, strlen(CMD_TUNER_ON));
 
                 // waits the pedalboards list be received
                 comm_webgui_wait_response();
 
                 g_protocol_busy = false;
                 system_lock_comm_serial(g_protocol_busy);
+
                 break;
             case DISPLAY_TOOL_SYSTEM:
                 screen_clear(1);
@@ -2782,18 +2784,19 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 break;
 
             case DISPLAY_TOOL_TUNER:
+
                 g_protocol_busy = true;
                 system_lock_comm_serial(g_protocol_busy);
 
                 // sends the data to GUI
-                comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+                comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
 
                 // waits the pedalboards list be received
                 comm_webgui_wait_response();
 
                 g_protocol_busy = false;
                 system_lock_comm_serial(g_protocol_busy);
-                
+
                 tool_off(DISPLAY_TOOL_TUNER);
 
                 if (tool_is_on(DISPLAY_TOOL_SYSTEM))
