@@ -131,8 +131,8 @@ control_t *data_parse_control(char **data)
     else if (FLAG_CONTROL_INTEGER & properties_mask)
         control->properties = FLAG_CONTROL_INTEGER;
 
-    if (FLAG_CONTROL_MOMENTARY_SW & properties_mask)
-        control->properties = FLAG_CONTROL_MOMENTARY_SW;
+    if (FLAG_CONTROL_MOMENTARY & properties_mask)
+        control->properties = FLAG_CONTROL_MOMENTARY;
 
     // checks if has scale points
     uint8_t i = 0;

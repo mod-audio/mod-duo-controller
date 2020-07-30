@@ -19,19 +19,19 @@ endif
 TARGET_ADDR = root@modduo.local
 
 # project directories
-DEVICE_INC	= ./nxp-lpc
-CMSIS_INC	= ./nxp-lpc/CMSISv2p00_$(CPU_SERIE)/inc
-CMSIS_SRC	= ./nxp-lpc/CMSISv2p00_$(CPU_SERIE)/src
-CDL_INC 	= ./nxp-lpc/$(CPU_SERIE)Lib/inc
-CDL_SRC 	= ./nxp-lpc/$(CPU_SERIE)Lib/src
-APP_INC 	= ./app/inc
-APP_SRC 	= ./app/src
-RTOS_SRC	= ./freertos/src
-RTOS_INC	= ./freertos/inc
-DRIVERS_INC	= ./drivers/inc
-PROTOCOL_INC= ./mod-controller-proto
-DRIVERS_SRC	= ./drivers/src
-OUT_DIR		= ./out
+DEVICE_INC	 = ./nxp-lpc
+CMSIS_INC	 = ./nxp-lpc/CMSISv2p00_$(CPU_SERIE)/inc
+CMSIS_SRC	 = ./nxp-lpc/CMSISv2p00_$(CPU_SERIE)/src
+CDL_INC 	 = ./nxp-lpc/$(CPU_SERIE)Lib/inc
+CDL_SRC 	 = ./nxp-lpc/$(CPU_SERIE)Lib/src
+APP_INC 	 = ./app/inc
+APP_SRC 	 = ./app/src
+RTOS_SRC	 = ./freertos/src
+RTOS_INC	 = ./freertos/inc
+DRIVERS_INC	 = ./drivers/inc
+PROTOCOL_INC = ./mod-controller-proto
+DRIVERS_SRC	 = ./drivers/src
+OUT_DIR		 = ./out
 
 CDL_LIBS = lpc17xx_clkpwr.c
 CDL_LIBS += lpc17xx_adc.c lpc17xx_gpio.c  lpc17xx_pinsel.c

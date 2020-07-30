@@ -186,7 +186,7 @@ static void display_disable_all_tools(uint8_t display)
         system_lock_comm_serial(g_protocol_busy);
 
         // sends the data to GUI
-        comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+        comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
 
         // waits the pedalboards list be received
         comm_webgui_wait_response();
@@ -347,8 +347,8 @@ static void display_control_add(control_t *control)
                 (control->value - control->minimum) / ((control->maximum - control->minimum) / control->steps);
             break;
 
-        case CONTROL_PROP_BYPASS:
-        case CONTROL_PROP_TOGGLED:
+        case FLAG_CONTROL_BYPASS:
+        case FLAG_CONTROL_TOGGLED:
             control->steps = 1;
             control->step = control->value;
             break;
@@ -435,7 +435,7 @@ static void foot_control_add(control_t *control)
                          (control->value <= 0 ? TOGGLED_OFF_FOOTER_TEXT : TOGGLED_ON_FOOTER_TEXT), control->properties);
             break;
 
-        case CONTROL_PROP_MOMENTARY_SW:
+        case FLAG_CONTROL_MOMENTARY:
             // updates the led
             if ((control->scroll_dir == 0)||(control->scroll_dir == 2))
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), TRIGGER_COLOR);
@@ -1037,7 +1037,7 @@ static void control_set(uint8_t id, control_t *control)
             if (!control->scroll_dir) return;
             break;
 
-        case CONTROL_PROP_MOMENTARY_SW:
+        case FLAG_CONTROL_MOMENTARY:
             control->value = !control->value;
             // to update the footer and screen
             foot_control_add(control);
@@ -2016,7 +2016,7 @@ static void bank_config_footer(void)
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
-                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT, CONTROL_PROP_BANKS);
+                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name, PEDALBOARD_NEXT_FOOTER_TEXT, FLAG_CONTROL_BANKS);
                 
                 //turn on footswitch navigation internal value
                 if (!naveg_ui_status()) system_update_menu_value(MENU_ID_FOOTSWITCH_NAV, 1);
@@ -2040,7 +2040,7 @@ static void bank_config_footer(void)
                 led_set_color(hardware_leds(bank_conf->hw_id - ENCODERS_COUNT), color);
 
                 if (display_has_tool_enabled(bank_conf->hw_id - ENCODERS_COUNT)) break;
-                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name , PEDALBOARD_PREV_FOOTER_TEXT, CONTROL_PROP_BANKS);
+                screen_footer(bank_conf->hw_id - ENCODERS_COUNT, pedalboard_name , PEDALBOARD_PREV_FOOTER_TEXT, FLAG_CONTROL_BANKS);
 
                 //turn on footswitch navigation internal value
                 if (!naveg_ui_status()) system_update_menu_value(MENU_ID_FOOTSWITCH_NAV, 1);
@@ -2286,14 +2286,14 @@ void naveg_inc_control(uint8_t display)
         	return;
         }    	
     }
-    else if (control->properties == CONTROL_PROP_TOGGLED)
+    else if (control->properties == FLAG_CONTROL_TOGGLED)
     {
         if (control->value == 1)
             return;
         else 
             control->value = 1;
     }
-    else if (control->properties == CONTROL_PROP_BYPASS)
+    else if (control->properties == FLAG_CONTROL_BYPASS)
     {
         if (control->value == 0)
             return;
@@ -2344,14 +2344,14 @@ void naveg_dec_control(uint8_t display)
         	return;
         }
     }
-    else if (control->properties == CONTROL_PROP_TOGGLED)
+    else if (control->properties == FLAG_CONTROL_TOGGLED)
     {
         if (control->value == 0)
             return;
         else 
             control->value = 0;
     }
-    else if (control->properties == CONTROL_PROP_BYPASS)
+    else if (control->properties == FLAG_CONTROL_BYPASS)
     {
         if (control->value == 1)
             return;
@@ -2419,7 +2419,7 @@ void naveg_set_control(uint8_t hw_id, float value)
         else if (hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT)
         {
             //not implemented, not sure if ever needed
-            if (control->properties == CONTROL_PROP_MOMENTARY_SW)
+            if (control->properties == FLAG_CONTROL_MOMENTARY)
             {
                 // updates the footer
                 screen_footer(control->hw_id - ENCODERS_COUNT, control->label,
@@ -2654,7 +2654,7 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
     //detect a release action which we dont use right now for all actuator modes
     if (!pressed)
     {
-        if ((g_foots[foot]->properties == FLAG_CONTROL_TRIGGER) || (g_foots[foot]->properties == FLAG_CONTRO_MOMENTARY_SW))
+        if ((g_foots[foot]->properties == FLAG_CONTROL_TRIGGER) || (g_foots[foot]->properties == FLAG_CONTROL_MOMENTARY))
         {
             led_set_color(hardware_leds(foot), BLACK);
             led_set_color(hardware_leds(foot), TRIGGER_COLOR); //TRIGGER_COLOR
@@ -2670,7 +2670,7 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
         g_foots[foot]->scroll_dir = pressed;
 
         //when momentary send off
-        if (g_foots[foot]->properties != CONTROL_PROP_MOMENTARY_SW)
+        if (g_foots[foot]->properties != FLAG_CONTROL_MOMENTARY)
             return;
     }
 
@@ -2727,13 +2727,13 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 g_bp_state = BANKS_LIST;
                 break;
             case DISPLAY_TOOL_TUNER:
-                display_disable_all_tools(displ
+                display_disable_all_tools(display);
 
                 g_protocol_busy = true;
                 system_lock_comm_serial(g_protocol_busy);
 
                 // sends the data to GUI
-                comm_webgui_send(TUNER_ON_CMD, strlen(TUNER_ON_CMD));
+                comm_webgui_send(CMD_TUNER_ON, strlen(CMD_TUNER_ON));
 
                 // waits the pedalboards list be received
                 comm_webgui_wait_response();
@@ -2789,7 +2789,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
                 system_lock_comm_serial(g_protocol_busy);
 
                 // sends the data to GUI
-                comm_webgui_send(TUNER_OFF_CMD, strlen(TUNER_OFF_CMD));
+                comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
 
                 // waits the pedalboards list be received
                 comm_webgui_wait_response();

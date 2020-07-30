@@ -58,6 +58,7 @@
 
 #define UNUSED_PARAM(var)   do { (void)(var); } while (0)
 #define TASK_NAME(name)     ((const char * const) (name))
+#define ACTUATOR_TYPE(act)  (((button_t *)(act))->type)
 
 #define ACTUATORS_QUEUE_SIZE    10
 #define RESERVED_QUEUE_SPACES   3
@@ -71,9 +72,6 @@
 
 static volatile xQueueHandle g_actuators_queue;
 static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
-
-static uint8_t g_ui_communication_started;
-#define ACTUATOR_TYPE(act)  (((button_t *)(act))->type)
 
 /*
 ************************************************************************************************************************
@@ -90,30 +88,6 @@ static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
 static void cli_task(void *pvParameters);
 static void setup_task(void *pvParameters);
-/*
-// protocol callbacks
-static void ping_cb(proto_t *proto);
-static void say_cb(proto_t *proto);
-static void led_cb(proto_t *proto);
-static void glcd_text_cb(proto_t *proto);
-static void glcd_dialog_cb(proto_t *proto);
-static void glcd_draw_cb(proto_t *proto);
-static void gui_connection_cb(proto_t *proto);
-static void control_add_cb(proto_t *proto);
-static void control_rm_cb(proto_t *proto);
-static void control_set_cb(proto_t *proto);
-static void control_get_cb(proto_t *proto);
-static void control_set_index_cb(proto_t *proto);
-static void initial_state_cb(proto_t *proto);
-static void bank_config_cb(proto_t *proto);
-static void tuner_cb(proto_t *proto);
-static void resp_cb(proto_t *proto);
-static void restore_cb(proto_t *proto);
-static void pedalboard_name_cb(proto_t *proto);
-static void snapshot_name_cb(proto_t *proto);
-static void boot_cb(proto_t *proto);
-static void menu_item_changed_cb(proto_t *proto);
-static void pedalboard_clear_cb(proto_t *proto);*/
 
 /*
 ************************************************************************************************************************
@@ -149,7 +123,6 @@ int main(void)
     // should never reach here!
     for(;;);
 }
-
 
 /*
 ************************************************************************************************************************
@@ -205,13 +178,11 @@ static void actuators_cb(void *actuator)
     portEND_SWITCHING_ISR(xHigherPriorityTaskWoken);
 }
 
-
 /*
 ************************************************************************************************************************
 *           TASKS
 ************************************************************************************************************************
 */
-
 
 static void procotol_task(void *pvParameters)
 {
