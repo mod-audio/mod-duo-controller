@@ -73,7 +73,7 @@ typedef struct CMD_T {
 */
 
 static unsigned int g_command_count = 0;
-static cmd_t g_commands[PROTOCOL_MAX_COMMANDS];
+static cmd_t g_commands[COMMAND_COUNT_DUO];
 
 
 /*
@@ -208,7 +208,7 @@ void protocol_parse(msg_t *msg)
 
 void protocol_add_command(const char *command, void (*callback)(proto_t *proto))
 {
-    if (g_command_count >= PROTOCOL_MAX_COMMANDS) while (1);
+    if (g_command_count >= COMMAND_COUNT_DUO) while (1);
 
     char *cmd = str_duplicate(command);
     g_commands[g_command_count].command = cmd;
