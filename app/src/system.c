@@ -1179,7 +1179,7 @@ void system_load_pro_cb(void *arg, int event)
         g_current_profile = item->desc->id - item->desc->parent_id;
         item->data.value = 1;
 
-        set_item_value(CMD_LOAD_PROFILE, g_current_profile);
+        set_item_value(CMD_PROFILE_LOAD, g_current_profile);
     }
 
     else if (event == MENU_EV_NONE)
@@ -1208,7 +1208,7 @@ void system_save_pro_cb(void *arg, int event)
     //if clicked and YES was selected from the pop-up
     if (event == MENU_EV_ENTER && item->data.hover == 0)
     {
-        set_item_value(CMD_STORE_PROFILE, g_current_profile);
+        set_item_value(CMD_PROFILE_STORE, g_current_profile);
         //since the current profile value cant change because of a menu enter here we do not need to update the name.
     }
 

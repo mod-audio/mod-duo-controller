@@ -16,7 +16,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "actuator.h"
-#include "mod-protocol.h"
+#include "protocol.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -106,7 +106,7 @@ static uint16_t g_bp_state, g_current_pedalboard, g_bp_first, g_pb_footswitches;
 static node_t *g_menu, *g_current_menu, *g_current_main_menu;
 static menu_item_t *g_current_item, *g_current_main_item;
 static uint8_t g_max_items_list;
-static bank_config_t g_bank_functions[BANK_FUNC_AMOUNT];
+static bank_config_t g_bank_functions[BANK_FUNC_COUNT];
 static uint8_t g_initialized, g_ui_connected;
 static void (*g_update_cb)(void *data, int event);
 static void *g_update_data;
@@ -875,7 +875,7 @@ static void send_load_pedalboard(uint16_t bank_id, const char *pedalboard_uid)
     char buffer[40];
     memset(buffer, 0, sizeof buffer);
 
-    i = copy_command((char *)buffer, CMD_LOAD_PEDALBOARD);
+    i = copy_command((char *)buffer, CMD_PEDALBOARD_LOAD);
 
     // copy the bank id
     i += int_to_str(bank_id, &buffer[i], 8, 0);
@@ -1887,7 +1887,7 @@ static uint8_t bank_config_check(uint8_t foot)
 {
     uint8_t i;
 
-    for (i = 1; i < BANK_FUNC_AMOUNT; i++)
+    for (i = 1; i < BANK_FUNC_COUNT; i++)
     {
         if (g_bank_functions[i].hw_id - ENCODERS_COUNT == foot &&
             g_bank_functions[i].function != BANK_FUNC_NONE)
@@ -1979,7 +1979,7 @@ static void bank_config_footer(void)
 
     // updates all footer screen with bank functions
     uint8_t i;
-    for (i = 1; i < BANK_FUNC_AMOUNT; i++)
+    for (i = 1; i < BANK_FUNC_COUNT; i++)
     {
         bank_config_t *bank_conf;
         bank_conf = &g_bank_functions[i];
@@ -2079,7 +2079,7 @@ void naveg_init(void)
     g_bp_state = BANKS_LIST;
 
     // initializes the bank functions
-    for (i = 0; i < BANK_FUNC_AMOUNT; i++)
+    for (i = 0; i < BANK_FUNC_COUNT; i++)
     {
         g_bank_functions[i].function = BANK_FUNC_NONE;
         g_bank_functions[i].hw_id = 0xFF;
@@ -2879,13 +2879,13 @@ void naveg_bank_config(bank_config_t *bank_conf)
 	 if (!g_initialized) return;
 
     // checks the function number
-    if (bank_conf->function >= BANK_FUNC_AMOUNT) return;
+    if (bank_conf->function >= BANK_FUNC_COUNT) return;
 
     // checks the actuator type and actuator id
     if (bank_conf->hw_id > ENCODERS_COUNT + FOOTSWITCHES_COUNT) return;
 
     uint8_t i;
-    for (i = 1; i < BANK_FUNC_AMOUNT; i++)
+    for (i = 1; i < BANK_FUNC_COUNT; i++)
     {
         // checks if the function is already assigned to an actuator
         if (bank_conf->function != BANK_FUNC_NONE &&

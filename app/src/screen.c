@@ -11,8 +11,8 @@
 #include "glcd_widget.h"
 #include "naveg.h"
 #include "hardware.h"
-#include "mod-protocol.h"
 #include "images.h"
+#include "protocol.h"
 #include <string.h>
 
 
@@ -368,7 +368,7 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         footer.align = ALIGN_RIGHT_NONE;
         widget_textbox(display, &footer);
 
-        //if in banks menu, invert
+        // special handling for banks menu, invert
         if (property == FLAG_CONTROL_BANKS)
             glcd_rect_invert(display, DISPLAY_WIDTH - 10, 51, 10, DISPLAY_HEIGHT-52);
     }

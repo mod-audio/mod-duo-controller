@@ -281,7 +281,7 @@ void protocol_init(void)
     protocol_add_command(CMD_RESTORE, cb_restore);
     protocol_add_command(CMD_DUO_BOOT, cb_boot);
     protocol_add_command(CMD_MENU_ITEM_CHANGE, cb_menu_item_changed);
-    protocol_add_command(CMD_CLEAR_PEDALBOARD, cb_pedalboard_clear);
+    protocol_add_command(CMD_PEDALBOARD_CLEAR, cb_pedalboard_clear);
 }
 
 /*
