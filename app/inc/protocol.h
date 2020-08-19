@@ -33,12 +33,6 @@
 ************************************************************************************************************************
 */
 
-// error messages configuration
-#define MESSAGE_COMMAND_NOT_FOUND       "not found"
-#define MESSAGE_MANY_ARGUMENTS          "many arguments"
-#define MESSAGE_FEW_ARGUMENTS           "few arguments"
-#define MESSAGE_INVALID_ARGUMENT        "invalid argument"
-
 // defines the function to send responses to sender
 #define SEND_TO_SENDER(id,msg,len)      comm_webgui_send(msg,len)
 
