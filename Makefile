@@ -102,8 +102,7 @@ hex: $(OUT_DIR)/$(PRJNAME).hex
 bin: $(OUT_DIR)/$(PRJNAME).bin
 
 prebuild:
-	@touch .last_built
-ifneq ($(shell cat .last_built),$(mod))
+ifneq ($(shell cat .last_built 2>/dev/null),$(mod))
 	@make clean
 endif
 	@mkdir -p $(OUT_DIR)
@@ -138,7 +137,7 @@ $(ELF): $(OBJ)
 	@echo -e ${GREEN}Linking objects: generating ELF${NOCOLOR}
 	@$(CC) $(THUMB) $(CFLAGS) $(OBJ) --output $@ -nostartfiles $(LDFLAGS)
 
-%.o: %.c
+%.o: %.c prebuild
 	@echo -e ${GREEN}Building $<${NOCOLOR}
 	@$(CC) $(THUMB) $(CFLAGS) -c $< -o $@
 
