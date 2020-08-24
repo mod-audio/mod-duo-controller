@@ -282,6 +282,8 @@ void protocol_init(void)
     protocol_add_command(CMD_DUO_BOOT, cb_boot);
     protocol_add_command(CMD_MENU_ITEM_CHANGE, cb_menu_item_changed);
     protocol_add_command(CMD_PEDALBOARD_CLEAR, cb_pedalboard_clear);
+    protocol_add_command(CMD_PEDALBOARD_NAME_SET, cb_pedalboard_name);
+    protocol_add_command(CMD_SNAPSHOT_NAME_SET, cb_snapshot_name);
 }
 
 /*
@@ -544,6 +546,34 @@ void cb_pedalboard_clear(proto_t *proto)
     {
         naveg_remove_control(i);
     }
+
+    protocol_send_response(CMD_RESPONSE, 0, proto);
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
+}
+
+void cb_pedalboard_name(proto_t *proto)
+{
+    //lock actuators
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    screen_pb_name(&proto->list[1] , 1);
+
+    protocol_send_response(CMD_RESPONSE, 0, proto);
+
+    g_protocol_busy = false;
+    system_lock_comm_serial(g_protocol_busy);
+}
+
+void cb_snapshot_name(proto_t *proto)
+{
+    //lock actuators
+    g_protocol_busy = true;
+    system_lock_comm_serial(g_protocol_busy);
+
+    screen_ss_name(&proto->list[1] , 1);
 
     protocol_send_response(CMD_RESPONSE, 0, proto);
 
