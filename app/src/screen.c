@@ -382,7 +382,7 @@ void screen_pb_name(const void *data, uint8_t update)
 
     if (pedalboard_name == NULL)
     {
-        pedalboard_name = (char *) MALLOC(30 * sizeof(char));
+        pedalboard_name = (char *) MALLOC(20 * sizeof(char));
         strcpy(pedalboard_name, "DEFAULT");
         char_cnt = 7;
     }
@@ -393,20 +393,31 @@ void screen_pb_name(const void *data, uint8_t update)
 
         // get first list name, copy it to our string buffer
         const char *name_string = *name_list;
-        strncpy(pedalboard_name, name_string, 29);
-        pedalboard_name[29] = 0; // strncpy might not have final null byte
+        strncpy(pedalboard_name, name_string, 19);
+        pedalboard_name[19] = 0; // strncpy might not have final null byte
 
         // go to next name in list
         name_string = *(++name_list);
 
-        while (name_string && ((strlen(pedalboard_name) + strlen(name_string) + 1) < 29))
+        while (name_string)
         {
-            strcat(pedalboard_name, " ");
-            strcat(pedalboard_name, name_string);
-            name_string = *(++name_list);
-            char_cnt++;
+            if(((strlen(pedalboard_name) + strlen(name_string) + 1) > 18))
+            {
+                strcat(pedalboard_name, " ");
+                char tmp[19 - (strlen(pedalboard_name) + 1)];
+                strncpy (tmp, name_string, sizeof(tmp));
+                strcat(pedalboard_name, tmp);
+                break;
+            }
+            else
+            {
+                strcat(pedalboard_name, " ");
+                strcat(pedalboard_name, name_string);
+                name_string = *(++name_list);
+                char_cnt++;
+            }
         }
-        pedalboard_name[29] = 0;
+        pedalboard_name[19] = 0;
 
         char_cnt = strlen(pedalboard_name);
     }
@@ -447,7 +458,7 @@ void screen_ss_name(const void *data, uint8_t update)
 
     if (snapshot_name == NULL)
     {
-        snapshot_name = (char *) MALLOC(30 * sizeof(char));
+        snapshot_name = (char *) MALLOC(20 * sizeof(char));
         strcpy(snapshot_name, "DEFAULT");
         char_cnt = 7;
     }
@@ -458,19 +469,31 @@ void screen_ss_name(const void *data, uint8_t update)
 
         // get first list name, copy it to our string buffer
         const char *name_string = *name_list;
-        strncpy(snapshot_name, name_string, 29);
-        snapshot_name[29] = 0; // strncpy might not have final null byte
+        strncpy(snapshot_name, name_string, 19);
+        snapshot_name[19] = 0; // strncpy might not have final null byte
 
         // go to next name in list
         name_string = *(++name_list);
 
-        while (name_string && ((strlen(snapshot_name) + strlen(name_string) + 1) < 29))
+        while (name_string && ((strlen(snapshot_name) + strlen(name_string) + 1) < 19))
         {
-            strcat(snapshot_name, " ");
-            strcat(snapshot_name, name_string);
-            name_string = *(++name_list);
+            if(((strlen(snapshot_name) + strlen(name_string) + 1) > 18))
+            {
+                strcat(snapshot_name, " ");
+                char tmp[19 - (strlen(snapshot_name) + 1)];
+                strncpy (tmp, name_string, sizeof(tmp));
+                strcat(snapshot_name, tmp);
+                break;
+            }
+            else
+            {
+                strcat(snapshot_name, " ");
+                strcat(snapshot_name, name_string);
+                name_string = *(++name_list);
+                char_cnt++;
+            }
         }
-        snapshot_name[29] = 0;
+        snapshot_name[19] = 0;
 
         char_cnt = strlen(snapshot_name);
     }
