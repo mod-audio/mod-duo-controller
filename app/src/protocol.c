@@ -275,7 +275,7 @@ void protocol_init(void)
     protocol_add_command(CMD_CONTROL_GET, cb_control_get);
     protocol_add_command(CMD_DUO_CONTROL_INDEX_SET, cb_control_set_index);
     protocol_add_command(CMD_INITIAL_STATE, cb_initial_state);
-    protocol_add_command(CMD_BANKS, cb_bank_config);
+    protocol_add_command(CMD_DUO_BANK_CONFIG, cb_bank_config);
     protocol_add_command(CMD_TUNER, cb_tuner);
     protocol_add_command(CMD_RESPONSE, cb_resp);
     protocol_add_command(CMD_RESTORE, cb_restore);
