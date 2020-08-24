@@ -185,34 +185,22 @@ static void set_menu_item_value(uint16_t menu_id, uint16_t value)
 {
     if (g_comm_protocol_bussy) return;
 
-    uint8_t i;
+    uint8_t i = 0;
     char buffer[50];
+    memset(buffer, 0, sizeof buffer);
 
     i = copy_command((char *)buffer, CMD_MENU_ITEM_CHANGE);
 
     // copy the id
-    char id_buf[3];
-    int_to_str(menu_id, id_buf, 2, 0);
-    const char *p = id_buf;
-    while (*p)
-    {
-        buffer[i++] = *p;
-        p++;
-    }
+    i += int_to_str(menu_id, &buffer[i], sizeof(buffer) - i, 0);
 
-    strcat(buffer, " ");
-    i++;
+    // inserts one space
+    buffer[i++] = ' ';
 
     // copy the value
-    char str_buf[8];
-    int_to_str(value, str_buf, 4, 0);
-    const char *q = str_buf;
-    while (*q)
-    {
-        buffer[i++] = *q;
-        q++;
-    }
-    buffer[i] = 0;
+    i += int_to_str(value, &buffer[i], sizeof(buffer) - i, 0);
+
+    buffer[i++] = 0;
 
     // sets the response callback
     comm_webgui_set_response_cb(NULL, NULL);
