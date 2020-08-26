@@ -403,6 +403,10 @@ void screen_pb_name(const void *data, uint8_t update)
         {
             if(((strlen(pedalboard_name) + strlen(name_string) + 1) > 18))
             {
+                //if we only have a 1 char left, nevermind
+                if (((strlen(pedalboard_name) + 1) > 18))
+                    break;
+
                 strcat(pedalboard_name, " ");
                 char tmp[19 - (strlen(pedalboard_name) + 1)];
                 strncpy (tmp, name_string, sizeof(tmp));
@@ -479,6 +483,10 @@ void screen_ss_name(const void *data, uint8_t update)
         {
             if(((strlen(snapshot_name) + strlen(name_string) + 1) > 18))
             {
+                //if we only have a 1 char left, nevermind
+                if (((strlen(snapshot_name) + 1) > 18))
+                    break;
+
                 strcat(snapshot_name, " ");
                 char tmp[19 - (strlen(snapshot_name) + 1)];
                 strncpy (tmp, name_string, sizeof(tmp));
