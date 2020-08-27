@@ -335,6 +335,16 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 #define PEDALBOARD_NEXT_COLOR       WHITE
 #define PEDALBOARD_PREV_COLOR       WHITE
 #define PEDALBOARD_LOADING_COLOR    GREEN
+#define LED_LIST_COLOR_1            WHITE   
+#define LED_LIST_COLOR_2            RED
+#define LED_LIST_COLOR_3            YELLOW
+#define LED_LIST_COLOR_4            CYAN
+#define LED_LIST_COLOR_5            GREEN
+#define LED_LIST_COLOR_6            MAGENTA
+#define LED_LIST_COLOR_7            BLUE
+
+
+#define LED_LIST_AMOUNT_OF_COLORS   7
 
 //// Tap Tempo
 // defines the time that the led will stay turned on (in milliseconds)
