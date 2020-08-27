@@ -995,11 +995,13 @@ static void control_set(uint8_t id, control_t *control)
             //footswitch (need to check for pages here)
             else if ((ENCODERS_COUNT <= control->hw_id) && ( control->hw_id < FOOTSWITCHES_ACTUATOR_COUNT + ENCODERS_COUNT))
             {
+                uint8_t trigger_led_change = 0;
+
                 if ((control->scroll_dir == 2) || (control->scale_points_flag & FLAG_SCALEPOINT_ALT_LED_COLOR))
                 {
                     if (control->scale_points_flag & FLAG_SCALEPOINT_ALT_LED_COLOR)
                     {
-                        set_alternated_led_list_colour(control);
+                        trigger_led_change = 1;
                     }
                     else
                     {
@@ -1075,6 +1077,9 @@ static void control_set(uint8_t id, control_t *control)
                 control->value = control->scale_points[control->step]->value;
                 if (!display_has_tool_enabled(get_display_by_id(id, FOOT)))
                     screen_footer(control->hw_id - ENCODERS_COUNT, control->label, control->scale_points[control->step]->label, control->properties);
+            
+                if (trigger_led_change == 1)
+                    set_alternated_led_list_colour(control);
             }
             break;
 
