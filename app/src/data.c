@@ -81,11 +81,11 @@ control_t *data_parse_control(char **data)
 {
     control_t *control = NULL;
     uint32_t len = strarr_length(data);
-    const uint32_t min_params = 10;
+    const uint32_t min_params = 11;
     uint16_t properties_mask = 0;
 
     // checks if all data was received
-    if (len < min_params - 1)
+    if (len < min_params - 2)
         return NULL;
 
     control = (control_t *) MALLOC(sizeof(control_t));
@@ -104,6 +104,7 @@ control_t *data_parse_control(char **data)
     control->scale_points_count = 0;
     //pagination on by default
     control->scale_points_flag = 1;
+    control->scale_point_index = 0;
     control->scale_points = NULL;
 
     // checks the memory allocation
@@ -139,7 +140,7 @@ control_t *data_parse_control(char **data)
     if (len >= (min_params+1) && (control->properties == FLAG_CONTROL_ENUMERATION ||
         control->properties == FLAG_CONTROL_SCALE_POINTS || control->properties == FLAG_CONTROL_REVERSE_ENUM))
     {
-        control->scale_points_count = atoi(data[min_params - 1]);
+        control->scale_points_count = atoi(data[min_params - 2]);
         if (control->scale_points_count == 0) return control;
 
         control->scale_points = (scale_point_t **) MALLOC(sizeof(scale_point_t*) * control->scale_points_count);
@@ -158,6 +159,7 @@ control_t *data_parse_control(char **data)
         }
 
         control->scale_points_flag = atoi(data[10]);
+        control->scale_point_index = atoi(data[11]);
     }
 
     return control;
