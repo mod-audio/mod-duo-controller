@@ -316,6 +316,12 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         footer.align = ALIGN_CENTER_NONE;
         widget_textbox(display, &footer);
     
+        if (property & FLAG_CONTROL_REVERSE_ENUM)
+        {
+            if (value[1] != 'N')
+            {
+                glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
+            }
         if (value[1] == 'N')
         {
             glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
