@@ -322,7 +322,8 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
             {
                 glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
             }
-        if (value[1] == 'N')
+        }
+        else if (value[1] == 'N')
         {
             glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
         }
