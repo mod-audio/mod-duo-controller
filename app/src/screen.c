@@ -316,7 +316,7 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         footer.align = ALIGN_CENTER_NONE;
         widget_textbox(display, &footer);
     
-        if (property & FLAG_CONTROL_REVERSE_ENUM)
+        if ((property & FLAG_CONTROL_REVERSE_ENUM) && !(property & FLAG_CONTROL_BYPASS))
         {
             if (value[1] != 'N')
             {
