@@ -961,7 +961,7 @@ static void control_set(uint8_t id, control_t *control)
 {
     uint32_t now, delta;
 
-    if (control->properties & (FLAG_CONTROL_REVERSE_ENUM | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
+    if ((control->properties & (FLAG_CONTROL_REVERSE_ENUM | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS)) && !(control->properties & FLAG_CONTROL_MOMENTARY))
     {
         //encoder (pagination is done in the increment / decrement functions)
         if (control->hw_id < ENCODERS_COUNT)
