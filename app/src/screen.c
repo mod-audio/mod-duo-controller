@@ -316,11 +316,36 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
         footer.align = ALIGN_CENTER_NONE;
         widget_textbox(display, &footer);
     
-        if ((property & FLAG_CONTROL_REVERSE_ENUM) && !(property & FLAG_CONTROL_BYPASS))
+        if (property & FLAG_CONTROL_MOMENTARY)
         {
-            if (value[1] != 'N')
+            //reverse
+            if (property & FLAG_CONTROL_REVERSE_ENUM)
             {
-                glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
+                if ((value[1] != 'N') && !(property & FLAG_CONTROL_BYPASS))
+                {
+                    glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
+                }
+                else if (property & FLAG_CONTROL_BYPASS)
+                {
+                    if (value[1] == 'N')
+                    {
+                        glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
+                    }
+                }
+            }
+            else 
+            {
+                if ((value[1] == 'N') && !(property & FLAG_CONTROL_BYPASS))
+                {
+                    glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
+                }
+                else if (property & FLAG_CONTROL_BYPASS)
+                {
+                    if (value[1] != 'N')
+                    {
+                        glcd_rect_invert(display, 0, 51, DISPLAY_WIDTH, DISPLAY_HEIGHT-51);
+                    }
+                } 
             }
         }
         else if (value[1] == 'N')
