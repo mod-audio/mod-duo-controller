@@ -112,7 +112,7 @@ control_t *data_parse_control(char **data)
 
     // checks if has scale points
     uint8_t i = 0;
-    if (len >= (min_params+1) && (control->properties & (FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE_ENUM)))
+    if (len >= (min_params+1) && (control->properties & (FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE)))
     {
         control->scale_points_count = atoi(data[min_params - 2]);
         if (control->scale_points_count == 0) return control;

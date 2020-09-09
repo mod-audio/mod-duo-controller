@@ -262,7 +262,7 @@ static void step_to_value(control_t *control)
     {
         control->value = control->minimum * pow(control->maximum / control->minimum, p_step);
     }
-    else if (control->properties & (FLAG_CONTROL_REVERSE_ENUM | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
+    else if (control->properties & (FLAG_CONTROL_REVERSE | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
     {
         control->value = control->scale_points[control->step]->value;
     }
@@ -303,7 +303,7 @@ static void display_control_add(control_t *control)
         control->step =
             (control->steps - 1) * log(control->value / control->minimum) / log(control->maximum / control->minimum);
     }
-    else if (control->properties & (FLAG_CONTROL_REVERSE_ENUM | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
+    else if (control->properties & (FLAG_CONTROL_REVERSE | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
     {
         control->step = 0;
         uint8_t i;
@@ -574,7 +574,7 @@ static void foot_control_add(control_t *control)
                          (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT), control->properties);
         }
     }
-    else if (control->properties & (FLAG_CONTROL_REVERSE_ENUM | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
+    else if (control->properties & (FLAG_CONTROL_REVERSE | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
     {
         if ((control->scroll_dir == 0)||(control->scroll_dir == 2))
         {   
@@ -961,7 +961,7 @@ static void control_set(uint8_t id, control_t *control)
 {
     uint32_t now, delta;
 
-    if ((control->properties & (FLAG_CONTROL_REVERSE_ENUM | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS)) && !(control->properties & FLAG_CONTROL_MOMENTARY))
+    if ((control->properties & (FLAG_CONTROL_REVERSE | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS)) && !(control->properties & FLAG_CONTROL_MOMENTARY))
     {
         //encoder (pagination is done in the increment / decrement functions)
         if (control->hw_id < ENCODERS_COUNT)
@@ -991,7 +991,7 @@ static void control_set(uint8_t id, control_t *control)
                 led_set_color(hardware_leds(control->hw_id - ENCODERS_COUNT), ENUMERIATION_PRESSED_COLOR);
             }
 
-            if (!(control->properties & FLAG_CONTROL_REVERSE_ENUM))
+            if (!(control->properties & FLAG_CONTROL_REVERSE))
             {
         		// increments the step
         		if (control->step < (control->steps - 1))
@@ -2321,7 +2321,7 @@ void naveg_inc_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
 
-    if  ((control->properties & (FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE_ENUM))
+    if  ((control->properties & (FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE))
          && (control->scale_points_flag & FLAG_SCALEPOINT_PAGINATED))
     {
         //sets the direction
@@ -2379,7 +2379,7 @@ void naveg_dec_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
     
-    if  ((control->properties & (FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE_ENUM)) 
+    if  ((control->properties & (FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE)) 
         && (control->scale_points_flag & FLAG_SCALEPOINT_PAGINATED))
     {
         //sets the direction
@@ -2619,7 +2619,7 @@ void naveg_set_control(uint8_t hw_id, float value)
                                  (control->value ? BYPASS_ON_FOOTER_TEXT : BYPASS_OFF_FOOTER_TEXT), control->properties);
                 }
             }
-            else if (control->properties & (FLAG_CONTROL_REVERSE_ENUM | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
+            else if (control->properties & (FLAG_CONTROL_REVERSE | FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS))
             {
                 // updates the led
                 if (control->scale_points_flag & FLAG_SCALEPOINT_ALT_LED_COLOR)
@@ -2716,7 +2716,7 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
             led_set_color(hardware_leds(foot), BLACK);
             led_set_color(hardware_leds(foot), TRIGGER_COLOR); //TRIGGER_COLOR
         }
-        else if (g_foots[foot]->properties & (FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE_ENUM | FLAG_CONTROL_ENUMERATION))
+        else if (g_foots[foot]->properties & (FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE | FLAG_CONTROL_ENUMERATION))
         {
             led_set_color(hardware_leds(foot), BLACK);
             // updates the led
