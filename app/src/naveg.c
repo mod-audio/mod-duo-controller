@@ -2708,6 +2708,30 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
 
     if (display_has_tool_enabled(get_display_by_id(foot, FOOT))) return;
 
+    // checks if the foot is used like bank function
+    uint8_t bank_func_idx = bank_config_check(foot);
+
+    if (bank_func_idx)
+    {
+        if (!pressed) 
+            return;
+        
+        if ((g_current_pedalboard == (g_footswitch_pedalboards.menu_max) && (foot == 1)) ||
+            ((g_current_pedalboard == 1) && (foot == 0)))
+        {
+            led_blink(hardware_leds(foot), 0, 0);
+        }
+        else 
+        {
+            led_set_color(hardware_leds(foot), BLACK);
+            led_set_color(hardware_leds(foot), PEDALBOARD_LOADING_COLOR);
+            led_blink(hardware_leds(foot), 100, 100);        
+        }
+
+        bank_config_update(bank_func_idx);
+        return;
+    }
+
     //detect a release action which we dont use right now for all actuator modes
     if (!pressed)
     {
@@ -2737,28 +2761,6 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
         //when momentary send off
         if (!(g_foots[foot]->properties & FLAG_CONTROL_MOMENTARY))
             return;
-    }
-
-    // checks if the foot is used like bank function
-    uint8_t bank_func_idx = bank_config_check(foot);
-
-    if (bank_func_idx)
-    {
-        if ((g_current_pedalboard == (g_footswitch_pedalboards.menu_max) && (foot == 1)) ||
-            ((g_current_pedalboard == 1) && (foot == 0)))
-        {
-            led_blink(hardware_leds(foot), 0, 0);
-        }
-        else 
-        {
-            led_set_color(hardware_leds(foot), BLACK);
-            led_set_color(hardware_leds(foot), PEDALBOARD_LOADING_COLOR);
-            led_blink(hardware_leds(foot), 100, 100);        
-        }
-
-
-        bank_config_update(bank_func_idx);
-        return;
     }
 
     // checks if there is assigned control
