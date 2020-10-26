@@ -311,7 +311,6 @@ static void actuators_task(void *pvParameters)
                 
                 if (BUTTON_RELEASED(status))
                 {
-                    //trigger LED 
                     naveg_foot_change(id, 0);
                 }
             }

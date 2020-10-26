@@ -2732,6 +2732,9 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
         return;
     }
 
+    // checks if there is assigned control
+    if (g_foots[foot] == NULL) return;
+
     //detect a release action which we dont use right now for all actuator modes
     if (!pressed)
     {
@@ -2753,18 +2756,14 @@ void naveg_foot_change(uint8_t foot, uint8_t pressed)
                 led_set_color(hardware_leds(foot), ENUMERATED_COLOR);
             }
         }
-        else return;
 
-        //not used right now anymore, maybe in the future, TODO: rename to actuator flag
+        //TODO: rename to actuator flag
         g_foots[foot]->scroll_dir = pressed;
 
         //when momentary send off
         if (!(g_foots[foot]->properties & FLAG_CONTROL_MOMENTARY))
             return;
     }
-
-    // checks if there is assigned control
-    if (g_foots[foot] == NULL) return;
 
     g_foots[foot]->scroll_dir = pressed;
 
