@@ -1445,9 +1445,9 @@ static void menu_enter(uint8_t display_id)
         }
 
         //extra check if we need to switch back to non-ui connected mode on the current-pb and banks menu
-        else if (((item->desc->id == BANKS_ID) || (item->desc->id == PEDALBOARD_ID)) && (!naveg_ui_status()))
+        else if ((item->desc->id == BANKS_ID) && !naveg_ui_status())
         {
-            item->desc->type = ((item->desc->id == PEDALBOARD_ID) ? MENU_LIST : MENU_NONE);
+            item->desc->type = MENU_NONE;
         }
 
  		// updates the current item
@@ -1462,7 +1462,7 @@ static void menu_enter(uint8_t display_id)
         if ((item->desc->type != MENU_OK) && (item->desc->type != MENU_CANCEL) && (item->desc->action_cb))
             item->desc->action_cb(item, MENU_EV_ENTER);
 
-        if ((item->desc->id == PEDALBOARD_ID) || (item->desc->id == BANKS_ID))
+        if (item->desc->id == BANKS_ID)
         {
             if (naveg_ui_status())
             {
@@ -1473,7 +1473,7 @@ static void menu_enter(uint8_t display_id)
             else
             {
                 //reset the menu type to its original state
-                item->desc->type = ((item->desc->id == PEDALBOARD_ID) ? MENU_LIST : MENU_NONE);
+                item->desc->type = MENU_NONE;
                 g_current_item = item;
             }
         }
@@ -1498,7 +1498,7 @@ static void menu_enter(uint8_t display_id)
     }
 
     // FIXME: that's dirty, so dirty...
-    if ((item->desc->id == PEDALBOARD_ID) || (item->desc->id == BANKS_ID))
+    if (item->desc->id == BANKS_ID)
     {
         if (naveg_ui_status()) item->desc->type = MENU_MESSAGE;
     }
@@ -2273,9 +2273,9 @@ void naveg_ui_connection(uint8_t status)
             // gets the menu item
             menu_item_t *item = node->data;
 
-            if ((item->desc->id == PEDALBOARD_ID) || (item->desc->id == BANKS_ID))
+            if (item->desc->id == BANKS_ID)
             {
-                item->desc->type = ((item->desc->id == PEDALBOARD_ID) ? MENU_LIST : MENU_NONE);
+                item->desc->type = MENU_NONE;
                 g_current_item = item;
             }
         }
