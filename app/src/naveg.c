@@ -623,9 +623,10 @@ static void foot_control_rm(uint8_t hw_id)
     for (i = 0; i < FOOTSWITCHES_COUNT; i++)
     {
         // if there is no controls assigned, load the default screen
-        if (!g_foots[i] && ! bank_config_check(i) && !display_has_tool_enabled(i))
+        if (!g_foots[i])
         {
-            screen_footer(i, NULL, NULL, 0);
+            if (!bank_config_check(i) && !display_has_tool_enabled(i))
+                screen_footer(i, NULL, NULL, 0);
             continue;
         }
 
