@@ -297,7 +297,7 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
     footer.right_margin = 1;
     footer.y = 53;
 
-    if (name == NULL && value == NULL)
+    if (name == NULL || value == NULL)
     {
         char text[sizeof(SCREEN_FOOT_DEFAULT_NAME) + 2];
         strcpy(text, SCREEN_FOOT_DEFAULT_NAME);
