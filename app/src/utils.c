@@ -374,6 +374,7 @@ char** str_array_duplicate(char** list, uint16_t count)
 
 void delay_us(volatile uint32_t time)
 {
+#ifndef CCC_ANALYZER
     register uint32_t _time asm ("r0");
     (void)(_time); // just to avoid warning
     _time = time;
@@ -392,10 +393,14 @@ void delay_us(volatile uint32_t time)
                 "b 1b\n\t"
             "4:\n\t"
     );
+#else
+    (void)(time); // just to avoid warning
+#endif
 }
 
 void delay_ms(volatile uint32_t time)
 {
+#ifndef CCC_ANALYZER
     register uint32_t _time asm ("r0");
     (void)(_time); // just to avoid warning
     _time = time;
@@ -414,6 +419,9 @@ void delay_ms(volatile uint32_t time)
                 "b 1b\n\t"
             "4:\n\t"
     );
+#else
+    (void)(time); // just to avoid warning
+#endif
 }
 
 float convert_to_ms(const char *unit_from, float value)
