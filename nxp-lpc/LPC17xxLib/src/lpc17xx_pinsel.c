@@ -274,9 +274,10 @@ void PINSEL_SetI2C0Pins(uint8_t i2cPinMode, FunctionalState filterSlewRateEnable
 	if (i2cPinMode == PINSEL_I2C_Fast_Mode){
 		regVal = PINSEL_I2CPADCFG_SCLDRV0 | PINSEL_I2CPADCFG_SDADRV0;
 	}
-
-	if (filterSlewRateEnable == DISABLE){
+	else if (filterSlewRateEnable == DISABLE){
 		regVal = PINSEL_I2CPADCFG_SCLI2C0 | PINSEL_I2CPADCFG_SDAI2C0;
+	} else {
+		return;
 	}
 	LPC_PINCON->I2CPADCFG = regVal;
 }
