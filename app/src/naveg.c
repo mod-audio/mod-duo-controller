@@ -1613,7 +1613,7 @@ static void menu_enter(uint8_t display_id)
                     else profile_char = "X";
 
                     char *txt =  g_menu_popups[i].popup_header;
-                    char * str3 = (char *) malloc(1 + strlen(txt)+ strlen(profile_char) );
+                    char * str3 = (char *) MALLOC(1 + strlen(txt)+ strlen(profile_char) );
                     strcpy(str3, txt);
                     strcat(str3, profile_char);
                     item->data.popup_header = (str3);
@@ -1885,9 +1885,11 @@ static void parse_footswitch_pedalboards_list(void *data, menu_item_t *item)
 
     if (pb_list_bfr)
     {
-    	memcpy(&g_footswitch_pedalboards, pb_list_bfr, sizeof(bp_list_t));
-    	g_footswitch_pedalboards.names = str_array_duplicate(pb_list_bfr->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
-    	g_footswitch_pedalboards.uids  = str_array_duplicate(pb_list_bfr->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+        str_array_free(g_footswitch_pedalboards.names);
+        str_array_free(g_footswitch_pedalboards.uids);
+        memcpy(&g_footswitch_pedalboards, pb_list_bfr, sizeof(bp_list_t));
+        g_footswitch_pedalboards.names = str_array_duplicate(pb_list_bfr->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+        g_footswitch_pedalboards.uids  = str_array_duplicate(pb_list_bfr->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
     }
 
     g_footswitch_pedalboards.menu_max = (atoi(list[2]));
@@ -2024,6 +2026,8 @@ static void bank_config_footer(void)
 		//also put as footswitch pedalboards
 		if (g_naveg_pedalboards)
 		{
+			str_array_free(g_footswitch_pedalboards.names);
+			str_array_free(g_footswitch_pedalboards.uids);
 			memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
 			g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
 			g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
@@ -2239,9 +2243,11 @@ void naveg_initial_state(uint16_t max_menu, uint16_t page_min, uint16_t page_max
     //also put as footswitch pedalboards
     if (g_naveg_pedalboards)
     {
-    	memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
-    	g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
-    	g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+        str_array_free(g_footswitch_pedalboards.names);
+        str_array_free(g_footswitch_pedalboards.uids);
+        memcpy(&g_footswitch_pedalboards, g_naveg_pedalboards, sizeof(bp_list_t));
+        g_footswitch_pedalboards.names = str_array_duplicate(g_naveg_pedalboards->names, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
+        g_footswitch_pedalboards.uids  = str_array_duplicate(g_naveg_pedalboards->uids, (g_naveg_pedalboards->page_max - g_naveg_pedalboards->page_min + 1));
     }
 }
 
