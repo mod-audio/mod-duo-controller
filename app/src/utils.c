@@ -366,10 +366,21 @@ char** str_array_duplicate(char** list, uint16_t count)
         return NULL;
     
     for (size_t i=0; i<count; ++i)
-        ret[i] = strdup(list[i]);
+        ret[i] = str_duplicate(list[i] ? list[i] : "");
     
     ret[count] = NULL;
     return ret;
+}
+
+void str_array_free(char** list)
+{
+    if (!list)
+        return;
+
+    for (size_t i=0; list[i] != NULL; ++i)
+        FREE(list[i]);
+
+    FREE(list);
 }
 
 void delay_us(volatile uint32_t time)
