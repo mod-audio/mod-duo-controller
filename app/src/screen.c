@@ -402,16 +402,9 @@ void screen_footer(uint8_t display_id, const char *name, const char *value, int1
 
 void screen_pb_name(const void *data, uint8_t update)
 {
-    static char* pedalboard_name = NULL;
-    static uint8_t char_cnt = 0;
+    static char pedalboard_name[20] = {'D','E','F','A','U','L','T','\0'};
+    static uint8_t char_cnt = 7;
     glcd_t *display = hardware_glcds(0);
-
-    if (pedalboard_name == NULL)
-    {
-        pedalboard_name = (char *) MALLOC(20 * sizeof(char));
-        strcpy(pedalboard_name, "DEFAULT");
-        char_cnt = 7;
-    }
 
     if (update)
     {
@@ -427,16 +420,14 @@ void screen_pb_name(const void *data, uint8_t update)
 
         while (name_string)
         {
-            if(((strlen(pedalboard_name) + strlen(name_string) + 1) > 18))
+            if ((strlen(pedalboard_name) + strlen(name_string) + 1) > 18)
             {
-                //if we only have a 1 char left, nevermind
-                if (((strlen(pedalboard_name) + 1) > 18))
+                // if we only have a 1 char left, nevermind
+                if ((strlen(pedalboard_name) + 1) > 18)
                     break;
 
                 strcat(pedalboard_name, " ");
-                char tmp[19 - (strlen(pedalboard_name) + 1)];
-                strncpy (tmp, name_string, sizeof(tmp));
-                strcat(pedalboard_name, tmp);
+                strncat(pedalboard_name, name_string, 19 - (strlen(pedalboard_name) + 1));
                 break;
             }
             else
@@ -444,11 +435,10 @@ void screen_pb_name(const void *data, uint8_t update)
                 strcat(pedalboard_name, " ");
                 strcat(pedalboard_name, name_string);
                 name_string = *(++name_list);
-                char_cnt++;
             }
         }
-        pedalboard_name[19] = 0;
 
+        pedalboard_name[19] = 0;
         char_cnt = strlen(pedalboard_name);
     }
 
@@ -482,16 +472,9 @@ void screen_pb_name(const void *data, uint8_t update)
 
 void screen_ss_name(const void *data, uint8_t update)
 {
-    static char* snapshot_name = NULL;
-    static uint8_t char_cnt = 0;
+    static char snapshot_name[20] = {'D','E','F','A','U','L','T','\0'};
+    static uint8_t char_cnt = 7;
     glcd_t *display = hardware_glcds(1);
-
-    if (snapshot_name == NULL)
-    {
-        snapshot_name = (char *) MALLOC(20 * sizeof(char));
-        strcpy(snapshot_name, "DEFAULT");
-        char_cnt = 7;
-    }
 
     if (update)
     {
@@ -505,18 +488,16 @@ void screen_ss_name(const void *data, uint8_t update)
         // go to next name in list
         name_string = *(++name_list);
 
-        while (name_string && ((strlen(snapshot_name) + strlen(name_string) + 1) < 19))
+        while (name_string)
         {
-            if(((strlen(snapshot_name) + strlen(name_string) + 1) > 18))
+            if ((strlen(snapshot_name) + strlen(name_string) + 1) > 18)
             {
-                //if we only have a 1 char left, nevermind
-                if (((strlen(snapshot_name) + 1) > 18))
+                // if we only have a 1 char left, nevermind
+                if ((strlen(snapshot_name) + 1) > 18)
                     break;
 
                 strcat(snapshot_name, " ");
-                char tmp[19 - (strlen(snapshot_name) + 1)];
-                strncpy (tmp, name_string, sizeof(tmp));
-                strcat(snapshot_name, tmp);
+                strncat(snapshot_name, name_string, 19 - (strlen(snapshot_name) + 1));
                 break;
             }
             else
@@ -524,11 +505,10 @@ void screen_ss_name(const void *data, uint8_t update)
                 strcat(snapshot_name, " ");
                 strcat(snapshot_name, name_string);
                 name_string = *(++name_list);
-                char_cnt++;
             }
         }
-        snapshot_name[19] = 0;
 
+        snapshot_name[19] = 0;
         char_cnt = strlen(snapshot_name);
     }
 
