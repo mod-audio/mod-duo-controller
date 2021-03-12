@@ -7,12 +7,13 @@
 
 #include <string.h>
 
-#include "comm.h"
+#include "ui_comm.h"
 #include "config.h"
 #include "serial.h"
 
 #include "FreeRTOS.h"
 #include "semphr.h"
+
 /*
 ************************************************************************************************************************
 *           LOCAL DEFINES
@@ -106,7 +107,7 @@ static void webgui_rx_cb(serial_t *serial)
 ************************************************************************************************************************
 */
 
-void comm_init(void)
+void ui_comm_init(void)
 {
     g_webgui_sem = xSemaphoreCreateCounting(WEBGUI_MAX_SEM_COUNT, 0);
     g_webgui_rx_rb = ringbuff_create(WEBGUI_COMM_RX_BUFF_SIZE);
@@ -114,12 +115,12 @@ void comm_init(void)
     serial_set_callback(WEBGUI_SERIAL, webgui_rx_cb);
 }
 
-void comm_webgui_send(const char *data, uint32_t data_size)
+void ui_comm_webgui_send(const char *data, uint32_t data_size)
 {
     serial_send(WEBGUI_SERIAL, (const uint8_t*)data, data_size+1);
 }
 
-ringbuff_t* comm_webgui_read(void)
+ringbuff_t* ui_comm_webgui_read(void)
 {
     if (xSemaphoreTake(g_webgui_sem, portMAX_DELAY) == pdTRUE)
     {
@@ -129,13 +130,13 @@ ringbuff_t* comm_webgui_read(void)
     return NULL;
 }
 
-void comm_webgui_set_response_cb(void (*resp_cb)(void *data, menu_item_t *item), menu_item_t *item)
+void ui_comm_webgui_set_response_cb(void (*resp_cb)(void *data, menu_item_t *item), menu_item_t *item)
 {
     g_current_item = item;
     g_webgui_response_cb = resp_cb;
 }
 
-void comm_webgui_response_cb(void *data)
+void ui_comm_webgui_response_cb(void *data)
 {
     if (g_webgui_response_cb)
     {
@@ -146,14 +147,14 @@ void comm_webgui_response_cb(void *data)
     g_webgui_blocked = 0;
 }
 
-void comm_webgui_wait_response(void)
+void ui_comm_webgui_wait_response(void)
 {
     g_webgui_blocked = 1;
     while (g_webgui_blocked);
 }
 
 //clear the ringbuffer
-void comm_webgui_clear(void)
+void ui_comm_webgui_clear(void)
 {
     ringbuff_flush(g_webgui_rx_rb);
 }

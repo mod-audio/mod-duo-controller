@@ -23,7 +23,8 @@
 #include "naveg.h"
 #include "screen.h"
 #include "cli.h"
-#include "comm.h"
+#include "ui_comm.h"
+#include "sys_comm.h"
 #include "images.h"
 
 
@@ -71,7 +72,8 @@
 */
 
 static volatile xQueueHandle g_actuators_queue;
-static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
+static uint8_t g_comm_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
+static uint8_t g_sys_msg_buffer[SYSTEM_COMM_RX_BUFF_SIZE];
 
 /*
 ************************************************************************************************************************
@@ -83,7 +85,8 @@ static uint8_t g_msg_buffer[WEBGUI_COMM_RX_BUFF_SIZE];
 static void actuators_cb(void *actuator);
 
 // tasks
-static void procotol_task(void *pvParameters);
+static void webgui_procotol_task(void *pvParameters);
+static void system_procotol_task(void *pvParameters);
 static void displays_task(void *pvParameters);
 static void actuators_task(void *pvParameters);
 static void cli_task(void *pvParameters);
@@ -140,11 +143,6 @@ void serial_error(uint8_t uart_id, uint32_t error)
 // this callback is called from a ISR
 static void actuators_cb(void *actuator)
 {
-    if (g_protocol_busy)
-    {
-        if (!naveg_dialog_status()) return;
-    }  
-
     static uint8_t i, info[ACTUATORS_QUEUE_SIZE][3];
 
     // does a copy of actuator id and status
@@ -184,7 +182,7 @@ static void actuators_cb(void *actuator)
 ************************************************************************************************************************
 */
 
-static void procotol_task(void *pvParameters)
+static void webgui_procotol_task(void *pvParameters)
 {
     UNUSED_PARAM(pvParameters);
 
@@ -195,20 +193,39 @@ static void procotol_task(void *pvParameters)
     while (1)
     {
         uint32_t msg_size;
-        g_protocol_busy = false;
-        system_lock_comm_serial(g_protocol_busy);
-        // blocks until receive a new message
-        ringbuff_t *rb = comm_webgui_read();
-        msg_size = ringbuff_read_until(rb, g_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE, 0);
+        ringbuff_t *rb = ui_comm_webgui_read();
+        msg_size = ringbuff_read_until(rb, g_comm_msg_buffer, WEBGUI_COMM_RX_BUFF_SIZE, 0);
         // parses the message
         if (msg_size > 0)
         {
             //if parsing messages block the actuator messages. 
-            g_protocol_busy = true;
-            system_lock_comm_serial(g_protocol_busy);
             msg_t msg;
-            msg.sender_id = 0;
-            msg.data = (char *) g_msg_buffer;
+            msg.sender_id = WEBGUI_SERIAL;
+            msg.data = (char *) g_comm_msg_buffer;
+            msg.data_size = msg_size;
+            protocol_parse(&msg);
+        }
+    }
+}
+
+static void system_procotol_task(void *pvParameters)
+{
+    UNUSED_PARAM(pvParameters);
+
+    hardware_eneble_serial_interupt(SYSTEM_SERIAL);
+
+    while (1)
+    {
+        uint32_t msg_size;
+        ringbuff_t *rb = ui_comm_webgui_read();
+        msg_size = ringbuff_read_until(rb, g_comm_msg_buffer, SYSTEM_COMM_RX_BUFF_SIZE, 0);
+        // parses the message
+        if (msg_size > 0)
+        {
+            //if parsing messages block the actuator messages. 
+            msg_t msg;
+            msg.sender_id = SYSTEM_SERIAL;
+            msg.data = (char *) g_sys_msg_buffer;
             msg.data_size = msg_size;
             protocol_parse(&msg);
         }
@@ -344,13 +361,15 @@ static void setup_task(void *pvParameters)
     cli_init();
 
     // initialize the communication resources
-    comm_init();
+    ui_comm_init();
+    sys_comm_init();
 
     // create the queues
     g_actuators_queue = xQueueCreate(ACTUATORS_QUEUE_SIZE, sizeof(uint8_t *));
 
     // create the tasks
-    xTaskCreate(procotol_task, TASK_NAME("proto"), 512, NULL, 4, NULL);
+    xTaskCreate(system_procotol_task, TASK_NAME("ui_proto"), 256, NULL, 5, NULL);
+    xTaskCreate(webgui_procotol_task, TASK_NAME("sys_proto"), 512, NULL, 4, NULL);
     xTaskCreate(actuators_task, TASK_NAME("act"), 256, NULL, 3, NULL);
     xTaskCreate(cli_task, TASK_NAME("cli"), 128, NULL, 2, NULL);
     xTaskCreate(displays_task, TASK_NAME("disp"), 128, NULL, 1, NULL);

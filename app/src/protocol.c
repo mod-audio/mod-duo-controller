@@ -55,7 +55,7 @@ typedef struct CMD_T {
     char* command;
     char** list;
     uint32_t count;
-    void (*callback)(proto_t *proto);
+    void (*callback)(uint8_t serial_id, proto_t *proto);
 } cmd_t;
 
 
@@ -65,6 +65,7 @@ typedef struct CMD_T {
 ************************************************************************************************************************
 */
 
+#define UNUSED_PARAM(var)   do { (void)(var); } while (0)
 
 /*
 ************************************************************************************************************************
@@ -184,7 +185,7 @@ void protocol_parse(msg_t *msg)
     {
         if (g_commands[index].callback)
         {
-            g_commands[index].callback(&proto);
+            g_commands[index].callback(msg->sender_id, &proto);
 
             if (proto.response)
             {
@@ -206,7 +207,7 @@ void protocol_parse(msg_t *msg)
 }
 
 
-void protocol_add_command(const char *command, void (*callback)(proto_t *proto))
+void protocol_add_command(const char *command, void (*callback)(uint8_t serial_id, proto_t *proto))
 {
     if (g_command_count >= COMMAND_COUNT_DUO) while (1);
 
@@ -292,20 +293,26 @@ void protocol_init(void)
 ************************************************************************************************************************
 */
 
-void cb_ping(proto_t *proto)
+void cb_ping(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     g_ui_communication_started = 1;
     g_protocol_busy = false;
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_say(proto_t *proto)
+void cb_say(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     protocol_response(proto->list[1], proto);
 }
 
-void cb_led(proto_t *proto)
+void cb_led(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     color_t color;
     led_t *led = hardware_leds(atoi(proto->list[1]));
     color.r = atoi(proto->list[2]);
@@ -321,8 +328,10 @@ void cb_led(proto_t *proto)
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_glcd_text(proto_t *proto)
+void cb_glcd_text(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     uint8_t glcd_id, x, y;
     glcd_id = atoi(proto->list[1]);
     x = atoi(proto->list[2]);
@@ -334,14 +343,18 @@ void cb_glcd_text(proto_t *proto)
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_glcd_dialog(proto_t *proto)
+void cb_glcd_dialog(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     uint8_t val = naveg_dialog(proto->list[1]);
     protocol_send_response(CMD_RESPONSE, val, proto);
 }
 
-void cb_glcd_draw(proto_t *proto)
+void cb_glcd_draw(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     uint8_t glcd_id, x, y;
     glcd_id = atoi(proto->list[1]);
     x = atoi(proto->list[2]);
@@ -357,43 +370,35 @@ void cb_glcd_draw(proto_t *proto)
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_gui_connection(proto_t *proto)
+void cb_gui_connection(uint8_t serial_id, proto_t *proto)
 {
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
+
     //clear the buffer so we dont send any messages
-    comm_webgui_clear();
+    ui_comm_webgui_clear();
 
     if (strcmp(proto->list[0], CMD_GUI_CONNECTED) == 0)
         naveg_ui_connection(UI_CONNECTED);
     else
         naveg_ui_connection(UI_DISCONNECTED);
 
-    //we are done supposedly closing the menu, we can unlock the actuators
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
-
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_control_add(proto_t *proto)
+void cb_control_add(uint8_t serial_id, proto_t *proto)
 {
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
 
     control_t *control = data_parse_control(proto->list);
 
     naveg_add_control(control, 1);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_control_rm(proto_t *proto)
+void cb_control_rm(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     g_ui_communication_started = 1;
     
     naveg_remove_control(atoi(proto->list[1]));
@@ -411,21 +416,18 @@ void cb_control_rm(proto_t *proto)
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_control_set(proto_t *proto)
+void cb_control_set(uint8_t serial_id, proto_t *proto)
 {
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
 
     naveg_set_control(atoi(proto->list[1]), atof(proto->list[2]));
     protocol_send_response(CMD_RESPONSE, 0, proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
 }
 
-void cb_control_get(proto_t *proto)
+void cb_control_get(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     float value;
     value = naveg_get_control(atoi(proto->list[1]));
 
@@ -436,55 +438,55 @@ void cb_control_get(proto_t *proto)
     protocol_response(resp, proto);
 }
 
-void cb_control_set_index(proto_t *proto)
+void cb_control_set_index(uint8_t serial_id, proto_t *proto)
 {
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
 
     //index_set <updatevalues> <encoder hardware_id> <control index> <index_count>
     naveg_set_index(1, atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]));
     protocol_send_response(CMD_RESPONSE, 0, proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
 }
 
-void cb_initial_state(proto_t *proto)
+void cb_initial_state(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     g_ui_communication_started = 1;
     naveg_initial_state(atoi(proto->list[1]), atoi(proto->list[2]), atoi(proto->list[3]), proto->list[4], proto->list[5], &(proto->list[6]));
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_bank_config(proto_t *proto)
+void cb_bank_config(uint8_t serial_id, proto_t *proto)
 {
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
 
     bank_config_t bank_func;
     bank_func.hw_id = atoi(proto->list[1]);
     bank_func.function = atoi(proto->list[2]);
     naveg_bank_config(&bank_func);
     protocol_send_response(CMD_RESPONSE, 0, proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
 }
 
-void cb_tuner(proto_t *proto)
+void cb_tuner(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     screen_tuner(atof(proto->list[1]), proto->list[2], atoi(proto->list[3]));
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_resp(proto_t *proto)
+void cb_resp(uint8_t serial_id, proto_t *proto)
 {
-    comm_webgui_response_cb(proto->list);
+    if (serial_id == SYSTEM_SERIAL)
+        sys_comm_response_cb(proto->list);
+    else
+        ui_comm_webgui_response_cb(proto->list);
 }
 
-void cb_restore(proto_t *proto)
+void cb_restore(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     //clear all screens 
     screen_clear(DISPLAY_LEFT);
     screen_clear(DISPLAY_RIGHT);
@@ -493,8 +495,10 @@ void cb_restore(proto_t *proto)
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_boot(proto_t *proto)
+void cb_boot(uint8_t serial_id, proto_t *proto)
 {
+    UNUSED_PARAM(serial_id);
+
     g_should_wait_for_webgui = true;
     
     //set the display brightness 
@@ -512,10 +516,9 @@ void cb_boot(proto_t *proto)
     protocol_send_response(CMD_RESPONSE, 0, proto);
 }
 
-void cb_menu_item_changed(proto_t *proto)
+void cb_menu_item_changed(uint8_t serial_id, proto_t *proto)
 {
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
 
     naveg_menu_item_changed_cb(atoi(proto->list[1]), atoi(proto->list[2]));
     
@@ -530,15 +533,11 @@ void cb_menu_item_changed(proto_t *proto)
     }
 
     protocol_send_response(CMD_RESPONSE, 0, proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
 }
 
-void cb_pedalboard_clear(proto_t *proto)
+void cb_pedalboard_clear(uint8_t serial_id, proto_t *proto)
 {
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
 
     //clear controls
     uint8_t i;
@@ -548,35 +547,22 @@ void cb_pedalboard_clear(proto_t *proto)
     }
 
     protocol_send_response(CMD_RESPONSE, 0, proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
 }
 
-void cb_pedalboard_name(proto_t *proto)
+void cb_pedalboard_name(uint8_t serial_id, proto_t *proto)
 {
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
 
     screen_pb_name(&proto->list[1], 1);
 
     protocol_send_response(CMD_RESPONSE, 0, proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
 }
 
-void cb_snapshot_name(proto_t *proto)
+void cb_snapshot_name(uint8_t serial_id, proto_t *proto)
 {
-    //lock actuators
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
+    UNUSED_PARAM(serial_id);
 
     screen_ss_name(&proto->list[1] , 1);
 
     protocol_send_response(CMD_RESPONSE, 0, proto);
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
 }

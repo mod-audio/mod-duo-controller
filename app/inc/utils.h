@@ -134,6 +134,7 @@ void deselect_item(char *item_str);
 // converts string to hex: returns the number of elements copied to array
 uint16_t str_to_hex(const char *str, uint8_t *array, uint16_t array_size);
 
+uint32_t int_to_hex_str(int32_t num, char *string);
 
 /*
 ************************************************************************************************************************

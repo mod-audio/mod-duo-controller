@@ -23,7 +23,7 @@
 //// Serial definitions
 // If the UART ISR (or callbacks) uses freeRTOS API, the priorities values must be
 // equal or greater than configMAX_SYSCALL_INTERRUPT_PRIORITY
-// SERIAL0
+// SERIAL0 webgui
 #define SERIAL0
 #define SERIAL0_BAUD_RATE       1500000
 #define SERIAL0_PRIORITY        1
@@ -36,7 +36,7 @@
 #define SERIAL0_TX_FUNC         1
 #define SERIAL0_TX_BUFF_SIZE    32
 #define SERIAL0_HAS_OE          0
-// SERIAL1
+// SERIAL1 cli
 #define SERIAL1
 #define SERIAL1_BAUD_RATE       115200
 #define SERIAL1_PRIORITY        2
@@ -49,6 +49,19 @@
 #define SERIAL1_TX_FUNC         1
 #define SERIAL1_TX_BUFF_SIZE    64
 #define SERIAL1_HAS_OE          0
+// SERIAL3 (system callbacks)
+#define SERIAL3
+#define SERIAL3_BAUD_RATE       1500000
+#define SERIAL3_PRIORITY        2
+#define SERIAL3_RX_PORT         0
+#define SERIAL3_RX_PIN          0
+#define SERIAL3_RX_FUNC         2
+#define SERIAL3_RX_BUFF_SIZE    32
+#define SERIAL3_TX_PORT         0
+#define SERIAL3_TX_PIN          1
+#define SERIAL3_TX_FUNC         2
+#define SERIAL3_TX_BUFF_SIZE    32
+#define SERIAL3_HAS_OE          0
 
 //// Hardware peripheral definitions
 // Clock power control
@@ -134,6 +147,14 @@ enum {ENCODER0, ENCODER1, FOOTSWITCH0, FOOTSWITCH1};
 // define how many bytes will be allocated to rx/tx buffers
 #define WEBGUI_COMM_RX_BUFF_SIZE    4096
 #define WEBGUI_COMM_TX_BUFF_SIZE    512
+
+//// system serial configuration
+// define the interface
+#define SYSTEM_SERIAL               3
+
+// define how many bytes will be allocated to rx/tx buffers
+#define SYSTEM_COMM_RX_BUFF_SIZE    1024
+#define SYSTEM_COMM_TX_BUFF_SIZE    512
 
 //// Tools configuration
 // navigation update time, this is only useful in tool mode

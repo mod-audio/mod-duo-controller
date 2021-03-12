@@ -12,7 +12,8 @@
 #include "utils.h"
 #include "led.h"
 #include "hardware.h"
-#include "comm.h"
+#include "ui_comm.h"
+#include "sys_comm.h"
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "actuator.h"
@@ -174,17 +175,11 @@ static void display_disable_all_tools(uint8_t display)
 
     if (tool_is_on(DISPLAY_TOOL_TUNER))
     {
-        g_protocol_busy = true;
-        system_lock_comm_serial(g_protocol_busy);
-
         // sends the data to GUI
-        comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
+        ui_comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
 
         // waits the pedalboards list be received
-        comm_webgui_wait_response();
-
-        g_protocol_busy = false;
-        system_lock_comm_serial(g_protocol_busy);
+        ui_comm_webgui_wait_response();
     }
     
     for (i = 0; i < MAX_TOOLS; i++)
@@ -674,7 +669,7 @@ static void parse_control_page(void *data, menu_item_t *item)
 static void request_control_page(control_t *control, uint8_t dir)
 {
     // sets the response callback
-    comm_webgui_set_response_cb(parse_control_page, NULL);
+    ui_comm_webgui_set_response_cb(parse_control_page, NULL);
 
     char buffer[20];
     memset(buffer, 0, sizeof buffer);
@@ -696,17 +691,11 @@ static void request_control_page(control_t *control, uint8_t dir)
     // insert the direction on buffer
     i += int_to_str(bitmask, &buffer[i], sizeof(buffer) - i, 0);
 
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
     // sends the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
-    comm_webgui_wait_response();
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
+    ui_comm_webgui_wait_response();
 }
 
 static void parse_banks_list(void *data, menu_item_t *item)
@@ -740,7 +729,7 @@ static void request_banks_list(uint8_t dir)
     g_bp_state = BANKS_LIST;
 
     // sets the response callback
-    comm_webgui_set_response_cb(parse_banks_list, NULL);
+    ui_comm_webgui_set_response_cb(parse_banks_list, NULL);
 
     char buffer[40];
     memset(buffer, 0, 20);
@@ -757,17 +746,11 @@ static void request_banks_list(uint8_t dir)
     //insert current bank, because first time we are entering the menu
     i += int_to_str(g_current_bank, &buffer[i], sizeof(buffer) - i, 0);
 
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
     // sends the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
-    comm_webgui_wait_response();
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
+    ui_comm_webgui_wait_response();
 
     g_banks->hover = g_current_bank;
     g_banks->selected = g_current_bank;
@@ -784,7 +767,7 @@ static void request_next_bank_page(uint8_t dir)
 	g_bp_state = BANKS_LIST;
 
     // sets the response callback
-    comm_webgui_set_response_cb(parse_banks_list, NULL);
+    ui_comm_webgui_set_response_cb(parse_banks_list, NULL);
 
     char buffer[40];
     memset(buffer, 0, sizeof buffer);
@@ -800,17 +783,11 @@ static void request_next_bank_page(uint8_t dir)
 
     i += int_to_str(g_banks->hover, &buffer[i], sizeof(buffer) - i, 0);
 
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
     // sends the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
-    comm_webgui_wait_response();
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
+    ui_comm_webgui_wait_response();
 
 	//restore our previous hover / selected bank
 	g_banks->hover = prev_hover;
@@ -850,7 +827,7 @@ static void request_pedalboards(uint8_t dir, uint16_t bank_uid)
 	memset(buffer, 0, sizeof buffer);
 
     // sets the response callback
-    comm_webgui_set_response_cb(parse_pedalboards_list, NULL);
+    ui_comm_webgui_set_response_cb(parse_pedalboards_list, NULL);
 
     i = copy_command((char *)buffer, CMD_PEDALBOARDS);
 
@@ -891,18 +868,12 @@ static void request_pedalboards(uint8_t dir, uint16_t bank_uid)
     	prev_hover = g_naveg_pedalboards->hover;
     	prev_selected = g_naveg_pedalboards->selected;
     }
-    
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
 
     // sends the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
-    comm_webgui_wait_response();
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
+    ui_comm_webgui_wait_response();
 
     if (g_naveg_pedalboards)
     {
@@ -941,20 +912,14 @@ static void send_load_pedalboard(uint16_t bank_id, const char *pedalboard_uid)
 	}
     buffer[i] = 0;
 
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
     // sets the response callback
-    comm_webgui_set_response_cb(NULL, NULL);
+    ui_comm_webgui_set_response_cb(NULL, NULL);
 
     // send the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     // waits the pedalboard loaded message to be received
-    comm_webgui_wait_response();
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
+    ui_comm_webgui_wait_response();
 }
 
 static void control_set(uint8_t id, control_t *control)
@@ -1154,19 +1119,13 @@ static void control_set(uint8_t id, control_t *control)
     i += float_to_str(control->value, &buffer[i], sizeof(buffer) - i, 3);
     buffer[i] = 0;
 
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
     // sends the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     //wait for a response from mod-ui
     if (g_should_wait_for_webgui) {
-        comm_webgui_wait_response();
+        ui_comm_webgui_wait_response();
     }
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
 }
 
 static void bp_enter(void)
@@ -1810,17 +1769,11 @@ static void tuner_enter(void)
     i += int_to_str(input, &buffer[i], sizeof(buffer) - i, 0);
     buffer[i] = 0;
 
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
     // sends the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
-    comm_webgui_wait_response();
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
+    ui_comm_webgui_wait_response();
 
     // updates the screen
     screen_tuner_input(input);
@@ -1899,7 +1852,7 @@ static void request_footswitch_pedalboards(uint8_t dir)
 	memset(buffer, 0, sizeof buffer);
 
 	// sets the response callback
-	comm_webgui_set_response_cb(parse_footswitch_pedalboards_list, NULL);
+	ui_comm_webgui_set_response_cb(parse_footswitch_pedalboards_list, NULL);
 
 	//create the command
 	i = copy_command((char *)buffer, CMD_PEDALBOARDS);
@@ -1924,17 +1877,11 @@ static void request_footswitch_pedalboards(uint8_t dir)
 
     buffer[i++] = 0;
 
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
     // sends the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
-    comm_webgui_wait_response();
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
+    ui_comm_webgui_wait_response();
 }
 
 static uint8_t bank_config_check(uint8_t foot)
@@ -2684,17 +2631,11 @@ void naveg_next_control(uint8_t display)
     i += int_to_str(display, &buffer[i], 4, 0);
     buffer[i] = 0;
 
-    g_protocol_busy = true;
-    system_lock_comm_serial(g_protocol_busy);
-
     // sends the data to GUI
-    comm_webgui_send(buffer, i);
+    ui_comm_webgui_send(buffer, i);
 
     // waits the pedalboards list be received
-    comm_webgui_wait_response();
-
-    g_protocol_busy = false;
-    system_lock_comm_serial(g_protocol_busy);
+    ui_comm_webgui_wait_response();
 
     FREE(buffer);
 }
@@ -2795,17 +2736,11 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
             case DISPLAY_TOOL_TUNER:
                 display_disable_all_tools(display);
 
-                g_protocol_busy = true;
-                system_lock_comm_serial(g_protocol_busy);
-
                 // sends the data to GUI
-                comm_webgui_send(CMD_TUNER_ON, strlen(CMD_TUNER_ON));
+                ui_comm_webgui_send(CMD_TUNER_ON, strlen(CMD_TUNER_ON));
 
                 // waits the pedalboards list be received
-                comm_webgui_wait_response();
-
-                g_protocol_busy = false;
-                system_lock_comm_serial(g_protocol_busy);
+                ui_comm_webgui_wait_response();
 
                 break;
             case DISPLAY_TOOL_SYSTEM:
@@ -2851,17 +2786,11 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
 
             case DISPLAY_TOOL_TUNER:
 
-                g_protocol_busy = true;
-                system_lock_comm_serial(g_protocol_busy);
-
                 // sends the data to GUI
-                comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
+                ui_comm_webgui_send(CMD_TUNER_OFF, strlen(CMD_TUNER_OFF));
 
                 // waits the pedalboards list be received
-                comm_webgui_wait_response();
-
-                g_protocol_busy = false;
-                system_lock_comm_serial(g_protocol_busy);
+                ui_comm_webgui_wait_response();
 
                 tool_off(DISPLAY_TOOL_TUNER);
 
@@ -2875,7 +2804,7 @@ void naveg_toggle_tool(uint8_t tool, uint8_t display)
         }
 
         //clear previous commands in the buffer
-        comm_webgui_clear();
+        ui_comm_webgui_clear();
 
         control_t *control = g_controls[display];
 

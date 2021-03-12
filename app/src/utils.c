@@ -810,3 +810,32 @@ uint16_t str_to_hex(const char *str, uint8_t *array, uint16_t array_size)
 
     return count;
 }
+
+static int num_hex_digits(unsigned n)
+{
+    if (!n) return 1;
+
+    int ret = 0;
+    for (; n; n >>= 4) {
+        ++ret;
+    }
+    return ret;
+}
+
+uint32_t int_to_hex_str(int32_t num, char *string)
+{
+    const char hex_lookup[] = "0123456789abcdef";
+
+    int len = num_hex_digits(num);
+
+    if (len & 1) {
+        *string++ = '0';
+    }
+    string[len] = '\0';
+
+    for (--len; len >= 0; num >>= 4, --len) {
+        string[len] = hex_lookup[num & 0xf];
+    }
+
+    return 0;
+}

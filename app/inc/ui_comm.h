@@ -5,8 +5,8 @@
 ************************************************************************************************************************
 */
 
-#ifndef COMM_H
-#define COMM_H
+#ifndef UI_COMM_H
+#define UI_COMM_H
 
 
 /*
@@ -61,21 +61,21 @@
 */
 
 // initialize the communication
-void comm_init(void);
+void ui_comm_init(void);
 
 //// webgui communication functions
 // sends a message to webgui
-void comm_webgui_send(const char *data, uint32_t data_size);
+void ui_comm_webgui_send(const char *data, uint32_t data_size);
 // read a message from webgui
-ringbuff_t* comm_webgui_read(void);
+ringbuff_t* ui_comm_webgui_read(void);
 // sets a function callback to webgui response
-void comm_webgui_set_response_cb(void (*resp_cb)(void *data, menu_item_t *item), menu_item_t *item);
+void ui_comm_webgui_set_response_cb(void (*resp_cb)(void *data, menu_item_t *item), menu_item_t *item);
 // invokes the response function callback
-void comm_webgui_response_cb(void *data);
+void ui_comm_webgui_response_cb(void *data);
 // blocks the execution until the webgui response be received
-void comm_webgui_wait_response(void);
+void ui_comm_webgui_wait_response(void);
 // clear the data in the buffer
-void comm_webgui_clear(void);
+void ui_comm_webgui_clear(void);
 
 /*
 ************************************************************************************************************************
