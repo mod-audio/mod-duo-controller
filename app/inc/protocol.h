@@ -93,6 +93,7 @@ void cb_glcd_text(proto_t *proto);
 void cb_glcd_dialog(proto_t *proto);
 void cb_glcd_draw(proto_t *proto);
 void cb_gui_connection(proto_t *proto);
+void cb_disp_brightness(proto_t *proto);
 void cb_control_add(proto_t *proto);
 void cb_control_rm(proto_t *proto);
 void cb_control_set(proto_t *proto);
