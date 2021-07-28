@@ -86,6 +86,8 @@ uint32_t float_to_str(float num, char *string, uint32_t string_size, uint8_t pre
 char *str_duplicate(const char *str);
 // handy function to make a copy of a C-string array (char**)
 char** str_array_duplicate(char** list, uint16_t count);
+// free memory allocated with `str_array_duplicate`
+void str_array_free(char** list);
 
 // delay functions
 void delay_us(volatile uint32_t time);
