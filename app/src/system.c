@@ -211,7 +211,7 @@ static void set_menu_item_value(uint16_t menu_id, uint16_t value)
 
 static void volume(menu_item_t *item, int event, const char *source, float min, float max, float step)
 {
-	static uint32_t last_message_time = 0; 
+    static uint32_t last_message_time = 0; 
     char value[8] = {};
     static const char *response = NULL;
     cli_command(NULL, CLI_DISCARD_RESPONSE);
@@ -225,86 +225,88 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
         //PGA (input)
         if (!dir)
         {
-        	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
-        	{
-            	int_to_str(item->data.value, value, 8, 0);
-            	cli_command("mod-amixer in 0 dvol ", CLI_CACHE_ONLY);
-            	cli_command(value, CLI_DISCARD_RESPONSE);
+            if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
+            {
+                int_to_str(item->data.value, value, 8, 0);
+                cli_command("mod-amixer in 0 dvol ", CLI_CACHE_ONLY);
+                cli_command(value, CLI_DISCARD_RESPONSE);
 
-            	last_message_time = message_time;
-        	}
+                last_message_time = message_time;
+            }
         }
         //DAC (output)
         else
         {
-        	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
-        	{
-            	int_to_str(item->data.value, value, 8, 0);
-            	cli_command("mod-amixer out 0 dvol ", CLI_CACHE_ONLY);
-            	cli_command(value, CLI_DISCARD_RESPONSE);
-            	
-            	last_message_time = message_time;
-        	}
+            if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
+            {
+                int_to_str(item->data.value, value, 8, 0);
+                cli_command("mod-amixer out 0 dvol ", CLI_CACHE_ONLY);
+                cli_command(value, CLI_DISCARD_RESPONSE);
+
+                last_message_time = message_time;
+            }
         }
     }
     else
     {
         if ((event == MENU_EV_ENTER) || (event == MENU_EV_NONE))
         {
-            cli_command("mod-amixer ", CLI_CACHE_ONLY);
-            cli_command(source, CLI_CACHE_ONLY);
-            cli_command(" dvol", CLI_CACHE_ONLY);
-            response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
-
             char str[LINE_BUFFER_SIZE+1];
-            strcpy(str, response);
+
+            if (event == MENU_EV_ENTER)
+            {
+                cli_command("mod-amixer ", CLI_CACHE_ONLY);
+                cli_command(source, CLI_CACHE_ONLY);
+                cli_command(" dvol", CLI_CACHE_ONLY);
+                response = cli_command(NULL, CLI_RETRIEVE_RESPONSE);
+                strcpy(str, response);
+                item->data.value = atof(str);
+            }
+            else
+            {
+                item->data.value = g_gains_volumes[item->desc->id - VOLUME_ID];
+            }
 
             item->data.min = min;
             item->data.max = max;
             item->data.step = step;
-
-            item->data.value = atoi(str);
         }
         else if ((event == MENU_EV_UP) ||(event == MENU_EV_DOWN))
         {
-        	if (message_time - last_message_time > VOL_MESSAGE_TIMEOUT)
-        	{
-            	int_to_str(item->data.value, value, 8, 0);
-            	cli_command("mod-amixer ", CLI_CACHE_ONLY);
-            	cli_command(source, CLI_CACHE_ONLY);
-            	cli_command(" dvol ", CLI_CACHE_ONLY);
-            	cli_command(value, CLI_DISCARD_RESPONSE);
-
-            	last_message_time = message_time;
-            }
+            float_to_str(item->data.value, value, 8, 1);
+            cli_command("mod-amixer ", CLI_CACHE_ONLY);
+            cli_command(source, CLI_CACHE_ONLY);
+            cli_command(" dvol ", CLI_CACHE_ONLY);
+            cli_command(value, CLI_DISCARD_RESPONSE);
         }
     }
 
     //save gains globaly for stereo link functions
     g_gains_volumes[item->desc->id - VOLUME_ID] = item->data.value;
 
-    char str_bfr[8] = {};
-    float value_bfr;
-    if (!dir)
-    {
-        value_bfr = MAP(item->data.value, min, max, 0, 115);
-        value_bfr -= 15;
+    char str_bfr[10] = {};
+
+    //input
+    if (!dir) {
+        float value_bfr;
+        value_bfr = MAP(item->data.value, min, max, -12, 25);
+        float_to_str(value_bfr, str_bfr, 8, 2);
     }
-    else 
-    {
-        value_bfr = MAP(item->data.value, min, max, 0, 100);
+    //output, headphones
+    else {
+        float_to_str(item->data.value, str_bfr, 8, 2);
     }
-    int_to_str(value_bfr, str_bfr, 8, 0);
+
     strcpy(item->name, item->desc->name);
     uint8_t q;
     uint8_t value_size = strlen(str_bfr);
     uint8_t name_size = strlen(item->name);
-    for (q = 0; q < (31 - name_size - value_size - 1); q++)
+    for (q = 0; q < (31 - name_size - value_size - 3); q++)
     {
         strcat(item->name, " ");
     }
     strcat(item->name, str_bfr);
-    strcat(item->name, "%");
+    strcat(item->name, " dB");
 
     //if stereo link is on we need to update the other menu item as well
     if ((((event == MENU_EV_UP) || (event == MENU_EV_DOWN)) && (dir ? g_sl_out : g_sl_in))&& (item->desc->id != HP_VOLUME))
@@ -589,27 +591,27 @@ void system_volume_cb(void *arg, int event)
             case IN1_VOLUME:
                 source = "in 1";
                 min = 0;
-                max = 98.0;
-                step = 1.0;
+                max = 74.0;
+                step = 1;
                 break;
 
             case IN2_VOLUME:
                 source = "in 2";
-                min = 0.0;
-                max = 98.0;
-                step = 1.0;
+                min = 0;
+                max = 74.0;
+                step = 1;
                 break;
 
             case OUT1_VOLUME:
                 source = "out 1";
-                min = -60.0;
+                min = -127.5;
                 max = 0.0;
                 step = 2.0;
                 break;
 
             case OUT2_VOLUME:
                 source = "out 2";
-                min = -60.0;
+                min = -127.5;
                 max = 0.0;
                 step = 2.0;
                 break;

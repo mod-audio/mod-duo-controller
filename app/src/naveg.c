@@ -3312,29 +3312,27 @@ void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float
         if ((item->desc->id == update_id))
         {
             item->data.value = value;
+            char str_buf[10];
 
-            char str_buf[8];
-            float value_bfr;
-            if (!dir)
-            {
-                value_bfr = MAP(item->data.value, min, max, 0, 115);
-                value_bfr -= 15;
+            if (!dir) {
+                float value_bfr;
+                value_bfr = MAP(item->data.value, min, max, -12, 25);
+                float_to_str(value_bfr, str_buf, sizeof(str_buf), 2);
             }
-            else 
-            {
-                value_bfr = MAP(item->data.value, min, max, 0, 100);
+            else {
+                float_to_str(item->data.value, str_buf, sizeof(str_buf), 2);
             }
-            int_to_str(value_bfr, str_buf, sizeof(str_buf), 0);
+
             strcpy(item->name, item->desc->name);
             uint8_t q;
             uint8_t value_size = strlen(str_buf);
             uint8_t name_size = strlen(item->name);
-            for (q = 0; q < (31 - name_size - value_size - 1); q++)
+            for (q = 0; q < (31 - name_size - value_size - 3); q++)
             {
                 strcat(item->name, " ");
             }
             strcat(item->name, str_buf);
-            strcat(item->name, "%");
+            strcat(item->name, " dB");
         }
     }
 }
