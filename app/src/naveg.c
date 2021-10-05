@@ -474,7 +474,7 @@ static void foot_control_add(control_t *control)
         if (!display_has_tool_enabled(control->hw_id - ENCODERS_COUNT))
         {
             // updates the footer
-            screen_footer(control->hw_id - ENCODERS_COUNT, control->label, NULL, control->properties);
+            screen_footer(control->hw_id - ENCODERS_COUNT, control->label, TOGGLED_OFF_FOOTER_TEXT, control->properties);
         }
     }
 
