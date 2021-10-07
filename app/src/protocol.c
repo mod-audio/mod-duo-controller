@@ -581,7 +581,7 @@ void cb_snapshot_name(proto_t *proto)
     g_protocol_busy = true;
     system_lock_comm_serial(g_protocol_busy);
 
-    screen_ss_name(&proto->list[1] , 1);
+    screen_ss_name(&proto->list[2], 1);
 
     protocol_send_response(CMD_RESPONSE, 0, proto);
 
