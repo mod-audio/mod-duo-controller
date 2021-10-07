@@ -2332,23 +2332,31 @@ void naveg_inc_control(uint8_t display)
     control_t *control = g_controls[display];
     if (!control) return;
 
-    if  ((control->properties & (FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE))
-         && (control->scale_points_flag & FLAG_SCALEPOINT_PAGINATED))
+    if  (control->properties & (FLAG_CONTROL_ENUMERATION | FLAG_CONTROL_SCALE_POINTS | FLAG_CONTROL_REVERSE))
     {
-        //sets the direction
-        control->scroll_dir = g_scroll_dir = 0;
+        if (control->scale_points_flag & FLAG_SCALEPOINT_PAGINATED) {
+            //sets the direction
+            control->scroll_dir = g_scroll_dir = 0;
 
-        // increments the step
-        if (control->step < (control->steps - 3))
-            control->step++;
-        //we are at the end of our list ask for more data
-        else
-        {
-        	//request new data, a new control we be assigned after
-        	request_control_page(control, 1);
+            // increments the step
+            if (control->step < (control->steps - 3))
+                control->step++;
+            //we are at the end of our list ask for more data
+            else
+            {
+                //request new data, a new control we be assigned after
+                request_control_page(control, 1);
 
-        	//since a new control is assigned we can return
-        	return;
+                //since a new control is assigned we can return
+                return;
+            }
+        }
+        else {
+            // increments the step
+            if (control->step < (control->steps))
+                control->step++;
+            else
+                return;
         }    	
     }
     else if (control->properties & FLAG_CONTROL_TOGGLED)
