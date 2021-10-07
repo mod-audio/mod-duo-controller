@@ -604,14 +604,14 @@ void system_volume_cb(void *arg, int event)
 
             case OUT1_VOLUME:
                 source = "out 1";
-                min = -127.5;
+                min = -99.5;
                 max = 0.0;
                 step = 2.0;
                 break;
 
             case OUT2_VOLUME:
                 source = "out 2";
-                min = -127.5;
+                min = -99.5;
                 max = 0.0;
                 step = 2.0;
                 break;
