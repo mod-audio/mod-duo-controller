@@ -783,7 +783,7 @@ void system_hp_bypass_cb (void *arg, int event)
     add_chars_to_menu_name(item, str_bfr);
 
     //this setting changes just 1 item
-    if (event == MENU_EV_ENTER) naveg_menu_refresh(DISPLAY_RIGHT);
+    if (event == MENU_EV_ENTER) naveg_settings_refresh(DISPLAY_RIGHT);
 }
 
 void system_tuner_cb (void *arg, int event)
