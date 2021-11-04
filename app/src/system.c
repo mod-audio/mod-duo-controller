@@ -452,6 +452,9 @@ void system_bluetooth_cb(void *arg, int event)
         {
             response = cli_command("mod-bluetooth hmi", CLI_RETRIEVE_RESPONSE);
             
+            if (!response)
+                return;
+
             strncpy(resp, response, sizeof(resp)-1);
             char **items = strarr_split(resp, '|');;
 
