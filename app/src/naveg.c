@@ -110,6 +110,7 @@ static uint8_t g_scroll_dir = 1;
 
 // only enabled after "boot" command received
 bool g_should_wait_for_webgui = false;
+bool g_pedalboards_need_update = false;
 
 /*
 ************************************************************************************************************************
@@ -3190,6 +3191,41 @@ void naveg_update(void)
         (*g_update_cb)(g_update_data, MENU_EV_ENTER);
         screen_system_menu(g_update_data);
     }
+}
+
+void naveg_set_active_pedalboard(uint8_t pedalboard_index)
+{
+    //0th item is "back to banks list"
+    uint32_t index = pedalboard_index + 1;
+
+    g_current_pedalboard = index;
+    g_naveg_pedalboards->hover = index;
+    g_naveg_pedalboards->selected = index;
+}
+
+void naveg_set_pb_list_update(void)
+{
+    g_pedalboards_need_update = true;
+}
+
+bool naveg_get_pb_list_update(void)
+{
+    return g_pedalboards_need_update;
+}
+
+void naveg_update_pb_list(void)
+{
+    if (tool_is_on(DISPLAY_TOOL_NAVIG))
+    {
+        if (g_bp_state == PEDALBOARD_LIST) {
+            request_pedalboards(PAGE_DIR_INIT, atoi(g_banks->uids[g_banks->selected - g_banks->page_min]));
+
+            char *title = g_banks->names[g_banks->selected - g_banks->page_min];
+            screen_bp_list(title, g_naveg_pedalboards);
+        }
+    }
+
+    g_pedalboards_need_update = false;
 }
 
 uint8_t naveg_dialog(const char *msg)

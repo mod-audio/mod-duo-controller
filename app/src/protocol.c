@@ -284,6 +284,7 @@ void protocol_init(void)
     protocol_add_command(CMD_MENU_ITEM_CHANGE, cb_menu_item_changed);
     protocol_add_command(CMD_PEDALBOARD_CLEAR, cb_pedalboard_clear);
     protocol_add_command(CMD_PEDALBOARD_NAME_SET, cb_pedalboard_name);
+    protocol_add_command(CMD_PEDALBOARD_CHANGE, cb_pedalboard_change);
     protocol_add_command(CMD_SNAPSHOT_NAME_SET, cb_snapshot_name);
 }
 
@@ -573,6 +574,15 @@ void cb_pedalboard_name(proto_t *proto)
 
     g_protocol_busy = false;
     system_lock_comm_serial(g_protocol_busy);
+}
+
+void cb_pedalboard_change(proto_t *proto)
+{
+    naveg_set_active_pedalboard(atoi(proto->list[1]));
+
+    protocol_send_response(CMD_RESPONSE, 0, proto);
+
+    naveg_set_pb_list_update();
 }
 
 void cb_snapshot_name(proto_t *proto)

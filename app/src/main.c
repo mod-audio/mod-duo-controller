@@ -228,6 +228,11 @@ static void displays_task(void *pvParameters)
         glcd_update(hardware_glcds(i));
         if (++i == GLCD_COUNT) i = 0;
 
+        //check if nav mode needs update
+        if (naveg_get_pb_list_update()){
+            naveg_update_pb_list();
+        }
+
         // I know, this is embarrassing
         if (naveg_need_update())
         {
