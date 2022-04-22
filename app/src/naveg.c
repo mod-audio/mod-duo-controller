@@ -3199,8 +3199,11 @@ void naveg_set_active_pedalboard(uint8_t pedalboard_index)
     uint32_t index = pedalboard_index + 1;
 
     g_current_pedalboard = index;
-    g_naveg_pedalboards->hover = index;
-    g_naveg_pedalboards->selected = index;
+
+    if (g_current_bank == g_banks->selected) {
+        g_naveg_pedalboards->hover = index;
+        g_naveg_pedalboards->selected = index;
+    }
 }
 
 void naveg_set_pb_list_update(void)
