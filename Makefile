@@ -62,6 +62,7 @@ CFLAGS += -MMD -MP -MF $(OUT_DIR)/dep/$(@F).d
 CFLAGS += -I. $(patsubst %,-I%,$(INC))
 CFLAGS += -D$(CPU_SERIE)
 CFLAGS += -O2
+CFLAGS += -fcommon
 
 
 # Linker flags
