@@ -86,6 +86,13 @@ struct TOOL_T {
 */
 #define MAP(x, Omin, Omax, Nmin, Nmax)      ( x - Omin ) * (Nmax -  Nmin)  / (Omax - Omin) + Nmin;
 
+// input gain (MOD OS 1.15, measured 2026-11-08): internal 18..66 (mod-amixer dvol) is shown as 0..+24 dB in 0.5 dB
+// steps and matches the real gain. 18 = stage 0 with codec PGA -3 dB: below it the analog stage saturates before the
+// converter reaches full scale. 0 dB on the screen = 0 dBFS at +5.0 dBu input.
+#define INPUT_GAIN_MIN                      18.0f
+#define INPUT_GAIN_MAX                      66.0f
+#define INPUT_GAIN_DB(x)                    (((x) - INPUT_GAIN_MIN) * 0.5f)
+
 /*
 ************************************************************************************************************************
 *           LOCAL GLOBAL VARIABLES
@@ -3356,6 +3363,10 @@ void naveg_menu_refresh(uint8_t display_id)
 //the menu refresh is to slow for the gains so this one is added that only updates the set value.
 void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float min, float max, uint8_t dir)
 {
+    // the input gain text uses the fixed scale (INPUT_GAIN_DB), the range is kept for callers
+    (void)min;
+    (void)max;
+
     node_t *node = display_id ? g_current_menu : g_current_main_menu;
 
     //updates all items in a menu
@@ -3368,27 +3379,38 @@ void naveg_update_gain(uint8_t display_id, uint8_t update_id, float value, float
         if ((item->desc->id == update_id))
         {
             item->data.value = value;
-            char str_buf[10];
+            char str_buf[20] = {};
 
+            // same text as system.c: outputs as analog level in dBu (7.0 dBu at 0 dB),
+            // inputs as gain followed by the max input level (4.9 dBu at 0 dB gain)
+            const char *unit = " dBu";
+            float v = dir ? item->data.value + 7.0f : INPUT_GAIN_DB(item->data.value);
+            uint8_t k = 0;
+            if (v > 0.04f)
+                str_buf[k++] = '+';
+            k += float_to_str(v, &str_buf[k], sizeof(str_buf) - k, 1);
+            str_buf[k] = 0;
             if (!dir) {
-                float value_bfr;
-                value_bfr = MAP(item->data.value, min, max, -12, 25);
-                float_to_str(value_bfr, str_buf, sizeof(str_buf), 2);
-            }
-            else {
-                float_to_str(item->data.value, str_buf, sizeof(str_buf), 2);
+                float lvl = 4.9f - INPUT_GAIN_DB(item->data.value);
+                strcat(str_buf, "dB (");
+                k = strlen(str_buf);
+                if (lvl > 0.04f)
+                    str_buf[k++] = '+';
+                k += float_to_str(lvl, &str_buf[k], sizeof(str_buf) - k, 1);
+                str_buf[k] = 0;
+                unit = "dBu)";
             }
 
             strcpy(item->name, item->desc->name);
             uint8_t q;
             uint8_t value_size = strlen(str_buf);
             uint8_t name_size = strlen(item->name);
-            for (q = 0; q < (31 - name_size - value_size - 3); q++)
+            for (q = 0; q < (31 - name_size - value_size - strlen(unit)); q++)
             {
                 strcat(item->name, " ");
             }
             strcat(item->name, str_buf);
-            strcat(item->name, " dB");
+            strcat(item->name, unit);
         }
     }
 }
