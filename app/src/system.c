@@ -73,6 +73,23 @@ char *option_disabled = "[ ]";
 #define ROUND(x)    ((x) > 0.0 ? (((float)(x)) + 0.5) : (((float)(x)) - 0.5))
 #define MAP(x, Omin, Omax, Nmin, Nmax)      ( x - Omin ) * (Nmax -  Nmin)  / (Omax - Omin) + Nmin;
 
+// input gain (MOD OS 1.15, measured 2026-11-08): internal 18..66 (mod-amixer dvol) is shown as 0..+24 dB in 0.5 dB
+// steps and matches the real gain. 18 = stage 0 with codec PGA -3 dB: below it the analog stage saturates before the
+// converter reaches full scale. 0 dB on the screen = 0 dBFS at +5.0 dBu input.
+#define INPUT_GAIN_MIN                      18.0f
+#define INPUT_GAIN_MAX                      66.0f
+#define INPUT_GAIN_DB(x)                    (((x) - INPUT_GAIN_MIN) * 0.5f)
+// first value on the second analog gain stage (mod-amixer dvol: stage 1 from 49 = +15.5 dB); the step below it is
+// marked with '^' on screen, so users see where the stage switch (audible click) comes
+#define INPUT_GAIN_STAGE_1                  49.0f
+#define INPUT_GAIN_BEFORE_STAGE_1(x)        (((x) > INPUT_GAIN_STAGE_1 - 1.5f) && ((x) < INPUT_GAIN_STAGE_1 - 0.5f))
+// analog levels in dBu (measured 2026-11-09 on the bench Duo)
+// input: max input level (reaches full scale) at 0 dB gain; shown after the gain value
+#define INPUT_MAX_LEVEL_DBU                 4.9f
+#define INPUT_MAX_LEVEL(x)                  (INPUT_MAX_LEVEL_DBU - INPUT_GAIN_DB(x))
+// output: full scale with output volume at 0 dB (same level on TS and TRS cables)
+#define OUTPUT_MAX_LEVEL_DBU                7.0f
+
 
 /*
 ************************************************************************************************************************
@@ -284,29 +301,54 @@ static void volume(menu_item_t *item, int event, const char *source, float min, 
     //save gains globaly for stereo link functions
     g_gains_volumes[item->desc->id - VOLUME_ID] = item->data.value;
 
-    char str_bfr[10] = {};
+    char str_bfr[20] = {};
+    const char *unit = " dBu";
 
-    //input
-    if (!dir) {
-        float value_bfr;
-        value_bfr = MAP(item->data.value, min, max, -12, 25);
-        float_to_str(value_bfr, str_bfr, 8, 2);
+    //outputs: analog level in dBu, sign always shown
+    if (dir && (item->desc->id != HP_VOLUME)) {
+        float dbu = item->data.value + OUTPUT_MAX_LEVEL_DBU;
+        uint8_t k = 0;
+        if (dbu > 0.04f)
+            str_bfr[k++] = '+';
+        float_to_str(dbu, &str_bfr[k], sizeof(str_bfr) - k, 1);
     }
-    //output, headphones
+    //inputs: "+6.0dB (+1.8dBu)", gain then the max input level
+    else if (!dir) {
+        float gain = INPUT_GAIN_DB(item->data.value);
+        float lvl = INPUT_MAX_LEVEL(item->data.value);
+        uint8_t mark = INPUT_GAIN_BEFORE_STAGE_1(item->data.value);
+        uint8_t k = 0;
+        // last step before the stage switch: '^' in front, and no space before "(" so the line stays within 31 characters
+        if (mark)
+            str_bfr[k++] = '^';
+        if (gain > 0.04f)
+            str_bfr[k++] = '+';
+        k += float_to_str(gain, &str_bfr[k], sizeof(str_bfr) - k, 1);
+        str_bfr[k] = 0;
+        strcat(str_bfr, mark ? "dB(" : "dB (");
+        k = strlen(str_bfr);
+        if (lvl > 0.04f)
+            str_bfr[k++] = '+';
+        k += float_to_str(lvl, &str_bfr[k], sizeof(str_bfr) - k, 1);
+        str_bfr[k] = 0;
+        unit = "dBu)";
+    }
+    //headphones
     else {
         float_to_str(item->data.value, str_bfr, 8, 2);
+        unit = " dB";
     }
 
     strcpy(item->name, item->desc->name);
     uint8_t q;
     uint8_t value_size = strlen(str_bfr);
     uint8_t name_size = strlen(item->name);
-    for (q = 0; q < (31 - name_size - value_size - 3); q++)
+    for (q = 0; q < (31 - name_size - value_size - strlen(unit)); q++)
     {
         strcat(item->name, " ");
     }
     strcat(item->name, str_bfr);
-    strcat(item->name, " dB");
+    strcat(item->name, unit);
 
     //if stereo link is on we need to update the other menu item as well
     if ((((event == MENU_EV_UP) || (event == MENU_EV_DOWN)) && (dir ? g_sl_out : g_sl_in))&& (item->desc->id != HP_VOLUME))
@@ -593,15 +635,15 @@ void system_volume_cb(void *arg, int event)
         {
             case IN1_VOLUME:
                 source = "in 1";
-                min = 0;
-                max = 74.0;
+                min = INPUT_GAIN_MIN;
+                max = INPUT_GAIN_MAX;
                 step = 1;
                 break;
 
             case IN2_VOLUME:
                 source = "in 2";
-                min = 0;
-                max = 74.0;
+                min = INPUT_GAIN_MIN;
+                max = INPUT_GAIN_MAX;
                 step = 1;
                 break;
 
@@ -707,7 +749,7 @@ void system_sl_in_cb (void *arg, int event)
             //keep everything in sync
             g_gains_volumes[IN2_VOLUME - VOLUME_ID] = g_gains_volumes[IN1_VOLUME - VOLUME_ID];
 
-            naveg_update_gain(DISPLAY_RIGHT, IN2_VOLUME, g_gains_volumes[IN1_VOLUME - VOLUME_ID], 0, 98, 0);
+            naveg_update_gain(DISPLAY_RIGHT, IN2_VOLUME, g_gains_volumes[IN1_VOLUME - VOLUME_ID], INPUT_GAIN_MIN, INPUT_GAIN_MAX, 0);
 
             system_save_gains_cb(NULL, MENU_EV_ENTER);
         }
